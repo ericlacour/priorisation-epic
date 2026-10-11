@@ -26,7 +26,7 @@
 - Q : peut-on changer l'échelle pendant un tour de vote ouvert ? → A: Non. C'est refusé tant qu'un tour est ouvert.
 - Q : faut-il afficher l'historique des modifications de valeurs ? → A: Non, il ne sert pas. Les modifications restent enregistrées (constitution III) mais ne sont pas affichées en V1.
 - Q : comment consulter le descriptif d'une fonctionnalité sans surcharger l'écran ? → A: Clic sur l'identifiant, qui ouvre un panneau de détail (descriptif, valeurs, calcul).
-- Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile.
+- Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile. Même règle pour les écrans du tour en cours et de la révélation.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -329,7 +329,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
   défile**, avec un en-tête de colonnes figé. Les titres trop longs sont tronqués (le titre
   complet est lisible dans le panneau de détail, FR-016b). Le panneau latéral défile
-  séparément si besoin.
+  séparément si besoin. La même règle s'applique à l'écran du **tour en cours**, où le
+  panneau de vote et le tableau défilent chacun de leur côté, et à l'écran de
+  **révélation et consensus**, où seule la liste des fonctionnalités révélées défile et
+  où la barre d'actions (« Relancer un tour sur la sélection ») reste visible.
 - **FR-015**: Toute modification de BV, TC, RR/OE ou JS DOIT mettre à jour le CoD, le WSJF
   et le tri, sans rechargement et pour tous les membres connectés à la session. Le
   recalcul et le retri ont lieu quand l'animateur **valide la ligne** (« Enregistrer »),

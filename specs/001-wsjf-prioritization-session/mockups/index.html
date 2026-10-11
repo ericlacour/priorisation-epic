@@ -389,6 +389,18 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
   .screen.fit .toast { bottom: 44px; padding: 8px 12px; }
 }
 @container (min-width: 601px) { .screen.fit .glossary-box summary h3 { font-size: 15px; } .screen.fit .glossary-box summary::after { font-size: 12px; white-space: nowrap; } }
+@container (min-width: 601px) {
+  .screen.fit-vote .page { grid-template-rows: auto minmax(0, 1fr); }
+  .screen.fit-vote .layout-board > .vote-col { grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; }
+  .screen.fit-vote .vote-card { overflow-y: auto; align-content: start; padding: 14px 16px; }
+  .screen.fit-vote .vote-feature { padding: 10px 12px; gap: 6px; }
+  .screen.fit-vote .vote-inputs { gap: 6px 20px; }
+  .screen.fit-vote .vote-inputs .input { min-height: 34px; padding: 2px 8px; }
+  .screen.fit-reveal .page { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .screen.fit-reveal .reveal-list { min-height: 0; overflow-y: auto; display: grid; gap: 10px; align-content: start; padding-right: 4px; }
+  .screen.fit-reveal .reveal-list .card { padding: 12px 16px; }
+  .screen.fit-reveal .reveal-grid th, .screen.fit-reveal .reveal-grid td { padding-top: 6px; padding-bottom: 6px; }
+}
 .screen { display: none; }
 .screen.active { display: block; }
 .anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
@@ -703,7 +715,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
 </section>
 
 <!-- ======================= 5. TOUR EN COURS : PARTICIPANT ======================= -->
-<section class="screen" id="s5" data-note="US2, FR-016a, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
+<section class="screen fit fit-vote" id="s5" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : le panneau de vote et le tableau défilent chacun de leur côté. US2, FR-016a, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Échelle 1 à 10</div></div>
@@ -712,10 +724,10 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
   </header>
   <div class="page">
     <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
-    <div class="notice info"><span class="ico">●</span><span><b>Tour 2 en cours</b> sur 2 fonctionnalités. Vos votes restent cachés jusqu'à la révélation par l'animateur.</span></div>
+    <div class="notice info"><span class="ico">●</span><span><b>Tour 2 en cours</b> sur 3 fonctionnalités. Vos votes restent cachés jusqu'à la révélation par l'animateur.</span></div>
     <div class="layout-board">
-      <div style="display:grid;gap:16px">
-        <div class="card no-phone" style="display:grid;gap:12px">
+      <div class="vote-col" style="display:grid;gap:16px">
+        <div class="card no-phone vote-card" style="display:grid;gap:12px">
           <h2 style="margin:0">Votre vote</h2>
           <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Les définitions sont dans l'encadré « Comprendre le WSJF », à droite.</p>
           <div class="vote-feature done">
@@ -737,6 +749,15 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
             </div>
             <p class="err small" id="tc-err" style="margin:0;color:var(--danger)">TC : saisissez un nombre entier entre 1 et 10. RR/OE : « 2,5 » n'est pas un nombre entier.</p>
           </div>
+          <div class="vote-feature">
+            <div class="actions" style="justify-content:space-between"><b><a href="#" class="fid" data-go="s4c">F-8</a> · Réservation de créneau de livraison</b><span class="badge">À noter</span></div>
+            <div class="vote-inputs">
+              <label>BV · Business Value<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>TC · Time Criticality<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="—"></label>
+            </div>
+          </div>
         </div>
         <div class="table-wrap desktop-only">
           <table aria-label="Tableau WSJF">
@@ -746,6 +767,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
               <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
               <tr class="masked"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
               <tr class="masked"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title">Notifications de livraison <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
+              <tr class="masked"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title">Réservation de créneau <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
             </tbody>
           </table>
           <div class="legend">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</div>
@@ -758,6 +780,15 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
         </div>
       </div>
       <aside class="side">
+        <div class="card">
+          <h3>Avancement du tour 2</h3>
+          <ul class="plist">
+            <li><span class="dot on"></span>alice (vous)<span class="progress">1 / 3</span></li>
+            <li><span class="dot on"></span>eric<span class="progress">3 / 3</span></li>
+            <li><span class="dot off"></span>bob<span class="progress">0 / 3</span></li>
+          </ul>
+          <p class="help" style="margin-bottom:0">Personne, pas même l'animateur, ne voit les valeurs des autres avant la révélation.</p>
+        </div>
         <details class="card glossary-box" open>
           <summary><h3>Comprendre le WSJF</h3></summary>
           <dl class="glossary">
@@ -769,22 +800,13 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
             <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
           </dl>
         </details>
-        <div class="card">
-          <h3>Avancement du tour 2</h3>
-          <ul class="plist">
-            <li><span class="dot on"></span>alice (vous)<span class="progress">1 / 2</span></li>
-            <li><span class="dot on"></span>eric<span class="progress">2 / 2</span></li>
-            <li><span class="dot off"></span>bob<span class="progress">0 / 2</span></li>
-          </ul>
-          <p class="help" style="margin-bottom:0">Personne, pas même l'animateur, ne voit les valeurs des autres avant la révélation.</p>
-        </div>
       </aside>
     </div>
   </div>
 </section>
 
 <!-- ======================= 6. RÉVÉLATION ET CONSENSUS ======================= -->
-<section class="screen" id="s6" data-note="FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Écart important = maximum moins minimum strictement supérieur à 3. Les champs de consensus sont vides, sauf si tous les votants ont saisi la même valeur.">
+<section class="screen fit fit-reveal" id="s6" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible. FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Écart important = maximum moins minimum strictement supérieur à 3. Les champs de consensus sont vides, sauf si tous les votants ont saisi la même valeur.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
@@ -794,6 +816,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
   <div class="page">
     <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
     <div class="notice success"><span class="ico">✓</span><span><b>Tour 2 révélé</b> : 2 fonctionnalités. Discutez des écarts, puis fixez les valeurs retenues.</span></div>
+    <div class="reveal-list">
     <div class="card" style="display:grid;gap:12px">
       <div class="actions" style="justify-content:space-between"><h2 style="margin:0"><a href="#" class="fid" data-go="s4c">F-1</a> · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
       <div class="table-wrap">
@@ -830,6 +853,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
           </tbody>
         </table>
       </div>
+    </div>
     </div>
     <div class="actions no-phone">
       <button class="btn primary" type="button">Relancer un tour sur la sélection (1)</button>
