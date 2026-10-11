@@ -184,6 +184,23 @@ différences sont imposées par la spec ou la constitution :
 - la base est sur Neon, hors du blueprint, et reliée par la variable secrète `DATABASE_URL` ;
 - CodeQL et Gitleaks s'ajoutent à la CI.
 
+## Ordre de mise en place
+
+- **Dès la fondation**, avant toute fonctionnalité :
+  - `contract/` et sa validation ;
+  - la CI (`ci.yml`) ;
+  - **Dependabot, CodeQL et Gitleaks** ;
+  - le `Dockerfile` du back, construit et démarré en CI pour vérifier tôt qu'il reste
+    compatible OpenShift.
+- **Déploiement reporté** : on le met en place quand une première fonctionnalité est
+  testable de bout en bout, au plus tôt après le MVP (US1). Il comprend :
+  - `deploy/render.yaml`, `deploy/render-deploy.sh` et son test ;
+  - `deploy.yml` et `deploy/README.md` ;
+  - la création des services Render et du projet Neon ;
+  - les secrets GitHub du déploiement.
+
+  Il fait l'objet d'une phase dédiée dans `tasks.md`, et non de la fondation.
+
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
