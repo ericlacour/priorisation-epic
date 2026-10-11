@@ -66,6 +66,7 @@ ouvert.
 | V13 | US5 : consultation | Clôturer, puis rouvrir depuis la liste des sessions | La session est en lecture seule, et les tours révélés restent consultables. L'animateur peut la rouvrir avec son lien |
 | V14 | Concurrence | Modifier le BV de F-1 dans deux onglets d'animateur | Le second reçoit `STALE_VERSION` et voit la valeur actuelle avant de confirmer |
 | V15 | Reconnexion | Couper puis rétablir le réseau d'un participant | Il se reconnecte automatiquement et retrouve son état et ses votes |
+| V16 | FR-016a, FR-016b : définitions et descriptif | Survoler BV dans le tableau. Replier puis déplier « Comprendre le WSJF ». Cliquer sur F-1, lire le descriptif, cliquer sur « Modifier le titre et le descriptif », changer le titre, puis « Enregistrer » | La définition de BV s'affiche. L'encadré garde son état après rechargement. Le panneau affiche le descriptif, les valeurs et le calcul. Le nouveau titre apparaît en moins de 2 s dans un second navigateur, et « Annuler » n'envoie rien |
 
 ## Valider le déploiement sur Render (V1 temporaire, comme planning-poker)
 

@@ -149,6 +149,9 @@ font partie du tour (au moins une, FR-018).
   (maximum moins minimum strictement supérieur à 3, FR-020) et la **valeur unanime**
   (identique chez tous les votants, sinon vide), qui préremplit le consensus (FR-021). Les participants qui n'ont pas voté sont signalés. Ce sont
   les participants inscrits dans la session au moment de la révélation, animateur compris.
+- Tous les tours révélés restent visibles par tous, du plus récent au plus ancien, avec
+  leurs votes (`revealedRounds` dans `sessionState`, FR-022, écran 9). Un tour encore
+  `OPEN` n'y figure jamais.
 
 ## ChangeLogEntry (Entrée d'historique, enregistrée mais non affichée en V1)
 
