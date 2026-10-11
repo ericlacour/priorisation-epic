@@ -190,7 +190,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `frontend/src/app/api/` ;
   - `frontend/src/app/storage/` (clés `pe.token.{sessionId}` et `pe.animation.{sessionId}`) ;
   - les tests `node --test` de `frontend/scripts/`.
-- [ ] T036 [P] Reprendre de PP la coquille de l'interface : `frontend/src/app/top-bar/`, `theme/`, `wake/` (écran « réveil du service » pendant que l'hébergeur sort de veille) et `app.routes.ts`. Routes : `/`, `/s/:sessionId`, `/s/:sessionId/animer`
+- [ ] T036 [P] Reprendre de PP la coquille de l'interface, avec le nom de l'application **« Priorisation Fonctionnalités »** (titre de la page d'accueil, balise `<title>` et pastille « PF », textes dans `messages.fr.ts`) : `frontend/src/app/top-bar/`, `theme/`, `wake/` (écran « réveil du service » pendant que l'hébergeur sort de veille) et `app.routes.ts`. Routes : `/`, `/s/:sessionId`, `/s/:sessionId/animer`
 
 **Checkpoint** : la CI est verte, avec Dependabot, CodeQL et Gitleaks actifs et une image qui démarre. Un client peut ouvrir un WebSocket et faire `hello`. Les parcours peuvent commencer.
 
