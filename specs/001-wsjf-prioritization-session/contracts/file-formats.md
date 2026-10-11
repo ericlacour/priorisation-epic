@@ -134,8 +134,10 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
   ],
   "rounds": [
     { "number": 1, "status": "REVEALED", "featureExternalIds": ["F-1"],
+      "openedAt": "2026-10-11T13:40:00Z", "revealedAt": "2026-10-11T13:45:00Z",
       "votes": [ { "pseudo": "alice", "featureExternalId": "F-1",
-                   "bv": 8, "tc": 5, "rrOe": 3, "js": 5 } ] }
+                   "bv": 8, "tc": 5, "rrOe": 3, "js": 5,
+                   "updatedAt": "2026-10-11T13:42:00Z" } ] }
   ]
 }
 ```
@@ -146,9 +148,16 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
 - **Créer une nouvelle session à partir d'un JSON** (`POST /api/sessions/from-json`) :
   - on reprend l'échelle, la méthode, les `features`, ainsi que les **tours révélés** et
     leurs votes ;
-  - chaque pseudo présent dans les votes devient un participant hors ligne, sans jeton.
-    On reprend sa place par la règle des 10 minutes d'absence ;
-  - le créateur devient l'animateur ;
+  - chaque pseudo présent dans les votes devient un participant hors ligne, sans jeton
+    et jamais connecté. Le premier qui rejoint avec ce pseudo le reprend immédiatement,
+    avec ses votes ;
+  - le créateur devient l'animateur. Si son pseudo figure déjà dans les votes du fichier
+    (comparaison insensible à la casse), il reprend ce participant et ses votes ;
+  - les dates sont restaurées telles quelles : `updatedAt` de chaque vote, `openedAt` et
+    `revealedAt` de chaque tour. Cela conserve l'auteur et la date de chaque évaluation
+    (constitution III). Un fichier ancien sans ces dates prend la date de l'import, et
+    l'aperçu le signale par un avertissement. Ajouter ces champs ne change pas
+    `formatVersion`, car c'est un ajout ;
   - un tour encore ouvert n'est jamais présent dans un export (SC-004).
 
   C'est l'aller-retour US4, scénario 3, et SC-008.
