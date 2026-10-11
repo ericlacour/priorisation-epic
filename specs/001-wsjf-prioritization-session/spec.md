@@ -245,14 +245,22 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   Le pseudo seul ne donne jamais les droits d'animateur. Le lien d'animation reste
   consultable par l'animateur dans la session.
 - **FR-002a**: L'animateur DOIT pouvoir transmettre son rôle à un participant présent dans
-  la session. Le participant choisi devient animateur, l'ancien animateur devient simple
+  la session, c'est-à-dire **connecté au moment de la transmission**. Une transmission
+  vers un participant hors ligne est refusée, avec le message « Ce participant n'est pas
+  connecté : il ne pourrait pas recevoir son lien d'animation ». Le participant choisi devient animateur, l'ancien animateur devient simple
   participant, un nouveau lien d'animation est remis au nouvel animateur, et l'ancien lien
   cesse de donner les droits d'animateur. Il y a toujours exactement un animateur par
   session.
 - **FR-003**: Le système NE DOIT PAS exiger de mot de passe ni de compte. Un pseudo est
   unique au sein d'une session.
 - **FR-004**: Une session DOIT avoir l'un des statuts « en préparation », « en cours » ou
-  « clôturée ». Seul l'animateur DOIT pouvoir en changer le statut.
+  « clôturée ». Seul l'animateur DOIT pouvoir en changer le statut. Effet de chaque
+  statut :
+  - **en préparation** : l'animateur saisit, importe et règle l'échelle. Les participants
+    peuvent rejoindre et voir le tableau, mais **aucun tour de vote** ne peut être ouvert ;
+  - **en cours** : tout est permis, y compris les tours de vote. L'import et le changement
+    d'échelle restent possibles ;
+  - **clôturée** : lecture seule, sauf la réouverture par l'animateur.
 - **FR-005**: Le système DOIT afficher, pour tous les membres, la liste des participants
   présents dans la session.
 
@@ -261,6 +269,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-006**: L'animateur DOIT pouvoir ajouter, modifier et supprimer des fonctionnalités.
   Une fonctionnalité comporte un identifiant (obligatoire, unique dans la session), un
   titre (obligatoire), une description (facultative) et les critères BV, TC, RR/OE et JS.
+  Seul l'animateur modifie les valeurs retenues des fonctionnalités, en saisie directe
+  comme après un vote. Les participants ne saisissent que leurs propres votes.
 - **FR-007**: L'animateur DOIT pouvoir importer des fonctionnalités depuis un fichier Excel
   (.xlsx), un fichier CSV ou un export JSON de l'outil. Pour Excel et CSV, les en-têtes
   de colonnes sont imposés : « Identifiant », « Titre », « Description », « BV », « TC »,
@@ -313,8 +323,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 
 - **FR-018**: L'animateur DOIT pouvoir ouvrir un tour de vote masqué en choisissant les
   fonctionnalités qu'il inclut : une, plusieurs ou toutes celles de la session. Une
-  fonctionnalité ne peut appartenir qu'à un seul tour ouvert à la fois. Le vote masqué est
-  facultatif : les valeurs peuvent toujours être saisies directement.
+  fonctionnalité ne peut appartenir qu'à un seul tour ouvert à la fois. Un tour ne peut
+  être ouvert que si la session est **en cours** (FR-004). Le vote masqué est facultatif :
+  les valeurs peuvent toujours être saisies directement.
 - **FR-019**: Pendant un tour ouvert, chaque participant DOIT pouvoir saisir et modifier ses
   propres valeurs pour les quatre critères de chaque fonctionnalité du tour. Personne, y
   compris l'animateur, ne voit les valeurs des autres avant la révélation. Tous voient,
@@ -330,9 +341,7 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
   maximum par critère sont visibles par tous, et le tour n'accepte plus de vote.
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
-  retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité. Plus
-  généralement, seul l'animateur modifie les valeurs retenues des fonctionnalités, y
-  compris en saisie directe. Les participants ne saisissent que leurs propres votes.
+  retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité (voir FR-006).
 - **FR-022**: Après révélation, l'animateur DOIT pouvoir lancer un nouveau tour sur une
   sélection des fonctionnalités du tour précédent (typiquement celles sans accord), sans
   limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
@@ -395,10 +404,12 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **SC-004**: Aucune valeur de vote, ni aucune valeur retenue d'une fonctionnalité en cours
   de vote (FR-019a), n'est visible d'un participant avant la révélation,
   dans 100 % des cas testés.
-- **SC-005**: Une session de 10 participants et 50 fonctionnalités se déroule sans
-  ralentissement perceptible.
+- **SC-005**: Avec 10 participants connectés et 50 fonctionnalités, chaque modification est
+  visible par tous en moins de 2 secondes, et l'ouverture de la session prend moins de
+  3 secondes. Au-delà, jusqu'à 100 fonctionnalités, la session reste utilisable sans
+  garantie de performance.
 - **SC-006**: 90 % des participants rejoignent une session et enregistrent leur premier
-  vote sans aide.
+  vote sans aide (mesuré par observation en atelier, pas par un test automatique).
 - **SC-007**: Un tableau exporté au format Confluence s'affiche correctement dans une page
   Confluence sans retouche, et un export CSV s'ouvre dans un tableur français sans
   problème d'accents ni de décimales.

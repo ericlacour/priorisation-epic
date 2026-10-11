@@ -294,7 +294,9 @@ planning-poker est indiquée, sous la forme `PP : …`.
 - **Front** : Vitest avec jsdom, et des scripts `node --test` pour la configuration et la
   CSP, comme dans PP.
 - **Bout en bout** :
-  - Playwright sur Chromium et WebKit, avec des tests e2e contre un faux socket
+  - Playwright sur **Chromium, Firefox et WebKit** (Firefox en plus de PP, pour couvrir
+    les « navigateurs récents du marché » du principe IV), avec des tests e2e contre un
+    faux socket
     (`e2e/`) ;
   - des parcours complets contre le vrai back (`e2e-journeys/`), qui jouent les
     scénarios V1 à V14 du quickstart ;

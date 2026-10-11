@@ -43,7 +43,10 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 
 - En statut `CLOSED`, toute écriture est refusée (lecture seule), sauf « rouvrir ».
 - Les fonctionnalités, les valeurs et l'échelle sont modifiables en `PREPARATION` comme en
-  `IN_PROGRESS`.
+  `IN_PROGRESS`. L'import est possible dans les deux statuts.
+- Un tour de vote ne peut être ouvert qu'en `IN_PROGRESS`. En `PREPARATION`, `openRound`
+  renvoie `error SESSION_NOT_STARTED` (FR-004, FR-018).
+- `CLOSE` n'est possible que s'il n'y a aucun tour `OPEN`, sinon `error ROUND_OPEN`.
 - En `IN_PROGRESS`, supprimer une fonctionnalité demande une confirmation.
 
 ## Participant (Participant)
@@ -61,7 +64,8 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 **Règles** :
 - Les droits d'animateur (`FACILITATOR`) sont accordés **uniquement** à la présentation
   d'un jeton d'animation valide. Le pseudo seul ne suffit jamais.
-- Transmission du rôle (FR-002a) : en une seule transaction, l'ancien animateur passe
+- Transmission du rôle (FR-002a) : refusée avec `error PARTICIPANT_OFFLINE` si le
+  bénéficiaire n'a aucune connexion ouverte. Sinon, en une seule transaction, l'ancien animateur passe
   `PARTICIPANT` et le bénéficiaire passe `FACILITATOR`. Le serveur génère un nouveau jeton
   d'animation et remplace son empreinte dans `animationTokenHash`. Le nouveau jeton est envoyé uniquement à la connexion du
   bénéficiaire, dans le message WebSocket `facilitatorHandover`.

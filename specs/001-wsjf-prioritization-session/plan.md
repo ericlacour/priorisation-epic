@@ -45,15 +45,15 @@ Le détail des choix est dans [research.md](./research.md).
 - Back : JUnit 5, AssertJ, jqwik, `spring-boot-starter-webmvc-test`, tests WebSocket,
   Testcontainers (PostgreSQL), ArchUnit, JaCoCo.
 - Front : Vitest avec jsdom, et des scripts `node --test`.
-- Bout en bout : Playwright sur Chromium et WebKit (`e2e/` et `e2e-journeys/`), avec
+- Bout en bout : Playwright sur Chromium, Firefox et WebKit (`e2e/` et `e2e-journeys/`), avec
   `@axe-core/playwright` pour l'accessibilité.
 - Contrat : `npm run validate` et `npm test`.
 
-**Target Platform**: V1 sur Render (Web Service Docker et Static Site, région Frankfurt) et base sur Neon (AWS Frankfurt). L'image est compatible OpenShift en vue de la cible pérenne commune avec PP. Navigateurs récents, testés sur Chromium et WebKit
+**Target Platform**: V1 sur Render (Web Service Docker et Static Site, région Frankfurt) et base sur Neon (AWS Frankfurt). L'image est compatible OpenShift en vue de la cible pérenne commune avec PP. Navigateurs récents, testés sur Chromium, Firefox et WebKit
 
 **Project Type**: application web (`contract/`, `backend/`, `frontend/`, `deploy/`), avec la même organisation que PP
 
-**Performance Goals**: propagation d'une modification à tous les membres connectés en moins de 2 s (SC-002) ; 10 participants et 50 fonctionnalités par session sans ralentissement (SC-005)
+**Performance Goals**: propagation d'une modification à tous les membres connectés en moins de 2 s (SC-002) ; avec 10 participants et 50 fonctionnalités, propagation en moins de 2 s et ouverture de session en moins de 3 s (SC-005)
 
 **Constraints**:
 - Aucune authentification : pseudo, plus jeton d'animation (constitution III, v2.0.0).
@@ -68,7 +68,7 @@ Le détail des choix est dans [research.md](./research.md).
   équipes, Jira, connexion à Confluence, IA / LLM, notifications, pondérations WSJF,
   autres méthodes, fonctionnalités avancées de SAFe. Aucune tâche ne doit les couvrir.
 
-**Scale/Scope**: environ 20 sessions actives en même temps, 10 participants et 50 à 100 fonctionnalités par session, une dizaine d'écrans
+**Scale/Scope**: environ 20 sessions actives en même temps, 10 participants et 50 fonctionnalités par session (cible testée, SC-005), jusqu'à 100 sans garantie de performance, une dizaine d'écrans
 
 ## Constitution Check
 
