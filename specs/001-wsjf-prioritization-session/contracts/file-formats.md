@@ -97,7 +97,7 @@ règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180
 ## Confluence
 
 Les deux sorties contiennent les mêmes colonnes et lignes que l'export CSV, dans l'ordre du
-tableau, avec un titre `Priorisation WSJF : <nom de session> (<JJ/MM/AAAA>)` et une ligne de
+tableau, avec un titre `Priorisation Fonctionnalités : <nom de session> (<JJ/MM/AAAA>)` et une ligne de
 légende qui rappelle la formule et la règle d'égalité (constitution, principe I).
 
 1. **`confluence-html`** : un fragment HTML `<table>`, sans styles externes, copié dans le

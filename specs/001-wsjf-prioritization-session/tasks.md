@@ -436,7 +436,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `Rang`, `CoD` et `WSJF` vides si la fonctionnalité est incomplète ;
   - UTF-8 avec BOM ;
   - échappement wiki de `| { } [ ]` et sauts de ligne remplacés par `\\` ;
-  - titre « Priorisation WSJF : <nom> (<JJ/MM/AAAA>) » et légende avec la formule et la règle d'égalité ;
+  - titre « Priorisation Fonctionnalités : <nom> (<JJ/MM/AAAA>) » et légende avec la formule et la règle d'égalité ;
   - JSON `formatVersion: 1` sans les votes d'un tour ouvert ;
   - **CSV des votes** `votes-v1` (`CsvVotesWriterTest.java`) : colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`, une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo, **tours révélés uniquement** ;
   - **versions de format** dans le nom des fichiers (`-tableau-v1.csv`, `-votes-v1.csv`, `-confluence-v1.txt`) et dans la légende Confluence (« Format confluence-v1 »), selon la section « Versions des formats » de `contracts/file-formats.md`.
