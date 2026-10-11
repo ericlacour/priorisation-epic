@@ -83,6 +83,11 @@ Tout ce que lisent les utilisateurs et l'équipe produit est rédigé en frança
   dates JJ/MM/AAAA.
 - Les identifiants de code (variables, fonctions, tables) PEUVENT rester en anglais. Ils
   DOIVENT alors suivre une convention unique, fixée dans le premier `plan.md`.
+- Les **contrats techniques d'échange** (OpenAPI, AsyncAPI, JSON Schema et leurs
+  exemples, dans `contract/` comme dans leur conception sous `specs/*/contracts/`)
+  PEUVENT être rédigés entièrement en anglais, descriptions comprises. Cela les garde
+  alignés avec les autres projets de l'équipe (planning-poker). Les textes qu'ils
+  contiennent et qui s'affichent aux utilisateurs restent en français.
 - Tous les textes de l'interface DOIVENT être centralisés, et non dispersés en dur dans le
   code, pour pouvoir être relus et corrigés en un seul endroit.
 
@@ -158,4 +163,4 @@ sauvegarder et changer d'outil sans dépendre de celui-ci.
 - **Conformité** : toute relecture de PR vérifie le respect des principes. Une dérogation
   DOIT être justifiée par écrit dans le plan concerné (« Complexity Tracking »).
 
-**Version**: 2.0.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
+**Version**: 2.1.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11

@@ -211,10 +211,14 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   déjà utilisé, donc il est refusé. Même sans cela, aucun droit d'animateur ne serait
   accordé sans le lien d'animation.
 - **Participant qui quitte la session** pendant un vote : ses votes déjà enregistrés sont
-  conservés, et il peut revenir avec le même pseudo.
+  conservés. Il revient à sa place, avec ses votes, en rouvrant la session **depuis le
+  même navigateur**. Depuis un autre poste, il ne peut reprendre **son pseudo** qu'après
+  **10 minutes d'absence** (aucune connexion ouverte), comme dans planning-poker. Il
+  retrouve alors sa place et ses votes, et l'ancien navigateur perd l'accès à ce pseudo.
+  Avant ces 10 minutes, le pseudo est refusé comme « déjà utilisé ». Le rôle d'animateur
+  n'est pas concerné : il reste attaché au lien d'animation.
 - **Fonctionnalité supprimée** pendant la préparation : elle disparaît du tableau. Une fois
-  la session en cours, la suppression demande une confirmation et reste tracée dans
-  l'historique.
+  la session en cours, la suppression demande une confirmation.
 - **Fichier d'import** vide, illisible, au mauvais format ou sans les en-têtes
   « Identifiant » et « Titre » : l'import est refusé avec un message qui indique la cause,
   liste les en-têtes attendus et propose le modèle à télécharger.
@@ -244,7 +248,7 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   la session. Le participant choisi devient animateur, l'ancien animateur devient simple
   participant, un nouveau lien d'animation est remis au nouvel animateur, et l'ancien lien
   cesse de donner les droits d'animateur. Il y a toujours exactement un animateur par
-  session, et chaque transmission est tracée dans l'historique.
+  session.
 - **FR-003**: Le système NE DOIT PAS exiger de mot de passe ni de compte. Un pseudo est
   unique au sein d'une session.
 - **FR-004**: Une session DOIT avoir l'un des statuts « en préparation », « en cours » ou
@@ -339,12 +343,17 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-023**: Tout membre DOIT pouvoir exporter le tableau dans l'ordre affiché au format
   Confluence (tableau à coller dans une page) et au format CSV (encodage compatible avec
   les accents et un tableur français).
-- **FR-024**: Tout membre DOIT pouvoir exporter la session complète en JSON
+- **FR-024**: Tout membre DOIT pouvoir exporter les votes des tours révélés en CSV
+  (constitution VI), et la session complète en JSON
   (fonctionnalités, valeurs, échelle, méthode, tours de vote). Un export suivi d'un
   réimport DOIT redonner les mêmes données et les mêmes scores.
-- **FR-025**: Le système DOIT conserver, pour chaque modification de valeur, de
-  fonctionnalité ou d'échelle, le pseudo de son auteur, sa date et l'ancienne et la
-  nouvelle valeur. Cet historique est consultable.
+- **FR-025**: Le système DOIT conserver, pour chaque **modification d'une valeur retenue**
+  (BV, TC, RR/OE ou JS d'une fonctionnalité existante) et pour chaque **changement
+  d'échelle**, le pseudo de son auteur, sa date, l'ancienne et la nouvelle valeur. Cet
+  historique est consultable. Les autres opérations ne sont pas tracées dans
+  l'historique, pour rester simple : création, modification du titre ou de la
+  description, suppression, import, changement de statut, transmission du rôle. Les votes
+  gardent leur auteur et leur date dans les tours de vote (constitution III).
 - **FR-026**: Le système DOIT conserver les sessions et proposer une liste de toutes les
   sessions, visible par toute personne ayant accès à l'outil, permettant de les ouvrir.
   Une session clôturée est consultable en lecture seule, et son animateur peut la
@@ -370,8 +379,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   de ses fonctionnalités et des votes.
 - **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant pour une
   fonctionnalité dans un tour.
-- **Entrée d'historique** : une modification tracée. Elle a un auteur (pseudo), une date,
-  l'élément modifié et l'ancienne et la nouvelle valeur.
+- **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025). Elle
+  a un auteur (pseudo), une date, l'élément modifié, l'ancienne et la nouvelle valeur.
 
 ## Success Criteria *(mandatory)*
 
@@ -423,8 +432,11 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - Seul l'animateur modifie les valeurs retenues (saisie directe ou consensus). Les
   participants voient le tableau en direct et votent lors des tours masqués.
 - Toutes les sessions sont visibles par toute personne ayant accès à l'outil : la v1 ne
-  prévoit aucune confidentialité entre équipes. L'outil est donc destiné à un usage
-  interne, sur un périmètre de confiance.
+  prévoit aucune confidentialité entre équipes.
+- **Exposition publique acceptée pendant la V1 temporaire** : l'application est accessible
+  depuis Internet (hébergement Render) et ses données sont chez un fournisseur tiers
+  (base Neon). Ce choix est accepté tant que dure cette solution temporaire. **Consigne :
+  ne pas saisir de données confidentielles tant que l'application est sur Neon.**
 - Les sessions sont conservées sans limite de durée en v1. Leur suppression n'est pas
   prévue dans cette fonctionnalité.
 - L'interface, les exports et les messages sont en français (principe V de la

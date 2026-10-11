@@ -74,7 +74,7 @@ Le détail des choix est dans [research.md](./research.md).
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Ce contrôle est fait par rapport à la constitution v2.0.0.
+Ce contrôle est fait par rapport à la constitution v2.1.0.
 
 | Principe / règle | Exigence | Comment le plan y répond | Statut |
 |------------------|----------|--------------------------|--------|
@@ -82,7 +82,7 @@ Ce contrôle est fait par rapport à la constitution v2.0.0.
 | **II. Logique testée** | Calcul, tri, égalités, validation et cas limites testés ; domaine isolé ; CI bloquante | Architecture hexagonale, isolement vérifié par ArchUnit. Tests unitaires et jqwik. JaCoCo à 90 % sur `domain`. Exemples du contrat validés. CI obligatoire pour merger | ✅ |
 | **III. Travail en équipe** | Données partagées ; auteur et date ; pas d'écrasement silencieux ; pseudo en v1 | PostgreSQL. Table `change_log` dans la même transaction. Verrou par session, `@Version` et `error STALE_VERSION`. Pseudo et jetons, sans mot de passe ni compte | ✅ |
 | **IV. Web centré sur l'usage** | Parcours priorisés ; clavier et écran de portable ; erreurs actionnables | Parcours P1 à P5 livrables séparément. Contrôles d'accessibilité axe-core, comme dans PP. Codes d'erreur traduits en messages français qui disent quoi corriger | ✅ |
-| **V. Produit en français** | Interface et documents en français ; formats FR ; convention fixée ; textes centralisés | Locale `fr-FR`. **Convention : code et contrat en anglais** (comme PP), sigles métier conservés. Catalogue `messages.fr.ts`. Spec, plan et tâches en français | ✅ |
+| **V. Produit en français** | Interface et documents en français ; formats FR ; convention fixée ; textes centralisés | Locale `fr-FR`. **Convention : code et contrat en anglais** (comme PP, autorisé par le principe V depuis la v2.1.0), sigles métier conservés. Catalogue `messages.fr.ts`. Spec, plan et tâches en français | ✅ |
 | **VI. Données portables** | Export CSV et JSON ; JSON recalculable ; import validé ; aller-retour testé ; formats versionnés | CSV, JSON (`formatVersion: 1`), import xlsx, csv et json avec aperçu. Test d'aller-retour SC-008. Formats dans `contracts/file-formats.md` | ✅ |
 | **Architecture** | Domaine indépendant | `domain` sans dépendance, `application` limitée aux ports (ArchUnit) | ✅ |
 | **Données** | Migrations versionnées ; ni données réelles ni secrets dans le dépôt | Flyway. `DATABASE_URL`, `ALLOWED_ORIGINS` et les secrets Render sont dans Render et GitHub Secrets. Jetons stockés sous forme d'empreinte | ✅ |

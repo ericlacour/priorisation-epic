@@ -147,10 +147,11 @@ planning-poker est indiquée, sous la forme `PP : …`.
 
 ## R8. Historique (FR-025, constitution III)
 
-- **Décision** : une table `change_log`, alimentée par les cas d'usage dans la même
-  transaction que la modification. Elle enregistre l'auteur (pseudo), la date, l'entité,
-  l'action, le champ, l'ancienne et la nouvelle valeur. Elle est lue par
-  `GET /api/sessions/{sessionId}/history`.
+- **Décision** : une table `change_log`, volontairement **limitée** aux modifications de
+  valeurs retenues (`VALUE_CHANGE`) et aux changements d'échelle (`SCALE_CHANGE`), qui
+  sont le minimum exigé par la constitution III. Elle est alimentée dans la même
+  transaction que la modification, et lue par `GET /api/sessions/{sessionId}/history`.
+  Les votes gardent déjà leur auteur et leur date dans la table `vote`.
 - **Alternatives écartées** : Hibernate Envers ; des triggers SQL.
 
 ## R9. Import et export (FR-007, FR-007a, FR-008, FR-023, FR-024, constitution VI)

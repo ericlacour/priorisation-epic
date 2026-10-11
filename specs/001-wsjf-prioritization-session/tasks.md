@@ -74,7 +74,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - chaque schéma référencé a au moins un exemple dans `examples/<schéma>/` ;
   - chaque exemple est valide contre son schéma.
 
-  Prévoir un point d'extension pour les règles métier sur `sessionState` (ajoutées en T067)
+  Prévoir un point d'extension pour les règles métier sur `sessionState` (ajoutées en T068)
 - [ ] T008 Créer `contract/openapi.yaml` et `contract/asyncapi.yaml` à partir de `specs/001-wsjf-prioritization-session/contracts/openapi.yaml` et `asyncapi.yaml`. Déplacer chaque charge utile dans `contract/schemas/<nom-kebab>.json` (JSON Schema 2020-12, `$id` égal au nom du fichier), référencée par `$ref`. Dans cette tâche, créer seulement les schémas communs : `problem.json`, `hello.json`, `heartbeat.json`, `tick.json`, `error.json`, `health-response.json`, `criteria.json`, `scale.json`
 - [ ] T009 [P] Ajouter les exemples des schémas de T008 dans `contract/examples/<schéma>/<cas>.json`, dont `examples/error/stale-version.json` et `examples/hello/with-animation-token.json`. Rédiger `contract/README.md` sur le modèle de PP : `contract/README.md`
 
@@ -132,7 +132,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `voting_round` : `id`, `session_id`, `number`, `status` CHECK IN ('OPEN','REVEALED'), `previous_round_id`, `opened_at`, `revealed_at`.
   - `round_feature` : clé primaire `(round_id, feature_id)`.
   - `vote` : `id`, `round_id`, `feature_id`, `participant_id`, `bv`/`tc`/`rr_oe`/`js` int null avec CHECK ≥ 1, `updated_at`, avec une contrainte UNIQUE sur `(round_id, feature_id, participant_id)`.
-  - `change_log` : `id`, `session_id`, `at`, `author_pseudo`, `entity_type`, `entity_id`, `action`, `field`, `old_value` jsonb, `new_value` jsonb.
+  - `change_log` : `id`, `session_id`, `at`, `author_pseudo`, `entity_type` CHECK IN ('SESSION','FEATURE'), `entity_id`, `action` CHECK IN ('VALUE_CHANGE','SCALE_CHANGE'), `field`, `old_value` jsonb, `new_value` jsonb.
   - `import_preview` : `id`, `session_id`, `source_type`, `valid_rows` jsonb, `rejected_rows` jsonb, `warnings` jsonb, `expires_at`.
 - [ ] T024 Créer la base de test `backend/src/test/java/com/priorisationepic/PostgresTestBase.java` (Testcontainers `postgres:17`, conteneur partagé, `@DynamicPropertySource`) et un test qui vérifie que les migrations Flyway s'appliquent, dans `backend/src/test/java/com/priorisationepic/adapter/out/persistence/MigrationTest.java`
 
@@ -156,7 +156,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `ClockPort`.
 
   Ajouter `SessionLocks.java` (verrou par `sessionId`) et son test `SessionLocksTest.java` dans `backend/src/test/java/com/priorisationepic/application/`. Sur le modèle de PP : `application/SessionLocksTest.java`, `RecordingBroadcaster.java`, `MutableClock.java`
-- [ ] T029 Implémenter `application/ChangeLogWriter.java` : il écrit une entrée par modification, dans la même transaction, avec l'auteur, la date, le type d'entité, l'identifiant, l'action, le champ, l'ancienne et la nouvelle valeur en JSON (FR-025, constitution III). Les actions possibles sont `CREATE`, `UPDATE`, `DELETE`, `STATUS_CHANGE`, `SCALE_CHANGE`, `ROUND_OPEN`, `ROUND_REVEAL`, `ROLE_TRANSFER` et `IMPORT`. Ajouter son implémentation JPA dans `adapter/out/persistence/ChangeLogJpaRepository.java`
+- [ ] T029 Implémenter `application/ChangeLogWriter.java` : il écrit une entrée, dans la même transaction, **uniquement** pour une modification de valeur retenue (`VALUE_CHANGE`, champ `bv`, `tc`, `rrOe` ou `js`, et seulement si la valeur change) et pour un changement d'échelle (`SCALE_CHANGE`). Chaque entrée contient l'auteur, la date, le type d'entité (`SESSION` ou `FEATURE`), l'identifiant, l'action, le champ, l'ancienne et la nouvelle valeur en JSON (FR-025, constitution III). Rien d'autre n'est tracé. Ajouter son implémentation JPA dans `adapter/out/persistence/ChangeLogJpaRepository.java`
 
 ### Plomberie WebSocket
 
@@ -216,11 +216,11 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T039 [P] [US1] Test unitaire `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java`, limité aux entiers continus : borne « de 2 à 100, 10 par défaut » ; 0, 11 et toute valeur non entière refusés sur l'échelle 1 à 10 ; `allowedValues` vaut 1 à 10
 - [ ] T040 [P] [US1] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/CreateSessionUseCaseTest.java`, `JoinSessionUseCaseTest.java` et `FeatureUseCaseTest.java`, avec un `RecordingBroadcaster` et un `MutableClock`. Cas vérifiés :
   - un seul `FACILITATOR` par session ;
-  - pseudo unique sans tenir compte de la casse ;
+  - pseudo unique sans tenir compte de la casse ; reprise d'un pseudo après 10 minutes d'absence avec conservation des votes, et refus avant ce délai (avec un `MutableClock`) ; jamais de reprise du rôle d'animateur par pseudo ;
   - `externalId` unique (`DUPLICATE_EXTERNAL_ID`) ;
   - `STALE_VERSION` en cas de version obsolète ;
   - `FORBIDDEN` sans jeton d'animation ;
-  - une entrée `change_log` par écriture.
+  - une entrée `change_log` `VALUE_CHANGE` par critère modifié d'une fonctionnalité existante, et **aucune** pour une création, une modification de titre ou de description, ou une suppression.
 - [ ] T041 [P] [US1] Tests de contrat REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionControllerTest.java` et `ContractRoundTripTest.java` (avec `PostgresTestBase`) pour `POST /api/sessions`, `POST /api/sessions/{sessionId}/participants` (201 et 409 PseudoTaken) et `GET /api/sessions/{sessionId}`. Les réponses doivent être valides contre `contract/schemas/`
 - [ ] T042 [P] [US1] Tests WebSocket de bout en bout `backend/src/test/java/com/priorisationepic/adapter/in/ws/FeatureIntentsTest.java` et `WsContractRoundTripTest.java`. Intentions `addFeature`, `updateFeature` et `deleteFeature` : seul l'animateur peut écrire, un `sessionState` est diffusé à 2 connexions, `error STALE_VERSION`, `INVALID_VALUE` et `DUPLICATE_EXTERNAL_ID`. Les messages sérialisés doivent être valides contre le contrat
 - [ ] T043 [P] [US1] Tests Vitest du tableau `frontend/src/app/board/board.component.spec.ts` et du détail du calcul `frontend/src/app/board/score-detail.component.spec.ts`. Le tableau affiche les colonnes rang, identifiant, titre, BV, TC, RR/OE, JS, CoD et WSJF dans l'ordre reçu. Une fonctionnalité incomplète affiche « non calculé ». `explanation` est affiché tel quel
@@ -246,16 +246,20 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T048 [US1] Implémenter l'adaptateur de persistance dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités JPA avec `@Version` pour `session`, `participant` et `feature`, repositories Spring Data, et réalisation des ports `SessionRepository`, `ParticipantRepository` et `FeatureRepository`. Ajouter le test d'intégration `adapter/out/persistence/SessionPersistenceTest.java` (avec `PostgresTestBase`). Activer le job `journeys` dans `.github/workflows/ci.yml` sur le modèle de PP, avec un service PostgreSQL 17
 - [ ] T049 [US1] Implémenter `application/CreateSessionUseCase.java` et `application/JoinSessionUseCase.java` :
   - à la création, le créateur devient `FACILITATOR` et reçoit `participantToken` et `animationToken` ; seules leurs empreintes sont stockées (FR-001, FR-002) ;
-  - à l'arrivée d'un participant, refus si le pseudo est déjà pris, sinon remise du `participantToken` (FR-003).
+  - à l'arrivée d'un participant, remise du `participantToken` (FR-003). Si le pseudo est déjà pris, deux cas :
+    - le participant existant est absent depuis au moins 10 minutes (aucune connexion ouverte, `lastSeenAt`, propriété `priorisation-epic.absence-timeout`, `10m` par défaut comme dans PP) : le nouvel arrivant est **rattaché à ce participant**, avec ses votes, un nouveau jeton est émis et l'ancienne empreinte est remplacée ;
+    - sinon, réponse `409 PseudoTaken`.
+
+    Le rôle `FACILITATOR` ne se reprend jamais de cette façon (FR-002).
 - [ ] T050 [US1] Implémenter `application/FeatureUseCase.java` (intentions `addFeature`, `updateFeature` et `deleteFeature`, FR-006, FR-015) :
   - réservé à l'animateur ;
   - exécuté sous `SessionLocks` ;
   - vérifie la `version` ;
   - valide les critères avec `Scale` ;
-  - écrit dans `ChangeLogWriter` ;
+  - écrit dans `ChangeLogWriter` pour les seuls changements de BV, TC, RR/OE ou JS ;
   - appelle `Broadcaster`.
 
-  La suppression est douce et, si la session est en `IN_PROGRESS`, elle est tracée avec `DELETE`
+  La suppression est douce (`deletedAt`). Si la session est en `IN_PROGRESS`, le front demande une confirmation avant de l'envoyer
 - [ ] T051 [US1] Implémenter `application/SessionStateAssembler.java` : il construit le `sessionState` d'un destinataire (`version`, `formula`, `tieBreakRule`, `scale.allowedValues`, `me`, `participants` avec `online`, `features` triées par `Ranking`). Le filtrage des tours sera ajouté en US2
 - [ ] T052 [US1] Implémenter les contrôleurs REST dans `backend/src/main/java/com/priorisationepic/adapter/in/rest/` : `SessionController.java` (`POST /api/sessions` avec `CreationRateLimiter` ; `GET /api/sessions/{sessionId}`, qui renvoie la vue d'un participant non animateur) et `JoinSessionController.java` (`POST /api/sessions/{sessionId}/participants`), avec leurs DTO
 - [ ] T053 [US1] Brancher les intentions de fonctionnalité et la présence dans `adapter/in/ws/SessionSocketHandler.java` :
@@ -270,7 +274,8 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - envoi de la `version` ;
   - en cas de `STALE_VERSION`, la valeur actuelle s'affiche avant de confirmer ou d'annuler ;
   - messages d'erreur français tirés de `messages.fr.ts` (FR-027).
-- [ ] T058 [US1] Écrire les tests e2e Playwright `frontend/e2e/board.spec.ts` (avec un faux socket, sur le modèle de PP : `e2e/fake-session-socket.ts`, et les contrôles axe-core), puis les parcours `frontend/e2e-journeys/us1-saisie-directe.spec.ts` (quickstart V1, V2, V3 et V14, avec deux navigateurs et une propagation en moins de 2 s, SC-002)
+- [ ] T058 [P] [US1] Front, action « Afficher mon lien d'animation » dans `frontend/src/app/session/animation-link.component.ts` (FR-002, cas limite « Lien d'animation perdu ») : visible seulement pour l'animateur, elle reconstruit le lien `/s/{sessionId}/animer#{animationToken}` à partir du jeton `pe.animation.{sessionId}` stocké dans le navigateur, l'affiche avec un bouton « Copier » et l'avertissement « à garder pour vous ». Aucun appel serveur : le serveur ne connaît que l'empreinte du jeton. Ajouter le test Vitest `frontend/src/app/session/animation-link.component.spec.ts`
+- [ ] T059 [US1] Écrire les tests e2e Playwright `frontend/e2e/board.spec.ts` (avec un faux socket, sur le modèle de PP : `e2e/fake-session-socket.ts`, et les contrôles axe-core), puis les parcours `frontend/e2e-journeys/us1-saisie-directe.spec.ts` (quickstart V1, V2, V3 et V14, avec deux navigateurs et une propagation en moins de 2 s, SC-002)
 
 **Checkpoint** : US1 fonctionne et se teste seule. C'est le MVP.
 
@@ -280,11 +285,11 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 **Objectif** : mettre le MVP en ligne sur Render, avec la base sur Neon. On peut lancer cette phase dès que la phase 3 est terminée, ou plus tard (plan, « Ordre de mise en place »).
 
-- [ ] T059 [P] Créer `deploy/render.yaml` sur le modèle de PP : `deploy/render.yaml` :
+- [ ] T060 [P] Créer `deploy/render.yaml` sur le modèle de PP : `deploy/render.yaml` :
   - Web Service Docker `priorisation-epic-api` : `rootDir backend`, `healthCheckPath /api/health`, région `frankfurt`, `autoDeployTrigger "off"`, variables `PORT`, `ALLOWED_ORIGINS` (`sync: false`) et `DATABASE_URL` (`sync: false`, la chaîne Neon) ;
   - Static Site `priorisation-epic` : `npm ci && npm run build`, `staticPublishPath ./dist/frontend/browser`, réécriture `/* → /index.html`, en-têtes de sécurité de PP, `API_BASE_URL` et `NODE_VERSION 24`.
-- [ ] T060 [P] Reprendre de PP `deploy/render-deploy.sh`, `deploy/render-deploy.test.sh` et `.github/workflows/deploy.yml` (étiquette `v*` sur la tête de `main`, l'API d'abord, puis le front). Ajouter le job `deploy-script` dans `.github/workflows/ci.yml`
-- [ ] T061 Rédiger `deploy/README.md` sur le modèle de PP, en y ajoutant :
+- [ ] T061 [P] Reprendre de PP `deploy/render-deploy.sh`, `deploy/render-deploy.test.sh` et `.github/workflows/deploy.yml` (étiquette `v*` sur la tête de `main`, l'API d'abord, puis le front). Ajouter le job `deploy-script` dans `.github/workflows/ci.yml`
+- [ ] T062 Rédiger `deploy/README.md` sur le modèle de PP, en y ajoutant :
   - la création du projet Neon `priorisation-epic` en région AWS Europe (Frankfurt), avec l'adresse directe (sans `-pooler`) et `sslmode=require` ;
   - les limites de l'offre gratuite de Neon : 0,5 Go, mise en veille après 5 minutes, restauration sur 6 heures ;
   - la consigne « ne pas saisir de données confidentielles tant que l'application est sur Neon » ;
@@ -303,7 +308,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Tests de User Story 2 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T062 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/round/VotingRoundTest.java` :
+- [ ] T063 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/round/VotingRoundTest.java` :
   - au moins une fonctionnalité par tour ;
   - une fonctionnalité ne peut être que dans un seul tour `OPEN` (`FEATURE_IN_OPEN_ROUND`) ;
   - `OPEN → REVEALED` est la seule transition possible ;
@@ -311,19 +316,19 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - relance à partir de `previousRoundId` sur une sélection des fonctionnalités du tour précédent ;
   - minimum et maximum par critère ;
   - « n'a pas voté » signalé.
-- [ ] T063 [P] [US2] Test unitaire de visibilité `backend/src/test/java/com/priorisationepic/domain/round/VisibilityTest.java` (FR-019, FR-019a, SC-004). Pendant un tour `OPEN` :
+- [ ] T064 [P] [US2] Test unitaire de visibilité `backend/src/test/java/com/priorisationepic/domain/round/VisibilityTest.java` (FR-019, FR-019a, SC-004). Pendant un tour `OPEN` :
   - le destinataire ne voit que ses propres votes ;
   - `results` vaut null ;
   - pour un non-animateur, les fonctionnalités du tour ont des critères et un `score` null, `votingInProgress` vaut true, elles sont placées en fin de tableau, et les votes des tours précédents sont masqués ;
   - l'animateur voit les valeurs retenues, mais pas les votes en cours ;
   - `progress` est toujours visible.
-- [ ] T064 [P] [US2] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/RoundUseCaseTest.java`, `VoteUseCaseTest.java` et `TransferFacilitatorUseCaseTest.java`. Pour la transmission du rôle (FR-002a) : l'ancien animateur devient `PARTICIPANT`, le nouveau jeton n'est envoyé qu'au bénéficiaire, l'ancien jeton reçoit `FORBIDDEN`, et une entrée `ROLE_TRANSFER` est écrite dans `change_log`
-- [ ] T065 [P] [US2] Test WebSocket multi-connexions `backend/src/test/java/com/priorisationepic/adapter/in/ws/MaskedRoundEndToEndTest.java`, avec 3 connexions (animateur, alice, bob). **Aucune trame envoyée à bob ne contient une valeur d'alice** avant `revealRound`, et toutes la contiennent après
-- [ ] T066 [P] [US2] Tests Vitest `frontend/src/app/rounds/vote-panel.component.spec.ts` et `reveal-results.component.spec.ts`
+- [ ] T065 [P] [US2] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/RoundUseCaseTest.java`, `VoteUseCaseTest.java` et `TransferFacilitatorUseCaseTest.java`. Pour la transmission du rôle (FR-002a) : l'ancien animateur devient `PARTICIPANT`, le nouveau jeton n'est envoyé qu'au bénéficiaire, et l'ancien jeton reçoit `FORBIDDEN`
+- [ ] T066 [P] [US2] Test WebSocket multi-connexions `backend/src/test/java/com/priorisationepic/adapter/in/ws/MaskedRoundEndToEndTest.java`, avec 3 connexions (animateur, alice, bob). **Aucune trame envoyée à bob ne contient une valeur d'alice** avant `revealRound`, et toutes la contiennent après
+- [ ] T067 [P] [US2] Tests Vitest `frontend/src/app/rounds/vote-panel.component.spec.ts` et `reveal-results.component.spec.ts`
 
 ### Contrat de User Story 2
 
-- [ ] T067 [US2] Ajouter au contrat :
+- [ ] T068 [US2] Ajouter au contrat :
   - les schémas `contract/schemas/open-round.json`, `cast-vote.json`, `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json` et `round.json`, et compléter `session-state.json` avec `openRounds` et `lastRevealedRounds` ;
   - leurs exemples, dont `examples/session-state/open-round-participant.json`, `open-round-facilitator.json` et `revealed-with-non-voter.json`.
 
@@ -334,20 +339,20 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Implémentation de User Story 2
 
-- [ ] T068 [P] [US2] Implémenter `domain/round/VotingRound.java`, `domain/round/Vote.java` et `domain/round/RoundResults.java` dans `backend/src/main/java/com/priorisationepic/`
-- [ ] T069 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
-- [ ] T070 [US2] Implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature` et `vote`, et réalisation de `RoundRepository`
-- [ ] T071 [US2] Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session, `ROUND_OPEN` et `ROUND_REVEAL` dans `change_log`) et `application/VoteUseCase.java` (intention `castVote` ; tout membre peut voter, l'animateur compris ; valeurs validées par `Scale`)
-- [ ] T072 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
-- [ ] T073 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`progress`, `myVotes`, `results`) et `lastRevealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
-- [ ] T074 [P] [US2] Front, `frontend/src/app/rounds/open-round-dialog.component.ts` : l'animateur sélectionne une, plusieurs ou toutes les fonctionnalités. Les fonctionnalités déjà dans un tour ouvert sont désactivées
-- [ ] T075 [P] [US2] Front, `frontend/src/app/rounds/vote-panel.component.ts` : le participant saisit BV, TC, RR/OE et JS pour chaque fonctionnalité du tour, parmi `scale.allowedValues`. La progression de chacun s'affiche (« alice : 1/2 »). Dans le tableau, les fonctionnalités en vote sont marquées « vote en cours »
-- [ ] T076 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` :
+- [ ] T069 [P] [US2] Implémenter `domain/round/VotingRound.java`, `domain/round/Vote.java` et `domain/round/RoundResults.java` dans `backend/src/main/java/com/priorisationepic/`
+- [ ] T070 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
+- [ ] T071 [US2] Implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature` et `vote`, et réalisation de `RoundRepository`
+- [ ] T072 [US2] Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session) et `application/VoteUseCase.java` (intention `castVote` ; tout membre peut voter, l'animateur compris ; valeurs validées par `Scale`)
+- [ ] T073 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
+- [ ] T074 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`progress`, `myVotes`, `results`) et `lastRevealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
+- [ ] T075 [P] [US2] Front, `frontend/src/app/rounds/open-round-dialog.component.ts` : l'animateur sélectionne une, plusieurs ou toutes les fonctionnalités. Les fonctionnalités déjà dans un tour ouvert sont désactivées
+- [ ] T076 [P] [US2] Front, `frontend/src/app/rounds/vote-panel.component.ts` : le participant saisit BV, TC, RR/OE et JS pour chaque fonctionnalité du tour, parmi `scale.allowedValues`. La progression de chacun s'affiche (« alice : 1/2 »). Dans le tableau, les fonctionnalités en vote sont marquées « vote en cours »
+- [ ] T077 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` :
   - votes par participant, avec minimum et maximum par critère, et « n'a pas voté » ;
   - l'animateur saisit les valeurs communes (intention `updateFeature`) ;
   - bouton « Relancer un tour sur la sélection ».
-- [ ] T077 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
-- [ ] T078 [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004)
+- [ ] T078 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
+- [ ] T079 [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004)
 
 **Checkpoint** : US1 et US2 fonctionnent indépendamment.
 
@@ -361,9 +366,9 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Tests de User Story 3 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T079 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
-- [ ] T080 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, criterion, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`
-- [ ] T081 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
+- [ ] T080 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
+- [ ] T081 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, criterion, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`
+- [ ] T082 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
   - en-têtes imposés, insensibles à la casse et aux espaces ;
   - fichier refusé en entier sans `Identifiant` ou sans `Titre` ;
   - lignes vides ignorées ;
@@ -372,7 +377,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - séparateur `;` ou `,` détecté ;
   - BOM accepté ;
   - limites de 5 Mo et de 1 000 lignes.
-- [ ] T082 [P] [US3] Test de contrat REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ImportControllerTest.java` :
+- [ ] T083 [P] [US3] Test de contrat REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ImportControllerTest.java` :
   - l'aperçu n'écrit rien ;
   - la confirmation applique les lignes en une seule transaction, puis diffuse un `sessionState` ;
   - un aperçu expiré renvoie 404 ;
@@ -382,23 +387,23 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Contrat de User Story 3
 
-- [ ] T083 [US3] Ajouter au contrat les schémas `contract/schemas/update-settings.json`, `import-preview.json` et `import-result.json`, leurs exemples (dont `examples/error/scale-impact.json`), et les opérations d'import dans `contract/openapi.yaml`
+- [ ] T084 [US3] Ajouter au contrat les schémas `contract/schemas/update-settings.json`, `import-preview.json` et `import-result.json`, leurs exemples (dont `examples/error/scale-impact.json`), et les opérations d'import dans `contract/openapi.yaml`
 
 ### Implémentation de User Story 3
 
-- [ ] T084 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
-- [ ] T085 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm`) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
-- [ ] T086 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description`, `BV`, `TC`, `RR/OE`, `JS`, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
-- [ ] T087 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes `Rang`, `CoD` et `WSJF` ignorées)
-- [ ] T088 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `computed` recalculé, avec un avertissement en cas d'écart ; `rounds` jamais réimportés ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
-- [ ] T089 [US3] Implémenter `application/ImportUseCase.java` (aperçu stocké dans `import_preview` avec `expiresAt` à la création plus 15 min ; confirmation en une seule transaction avec `IMPORT` dans `change_log`, puis `Broadcaster`), `adapter/in/rest/ImportController.java` et `adapter/in/scheduling/ImportPreviewPurgeScheduler.java`
-- [ ] T090 [P] [US3] Front, `frontend/src/app/import-export/import-dialog.component.ts` :
+- [ ] T085 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
+- [ ] T086 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm`) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
+- [ ] T087 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description`, `BV`, `TC`, `RR/OE`, `JS`, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
+- [ ] T088 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes `Rang`, `CoD` et `WSJF` ignorées)
+- [ ] T089 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `computed` recalculé, avec un avertissement en cas d'écart ; `rounds` jamais réimportés ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
+- [ ] T090 [US3] Implémenter `application/ImportUseCase.java` (aperçu stocké dans `import_preview` avec `expiresAt` à la création plus 15 min ; confirmation en une seule transaction, puis `Broadcaster`), `adapter/in/rest/ImportController.java` et `adapter/in/scheduling/ImportPreviewPurgeScheduler.java`
+- [ ] T091 [P] [US3] Front, `frontend/src/app/import-export/import-dialog.component.ts` :
   - choix du fichier, puis aperçu des lignes valides, rejetées avec leur motif, et des avertissements ;
   - confirmation ou annulation ;
   - récapitulatif final ;
   - lien « Télécharger le modèle ».
-- [ ] T091 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne. Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
-- [ ] T092 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
+- [ ] T092 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne. Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
+- [ ] T093 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
 
 **Checkpoint** : US1, US2 et US3 fonctionnent indépendamment.
 
@@ -408,29 +413,31 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 **Objectif** : exporter le tableau en CSV et au format Confluence, et la session complète en JSON réimportable.
 
-**Test indépendant** : exporter 5 fonctionnalités dans chaque format, puis réimporter le JSON dans une nouvelle session (quickstart V11 et V12). L'aller-retour JSON dépend du lecteur JSON de US3 (T088).
+**Test indépendant** : exporter 5 fonctionnalités dans chaque format, puis réimporter le JSON dans une nouvelle session (quickstart V11 et V12). L'aller-retour JSON dépend du lecteur JSON de US3 (T089).
 
 ### Tests de User Story 4 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T093 [P] [US4] Tests des écrivains `backend/src/test/java/com/priorisationepic/adapter/out/io/CsvBoardWriterTest.java`, `ConfluenceWriterTest.java` et `JsonSessionWriterTest.java`. Cas vérifiés :
+- [ ] T094 [P] [US4] Tests des écrivains `backend/src/test/java/com/priorisationepic/adapter/out/io/CsvBoardWriterTest.java`, `ConfluenceWriterTest.java` et `JsonSessionWriterTest.java`. Cas vérifiés :
   - colonnes `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF` dans l'ordre du tableau ;
   - WSJF « 4,00 » ;
   - `Rang`, `CoD` et `WSJF` vides si la fonctionnalité est incomplète ;
   - UTF-8 avec BOM ;
   - échappement wiki de `| { } [ ]` et sauts de ligne remplacés par `\\` ;
   - titre « Priorisation WSJF : <nom> (<JJ/MM/AAAA>) » et légende avec la formule et la règle d'égalité ;
-  - JSON `formatVersion: 1` sans les votes d'un tour ouvert.
-- [ ] T094 [P] [US4] Test d'aller-retour SC-008 `backend/src/test/java/com/priorisationepic/adapter/out/io/JsonRoundTripPropertiesTest.java` (jqwik) : pour une session générée aléatoirement, exporter puis réimporter dans une session vide redonne des fonctionnalités, une échelle et des scores identiques
-- [ ] T095 [P] [US4] Test REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ExportControllerTest.java` : les 4 formats, et le **même masquage que la vue de l'appelant** (SC-004)
+  - JSON `formatVersion: 1` sans les votes d'un tour ouvert ;
+  - **CSV des votes** `votes-v1` (`CsvVotesWriterTest.java`) : colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`, une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo, **tours révélés uniquement** ;
+  - **versions de format** dans le nom des fichiers (`-tableau-v1.csv`, `-votes-v1.csv`, `-confluence-v1.txt`) et dans la légende Confluence (« Format confluence-v1 »), selon la section « Versions des formats » de `contracts/file-formats.md`.
+- [ ] T095 [P] [US4] Test d'aller-retour SC-008 `backend/src/test/java/com/priorisationepic/adapter/out/io/JsonRoundTripPropertiesTest.java` (jqwik) : pour une session générée aléatoirement, exporter puis réimporter dans une session vide redonne des fonctionnalités, une échelle et des scores identiques
+- [ ] T096 [P] [US4] Test REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ExportControllerTest.java` : les 4 formats, et le **même masquage que la vue de l'appelant** (SC-004)
 
 ### Implémentation de User Story 4
 
-- [ ] T096 [P] [US4] Implémenter `adapter/out/io/CsvBoardWriter.java`
-- [ ] T097 [P] [US4] Implémenter `adapter/out/io/ConfluenceWriter.java` (sorties `confluence-html` et `confluence-wiki`)
-- [ ] T098 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java`
-- [ ] T099 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}`, avec le filtrage `Visibility` du destinataire) et ajouter l'opération à `contract/openapi.yaml`
-- [ ] T100 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement CSV et JSON, bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
-- [ ] T101 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12)
+- [ ] T097 [P] [US4] Implémenter `adapter/out/io/CsvBoardWriter.java` (format `tableau-v1`) et `adapter/out/io/CsvVotesWriter.java` (format `votes-v1`, tours révélés uniquement)
+- [ ] T098 [P] [US4] Implémenter `adapter/out/io/ConfluenceWriter.java` (sorties `confluence-html` et `confluence-wiki`)
+- [ ] T099 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java`
+- [ ] T100 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}` avec `format` parmi `csv`, `csv-votes`, `confluence-wiki`, `confluence-html` et `json`, avec le filtrage `Visibility` du destinataire et le nom de fichier versionné) et ajouter l'opération à `contract/openapi.yaml`
+- [ ] T101 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau, du CSV des votes et du JSON, bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
+- [ ] T102 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12)
 
 **Checkpoint** : US1 à US4 fonctionnent indépendamment.
 
@@ -444,17 +451,17 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Tests de User Story 5 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T102 [P] [US5] Test unitaire `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `PREPARATION → IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur. En `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
-- [ ] T103 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne) et `HistoryControllerTest.java` (`GET /api/sessions/{sessionId}/history`, avec le filtre `featureId`, de la plus récente à la plus ancienne)
+- [ ] T103 [P] [US5] Test unitaire `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `PREPARATION → IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur. En `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
+- [ ] T104 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne) et `HistoryControllerTest.java` (`GET /api/sessions/{sessionId}/history`, avec le filtre `featureId`, de la plus récente à la plus ancienne)
 
 ### Implémentation de User Story 5
 
-- [ ] T104 [US5] Implémenter `application/ChangeStatusUseCase.java` (intention `changeStatus` START, CLOSE ou REOPEN, avec `STATUS_CHANGE` dans `change_log`). Ajouter le schéma `contract/schemas/change-status.json` et ses exemples, et brancher l'intention dans `adapter/in/ws/SessionSocketHandler.java`. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
-- [ ] T105 [US5] Implémenter `adapter/in/rest/SessionListController.java` et `adapter/in/rest/HistoryController.java`, avec les schémas `session-summary.json` et `history-entry.json` et leurs exemples dans `contract/`
-- [ ] T106 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
-- [ ] T107 [P] [US5] Front, `frontend/src/app/history/history.component.ts` : historique des modifications (auteur, date, champ, ancienne et nouvelle valeur) et des tours révélés, consultable fonctionnalité par fonctionnalité
-- [ ] T108 [US5] Front, boutons Démarrer, Clôturer et Rouvrir pour l'animateur, et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
-- [ ] T109 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
+- [ ] T105 [US5] Implémenter `application/ChangeStatusUseCase.java` (intention `changeStatus` START, CLOSE ou REOPEN). Ajouter le schéma `contract/schemas/change-status.json` et ses exemples, et brancher l'intention dans `adapter/in/ws/SessionSocketHandler.java`. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
+- [ ] T106 [US5] Implémenter `adapter/in/rest/SessionListController.java` et `adapter/in/rest/HistoryController.java`, avec les schémas `session-summary.json` et `history-entry.json` et leurs exemples dans `contract/`
+- [ ] T107 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
+- [ ] T108 [P] [US5] Front, `frontend/src/app/history/history.component.ts` : historique des modifications (auteur, date, champ, ancienne et nouvelle valeur) et des tours révélés, consultable fonctionnalité par fonctionnalité
+- [ ] T109 [US5] Front, boutons Démarrer, Clôturer et Rouvrir pour l'animateur, et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
+- [ ] T110 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
 
 **Checkpoint** : les cinq parcours fonctionnent indépendamment.
 
@@ -462,12 +469,12 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ## Phase 9 : Finitions et sujets transverses
 
-- [ ] T110 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités, propagation en moins de 2 s. Il vérifie SC-002 et SC-005
-- [ ] T111 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
-- [ ] T112 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier, rendu sur un écran de portable de 1280 px, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
-- [ ] T113 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
-- [ ] T114 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
-- [ ] T115 Dérouler intégralement `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V15, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
+- [ ] T111 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités, propagation en moins de 2 s. Il vérifie SC-002 et SC-005
+- [ ] T112 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
+- [ ] T113 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier, rendu sur un écran de portable de 1280 px, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
+- [ ] T114 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
+- [ ] T115 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
+- [ ] T116 Dérouler intégralement `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V15, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
 
 ---
 
@@ -481,7 +488,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **Déploiement (phase 4)** : dépend de US1. On peut le faire plus tard, à tout moment.
 - **US2 (phase 5)** : dépend des fondations. Elle s'appuie sur le tableau et les agrégats de US1 (T045 à T051), donc il vaut mieux la faire après US1.
 - **US3 (phase 6)** : dépend des fondations et de `Scale` et de l'édition de US1.
-- **US4 (phase 7)** : l'export dépend de US1. **L'aller-retour JSON (T094) dépend de T088 (US3).**
+- **US4 (phase 7)** : l'export dépend de US1. **L'aller-retour JSON (T095) dépend de T089 (US3).**
 - **US5 (phase 8)** : dépend des fondations et de `change_log` (T029). Elle est indépendante des autres parcours.
 - **Finitions (phase 9)** : après les parcours voulus.
 
@@ -494,7 +501,7 @@ Dans l'ordre : tests (ils doivent échouer), contrat, domaine, persistance, cas 
 - **Phase 1** : T004, T005 et T006 en parallèle de T002 et T003.
 - **Phase 2** : T011, T012, T013 et T014 (sécurité) ; T018 à T021 (configuration et garde-fous) ; T026 et T027 (domaine) ; T034, T035 et T036 (front).
 - **US1** : tous les tests T037 à T043 ensemble ; puis T045, T046 et T047 (domaine) ; puis T054 et T055 (front) en parallèle du back.
-- **US2 à US5** : chaque bloc de tests marqué [P], les lecteurs et écrivains de fichiers (T086, T087, T088 ; T096, T097, T098) et les composants front.
+- **US2 à US5** : chaque bloc de tests marqué [P], les lecteurs et écrivains de fichiers (T087, T088, T089 ; T097, T098, T099) et les composants front.
 - Après les fondations, **US5** peut avancer en parallèle de US2, US3 et US4 si plusieurs personnes travaillent.
 
 ### Exemple de lancement parallèle (US1)

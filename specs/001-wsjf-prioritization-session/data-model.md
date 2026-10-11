@@ -44,8 +44,7 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - En statut `CLOSED`, toute écriture est refusée (lecture seule), sauf « rouvrir ».
 - Les fonctionnalités, les valeurs et l'échelle sont modifiables en `PREPARATION` comme en
   `IN_PROGRESS`.
-- En `IN_PROGRESS`, supprimer une fonctionnalité demande une confirmation et l'opération
-  est tracée.
+- En `IN_PROGRESS`, supprimer une fonctionnalité demande une confirmation.
 
 ## Participant (Participant)
 
@@ -64,8 +63,7 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
   d'un jeton d'animation valide. Le pseudo seul ne suffit jamais.
 - Transmission du rôle (FR-002a) : en une seule transaction, l'ancien animateur passe
   `PARTICIPANT` et le bénéficiaire passe `FACILITATOR`. Le serveur génère un nouveau jeton
-  d'animation, remplace son empreinte dans `animationTokenHash` et trace l'opération dans
-  le `ChangeLogEntry`. Le nouveau jeton est envoyé uniquement à la connexion du
+  d'animation et remplace son empreinte dans `animationTokenHash`. Le nouveau jeton est envoyé uniquement à la connexion du
   bénéficiaire, dans le message WebSocket `facilitatorHandover`.
 - Présence (FR-005) : un participant est « en ligne » tant qu'il a une connexion
   WebSocket ouverte qui a réussi son `hello`.
@@ -147,14 +145,26 @@ font partie du tour (au moins une, FR-018).
 | sessionId | texte (22 car.) | Clé étrangère |
 | at | horodatage | |
 | authorPseudo | texte | Pseudo de l'auteur au moment de l'action |
-| entityType | enum `SESSION`, `FEATURE`, `ROUND`, `PARTICIPANT` | |
-| entityId | UUID | |
-| action | enum `CREATE`, `UPDATE`, `DELETE`, `STATUS_CHANGE`, `SCALE_CHANGE`, `ROUND_OPEN`, `ROUND_REVEAL`, `ROLE_TRANSFER`, `IMPORT` | |
-| field | texte, facultatif | Par exemple `js` |
+| entityType | enum `SESSION`, `FEATURE` | |
+| entityId | texte | `sessionId` ou identifiant de la fonctionnalité |
+| action | enum `VALUE_CHANGE`, `SCALE_CHANGE` | Seules opérations tracées (FR-025) |
+| field | texte, facultatif | `bv`, `tc`, `rrOe` ou `js` pour `VALUE_CHANGE` |
 | oldValue / newValue | JSON, facultatif | |
 
 Les entrées sont écrites dans la même transaction que la modification. Elles ne sont jamais
-modifiées ni supprimées.
+modifiées ni supprimées. Une modification de valeur retenue n'est tracée que si la valeur
+change vraiment.
+
+**Retour d'un participant** (cas limite « Participant qui quitte la session ») :
+- Si un participant n'a plus aucune connexion ouverte depuis **10 minutes**
+  (`lastSeenAt`, paramètre `absence-timeout`, 10 min par défaut comme dans PP), son pseudo
+  devient « reprenable ».
+- Un `POST /participants` avec ce pseudo rattache alors le nouvel arrivant au participant
+  existant, qui garde ses votes. Un nouveau jeton est émis, et l'empreinte de l'ancien est
+  remplacée.
+- Avant ces 10 minutes, le pseudo est refusé (`PseudoTaken`).
+- Le rôle `FACILITATOR` ne se reprend jamais par pseudo, seulement par le lien
+  d'animation.
 
 ## ImportPreview (Aperçu d'import, temporaire)
 
@@ -165,6 +175,7 @@ modifiées ni supprimées.
 | sourceType | enum `XLSX`, `CSV`, `JSON` | |
 | validRows | JSON | Lignes qui seront importées |
 | rejectedRows | JSON | Pour chaque ligne rejetée : numéro de ligne, identifiant et motif en français |
+| warnings | JSON | Avertissements par ligne, par exemple une valeur hors échelle ignorée |
 | expiresAt | horodatage | Création + 15 min. Une tâche planifiée purge les aperçus expirés |
 
 ## Règles de validation récapitulatives

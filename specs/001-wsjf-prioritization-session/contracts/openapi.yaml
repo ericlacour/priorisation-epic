@@ -177,9 +177,9 @@ components:
       properties:
         at: { type: string, format: date-time }
         authorPseudo: { type: string }
-        entityType: { type: string, enum: [SESSION, FEATURE, ROUND, PARTICIPANT] }
+        entityType: { type: string, enum: [SESSION, FEATURE] }
         entityId: { type: string }
-        action: { type: string }
+        action: { type: string, enum: [VALUE_CHANGE, SCALE_CHANGE] }
         field: { type: [string, 'null'] }
         oldValue: {}
         newValue: {}
@@ -331,7 +331,7 @@ paths:
       - name: format
         in: path
         required: true
-        schema: { type: string, enum: [csv, confluence-wiki, confluence-html, json] }
+        schema: { type: string, enum: [csv, csv-votes, confluence-wiki, confluence-html, json] }
     get:
       operationId: exportSession
       summary: Export the board or the whole session (FR-023, FR-024)

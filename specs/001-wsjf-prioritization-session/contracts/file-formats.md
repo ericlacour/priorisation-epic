@@ -3,6 +3,26 @@
 Voir [research.md](../research.md), section R9 ; la spec, FR-007, FR-007a, FR-008, FR-023 et
 FR-024 ; la constitution, principe VI.
 
+## Versions des formats (constitution VI)
+
+Chaque format d'export porte un **numéro de version documenté** :
+
+| Format | Version actuelle | Où la version apparaît |
+|--------|------------------|------------------------|
+| CSV tableau (`csv`) | `tableau-v1` | Nom du fichier : `<session>-tableau-v1.csv` |
+| CSV votes (`csv-votes`) | `votes-v1` | Nom du fichier : `<session>-votes-v1.csv` |
+| Confluence HTML (`confluence-html`) | `confluence-v1` | Ligne de légende : « Format confluence-v1 » |
+| Confluence wiki (`confluence-wiki`) | `confluence-v1` | Nom du fichier `<session>-confluence-v1.txt` et ligne de légende |
+| JSON (`json`) | `formatVersion: 1` | Champ `formatVersion` |
+
+**Règles de version** :
+- Ajouter une colonne ou un champ **à la fin** ne change pas la version.
+- Renommer, supprimer ou réordonner une colonne, ou changer le format d'une valeur, crée
+  une nouvelle version : `v2`.
+- L'import accepte toujours les versions précédentes. Il reconnaît la version d'un CSV à
+  ses en-têtes, et celle d'un JSON à `formatVersion`, puis convertit les données.
+- Chaque changement de version est noté dans ce document.
+
 ## Colonnes communes (Excel et CSV)
 
 Les en-têtes sont **imposés**. Ils sont comparés sans tenir compte de la casse ni des
@@ -57,6 +77,19 @@ Les formules sont lues par leur dernière valeur calculée.
   - Une fonctionnalité incomplète a `Rang`, `CoD` et `WSJF` vides.
 - Un CSV exporté peut être réimporté : les colonnes `Rang`, `CoD` et `WSJF` sont alors
   ignorées, car elles sont toujours recalculées.
+
+## CSV des votes (`csv-votes`, export uniquement)
+
+Ce format rend les évaluations exportables en CSV (constitution VI). Il suit les mêmes
+règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180.
+
+- **Colonnes** : `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`.
+- **Une ligne** par tour, fonctionnalité et participant attendu, triée par tour, puis par
+  identifiant, puis par pseudo. `A voté` vaut `oui` ou `non`. Les critères non saisis
+  sont laissés vides.
+- **Seuls les tours révélés** sont exportés. Les votes d'un tour encore ouvert ne
+  sortent jamais (SC-004).
+- Ce format n'est pas réimportable : les tours appartiennent à la session d'origine.
 
 ## Confluence
 
