@@ -66,6 +66,41 @@ Le produit est une application web. Chaque fonctionnalité part d'un besoin util
 **Rationale** : un outil de priorisation n'a de valeur que s'il est utilisé en atelier,
 rapidement et sans friction.
 
+### V. Produit en français
+
+Tout ce que lisent les utilisateurs et l'équipe produit est rédigé en français.
+
+- L'interface (libellés, messages, aide, e-mails éventuels) DOIT être en français.
+- Les specs, plans, tâches et la documentation utilisateur DOIVENT être rédigés en
+  français.
+- Les formats affichés DOIVENT suivre les conventions françaises : virgule décimale,
+  dates JJ/MM/AAAA.
+- Les identifiants de code (variables, fonctions, tables) PEUVENT rester en anglais. Ils
+  DOIVENT alors suivre une convention unique, fixée dans le premier `plan.md`.
+- Tous les textes de l'interface DOIVENT être centralisés, et non dispersés en dur dans le
+  code, pour pouvoir être relus et corrigés en un seul endroit.
+
+**Rationale** : l'outil sert une équipe francophone en atelier. Une interface ou une
+documentation mélangeant les langues ralentit l'usage et nuit à la compréhension du score.
+
+### VI. Données portables
+
+Les données de l'équipe lui appartiennent et DOIVENT pouvoir sortir de l'outil, puis y
+revenir, sans perte.
+
+- Les epics, critères, poids et évaluations DOIVENT être exportables en CSV et en JSON.
+- L'export JSON DOIT contenir assez d'informations pour recalculer chaque score à
+  l'identique, ce qui inclut la méthode de scoring (voir Principe I).
+- L'import CSV et JSON DOIT valider les données et signaler précisément les lignes
+  rejetées, sans rien importer partiellement en silence.
+- Un export suivi d'un import DOIT redonner les mêmes données et les mêmes scores. Ce
+  test d'aller-retour est obligatoire (voir Principe II).
+- Les formats d'export sont documentés et versionnés. Une rupture de format DOIT être
+  annoncée et accompagnée d'une conversion des anciens fichiers.
+
+**Rationale** : l'équipe doit pouvoir analyser ses données dans d'autres outils, les
+sauvegarder et changer d'outil sans dépendre de celui-ci.
+
 ## Contraintes techniques
 
 - **Architecture** : application web client/serveur, avec la logique de scoring dans un
@@ -85,7 +120,7 @@ rapidement et sans friction.
   `/speckit-tasks` → (`/speckit-analyze`) → `/speckit-implement`. Pas d'implémentation
   sans spec ni plan.
 - **Constitution Check** : chaque `plan.md` DOIT vérifier sa conformité aux principes I à
-  IV avant la phase de conception, puis de nouveau après.
+  VI avant la phase de conception, puis de nouveau après.
 - **Branches et PR** : une branche par fonctionnalité, et merge via pull request
   uniquement.
 - **Quality gates avant merge** : tests verts (Principe II), relecture d'au moins une
@@ -105,4 +140,4 @@ rapidement et sans friction.
 - **Conformité** : toute relecture de PR vérifie le respect des principes. Une dérogation
   DOIT être justifiée par écrit dans le plan concerné (« Complexity Tracking »).
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
+**Version**: 1.1.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
