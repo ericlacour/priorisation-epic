@@ -16,6 +16,7 @@
 - Q: Un tour de vote masqué porte-t-il sur une fonctionnalité, toutes, ou une sélection ? → A: L'animateur choisit les fonctionnalités incluses dans un tour (une, plusieurs ou toutes), révèle le tour entier, puis peut relancer un tour sur les seules fonctionnalités en désaccord.
 - Q: Comment l'application sait-elle qui est l'animateur, sans authentification ? → A: Un lien d'animation privé, distinct du lien d'invitation, donne seul les droits d'animateur ; l'animateur peut transmettre son rôle à un participant pendant la session.
 - Q: Pendant un tour masqué, les participants voient-ils les valeurs déjà retenues des fonctionnalités du tour ? → A: Non : valeurs retenues, CoD et WSJF des fonctionnalités du tour sont masqués pour les participants jusqu'à la révélation ; le reste du tableau reste visible.
+- Q: Comment l'outil reconnaît-il les colonnes du fichier Excel importé ? → A: Noms de colonnes imposés (Identifiant, Titre, Description, BV, TC, RR/OE, JS), modèle vierge téléchargeable ; un fichier sans ces en-têtes est refusé.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -119,8 +120,8 @@ et vérifier que 13 est accepté et que 10 est refusé.
 
 **Acceptance Scenarios**:
 
-1. **Given** un fichier Excel avec les colonnes identifiant, titre, description (et
-   optionnellement BV, TC, RR/OE, JS), **When** l'animateur l'importe, **Then** un aperçu
+1. **Given** un fichier Excel reprenant les en-têtes du modèle (Identifiant, Titre,
+   Description, et facultativement BV, TC, RR/OE, JS), **When** l'animateur l'importe, **Then** un aperçu
    liste les lignes valides et les lignes rejetées avec, pour chacune, le motif du rejet.
 2. **Given** l'aperçu d'import, **When** l'animateur confirme, **Then** seules les lignes
    valides sont ajoutées et un récapitulatif indique le nombre de lignes importées et
@@ -214,8 +215,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **Fonctionnalité supprimée** pendant la préparation : elle disparaît du tableau. Une fois
   la session en cours, la suppression demande une confirmation et reste tracée dans
   l'historique.
-- **Fichier d'import** vide, illisible, au mauvais format ou sans colonne obligatoire :
-  l'import est refusé avec un message qui indique la cause et le format attendu.
+- **Fichier d'import** vide, illisible, au mauvais format ou sans les en-têtes
+  « Identifiant » et « Titre » : l'import est refusé avec un message qui indique la cause,
+  liste les en-têtes attendus et propose le modèle à télécharger.
 - **Valeur hors suite de Fibonacci** (par exemple 4 sur une échelle Fibonacci) : la saisie
   est refusée, et le message liste les valeurs autorisées.
 - **Import de valeurs de critères hors échelle** : la ligne est importée sans ces valeurs,
@@ -256,8 +258,15 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   Une fonctionnalité comporte un identifiant (obligatoire, unique dans la session), un
   titre (obligatoire), une description (facultative) et les critères BV, TC, RR/OE et JS.
 - **FR-007**: L'animateur DOIT pouvoir importer des fonctionnalités depuis un fichier Excel
-  (.xlsx), un fichier CSV ou un export JSON de l'outil. Les colonnes identifiant et titre
-  sont obligatoires ; description, BV, TC, RR/OE et JS sont facultatives.
+  (.xlsx), un fichier CSV ou un export JSON de l'outil. Pour Excel et CSV, les en-têtes
+  de colonnes sont imposés : « Identifiant », « Titre », « Description », « BV », « TC »,
+  « RR/OE » et « JS ». « Identifiant » et « Titre » sont obligatoires, les autres colonnes
+  sont facultatives. La casse et les espaces autour des en-têtes sont ignorés, et les
+  colonnes inconnues aussi. Un fichier sans les colonnes obligatoires est refusé en entier,
+  avec un message qui liste les en-têtes attendus. Il n'y a pas d'association manuelle des
+  colonnes en v1.
+- **FR-007a**: Le système DOIT proposer au téléchargement un modèle Excel vierge, qui
+  contient exactement ces en-têtes et une ligne d'exemple.
 - **FR-008**: Avant tout import, le système DOIT afficher un aperçu des lignes valides et
   des lignes rejetées avec leur motif. Il n'importe rien sans confirmation de l'animateur
   et affiche ensuite le nombre de lignes importées et rejetées.
