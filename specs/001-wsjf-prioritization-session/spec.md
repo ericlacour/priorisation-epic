@@ -15,6 +15,7 @@
 - Q: Les valeurs des critères sont-elles des entiers continus ou la suite de Fibonacci ? → A: L'animateur choisit pour chaque session : entiers continus ou suite de Fibonacci.
 - Q: Un tour de vote masqué porte-t-il sur une fonctionnalité, toutes, ou une sélection ? → A: L'animateur choisit les fonctionnalités incluses dans un tour (une, plusieurs ou toutes), révèle le tour entier, puis peut relancer un tour sur les seules fonctionnalités en désaccord.
 - Q: Comment l'application sait-elle qui est l'animateur, sans authentification ? → A: Un lien d'animation privé, distinct du lien d'invitation, donne seul les droits d'animateur ; l'animateur peut transmettre son rôle à un participant pendant la session.
+- Q: Pendant un tour masqué, les participants voient-ils les valeurs déjà retenues des fonctionnalités du tour ? → A: Non : valeurs retenues, CoD et WSJF des fonctionnalités du tour sont masqués pour les participants jusqu'à la révélation ; le reste du tableau reste visible.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -80,6 +81,9 @@ jour du tableau.
    session et apparaît dans la liste des participants de l'animateur.
 2. **Given** un tour de vote ouvert sur F-1, **When** un participant enregistre ses valeurs,
    **Then** les autres participants et l'animateur voient qu'il a voté, mais pas ses valeurs.
+2a. **Given** F-1 a déjà des valeurs retenues (WSJF 4,00) et un tour est ouvert sur F-1
+   seule, **When** un participant consulte le tableau, **Then** F-1 apparaît « vote en
+   cours », sans valeurs, sans CoD et sans WSJF, alors que F-2 reste entièrement visible.
 3. **Given** des votes enregistrés sur F-1, **When** l'animateur révèle le tour, **Then**
    tous les membres voient, pour chaque participant et chaque critère, la valeur saisie,
    ainsi que le minimum et le maximum de chaque critère.
@@ -302,6 +306,12 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   propres valeurs pour les quatre critères de chaque fonctionnalité du tour. Personne, y
   compris l'animateur, ne voit les valeurs des autres avant la révélation. Tous voient,
   pour chaque participant, combien de fonctionnalités du tour il a déjà notées.
+- **FR-019a**: Pendant un tour ouvert, pour éviter l'effet d'ancrage, le système DOIT
+  masquer aux participants, pour les seules fonctionnalités du tour, les valeurs retenues
+  (BV, TC, RR/OE, JS), le CoD, le WSJF et les votes des tours précédents. Ces
+  fonctionnalités restent listées dans le tableau, marquées « vote en cours ». Les autres
+  fonctionnalités restent entièrement visibles. Tout redevient visible à la révélation.
+  L'animateur, lui, continue de tout voir sauf les votes du tour en cours.
 - **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. La révélation porte
   sur toutes les fonctionnalités du tour à la fois. Après révélation, pour chaque
   fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
@@ -364,7 +374,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   par tous les membres connectés en moins de 2 secondes.
 - **SC-003**: Pour 100 % des fonctionnalités complètes, le CoD et le WSJF affichés
   correspondent au calcul manuel à partir des valeurs affichées.
-- **SC-004**: Aucune valeur de vote n'est visible d'un autre membre avant la révélation,
+- **SC-004**: Aucune valeur de vote, ni aucune valeur retenue d'une fonctionnalité en cours
+  de vote (FR-019a), n'est visible d'un participant avant la révélation,
   dans 100 % des cas testés.
 - **SC-005**: Une session de 10 participants et 50 fonctionnalités se déroule sans
   ralentissement perceptible.
