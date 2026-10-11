@@ -14,6 +14,7 @@
 
 - Q: Les valeurs des critères sont-elles des entiers continus ou la suite de Fibonacci ? → A: L'animateur choisit pour chaque session : entiers continus ou suite de Fibonacci.
 - Q: Un tour de vote masqué porte-t-il sur une fonctionnalité, toutes, ou une sélection ? → A: L'animateur choisit les fonctionnalités incluses dans un tour (une, plusieurs ou toutes), révèle le tour entier, puis peut relancer un tour sur les seules fonctionnalités en désaccord.
+- Q: Comment l'application sait-elle qui est l'animateur, sans authentification ? → A: Un lien d'animation privé, distinct du lien d'invitation, donne seul les droits d'animateur ; l'animateur peut transmettre son rôle à un participant pendant la session.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -181,8 +182,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
    (en préparation, en cours, clôturée), triées de la plus récente à la plus ancienne.
 2. **Given** une session clôturée, **When** un utilisateur l'ouvre, **Then** il voit le
    tableau final en lecture seule, ainsi que l'historique des votes et des modifications.
-3. **Given** une session clôturée, **When** son animateur la rouvre, **Then** elle repasse
-   au statut « en cours » et redevient modifiable.
+3. **Given** une session clôturée, **When** son animateur l'ouvre via son lien d'animation
+   et la rouvre, **Then** elle repasse au statut « en cours » et redevient modifiable.
 
 ---
 
@@ -197,6 +198,13 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   (par exemple par l'animateur depuis deux onglets), la seconde modification est prévenue que la valeur a changé et voit la nouvelle valeur avant de
   confirmer ou d'annuler sa propre saisie.
 - **Pseudo déjà utilisé** dans la session : l'utilisateur est invité à en choisir un autre.
+- **Lien d'animation perdu** : l'animateur ne peut plus reprendre la main depuis un autre
+  poste. S'il est encore connecté quelque part, il peut retrouver le lien ou transmettre
+  son rôle. Sinon, la session reste consultable et votable, mais ses actions d'animation
+  sont bloquées. Aucune procédure de récupération n'est prévue en v1.
+- **Quelqu'un ouvre le lien d'invitation avec le pseudo de l'animateur** : le pseudo est
+  déjà utilisé, donc il est refusé. Même sans cela, aucun droit d'animateur ne serait
+  accordé sans le lien d'animation.
 - **Participant qui quitte la session** pendant un vote : ses votes déjà enregistrés sont
   conservés, et il peut revenir avec le même pseudo.
 - **Fonctionnalité supprimée** pendant la préparation : elle disparaît du tableau. Une fois
@@ -219,8 +227,18 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 
 - **FR-001**: Le système DOIT permettre à toute personne, après saisie d'un pseudo, de créer
   une session nommée dont elle devient l'animateur.
-- **FR-002**: Le système DOIT fournir à l'animateur un lien d'invitation à la session.
-  Toute personne qui ouvre ce lien et saisit un pseudo devient participant.
+- **FR-002**: À la création, le système DOIT fournir deux liens distincts :
+  - un **lien d'invitation**, à partager : toute personne qui l'ouvre et saisit un pseudo
+    devient participant ;
+  - un **lien d'animation privé**, réservé à l'animateur : c'est le seul moyen d'obtenir
+    les droits d'animateur, depuis n'importe quel poste ou navigateur.
+  Le pseudo seul ne donne jamais les droits d'animateur. Le lien d'animation reste
+  consultable par l'animateur dans la session.
+- **FR-002a**: L'animateur DOIT pouvoir transmettre son rôle à un participant présent dans
+  la session. Le participant choisi devient animateur, l'ancien animateur devient simple
+  participant, un nouveau lien d'animation est remis au nouvel animateur, et l'ancien lien
+  cesse de donner les droits d'animateur. Il y a toujours exactement un animateur par
+  session, et chaque transmission est tracée dans l'historique.
 - **FR-003**: Le système NE DOIT PAS exiger de mot de passe ni de compte. Un pseudo est
   unique au sein d'une session.
 - **FR-004**: Une session DOIT avoir l'un des statuts « en préparation », « en cours » ou
@@ -317,7 +335,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 
 ### Key Entities *(include if feature involves data)*
 
-- **Session** : une séance de priorisation. Elle a un nom, un animateur (pseudo), un
+- **Session** : une séance de priorisation. Elle a un nom, un animateur (pseudo), un lien
+  d'invitation, un lien d'animation privé, un
   statut, une date de création, une méthode (WSJF) et une échelle (type : entiers continus
   ou Fibonacci ; borne supérieure).
   Elle contient des fonctionnalités et des participants.
@@ -360,7 +379,10 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 ## Assumptions
 
 - Conformément à la constitution, les utilisateurs s'identifient par un simple pseudo, sans
-  authentification. Le rôle « animateur » appartient au créateur de la session.
+  authentification. Le rôle « animateur » appartient d'abord au créateur de la session.
+  Il est rattaché au lien d'animation privé, pas au pseudo, et peut être transmis.
+- Le lien d'animation n'est pas une authentification : quiconque l'obtient devient
+  animateur. Sa protection repose sur la discrétion de l'animateur.
 - Les participants participent en même temps, chacun depuis son propre poste, et voient
   les changements des autres en direct.
 - La suite de Fibonacci utilisée est la variante SAFe (1, 2, 3, 5, 8, 13, 20, 40, 100).
