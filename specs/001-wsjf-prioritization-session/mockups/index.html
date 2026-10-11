@@ -328,6 +328,10 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
 .vote-inputs .def { font-size: 13px; font-weight: 400; color: var(--muted); line-height: 1.35; }
 .table-wrap { overflow-y: visible; }
 
+.pick tr.sel td { background: var(--primary-soft); }
+.pick tr.locked td { color: var(--muted); }
+.pick input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .screen { display: none; }
 .screen.active { display: block; }
 .anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
@@ -336,7 +340,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
 <body>
 
 <div class="mock-bar" role="region" aria-label="Pilotage des maquettes">
-  <strong>Maquettes : session de priorisation WSJF</strong>
+  <strong>Maquettes : Priorisation Fonctionnalités</strong>
   <span class="seg" role="group" aria-label="Format">
     <button type="button" data-frame="pc" aria-pressed="true">Ordinateur</button>
     <button type="button" data-frame="phone" aria-pressed="false">Téléphone</button>
@@ -351,6 +355,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
   <button type="button" data-screen="s2">2. Session créée</button>
   <button type="button" data-screen="s3">3. Rejoindre</button>
   <button type="button" data-screen="s4">4. Tableau (animateur)</button>
+  <button type="button" data-screen="s4b">4 bis. Ouvrir un tour</button>
   <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
@@ -527,6 +532,49 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <button class="btn ghost sm no-phone" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
         </div>
       </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 4 bis. OUVRIR UN TOUR ======================= -->
+<section class="screen" id="s4b" data-note="Ordinateur uniquement. FR-018 : l'animateur choisit une, plusieurs ou toutes les fonctionnalités ; une fonctionnalité déjà dans un tour ouvert ne peut pas être resélectionnée. Session en cours.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="modal-backdrop">
+    <div class="modal" role="dialog" aria-labelledby="or-t">
+      <h2 id="or-t">Ouvrir un tour de vote</h2>
+      <p class="small muted" style="margin:0">Choisissez les fonctionnalités à faire voter. Les participants voteront en masqué ; vous révélerez tous les votes du tour en une fois.</p>
+      <div class="actions">
+        <span class="small" style="font-weight:600">Sélection rapide :</span>
+        <button class="btn sm" type="button">Tout sélectionner</button>
+        <button class="btn sm" type="button">Non évaluées (2)</button>
+        <button class="btn sm" type="button">À revoir (1)</button>
+        <button class="btn ghost sm" type="button">Tout désélectionner</button>
+      </div>
+      <div class="field" style="margin:0"><label for="or-q" class="sr-only">Rechercher</label><input id="or-q" class="input" placeholder="Rechercher par identifiant ou titre"></div>
+      <div class="table-wrap">
+        <table class="pick">
+          <thead><tr><th style="width:44px"><input type="checkbox" aria-label="Tout sélectionner"></th><th>Identifiant</th><th>Titre</th><th>État</th></tr></thead>
+          <tbody>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-3"></td><td>F-3</td><td class="title">Programme de fidélité</td><td><span class="badge">non évaluée</span></td></tr>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-7"></td><td>F-7</td><td class="title">Carte cadeau dématérialisée</td><td><span class="badge">non évaluée</span></td></tr>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-5"></td><td>F-5</td><td class="title">Refonte de la recherche</td><td><span class="badge warn">à revoir</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-1"></td><td>F-1</td><td class="title">Paiement en un clic</td><td><span class="muted small">WSJF 4,00</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-4"></td><td>F-4</td><td class="title">Export comptable mensuel</td><td><span class="muted small">WSJF 2,60</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-2"></td><td>F-2</td><td class="title">Notifications de livraison</td><td><span class="muted small">WSJF 2,00</span></td></tr>
+            <tr class="locked"><td><input type="checkbox" disabled aria-label="F-6, déjà dans le tour 3"></td><td>F-6</td><td class="title">Suivi des retours produits</td><td><span class="badge vote">déjà dans le tour 3</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="help" style="margin:0">Les fonctionnalités déjà dans un tour ouvert ne peuvent pas être sélectionnées. Révélez ce tour pour pouvoir les faire revoter.</p>
+      <div class="actions" style="justify-content:space-between">
+        <span class="small"><b>3</b> fonctionnalités sélectionnées</span>
+        <span class="actions"><button class="btn" type="button" data-go="s4">Annuler</button><button class="btn primary" type="button" data-go="s5">Ouvrir le tour (3 fonctionnalités)</button></span>
+      </div>
     </div>
   </div>
 </section>
