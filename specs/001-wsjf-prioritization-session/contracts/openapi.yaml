@@ -1,0 +1,734 @@
+openapi: 3.1.0
+info:
+  title: Priorisation Epic — API sessions WSJF
+  version: 1.0.0
+  description: |
+    API REST de la feature 001-wsjf-prioritization-session.
+    - Identifiants de code en anglais, messages d'erreur en français (Problem Details, RFC 9457).
+    - Les participants s'identifient par l'en-tête `X-Participant-Token` (jeton de reprise, pas une
+      authentification). Les actions d'animation exigent en plus `X-Animation-Token`.
+    - Toute écriture sur une ressource versionnée envoie `version` ; un conflit renvoie 409 avec l'état
+      actuel.
+    - Le masquage (FR-019, FR-019a) est appliqué par le serveur dans chaque réponse selon le rôle de
+      l'appelant.
+servers:
+  - url: /api
+tags:
+  - name: sessions
+  - name: participants
+  - name: features
+  - name: rounds
+  - name: imports
+  - name: exports
+  - name: history
+  - name: events
+
+components:
+  securitySchemes:
+    participantToken:
+      type: apiKey
+      in: header
+      name: X-Participant-Token
+    animationToken:
+      type: apiKey
+      in: header
+      name: X-Animation-Token
+  parameters:
+    inviteCode:
+      name: inviteCode
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+    featureId:
+      name: featureId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    roundId:
+      name: roundId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Problem:
+      description: Erreur métier ou de validation (message en français)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Modification concurrente ; `current` contient l'état actuel
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problem'
+              - type: object
+                properties:
+                  current: {}
+    Forbidden:
+      description: Action réservée à l'animateur, ou session clôturée
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      required: [title, status, detail]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string, description: Message en français, actionnable }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+    Scale:
+      type: object
+      required: [type, max]
+      properties:
+        type: { type: string, enum: [CONTINUOUS, FIBONACCI] }
+        max: { type: integer }
+        allowedValues:
+          type: array
+          readOnly: true
+          items: { type: integer }
+    SessionStatus:
+      type: string
+      enum: [PREPARATION, IN_PROGRESS, CLOSED]
+    SessionSummary:
+      type: object
+      properties:
+        inviteCode: { type: string }
+        name: { type: string }
+        facilitatorPseudo: { type: string }
+        createdAt: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/SessionStatus' }
+    CreateSessionRequest:
+      type: object
+      required: [name, pseudo]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        pseudo: { type: string, minLength: 1, maxLength: 40 }
+        scale: { $ref: '#/components/schemas/Scale' }
+    CreateSessionResponse:
+      type: object
+      properties:
+        inviteCode: { type: string }
+        invitationUrl: { type: string }
+        animationUrl: { type: string, description: 'Contient le jeton dans le fragment (#)' }
+        animationToken: { type: string }
+        participantToken: { type: string }
+    Score:
+      type: object
+      description: Calculé par le domaine, jamais saisi
+      properties:
+        complete: { type: boolean }
+        outOfScale:
+          type: array
+          items: { type: string, enum: [bv, tc, rrOe, js] }
+        cod: { type: [integer, 'null'] }
+        wsjfNumerator: { type: [integer, 'null'] }
+        wsjfDenominator: { type: [integer, 'null'] }
+        wsjfDisplay: { type: [string, 'null'], example: '4,00' }
+        explanation:
+          type: [string, 'null']
+          example: 'CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00'
+        rank: { type: [integer, 'null'] }
+    Feature:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        externalId: { type: string }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        bv: { type: [integer, 'null'] }
+        tc: { type: [integer, 'null'] }
+        rrOe: { type: [integer, 'null'] }
+        js: { type: [integer, 'null'] }
+        votingInProgress:
+          type: boolean
+          description: Si vrai et appelant non animateur, valeurs et score sont null (FR-019a)
+        score: { $ref: '#/components/schemas/Score' }
+        version: { type: integer }
+    FeatureWrite:
+      type: object
+      required: [externalId, title]
+      properties:
+        externalId: { type: string, minLength: 1, maxLength: 50 }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        bv: { type: [integer, 'null'], minimum: 1 }
+        tc: { type: [integer, 'null'], minimum: 1 }
+        rrOe: { type: [integer, 'null'], minimum: 1 }
+        js: { type: [integer, 'null'], minimum: 1 }
+        version: { type: integer, description: Obligatoire en modification }
+    Participant:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        pseudo: { type: string }
+        role: { type: string, enum: [FACILITATOR, PARTICIPANT] }
+        businessRole: { type: [string, 'null'] }
+        online: { type: boolean }
+    VoteValues:
+      type: object
+      properties:
+        bv: { type: [integer, 'null'] }
+        tc: { type: [integer, 'null'] }
+        rrOe: { type: [integer, 'null'] }
+        js: { type: [integer, 'null'] }
+    Round:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: integer }
+        status: { type: string, enum: [OPEN, REVEALED] }
+        featureIds:
+          type: array
+          items: { type: string, format: uuid }
+        progress:
+          type: array
+          description: Toujours visible — nombre de fonctionnalités entièrement notées par participant
+          items:
+            type: object
+            properties:
+              pseudo: { type: string }
+              completedCount: { type: integer }
+        myVotes:
+          type: object
+          description: Votes de l'appelant, par featureId
+          additionalProperties: { $ref: '#/components/schemas/VoteValues' }
+        results:
+          type: [array, 'null']
+          description: null tant que le tour est OPEN (SC-004)
+          items:
+            type: object
+            properties:
+              featureId: { type: string, format: uuid }
+              votes:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/VoteValues'
+                    - type: object
+                      properties:
+                        pseudo: { type: string }
+                        voted: { type: boolean }
+              min: { $ref: '#/components/schemas/VoteValues' }
+              max: { $ref: '#/components/schemas/VoteValues' }
+    SessionView:
+      type: object
+      description: Vue complète de la session, filtrée selon le rôle de l'appelant
+      properties:
+        inviteCode: { type: string }
+        name: { type: string }
+        status: { $ref: '#/components/schemas/SessionStatus' }
+        method: { type: string, enum: [WSJF] }
+        methodVersion: { type: integer }
+        formula: { type: string, example: 'CoD = BV + TC + RR/OE ; WSJF = CoD / JS' }
+        tieBreakRule: { type: string }
+        scale: { $ref: '#/components/schemas/Scale' }
+        me: { $ref: '#/components/schemas/Participant' }
+        participants:
+          type: array
+          items: { $ref: '#/components/schemas/Participant' }
+        features:
+          type: array
+          description: Triées selon FR-014
+          items: { $ref: '#/components/schemas/Feature' }
+        openRounds:
+          type: array
+          items: { $ref: '#/components/schemas/Round' }
+        version: { type: integer }
+    ImportPreview:
+      type: object
+      properties:
+        previewId: { type: string, format: uuid }
+        validRows:
+          type: array
+          items: { $ref: '#/components/schemas/FeatureWrite' }
+        rejectedRows:
+          type: array
+          items:
+            type: object
+            properties:
+              line: { type: integer }
+              externalId: { type: [string, 'null'] }
+              reason: { type: string }
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              line: { type: integer }
+              message: { type: string, example: 'BV = 12 hors échelle : valeur ignorée' }
+    HistoryEntry:
+      type: object
+      properties:
+        at: { type: string, format: date-time }
+        authorPseudo: { type: string }
+        entityType: { type: string }
+        entityId: { type: string, format: uuid }
+        action: { type: string }
+        field: { type: [string, 'null'] }
+        oldValue: {}
+        newValue: {}
+
+security:
+  - participantToken: []
+
+paths:
+  /sessions:
+    get:
+      tags: [sessions]
+      summary: Lister toutes les sessions (FR-026), de la plus récente à la plus ancienne
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SessionSummary' }
+    post:
+      tags: [sessions]
+      summary: Créer une session ; le créateur devient animateur (FR-001, FR-002)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSessionRequest' }
+      responses:
+        '201':
+          description: Créée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreateSessionResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+
+  /sessions/{inviteCode}:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    get:
+      tags: [sessions]
+      summary: Vue de la session filtrée selon le rôle (lecture seule si CLOSED)
+      description: |
+        Sans `X-Participant-Token` valide, renvoie une vue en lecture (consultation, FR-026) avec
+        masquage participant.
+      security: [{}, { participantToken: [] }, { participantToken: [], animationToken: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionView' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /sessions/{inviteCode}/settings:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    patch:
+      tags: [sessions]
+      summary: Renommer, changer l'échelle (FR-010, FR-011) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      parameters:
+        - name: confirm
+          in: query
+          schema: { type: boolean, default: false }
+          description: Sans confirm, un changement d'échelle rendant des valeurs hors échelle renvoie 409 avec la liste
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version]
+              properties:
+                name: { type: string }
+                scale: { $ref: '#/components/schemas/Scale' }
+                version: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionView' }
+        '409':
+          description: Valeurs devenues hors échelle (confirmation requise) ou conflit de version
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - type: object
+                    properties:
+                      impactedValues:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            externalId: { type: string }
+                            criterion: { type: string }
+                            value: { type: integer }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions/{inviteCode}/status:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [sessions]
+      summary: Démarrer, clôturer ou rouvrir (FR-004) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, version]
+              properties:
+                action: { type: string, enum: [START, CLOSE, REOPEN] }
+                version: { type: integer }
+      responses:
+        '200': { description: OK }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /sessions/{inviteCode}/participants:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [participants]
+      summary: Rejoindre avec un pseudo (FR-002, FR-003) ; renvoie un jeton de reprise
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pseudo]
+              properties:
+                pseudo: { type: string, minLength: 1, maxLength: 40 }
+                businessRole: { type: string }
+      responses:
+        '201':
+          description: Rejoint
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  participantToken: { type: string }
+                  participant: { $ref: '#/components/schemas/Participant' }
+        '409':
+          description: Pseudo déjà utilisé dans la session
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /sessions/{inviteCode}/facilitator/claim:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [participants]
+      summary: Prendre le rôle d'animateur depuis un autre poste via le lien d'animation (FR-002)
+      security: [{ participantToken: [], animationToken: [] }]
+      responses:
+        '200': { description: L'appelant est l'animateur }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions/{inviteCode}/facilitator/transfer:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [participants]
+      summary: Transmettre le rôle d'animateur (FR-002a) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toParticipantId]
+              properties:
+                toParticipantId: { type: string, format: uuid }
+      responses:
+        '200':
+          description: |
+            Rôle transmis. Le nouveau jeton d'animation n'est PAS renvoyé à l'ancien animateur ; il est
+            remis au bénéficiaire via `GET /sessions/{inviteCode}/facilitator/handover`.
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions/{inviteCode}/facilitator/handover:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    get:
+      tags: [participants]
+      summary: Le bénéficiaire d'une transmission récupère son lien d'animation (une seule fois)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  animationToken: { type: string }
+                  animationUrl: { type: string }
+        '404': { description: Aucune transmission en attente pour l'appelant }
+
+  /sessions/{inviteCode}/features:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [features]
+      summary: Ajouter une fonctionnalité (FR-006) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FeatureWrite' }
+      responses:
+        '201':
+          description: Créée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Feature' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Identifiant déjà utilisé
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /sessions/{inviteCode}/features/{featureId}:
+    parameters:
+      - { $ref: '#/components/parameters/inviteCode' }
+      - { $ref: '#/components/parameters/featureId' }
+    put:
+      tags: [features]
+      summary: Modifier une fonctionnalité et ses valeurs retenues (FR-006, FR-015, FR-021) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FeatureWrite' }
+      responses:
+        '200':
+          description: OK (score recalculé)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Feature' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [features]
+      summary: Supprimer (suppression douce, tracée) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: Supprimée }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /sessions/{inviteCode}/rounds:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    get:
+      tags: [rounds]
+      summary: Historique des tours (votes visibles uniquement pour les tours révélés)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Round' }
+    post:
+      tags: [rounds]
+      summary: Ouvrir un tour sur une sélection de fonctionnalités (FR-018, FR-022) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [featureIds]
+              properties:
+                featureIds:
+                  type: array
+                  minItems: 1
+                  items: { type: string, format: uuid }
+                previousRoundId: { type: [string, 'null'], format: uuid }
+      responses:
+        '201':
+          description: Tour ouvert
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Round' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Une fonctionnalité est déjà dans un tour ouvert
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /sessions/{inviteCode}/rounds/{roundId}/votes/{featureId}:
+    parameters:
+      - { $ref: '#/components/parameters/inviteCode' }
+      - { $ref: '#/components/parameters/roundId' }
+      - { $ref: '#/components/parameters/featureId' }
+    put:
+      tags: [rounds]
+      summary: Enregistrer ou modifier son vote masqué (FR-019)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VoteValues' }
+      responses:
+        '204': { description: Enregistré }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409':
+          description: Tour déjà révélé
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /sessions/{inviteCode}/rounds/{roundId}/reveal:
+    parameters:
+      - { $ref: '#/components/parameters/inviteCode' }
+      - { $ref: '#/components/parameters/roundId' }
+    post:
+      tags: [rounds]
+      summary: Révéler le tour entier (FR-020) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      responses:
+        '200':
+          description: Révélé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Round' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions/{inviteCode}/imports:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    post:
+      tags: [imports]
+      summary: Analyser un fichier et produire un aperçu (FR-007, FR-008) — animateur ; rien n'est écrit
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: '.xlsx, .csv ou .json ; 5 Mo max' }
+      responses:
+        '200':
+          description: Aperçu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportPreview' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /sessions/{inviteCode}/imports/{previewId}/confirm:
+    parameters:
+      - { $ref: '#/components/parameters/inviteCode' }
+      - name: previewId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [imports]
+      summary: Confirmer l'import des lignes valides (transaction unique) — animateur
+      security: [{ participantToken: [], animationToken: [] }]
+      responses:
+        '200':
+          description: Récapitulatif
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported: { type: integer }
+                  rejected: { type: integer }
+        '404': { description: Aperçu expiré ou inconnu }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /import-template.xlsx:
+    get:
+      tags: [imports]
+      summary: Télécharger le modèle Excel vierge (FR-007a)
+      security: []
+      responses:
+        '200':
+          description: Modèle
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+
+  /sessions/{inviteCode}/exports/{format}:
+    parameters:
+      - { $ref: '#/components/parameters/inviteCode' }
+      - name: format
+        in: path
+        required: true
+        schema: { type: string, enum: [csv, confluence-wiki, confluence-html, json] }
+    get:
+      tags: [exports]
+      summary: Exporter le tableau ou la session (FR-023, FR-024) — tout membre
+      description: |
+        Les exports appliquent le même masquage que la vue de l'appelant (une fonctionnalité en vote
+        n'est pas exportée avec ses valeurs par un participant). Formats détaillés dans file-formats.md.
+      security: [{}, { participantToken: [] }]
+      responses:
+        '200':
+          description: Fichier
+          content:
+            text/csv: {}
+            text/plain: {}
+            text/html: {}
+            application/json: {}
+
+  /sessions/{inviteCode}/history:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    get:
+      tags: [history]
+      summary: Historique des modifications (FR-025)
+      security: [{}, { participantToken: [] }]
+      parameters:
+        - name: featureId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK, du plus récent au plus ancien
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/HistoryEntry' }
+
+  /sessions/{inviteCode}/events:
+    parameters: [{ $ref: '#/components/parameters/inviteCode' }]
+    get:
+      tags: [events]
+      summary: Flux SSE de notifications (voir sse-events.md)
+      security: [{}, { participantToken: [] }]
+      responses:
+        '200':
+          description: Flux text/event-stream
+          content:
+            text/event-stream: {}
