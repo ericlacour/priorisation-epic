@@ -325,6 +325,13 @@ components:
                         voted: { type: boolean }
               min: { $ref: '#/components/schemas/criteria' }
               max: { $ref: '#/components/schemas/criteria' }
+              largeSpread:
+                type: array
+                description: Criteria where max - min > 3 (FR-020)
+                items: { type: string, enum: [bv, tc, rrOe, js] }
+              unanimous:
+                description: Value per criterion when every voter entered the same one, else null; prefills consensus (FR-021)
+                $ref: '#/components/schemas/criteria'
     sessionState:
       type: object
       required: [type, version, sessionId, name, status, method, methodVersion, formula,

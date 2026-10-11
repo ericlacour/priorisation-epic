@@ -22,6 +22,8 @@ Quand une tâche dit « sur le modèle de PP : `<chemin>` », il faut lire ce fi
 et en reprendre l'organisation, les conventions et les tests, en l'adaptant aux noms et
 au domaine de ce projet.
 
+**Contrat d'interface** : les maquettes [mockups/index.html](./mockups/index.html) (9 écrans, ordinateur et téléphone, thèmes clair et sombre, avec la charte décrite dans [mockups/README.md](./mockups/README.md)) font référence pour toutes les tâches front. Les jetons de couleur de `mockups/README.md` sont repris dans `frontend/src/styles/tokens.css`.
+
 **Hors périmètre** : aucune tâche ne doit traiter un sujet de la section « Hors périmètre
 de la version 1 » de la spec. Cela exclut l'authentification, les équipes, Jira, la
 connexion à Confluence, l'IA / LLM, les notifications, les pondérations WSJF, les autres
@@ -54,7 +56,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T002 Initialiser le projet Maven `backend/pom.xml` : parent `spring-boot-starter-parent` 4.1.x, `java.version` 25, `finalName` `priorisation-epic`. Starters `webmvc`, `websocket`, `data-jpa`, `validation` ; `org.flywaydb:flyway-core` et `flyway-database-postgresql` ; driver `org.postgresql:postgresql` ; `org.apache.poi:poi-ooxml` ; `org.apache.commons:commons-csv`. En test : `spring-boot-starter-webmvc-test`, `archunit-junit5`, `net.jqwik:jqwik`, `org.testcontainers:postgresql` et `junit-jupiter`. Plugin `jacoco-maven-plugin` avec une règle à 90 % de lignes sur `com.priorisationepic.domain.*`. Ajouter le Maven wrapper (`backend/mvnw`, `backend/mvnw.cmd`, `backend/.mvn/`). Sur le modèle de PP : `backend/pom.xml`
 - [ ] T003 Créer la classe d'application `backend/src/main/java/com/priorisationepic/PriorisationEpicApplication.java` et les paquets vides, chacun avec un `package-info.java` qui décrit son rôle : `domain`, `application`, `adapter/in/rest`, `adapter/in/ws`, `adapter/in/scheduling`, `adapter/out/persistence`, `adapter/out/io`, `config`
 - [ ] T004 [P] Initialiser le front Angular 22 dans `frontend/` (`package.json` avec `packageManager` npm@11 et `engines.node` ≥ 24.15 ; Angular 22.x ; TypeScript ~6.0 ; Vitest et jsdom ; `@playwright/test` ; `@axe-core/playwright` ; prettier). Reprendre les scripts de PP : `start`, `build`, `build:e2e`, `test`, `e2e`, `e2e:journeys`. Dans `frontend/playwright.config.ts` et `frontend/playwright.journeys.config.ts`, déclarer trois projets : `chromium`, `firefox` et `webkit` (Firefox en plus de PP, constitution IV). Sur le modèle de PP : `frontend/package.json`, `frontend/angular.json`, `frontend/.prettierrc`, `frontend/.editorconfig`
-- [ ] T005 [P] Configurer la locale `fr-FR` (`registerLocaleData` et `LOCALE_ID`) dans `frontend/src/app/app.config.ts`. Créer le catalogue de textes vide `frontend/src/app/i18n/messages.fr.ts`, qui exporte un objet `MESSAGES` typé
+- [ ] T005 [P] Configurer la locale `fr-FR` (`registerLocaleData` et `LOCALE_ID`) dans `frontend/src/app/app.config.ts`. Créer `frontend/src/styles/tokens.css` avec les jetons de couleur (thèmes clair et sombre) de `specs/001-wsjf-prioritization-session/mockups/README.md`, sur le modèle de PP : `frontend/src/styles/tokens.css`. Créer `frontend/src/app/layout/screen-size.service.ts`, qui expose `isPhone` (largeur < 600 px) et sert à passer en **lecture seule sur téléphone** (spec, « Hors périmètre », saisie sur téléphone) : actions de saisie, de vote et d'animation masquées, et bandeau « Pour voter ou modifier, utilisez un ordinateur ». Créer le catalogue de textes vide `frontend/src/app/i18n/messages.fr.ts`, qui exporte un objet `MESSAGES` typé
 - [ ] T006 [P] Initialiser `contract/package.json` (Node ≥ 24.15 ; `@redocly/cli`, `@asyncapi/parser`, `ajv`, `ajv-formats`, `yaml` ; scripts `validate` et `test`) et `contract/redocly.yaml`. Sur le modèle de PP : `contract/package.json`, `contract/redocly.yaml`
 
 ---
@@ -270,15 +272,16 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `lastSeenAt` est mis à jour à chaque `heartbeat` (au plus une fois toutes les 30 s en base) et à la fermeture de la dernière connexion du participant. C'est le point de départ des 10 minutes d'absence de T049.
 - [ ] T054 [P] [US1] Front, page d'accueil `frontend/src/app/home/` : formulaire de création (nom de session et pseudo). Après création, enregistrer les jetons dans `storage`, afficher le lien d'invitation et le **lien d'animation privé** (`/s/{sessionId}/animer#{animationToken}`) avec un avertissement « à garder pour vous », puis rediriger vers la session
 - [ ] T055 [P] [US1] Front, écran d'entrée `frontend/src/app/session/join/` : saisie du pseudo, `POST /participants`, message « pseudo déjà utilisé ». La route `/s/:sessionId/animer` lit le fragment, enregistre `pe.animation.{sessionId}`, puis efface le fragment de l'URL
-- [ ] T056 [US1] Front, tableau `frontend/src/app/board/board.component.ts` : il affiche `sessionState.features` dans l'ordre reçu, avec la formule et la règle d'égalité en légende (constitution I) et la liste des participants en ligne (FR-005). Ajouter le détail du calcul `score-detail.component.ts` (FR-016)
+- [ ] T056 [US1] Front, tableau `frontend/src/app/board/board.component.ts` : il affiche `sessionState.features` dans l'ordre reçu (disposition des écrans 4 et 5 des maquettes), avec la formule et la règle d'égalité en légende (constitution I) et la liste des participants en ligne (FR-005). Ajouter le détail du calcul `score-detail.component.ts` (FR-016)
 - [ ] T057 [US1] Front, édition par l'animateur `frontend/src/app/board/feature-editor.component.ts` :
   - ajout, modification et suppression avec confirmation ;
-  - saisie limitée à `scale.allowedValues` ;
+  - saisie directe des valeurs dans la ligne, contrôlée côté front (entier, dans l'échelle, dans la suite en Fibonacci) puis côté serveur ;
+  - envoi d'une seule intention `updateFeature` quand l'animateur clique sur « Enregistrer ». Le tableau ne se retrie qu'à ce moment (FR-015), et la ligne en cours de saisie ne bouge pas ;
   - envoi de la `version` ;
   - en cas de `STALE_VERSION`, la valeur actuelle s'affiche avant de confirmer ou d'annuler ;
   - messages d'erreur français tirés de `messages.fr.ts` (FR-027).
 - [ ] T058 [P] [US1] Front, action « Afficher mon lien d'animation » dans `frontend/src/app/session/animation-link.component.ts` (FR-002, cas limite « Lien d'animation perdu ») : visible seulement pour l'animateur, elle reconstruit le lien `/s/{sessionId}/animer#{animationToken}` à partir du jeton `pe.animation.{sessionId}` stocké dans le navigateur, l'affiche avec un bouton « Copier » et l'avertissement « à garder pour vous ». Aucun appel serveur : le serveur ne connaît que l'empreinte du jeton. Ajouter le test Vitest `frontend/src/app/session/animation-link.component.spec.ts`
-- [ ] T059 [US1] Écrire les tests e2e Playwright `frontend/e2e/board.spec.ts` (avec un faux socket, sur le modèle de PP : `e2e/fake-session-socket.ts`, et les contrôles axe-core), puis les parcours `frontend/e2e-journeys/us1-saisie-directe.spec.ts` (quickstart V1, V2, V3 et V14, avec deux navigateurs et une propagation en moins de 2 s, SC-002)
+- [ ] T059 [US1] Écrire les tests e2e Playwright `frontend/e2e/board.spec.ts` (avec un faux socket, sur le modèle de PP : `e2e/fake-session-socket.ts`, et les contrôles axe-core), avec un cas « téléphone » (fenêtre de 390 px : tableau en cartes, aucune action de saisie, bandeau « Pour voter ou modifier, utilisez un ordinateur »), et un cas « le tableau ne se retrie qu'à « Enregistrer » », puis les parcours `frontend/e2e-journeys/us1-saisie-directe.spec.ts` (quickstart V1, V2, V3 et V14, avec deux navigateurs et une propagation en moins de 2 s, SC-002)
 
 **Checkpoint** : US1 fonctionne et se teste seule. C'est le MVP.
 
@@ -320,6 +323,8 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - un tour `REVEALED` est immuable (`ROUND_REVEALED`) ;
   - relance à partir de `previousRoundId` sur une sélection des fonctionnalités du tour précédent ;
   - minimum et maximum par critère ;
+  - `largeSpread` : un critère est en écart important si et seulement si maximum moins minimum est **strictement supérieur à 3** (cas limites : 3 donne non, 4 donne oui) ;
+  - `unanimous` : valeur d'un critère si **tous les votants** ont saisi la même, sinon vide. Les non-votants sont ignorés. Un tour sans aucun votant donne vide ;
   - « n'a pas voté » signalé.
 - [ ] T065 [P] [US2] Test unitaire de visibilité `backend/src/test/java/com/priorisationepic/domain/round/VisibilityTest.java` (FR-019, FR-019a, SC-004). Pendant un tour `OPEN` :
   - le destinataire ne voit que ses propres votes ;
@@ -345,17 +350,18 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Implémentation de User Story 2
 
 - [ ] T070 [P] [US2] Implémenter `domain/SessionStatus.java` (transition `START`) et `application/ChangeStatusUseCase.java` (intention `changeStatus` avec `START` seulement à ce stade), puis brancher l'intention dans `adapter/in/ws/SessionSocketHandler.java`, dans `backend/src/main/java/com/priorisationepic/`
-- [ ] T071 [P] [US2] Implémenter `domain/round/VotingRound.java`, `domain/round/Vote.java` et `domain/round/RoundResults.java` dans `backend/src/main/java/com/priorisationepic/`
+- [ ] T071 [P] [US2] Implémenter `domain/round/VotingRound.java`, `domain/round/Vote.java` et `domain/round/RoundResults.java` (minimum, maximum, `largeSpread`, `unanimous`) dans `backend/src/main/java/com/priorisationepic/`
 - [ ] T072 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
 - [ ] T073 [US2] Implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature` et `vote`, et réalisation de `RoundRepository`
 - [ ] T074 [US2] Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session ; `openRound` refusé en `PREPARATION` avec `SESSION_NOT_STARTED`) et `application/VoteUseCase.java` (intention `castVote` ; tout membre peut voter, l'animateur compris ; valeurs validées par `Scale`)
 - [ ] T075 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : refus avec `PARTICIPANT_OFFLINE` si le bénéficiaire n'a aucune connexion ouverte (FR-002a) ; sinon `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
 - [ ] T076 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`progress`, `myVotes`, `results`) et `lastRevealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
 - [ ] T077 [P] [US2] Front, `frontend/src/app/rounds/open-round-dialog.component.ts` : l'animateur sélectionne une, plusieurs ou toutes les fonctionnalités. Les fonctionnalités déjà dans un tour ouvert sont désactivées
-- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/vote-panel.component.ts` : le participant saisit BV, TC, RR/OE et JS pour chaque fonctionnalité du tour, parmi `scale.allowedValues`. La progression de chacun s'affiche (« alice : 1/2 »). Dans le tableau, les fonctionnalités en vote sont marquées « vote en cours »
+- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/vote-panel.component.ts` : le participant saisit BV, TC, RR/OE et JS pour chaque fonctionnalité du tour, par **saisie directe** d'un nombre (FR-019). Un nombre non entier, hors échelle ou hors suite de Fibonacci est refusé avec le message « Saisissez un nombre entier entre 1 et {max} » ou « Valeurs autorisées : 1, 2, 3, 5, 8, 13 ». Ajouter ces cas au test `vote-panel.component.spec.ts`. La progression de chacun s'affiche (« alice : 1/2 »). Dans le tableau, les fonctionnalités en vote sont marquées « vote en cours »
 - [ ] T079 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` :
   - votes par participant, avec minimum et maximum par critère, et « n'a pas voté » ;
-  - l'animateur saisit les valeurs communes (intention `updateFeature`) ;
+  - badge « écart important » sur les critères de `largeSpread` (maximum moins minimum > 3, FR-020) ;
+  - l'animateur saisit les valeurs communes (intention `updateFeature`). Les champs sont **vides**, sauf ceux préremplis par `unanimous` (FR-021) ;
   - bouton « Relancer un tour sur la sélection ».
 - [ ] T080 [P] [US2] Front, bouton « Démarrer la session » pour l'animateur dans `frontend/src/app/session/session-status.component.ts`. Tant que la session est en préparation, l'action « Ouvrir un tour » est désactivée, avec l'explication « Démarrez la session pour ouvrir un tour de vote »
 - [ ] T081 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire

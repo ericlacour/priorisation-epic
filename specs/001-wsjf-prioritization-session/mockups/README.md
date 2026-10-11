@@ -7,6 +7,16 @@ thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 Les données sont fictives. Ce sont des maquettes : elles ne sont pas le code de
 l'application.
 
+## Décisions issues des maquettes
+
+| Sujet | Décision |
+|-------|----------|
+| Saisie d'un vote | Saisie directe du nombre, contrôlée : entier, dans l'échelle, dans la suite en Fibonacci (FR-019) |
+| Écart important | Signalé quand le maximum moins le minimum est strictement supérieur à 3 (FR-020) |
+| Retri du tableau | Quand l'animateur valide la ligne, pas à chaque frappe (FR-015) |
+| Consensus | Champs vides, sauf pour un critère où tous les votants ont saisi la même valeur (FR-021) |
+| Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
+
 ## Charte
 
 Les couleurs suivent la demande : un rouge vif en couleur principale, et un gris anthracite

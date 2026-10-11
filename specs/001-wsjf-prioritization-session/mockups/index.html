@@ -242,6 +242,12 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 }
 .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
 .chip.sm { min-width: 34px; min-height: 34px; font-size: 14px; }
+.vote-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 120px)); gap: 10px; }
+.vote-inputs label { display: grid; gap: 4px; font-size: 14px; font-weight: 500; }
+.vote-inputs .input { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.vote-inputs .input.error, .vote-inputs .input[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
+.phone-readonly { display: none; }
+@container (max-width: 600px) { .phone-readonly { display: flex; } .no-phone { display: none !important; } }
 
 /* Révélation */
 .reveal-grid th, .reveal-grid td { text-align: center; }
@@ -428,7 +434,8 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
     <span class="badge prep">En préparation</span>
   </header>
   <div class="page">
-    <div class="actions">
+    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
+    <div class="actions no-phone">
       <button class="btn primary" type="button">Démarrer la session</button>
       <button class="btn" type="button">+ Fonctionnalité</button>
       <button class="btn" type="button" data-go="s7">Importer</button>
@@ -445,7 +452,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
             <tbody>
               <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button" aria-expanded="true">Détail</button></td></tr>
               <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Détail</button></td></tr>
-              <tr class="edit-row"><td><span class="rank">3</span></td><td>F-2</td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button">Enregistrer</button></td></tr>
+              <tr class="edit-row"><td><span class="rank">3</span></td><td>F-2</td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button" title="Le tableau se retrie à l'enregistrement">Enregistrer</button></td></tr>
               <tr><td><span class="rank">4</span></td><td>F-5</td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Hors échelle : à revoir">13</span></td><td class="num">—</td><td class="num">à revoir</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
               <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
             </tbody>
@@ -471,7 +478,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
           </div>
           <p class="help" style="margin-bottom:0">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
         </div>
-        <div class="notice danger" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
+        <div class="notice danger no-phone" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
       </div>
       <aside class="side">
         <div class="card">
@@ -485,7 +492,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
         <div class="card">
           <h3>Inviter</h3>
           <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
-          <button class="btn ghost sm" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
+          <button class="btn ghost sm no-phone" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
         </div>
       </aside>
     </div>
@@ -501,23 +508,31 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
     <span class="badge live">En cours</span>
   </header>
   <div class="page">
+    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
     <div class="notice info"><span class="ico">●</span><span><b>Tour 2 en cours</b> sur 2 fonctionnalités. Vos votes restent cachés jusqu'à la révélation par l'animateur.</span></div>
     <div class="layout-board">
       <div style="display:grid;gap:16px">
-        <div class="card" style="display:grid;gap:12px">
+        <div class="card no-phone" style="display:grid;gap:12px">
           <h2 style="margin:0">Votre vote</h2>
+          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère.</p>
           <div class="vote-feature done">
             <div class="actions" style="justify-content:space-between"><b>F-1 · Paiement en un clic</b><span class="badge live">Noté</span></div>
-            <div class="crit-row"><span class="small">BV</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button" aria-pressed="true">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
-            <div class="crit-row"><span class="small">TC</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button" aria-pressed="true">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
-            <div class="crit-row"><span class="small">RR/OE</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button" aria-pressed="true">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
-            <div class="crit-row"><span class="small">JS</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button" aria-pressed="true">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <div class="vote-inputs">
+              <label>BV<input class="input" inputmode="numeric" value="8"></label>
+              <label>TC<input class="input" inputmode="numeric" value="4"></label>
+              <label>RR/OE<input class="input" inputmode="numeric" value="3"></label>
+              <label>JS<input class="input" inputmode="numeric" value="5"></label>
+            </div>
           </div>
           <div class="vote-feature">
             <div class="actions" style="justify-content:space-between"><b>F-2 · Notifications de livraison</b><span class="badge">À noter</span></div>
-            <div class="crit-row"><span class="small">BV</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button" aria-pressed="true">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
-            <div class="crit-row"><span class="small">TC</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
-            <p class="help" style="margin:0">Il reste TC, RR/OE et JS à noter.</p>
+            <div class="vote-inputs">
+              <label>BV<input class="input" inputmode="numeric" value="3"></label>
+              <label>TC<input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
+              <label>RR/OE<input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
+              <label>JS<input class="input" inputmode="numeric" placeholder="—"></label>
+            </div>
+            <p class="err small" id="tc-err" style="margin:0;color:var(--danger)">TC : saisissez un nombre entier entre 1 et 10. RR/OE : « 2,5 » n'est pas un nombre entier.</p>
           </div>
         </div>
         <div class="table-wrap desktop-only">
@@ -555,7 +570,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 6. RÉVÉLATION ET CONSENSUS ======================= -->
-<section class="screen" id="s6" data-note="FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Il saisit les valeurs communes ; il peut relancer un tour sur les seules fonctionnalités en désaccord.">
+<section class="screen" id="s6" data-note="FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Écart important = maximum moins minimum strictement supérieur à 3. Les champs de consensus sont vides, sauf si tous les votants ont saisi la même valeur.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
@@ -563,6 +578,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
     <span class="badge live">En cours</span>
   </header>
   <div class="page">
+    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
     <div class="notice success"><span class="ico">✓</span><span><b>Tour 2 révélé</b> : 2 fonctionnalités. Discutez des écarts, puis fixez les valeurs retenues.</span></div>
     <div class="card" style="display:grid;gap:12px">
       <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-1 · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
@@ -577,17 +593,18 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
           </tbody>
         </table>
       </div>
-      <div class="actions">
+      <div class="actions no-phone">
         <span class="small" style="font-weight:600">Valeurs retenues :</span>
-        <label class="small">BV <input class="input" style="width:64px;min-height:36px" value="8"></label>
-        <label class="small">TC <input class="input" style="width:64px;min-height:36px" value="5"></label>
-        <label class="small">RR/OE <input class="input" style="width:64px;min-height:36px" value="3"></label>
-        <label class="small">JS <input class="input" style="width:64px;min-height:36px" value="4"></label>
-        <button class="btn primary sm" type="button">Valider : WSJF 4,00</button>
+        <label class="small">BV <input class="input" style="width:64px;min-height:36px" value="8" title="Prérempli : tous les votants ont saisi 8"></label>
+        <label class="small">TC <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
+        <label class="small">RR/OE <input class="input" style="width:64px;min-height:36px" value="3" title="Prérempli : tous les votants ont saisi 3"></label>
+        <label class="small">JS <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
+        <button class="btn primary sm" type="button" disabled>Valider</button>
+        <span class="help">BV et RR/OE sont préremplis car tous les votants ont saisi la même valeur.</span>
       </div>
     </div>
     <div class="card" style="display:grid;gap:12px">
-      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-2 · Notifications de livraison <span class="badge warn">écart important</span></h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
+      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-2 · Notifications de livraison</h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
       <div class="table-wrap">
         <table class="reveal-grid">
           <thead><tr><th>Participant</th><th>BV</th><th>TC</th><th>RR/OE</th><th>JS</th></tr></thead>
@@ -595,12 +612,12 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
             <tr><td>alice</td><td>3</td><td>8</td><td>2</td><td>2</td></tr>
             <tr><td>eric</td><td>2</td><td>2</td><td>2</td><td>6</td></tr>
             <tr class="novote"><td>bob</td><td colspan="4">n'a pas voté</td></tr>
-            <tr class="minmax"><td>Min – max</td><td>2 – 3</td><td class="spread">2 – 8</td><td>2 – 2</td><td class="spread">2 – 6</td></tr>
+            <tr class="minmax"><td>Min – max</td><td>2 – 3</td><td class="spread">2 – 8 <span class="badge warn">écart important</span></td><td>2 – 2</td><td class="spread">2 – 6 <span class="badge warn">écart important</span></td></tr>
           </tbody>
         </table>
       </div>
     </div>
-    <div class="actions">
+    <div class="actions no-phone">
       <button class="btn primary" type="button">Relancer un tour sur la sélection (1)</button>
       <button class="btn" type="button">Voir les tours précédents</button>
     </div>
@@ -608,7 +625,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 7. IMPORT ======================= -->
-<section class="screen" id="s7" data-note="FR-007, FR-007a, FR-008. Aperçu avant import : rien n'est écrit avant la confirmation. En-têtes imposés.">
+<section class="screen" id="s7" data-note="Ordinateur uniquement (pas de saisie sur téléphone en V1). FR-007, FR-007a, FR-008. Aperçu avant import : rien n'est écrit avant la confirmation. En-têtes imposés.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
@@ -649,7 +666,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 8. ÉCHELLE ======================= -->
-<section class="screen" id="s8" data-note="FR-009 à FR-011. Passage en Fibonacci borne 13 : 5 valeurs deviennent hors échelle, une redevient valide ; confirmation obligatoire.">
+<section class="screen" id="s8" data-note="Ordinateur uniquement (pas de saisie sur téléphone en V1). FR-009 à FR-011. Passage en Fibonacci borne 13 : 5 valeurs deviennent hors échelle, une redevient valide ; confirmation obligatoire.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
@@ -687,7 +704,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 9. EXPORTS ET HISTORIQUE ======================= -->
-<section class="screen" id="s9" data-note="FR-023 à FR-025. Formats versionnés. L'historique ne garde que les changements de valeurs retenues et d'échelle.">
+<section class="screen" id="s9" data-note="Disponible aussi sur téléphone (consultation). FR-023 à FR-025. Formats versionnés. L'historique ne garde que les changements de valeurs retenues et d'échelle.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice</div></div>

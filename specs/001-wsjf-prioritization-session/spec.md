@@ -17,6 +17,11 @@
 - Q: Comment l'application sait-elle qui est l'animateur, sans authentification ? → A: Un lien d'animation privé, distinct du lien d'invitation, donne seul les droits d'animateur ; l'animateur peut transmettre son rôle à un participant pendant la session.
 - Q: Pendant un tour masqué, les participants voient-ils les valeurs déjà retenues des fonctionnalités du tour ? → A: Non : valeurs retenues, CoD et WSJF des fonctionnalités du tour sont masqués pour les participants jusqu'à la révélation ; le reste du tableau reste visible.
 - Q: Comment l'outil reconnaît-il les colonnes du fichier Excel importé ? → A: Noms de colonnes imposés (Identifiant, Titre, Description, BV, TC, RR/OE, JS), modèle vierge téléchargeable ; un fichier sans ces en-têtes est refusé.
+- Q (maquettes) : comment saisir un vote quand la borne de l'échelle est grande (jusqu'à 100) ? → A: Saisie directe du nombre, avec contrôle (entier, dans l'échelle).
+- Q (maquettes) : quand un critère est-il signalé « écart important » à la révélation ? → A: Quand le maximum moins le minimum est strictement supérieur à 3.
+- Q (maquettes) : quand le tableau se retrie-t-il pendant la saisie de l'animateur ? → A: Quand il valide la ligne, pas à chaque frappe.
+- Q (maquettes) : que contiennent les champs de consensus au départ ? → A: Ils sont vides, sauf pour un critère où tous les votants ont saisi la même valeur.
+- Q (maquettes) : la saisie est-elle possible sur téléphone en V1 ? → A: Non : lecture seule sur téléphone, saisie sur ordinateur.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -312,7 +317,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   puis selon la règle d'égalité définie dans les Edge Cases. Les fonctionnalités
   incomplètes apparaissent en fin de tableau.
 - **FR-015**: Toute modification de BV, TC, RR/OE ou JS DOIT mettre à jour le CoD, le WSJF
-  et le tri, sans rechargement et pour tous les membres connectés à la session.
+  et le tri, sans rechargement et pour tous les membres connectés à la session. Le
+  recalcul et le retri ont lieu quand l'animateur **valide la ligne** (« Enregistrer »),
+  pas à chaque chiffre tapé : la ligne en cours de saisie ne change pas de place.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
@@ -330,7 +337,10 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   être ouvert que si la session est **en cours** (FR-004). Le vote masqué est facultatif :
   les valeurs peuvent toujours être saisies directement.
 - **FR-019**: Pendant un tour ouvert, chaque participant DOIT pouvoir saisir et modifier ses
-  propres valeurs pour les quatre critères de chaque fonctionnalité du tour. Personne, y
+  propres valeurs pour les quatre critères de chaque fonctionnalité du tour, par **saisie
+  directe** d'un nombre. La saisie est contrôlée : une valeur qui n'est pas un entier, qui
+  sort de l'échelle ou, en Fibonacci, qui n'appartient pas à la suite est refusée avec un
+  message qui donne les valeurs autorisées (FR-027). Personne, y
   compris l'animateur, ne voit les valeurs des autres avant la révélation. Tous voient,
   pour chaque participant, combien de fonctionnalités du tour il a déjà notées.
 - **FR-019a**: Pendant un tour ouvert, pour éviter l'effet d'ancrage, le système DOIT
@@ -342,9 +352,14 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. La révélation porte
   sur toutes les fonctionnalités du tour à la fois. Après révélation, pour chaque
   fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
-  maximum par critère sont visibles par tous, et le tour n'accepte plus de vote.
+  maximum par critère sont visibles par tous, et le tour n'accepte plus de vote. Un
+  critère est signalé **« écart important »** quand l'écart entre le maximum et le minimum
+  est **strictement supérieur à 3**.
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
   retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité (voir FR-006).
+  Les champs de consensus sont **vides** au départ. Seul un critère pour lequel **tous
+  les votants** ont saisi la même valeur est prérempli avec cette valeur. Les participants
+  qui n'ont pas voté ne comptent pas.
 - **FR-022**: Après révélation, l'animateur DOIT pouvoir lancer un nouveau tour sur une
   sélection des fonctionnalités du tour précédent (typiquement celles sans accord), sans
   limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
@@ -485,3 +500,7 @@ Chacun demandera sa propre spec, et, pour certains, un amendement de la constitu
   modèle permet d'en ajouter plus tard (FR-017).
 - **Fonctionnalités avancées de SAFe** : pas de gestion des PI, des ART, des
   dépendances, de la capacité ou des objectifs de PI.
+- **Saisie sur téléphone** : sur un écran de téléphone (moins de 600 px de large), la
+  session est consultable en lecture seule : tableau, résultats, historique et exports.
+  Saisir, voter et animer demandent un écran d'ordinateur, et un message l'indique
+  (« Pour voter ou modifier, utilisez un ordinateur »).
