@@ -88,6 +88,8 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | title | texte (1 à 200 car.) | Obligatoire |
 | description | texte (≤ 5 000 car.) | Facultative |
 | bv, tc, rrOe, js | entier, facultatif | Une fois renseigné, la valeur est ≥ 1. L'appartenance à l'échelle est vérifiée à l'écriture |
+| markedForReview | booléen | Marque « à revoir » posée par l'animateur (FR-006a). Faux par défaut. Sans effet sur le score ni le tri |
+| reviewReason | texte (≤ 200 car.), facultatif | Motif de la marque « à revoir ». Vidé quand la marque est retirée |
 | deletedAt | horodatage, facultatif | Suppression douce, pour conserver l'historique |
 | version | entier | Verrouillage optimiste |
 
@@ -95,7 +97,10 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - `complete` : vrai si les quatre critères sont renseignés **et** appartiennent à
   l'échelle courante.
 - `outOfScale` : la liste des critères renseignés mais hors de l'échelle courante. Ils
-  sont affichés « à revoir » (FR-011).
+  sont affichés « **hors échelle** » (FR-011). C'est un état calculé, distinct de la
+  marque « à revoir » (`markedForReview`).
+- **Retrait automatique de la marque « à revoir »** : à la révélation d'un tour, la marque
+  de chaque fonctionnalité du tour est retirée (FR-006a).
 - `cod` = bv + tc + rrOe, seulement si `complete`.
 - `wsjf` = cod / js, sous forme de fraction exacte, seulement si `complete`. Affiché avec
   2 décimales.
@@ -103,7 +108,8 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 
 **Tri** (FR-014) : les fonctionnalités complètes d'abord, par WSJF décroissant, puis par
 CoD décroissant, puis par `externalId` croissant sans tenir compte de la casse. Viennent
-ensuite les fonctionnalités incomplètes ou à revoir, par `externalId` croissant.
+ensuite les fonctionnalités incomplètes ou hors échelle, par `externalId` croissant. La
+marque « à revoir » ne change pas le tri.
 
 ## VotingRound (Tour de vote)
 

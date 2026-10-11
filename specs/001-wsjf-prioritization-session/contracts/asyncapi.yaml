@@ -161,6 +161,8 @@ components:
             externalId: { type: string, minLength: 1, maxLength: 50 }
             title: { type: string, minLength: 1, maxLength: 200 }
             description: { type: [string, 'null'], maxLength: 5000 }
+            markedForReview: { type: boolean, description: 'Facilitator reminder (FR-006a); allowed even while the feature is in an open round' }
+            reviewReason: { type: [string, 'null'], maxLength: 200 }
     deleteFeature:
       type: object
       required: [type, featureId, version]
@@ -281,6 +283,8 @@ components:
             title: { type: string }
             description: { type: [string, 'null'] }
             version: { type: integer }
+            markedForReview: { type: boolean }
+            reviewReason: { type: [string, 'null'] }
             votingInProgress:
               type: boolean
               description: When true and the recipient is not the facilitator, criteria and score are null (FR-019a)

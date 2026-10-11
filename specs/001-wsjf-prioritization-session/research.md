@@ -129,7 +129,7 @@ planning-poker est indiquée, sous la forme `PP : …`.
     défaut.
   - En Fibonacci, les valeurs sont celles de {1, 2, 3, 5, 8, 13, 20, 40, 100} qui ne
     dépassent pas la borne. La borne vaut 20 par défaut.
-  - Une valeur « à revoir » est **déduite** en la comparant à l'échelle courante. Elle
+  - Une valeur « hors échelle » est **déduite** en la comparant à l'échelle courante. Elle
     n'est jamais stockée comme un état.
   - Pour changer l'échelle, l'intention `updateSettings` sans `confirm` renvoie
     `error SCALE_IMPACT` avec la liste des valeurs impactées. Avec `confirm: true`, le

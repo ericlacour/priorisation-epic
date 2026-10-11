@@ -72,7 +72,9 @@ Les formules sont lues par leur dernière valeur calculée.
   ligne d'en-tête.
 - Guillemets RFC 4180 pour les champs qui contiennent le séparateur, un guillemet ou un
   saut de ligne.
-- **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF`.
+- **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF;À revoir;Motif`.
+  - `À revoir` vaut `oui` ou reste vide (FR-006a), `Motif` contient le motif éventuel.
+  - À l'import, `À revoir` et `Motif` sont ignorés.
   - Le WSJF a 2 décimales avec une virgule (`4,00`).
   - Une fonctionnalité incomplète a `Rang`, `CoD` et `WSJF` vides.
 - Un CSV exporté peut être réimporté : les colonnes `Rang`, `CoD` et `WSJF` sont alors
@@ -130,6 +132,7 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
   "features": [
     { "externalId": "F-1", "title": "…", "description": "…",
       "bv": 8, "tc": 5, "rrOe": 3, "js": 4,
+      "markedForReview": true, "reviewReason": "descriptif à compléter",
       "computed": { "cod": 16, "wsjf": "4,00", "rank": 1 } }
   ],
   "rounds": [

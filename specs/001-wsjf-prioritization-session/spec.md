@@ -27,6 +27,7 @@
 - Q : faut-il afficher l'historique des modifications de valeurs ? → A: Non, il ne sert pas. Les modifications restent enregistrées (constitution III) mais ne sont pas affichées en V1.
 - Q : comment consulter le descriptif d'une fonctionnalité sans surcharger l'écran ? → A: Clic sur l'identifiant, qui ouvre un panneau de détail (descriptif, valeurs, calcul).
 - Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile. Même règle pour les écrans du tour en cours et de la révélation.
+- Q : comment indiquer qu'une fonctionnalité est « à revoir » ? → A: Marque posée par l'animateur, avec un motif facultatif, sans effet sur le classement, pour la reprendre lors d'un prochain tour. Les valeurs sorties de l'échelle sont signalées séparément « hors échelle » (calculé).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -145,7 +146,7 @@ et vérifier que 13 est accepté et que 10 est refusé.
    **Then** les valeurs de 1 à 20 sont acceptées pour tous les critères.
 5. **Given** des valeurs déjà saisies, **When** l'animateur réduit l'échelle de 1–20 à
    1–10, **Then** il est prévenu des valeurs devenues hors échelle. S'il confirme, ces
-   valeurs sont signalées « à revoir » et la fonctionnalité concernée sort du calcul
+   valeurs sont signalées « hors échelle » et la fonctionnalité concernée sort du calcul
    jusqu'à correction.
 6. **Given** une session en entiers continus de 1 à 10, **When** l'animateur choisit la
    suite de Fibonacci avec la borne 13, **Then** seules les valeurs 1, 2, 3, 5, 8 et 13
@@ -284,6 +285,16 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   titre (obligatoire), une description (facultative) et les critères BV, TC, RR/OE et JS.
   Seul l'animateur modifie les valeurs retenues des fonctionnalités, en saisie directe
   comme après un vote. Les participants ne saisissent que leurs propres votes.
+- **FR-006a**: L'animateur DOIT pouvoir **marquer une fonctionnalité « à revoir »**, avec un
+  motif facultatif (200 caractères au plus, par exemple « descriptif à compléter »), et
+  retirer cette marque. La marque est un **rappel** : elle ne change ni le calcul, ni le
+  WSJF, ni le rang, ni le tri. Elle est visible par tous (badge « à revoir » dans le
+  tableau, motif au survol et dans le panneau de détail). Elle sert à **reprendre la
+  fonctionnalité lors d'un prochain tour** : à l'ouverture d'un tour, une sélection rapide
+  « À revoir » coche les fonctionnalités marquées. La marque est **retirée
+  automatiquement à la révélation** d'un tour qui inclut la fonctionnalité, ou à la main
+  par l'animateur. On peut la poser ou la retirer même pendant un tour ouvert. Elle ne doit
+  pas être confondue avec l'état « **hors échelle** » (FR-011), calculé automatiquement.
 - **FR-007**: L'animateur DOIT pouvoir importer des fonctionnalités depuis un fichier Excel
   (.xlsx), un fichier CSV ou un export JSON de l'outil. Pour Excel et CSV, les en-têtes
   de colonnes sont imposés : « Identifiant », « Titre », « Description », « BV », « TC »,
@@ -311,7 +322,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   La plus petite valeur est 1 dans les deux cas, ce qui garantit un JS jamais nul.
 - **FR-011**: Lorsqu'un changement de type ou de borne d'échelle rend des valeurs existantes hors échelle, le
   système DOIT prévenir l'animateur avant d'appliquer le changement. S'il confirme, ces
-  valeurs sont marquées « à revoir » et la fonctionnalité concernée est exclue du calcul
+  valeurs sont signalées « **hors échelle** » (état calculé) et la fonctionnalité concernée est exclue du calcul
   jusqu'à correction. **Le changement d'échelle est refusé tant qu'un tour de vote est
   ouvert**, avec le message « Un tour de vote est en cours : révélez-le avant de changer
   l'échelle ». Changer le nom de la session reste possible.
