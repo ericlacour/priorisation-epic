@@ -231,34 +231,6 @@ paths:
         '413': { $ref: '#/components/responses/PayloadTooLarge' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
 
-  /api/sessions/from-json:
-    post:
-      operationId: createSessionFromJson
-      summary: Create a new session from a JSON export, including revealed rounds and votes (FR-024, SC-008)
-      description: |
-        The caller becomes facilitator. Pseudos found in the votes are recreated as offline
-        participants without token. Same rate limit as createSession; 5 MB max.
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [file, pseudo]
-              properties:
-                file: { type: string, format: binary, description: JSON export, formatVersion 1 }
-                pseudo: { type: string, minLength: 1, maxLength: 40 }
-                name: { type: string, minLength: 1, maxLength: 120, description: Defaults to the exported session name }
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/CreateSessionResponse' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '413': { $ref: '#/components/responses/PayloadTooLarge' }
-        '429': { $ref: '#/components/responses/TooManyRequests' }
-
   /api/sessions/{sessionId}:
     parameters: [{ $ref: '#/components/parameters/sessionId' }]
     get:

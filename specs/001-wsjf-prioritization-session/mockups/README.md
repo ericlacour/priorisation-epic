@@ -45,7 +45,7 @@ Les contrastes vérifiés sont tous au moins AA :
 
 | # | Écran | Exigences illustrées |
 |---|-------|----------------------|
-| 1 | Accueil : sessions, créer, créer depuis un export JSON | FR-001, FR-024, FR-026 |
+| 1 | Accueil : sessions, créer une session | FR-001, FR-026 |
 | 2 | Session créée : lien d'invitation et lien d'animation privé | FR-002 |
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
 | 4 | Tableau, vue animateur, session en préparation | US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |

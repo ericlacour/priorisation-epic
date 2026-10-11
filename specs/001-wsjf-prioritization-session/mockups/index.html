@@ -335,26 +335,19 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 <div class="frame" id="frame">
 
 <!-- ======================= 1. ACCUEIL ======================= -->
-<section class="screen" id="s1" data-note="US5, FR-001, FR-024, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1.">
+<section class="screen" id="s1" data-note="US5, FR-001, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">Priorisation WSJF</div><div class="sub">Sessions de priorisation d'équipe</div></div>
   </header>
   <div class="page">
     <div class="notice" role="note"><span class="ico">!</span><span>Version temporaire : ne saisissez pas de données confidentielles.</span></div>
-    <div class="grid-2">
-      <div class="card">
+    <div>
+      <div class="card" style="max-width:560px">
         <h2>Créer une session</h2>
         <div class="field"><label for="n1">Nom de la session</label><input id="n1" class="input" value="PI 27 – Epics plateforme"></div>
         <div class="field"><label for="p1">Votre pseudo</label><input id="p1" class="input" value="eric"><span class="help">Vous serez l'animateur de la session.</span></div>
         <button class="btn primary" type="button" data-go="s2">Créer la session</button>
-      </div>
-      <div class="card">
-        <h2>Créer à partir d'un export JSON</h2>
-        <p class="muted small" style="margin-top:0">Recrée une session complète : fonctionnalités, échelle, tours révélés et votes.</p>
-        <div class="dropzone small">Déposez un fichier <b>.json</b> exporté depuis l'outil<br><button class="btn sm" type="button" style="margin-top:8px">Choisir un fichier</button></div>
-        <div class="field" style="margin-top:14px"><label for="p2">Votre pseudo</label><input id="p2" class="input" placeholder="Pseudo"></div>
-        <button class="btn" type="button">Créer depuis l'export</button>
       </div>
     </div>
     <div class="card">

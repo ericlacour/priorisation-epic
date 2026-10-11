@@ -130,7 +130,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 - [ ] T023 Écrire la migration `backend/src/main/resources/db/migration/V1__init.sql`, conforme à `data-model.md` :
   - `session` : `session_id` varchar(22) en clé primaire, `animation_token_hash`, `name` (1 à 120 caractères), `status` CHECK IN ('PREPARATION','IN_PROGRESS','CLOSED'), `method` 'WSJF', `method_version` int, `scale_type` CHECK IN ('CONTINUOUS','FIBONACCI'), `scale_max` int, `created_at`, `created_by_pseudo`, `version`.
-  - `participant` : `id` uuid, `session_id`, `pseudo` (1 à 40 caractères), `role` CHECK IN ('FACILITATOR','PARTICIPANT'), `business_role`, `participant_token_hash` **nullable** (participant recréé à partir d'un export), `joined_at`, `last_seen_at` **nullable** (jamais connecté), avec un index unique sur `(session_id, lower(pseudo))`.
+  - `participant` : `id` uuid, `session_id`, `pseudo` (1 à 40 caractères), `role` CHECK IN ('FACILITATOR','PARTICIPANT'), `business_role`, `participant_token_hash`, `joined_at`, `last_seen_at`, avec un index unique sur `(session_id, lower(pseudo))`.
   - `feature` : `id`, `session_id`, `external_id` (1 à 50 caractères), `title` (1 à 200 caractères), `description` (5 000 caractères au plus), `bv`/`tc`/`rr_oe`/`js` int null avec CHECK ≥ 1, `deleted_at`, `version`, avec un index unique sur `(session_id, lower(external_id))` limité à `deleted_at IS NULL`.
   - `voting_round` : `id`, `session_id`, `number`, `status` CHECK IN ('OPEN','REVEALED'), `previous_round_id`, `opened_at`, `revealed_at`.
   - `round_feature` : clé primaire `(round_id, feature_id)`.
@@ -219,7 +219,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T039 [P] [US1] Test unitaire `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java`, limité aux entiers continus : borne « de 2 à 100, 10 par défaut » ; 0, 11 et toute valeur non entière refusés sur l'échelle 1 à 10 ; `allowedValues` vaut 1 à 10
 - [ ] T040 [P] [US1] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/CreateSessionUseCaseTest.java`, `JoinSessionUseCaseTest.java` et `FeatureUseCaseTest.java`, avec un `RecordingBroadcaster` et un `MutableClock`. Cas vérifiés :
   - un seul `FACILITATOR` par session ;
-  - pseudo unique sans tenir compte de la casse ; reprise d'un pseudo après 10 minutes d'absence avec conservation des votes, et refus avant ce délai (avec un `MutableClock`) ; jamais de reprise du rôle d'animateur par pseudo ; un pseudo recréé depuis un export, jamais connecté (`lastSeenAt` vide), est repris sans attendre les 10 minutes ;
+  - pseudo unique sans tenir compte de la casse ; reprise d'un pseudo après 10 minutes d'absence avec conservation des votes, et refus avant ce délai (avec un `MutableClock`) ; jamais de reprise du rôle d'animateur par pseudo ;
   - `externalId` unique (`DUPLICATE_EXTERNAL_ID`) ;
   - `STALE_VERSION` en cas de version obsolète ;
   - `FORBIDDEN` sans jeton d'animation ;
@@ -251,7 +251,6 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - à la création, le créateur devient `FACILITATOR` et reçoit `participantToken` et `animationToken` ; seules leurs empreintes sont stockées (FR-001, FR-002) ;
   - à l'arrivée d'un participant, remise du `participantToken` (FR-003). Si le pseudo est déjà pris, deux cas :
     - le participant existant est absent depuis au moins 10 minutes (aucune connexion ouverte, `lastSeenAt`, propriété `priorisation-epic.absence-timeout`, `10m` par défaut comme dans PP) : le nouvel arrivant est **rattaché à ce participant**, avec ses votes, un nouveau jeton est émis et l'ancienne empreinte est remplacée ;
-    - le participant existant ne s'est jamais connecté (`lastSeenAt` vide, participant recréé depuis un export) : il est repris immédiatement, avec ses votes ;
     - sinon, réponse `409 PseudoTaken`.
 
     Le rôle `FACILITATOR` ne se reprend jamais de cette façon (FR-002).
@@ -408,7 +407,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T089 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; changement d'échelle refusé avec `ROUND_OPEN` tant qu'un tour est ouvert, FR-011) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
 - [ ] T090 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description`, `BV`, `TC`, `RR/OE`, `JS`, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
 - [ ] T091 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes `Rang`, `CoD` et `WSJF` ignorées)
-- [ ] T092 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `computed` recalculé, avec un avertissement en cas d'écart ; lecture des `rounds` et des votes avec leurs dates (`openedAt`, `revealedAt`, `updatedAt` ; si elles manquent, date de l'import et avertissement dans l'aperçu), appliqués **uniquement** en création de session à partir d'un export (T104) et ignorés à l'import dans une session existante ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
+- [ ] T092 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `computed` recalculé, avec un avertissement en cas d'écart ; `rounds` et votes **ignorés** (jamais réimportés, constitution VI) ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
 - [ ] T093 [US3] Implémenter `application/ImportUseCase.java` (aperçu stocké dans `import_preview` avec `expiresAt` à la création plus 15 min ; confirmation en une seule transaction, puis `Broadcaster`), `adapter/in/rest/ImportController.java` et `adapter/in/scheduling/ImportPreviewPurgeScheduler.java`
 - [ ] T094 [P] [US3] Front, `frontend/src/app/import-export/import-dialog.component.ts` :
   - choix du fichier, puis aperçu des lignes valides, rejetées avec leur motif, et des avertissements ;
@@ -424,9 +423,9 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ## Phase 7 : User Story 4 — Exporter le tableau (Priority: P4)
 
-**Objectif** : exporter le tableau en CSV et au format Confluence, les votes en CSV, et la session complète en JSON, à partir duquel on peut recréer une session identique.
+**Objectif** : exporter le tableau en CSV et au format Confluence, les votes en CSV, et la session complète en JSON, dont les données de priorisation sont réimportables.
 
-**Test indépendant** : exporter 5 fonctionnalités dans chaque format, créer une nouvelle session à partir de l'export JSON, et réimporter le CSV tableau dans une session vide (quickstart V11 et V12). L'aller-retour JSON dépend du lecteur JSON de US3 (T092).
+**Test indépendant** : exporter 5 fonctionnalités dans chaque format, réimporter l'export JSON et le CSV tableau chacun dans une session vide (quickstart V11 et V12). L'aller-retour JSON dépend du lecteur JSON de US3 (T092).
 
 ### Tests de User Story 4 (à écrire d'abord, ils doivent échouer)
 
@@ -440,7 +439,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - JSON `formatVersion: 1` sans les votes d'un tour ouvert ;
   - **CSV des votes** `votes-v1` (`CsvVotesWriterTest.java`) : colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`, une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo, **tours révélés uniquement** ;
   - **versions de format** dans le nom des fichiers (`-tableau-v1.csv`, `-votes-v1.csv`, `-confluence-v1.txt`) et dans la légende Confluence (« Format confluence-v1 »), selon la section « Versions des formats » de `contracts/file-formats.md`.
-- [ ] T098 [P] [US4] Test d'aller-retour SC-008 `backend/src/test/java/com/priorisationepic/adapter/out/io/JsonRoundTripPropertiesTest.java` (jqwik) : pour une session générée aléatoirement, exporter, puis **créer une nouvelle session à partir de l'export** (T104), redonne des fonctionnalités, une échelle, des scores, des tours révélés et des votes identiques, pseudos et dates compris (`updatedAt` des votes, `openedAt` et `revealedAt` des tours). Ajouter `CsvRoundTripPropertiesTest.java` : exporter le CSV `tableau-v1`, puis l'importer dans une session vide de même échelle, redonne les mêmes fonctionnalités (identifiant, titre, description, BV, TC, RR/OE, JS), donc les mêmes scores et le même ordre (constitution VI)
+- [ ] T098 [P] [US4] Test d'aller-retour SC-008 `backend/src/test/java/com/priorisationepic/adapter/out/io/JsonRoundTripPropertiesTest.java` (jqwik) : pour une session générée aléatoirement, exporter en JSON, puis importer dans une session vide, redonne des fonctionnalités, des valeurs, une échelle et des scores identiques (données de priorisation, constitution VI v2.2.0). Les tours et les votes ne sont pas réimportés. Ajouter `CsvRoundTripPropertiesTest.java` : exporter le CSV `tableau-v1`, puis l'importer dans une session vide de même échelle, redonne les mêmes fonctionnalités (identifiant, titre, description, BV, TC, RR/OE, JS), donc les mêmes scores et le même ordre (constitution VI)
 - [ ] T099 [P] [US4] Test REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ExportControllerTest.java` : les 4 formats, et le **même masquage que la vue de l'appelant** (SC-004)
 
 ### Implémentation de User Story 4
@@ -449,10 +448,8 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T101 [P] [US4] Implémenter `adapter/out/io/ConfluenceWriter.java` (sorties `confluence-html` et `confluence-wiki`)
 - [ ] T102 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java`, avec `updatedAt` pour chaque vote, et `openedAt` et `revealedAt` pour chaque tour
 - [ ] T103 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}` avec `format` parmi `csv`, `csv-votes`, `confluence-wiki`, `confluence-html` et `json`, avec le filtrage `Visibility` du destinataire et le nom de fichier versionné) et ajouter l'opération à `contract/openapi.yaml`
-- [ ] T104 [US4] Implémenter `application/CreateSessionFromJsonUseCase.java` et la route `POST /api/sessions/from-json` dans `adapter/in/rest/SessionController.java` (multipart avec `file`, `pseudo` et un `name` facultatif ; `CreationRateLimiter` ; 5 Mo au plus). Le créateur devient animateur. Les pseudos des votes sont recréés comme participants hors ligne sans jeton. On reprend échelle, méthode, fonctionnalités, tours révélés et votes, avec leurs dates restaurées telles quelles, dans une seule transaction. Si le pseudo du créateur figure déjà dans les votes (comparaison insensible à la casse), le créateur est rattaché à ce participant, garde ses votes et reçoit le rôle d'animateur. Tester ce cas et la restauration des dates. Ajouter l'opération, les schémas et les exemples dans `contract/`, et le test de contrat `backend/src/test/java/com/priorisationepic/adapter/in/rest/CreateSessionFromJsonControllerTest.java`
-- [ ] T105 [P] [US4] Front, bouton « Créer une session à partir d'un export JSON » sur la page d'accueil, dans `frontend/src/app/home/create-from-json.component.ts` (choix du fichier, pseudo, nom facultatif ; affichage des erreurs du fichier en français ; puis même parcours qu'une création : jetons enregistrés, liens affichés)
-- [ ] T106 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau, du CSV des votes et du JSON, bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
-- [ ] T107 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12). Vérifier que les participants recréés apparaissent hors ligne, puis qu'un navigateur qui rejoint sous le pseudo « alice » retrouve ses votes. Étape manuelle (SC-007) : coller l'export « Copier pour Confluence » et le *wiki markup* dans une page Confluence de test, puis cocher le résultat dans la description de la PR (« rendu Confluence vérifié le JJ/MM/AAAA »)
+- [ ] T104 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau, du CSV des votes et du JSON, bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
+- [ ] T105 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12). Étape manuelle (SC-007) : coller l'export « Copier pour Confluence » et le *wiki markup* dans une page Confluence de test, puis cocher le résultat dans la description de la PR (« rendu Confluence vérifié le JJ/MM/AAAA »)
 
 **Checkpoint** : US1 à US4 fonctionnent indépendamment.
 
@@ -466,17 +463,17 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Tests de User Story 5 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T108 [P] [US5] Compléter `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur ; `CLOSE` refusé avec `ROUND_OPEN` tant qu'un tour est ouvert ; en `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
-- [ ] T109 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne) et `HistoryControllerTest.java` (`GET /api/sessions/{sessionId}/history`, avec le filtre `featureId`, de la plus récente à la plus ancienne)
+- [ ] T106 [P] [US5] Compléter `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur ; `CLOSE` refusé avec `ROUND_OPEN` tant qu'un tour est ouvert ; en `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
+- [ ] T107 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne) et `HistoryControllerTest.java` (`GET /api/sessions/{sessionId}/history`, avec le filtre `featureId`, de la plus récente à la plus ancienne)
 
 ### Implémentation de User Story 5
 
-- [ ] T110 [US5] Étendre `domain/SessionStatus.java` et `application/ChangeStatusUseCase.java` avec `CLOSE` et `REOPEN` (le `START` existe depuis US2). Compléter `contract/schemas/change-status.json`, ajouter le code `ROUND_OPEN` dans `error.json` et leurs exemples. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
-- [ ] T111 [US5] Implémenter `adapter/in/rest/SessionListController.java` et `adapter/in/rest/HistoryController.java`, avec les schémas `session-summary.json` et `history-entry.json` et leurs exemples dans `contract/`
-- [ ] T112 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
-- [ ] T113 [P] [US5] Front, `frontend/src/app/history/history.component.ts` : historique des modifications (auteur, date, champ, ancienne et nouvelle valeur) et des tours révélés, consultable fonctionnalité par fonctionnalité
-- [ ] T114 [US5] Front, boutons Clôturer et Rouvrir pour l'animateur (Démarrer existe depuis US2), et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
-- [ ] T115 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
+- [ ] T108 [US5] Étendre `domain/SessionStatus.java` et `application/ChangeStatusUseCase.java` avec `CLOSE` et `REOPEN` (le `START` existe depuis US2). Compléter `contract/schemas/change-status.json`, ajouter le code `ROUND_OPEN` dans `error.json` et leurs exemples. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
+- [ ] T109 [US5] Implémenter `adapter/in/rest/SessionListController.java` et `adapter/in/rest/HistoryController.java`, avec les schémas `session-summary.json` et `history-entry.json` et leurs exemples dans `contract/`
+- [ ] T110 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
+- [ ] T111 [P] [US5] Front, `frontend/src/app/history/history.component.ts` : historique des modifications (auteur, date, champ, ancienne et nouvelle valeur) et des tours révélés, consultable fonctionnalité par fonctionnalité
+- [ ] T112 [US5] Front, boutons Clôturer et Rouvrir pour l'animateur (Démarrer existe depuis US2), et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
+- [ ] T113 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
 
 **Checkpoint** : les cinq parcours fonctionnent indépendamment.
 
@@ -484,12 +481,12 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ## Phase 9 : Finitions et sujets transverses
 
-- [ ] T116 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
-- [ ] T117 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
-- [ ] T118 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier, rendu sur un écran de portable de 1280 px, sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
-- [ ] T119 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
-- [ ] T120 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
-- [ ] T121 Dérouler intégralement `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V15, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
+- [ ] T114 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
+- [ ] T115 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
+- [ ] T116 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier, rendu sur un écran de portable de 1280 px, sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
+- [ ] T117 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
+- [ ] T118 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
+- [ ] T119 Dérouler intégralement `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V15, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
 
 ---
 
@@ -503,7 +500,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **Déploiement (phase 4)** : dépend de US1. On peut le faire plus tard, à tout moment.
 - **US2 (phase 5)** : dépend des fondations. Elle s'appuie sur le tableau et les agrégats de US1 (T045 à T051), donc il vaut mieux la faire après US1.
 - **US3 (phase 6)** : dépend des fondations et de `Scale` et de l'édition de US1.
-- **US4 (phase 7)** : l'export dépend de US1. **L'aller-retour JSON (T098) dépend de T092 (lecteur JSON, US3) et de T104 (création de session à partir d'un export). L'aller-retour CSV dépend de T091 (lecteur CSV, US3).**
+- **US4 (phase 7)** : l'export dépend de US1. **L'aller-retour JSON (T098) dépend de T092 (lecteur JSON, US3). L'aller-retour CSV dépend de T091 (lecteur CSV, US3).**
 - **US5 (phase 8)** : dépend des fondations, de `change_log` (T029) et du démarrage de session de US2 (T070 : `START`), puisqu'on ne clôture qu'une session en cours. Elle est indépendante de US3 et US4.
 - **Finitions (phase 9)** : après les parcours voulus.
 

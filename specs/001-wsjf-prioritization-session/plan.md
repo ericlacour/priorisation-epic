@@ -79,7 +79,7 @@ Le détail des choix est dans [research.md](./research.md).
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Ce contrôle est fait par rapport à la constitution v2.1.0.
+Ce contrôle est fait par rapport à la constitution v2.2.0.
 
 | Principe / règle | Exigence | Comment le plan y répond | Statut |
 |------------------|----------|--------------------------|--------|

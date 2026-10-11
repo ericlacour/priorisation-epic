@@ -173,9 +173,9 @@ JSON dans une nouvelle session et vérifier que les valeurs et scores sont ident
 2. **Given** un tableau priorisé, **When** l'utilisateur exporte en CSV, **Then** le fichier
    contient les mêmes colonnes et lignes, et s'ouvre correctement (accents, séparateurs,
    décimales) dans un tableur configuré en français.
-3. **Given** une session exportée en JSON, **When** l'animateur crée une nouvelle session
-   à partir de cet export, **Then** les fonctionnalités, valeurs, échelle, scores, tours
-   et votes sont identiques.
+3. **Given** une session exportée en JSON, **When** l'animateur importe cet export dans une
+   nouvelle session encore vide, **Then** les fonctionnalités, valeurs, échelle et scores
+   sont identiques. Les tours et les votes ne sont pas réimportés.
 
 ---
 
@@ -380,13 +380,12 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   les accents et un tableur français).
 - **FR-024**: Tout membre DOIT pouvoir exporter les votes des tours révélés en CSV
   (constitution VI), et la session complète en JSON
-  (fonctionnalités, valeurs, échelle, méthode, tours de vote). Une **nouvelle session
-  créée à partir d'un export JSON** DOIT redonner les mêmes données (fonctionnalités,
-  valeurs, échelle, méthode, tours de vote et votes) et donc les mêmes scores. Les votes
-  sont rattachés aux pseudos, recréés comme participants hors ligne. Importer un JSON
-  dans une session existante n'ajoute que les fonctionnalités. Le CSV tableau exporté
-  puis réimporté dans une session vide de même échelle redonne les mêmes fonctionnalités
-  et les mêmes scores.
+  (fonctionnalités, valeurs, échelle, méthode, tours de vote). Un export JSON importé
+  dans une session vide DOIT redonner les mêmes **données de priorisation**
+  (fonctionnalités, valeurs, échelle, méthode) et donc les mêmes scores (constitution VI).
+  Les tours et les votes restent lisibles dans l'export, mais ne sont pas réimportés. Le
+  CSV tableau exporté puis réimporté dans une session vide de même échelle redonne les
+  mêmes fonctionnalités et les mêmes scores.
 - **FR-025**: Le système DOIT conserver, pour chaque **modification d'une valeur retenue**
   (BV, TC, RR/OE ou JS d'une fonctionnalité existante) et pour chaque **changement
   d'échelle**, le pseudo de son auteur, sa date, l'ancienne et la nouvelle valeur. Cet
@@ -444,7 +443,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **SC-007**: Un tableau exporté au format Confluence s'affiche correctement dans une page
   Confluence sans retouche, et un export CSV s'ouvre dans un tableur français sans
   problème d'accents ni de décimales.
-- **SC-008**: Un export JSON réimporté redonne des données et des scores identiques dans
+- **SC-008**: Un export JSON réimporté dans une session vide redonne des données de
+  priorisation (fonctionnalités, valeurs, échelle) et des scores identiques dans
   100 % des cas testés.
 
 ## Assumptions

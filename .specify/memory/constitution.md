@@ -104,8 +104,10 @@ revenir, sans perte.
   l'identique, ce qui inclut la méthode de scoring (voir Principe I).
 - L'import CSV et JSON DOIT valider les données et signaler précisément les lignes
   rejetées, sans rien importer partiellement en silence.
-- Un export suivi d'un import DOIT redonner les mêmes données et les mêmes scores. Ce
-  test d'aller-retour est obligatoire (voir Principe II).
+- Un export suivi d'un import DOIT redonner les mêmes **données de priorisation**
+  (fonctionnalités, critères, valeurs, échelle, méthode) et les mêmes scores. Ce test
+  d'aller-retour est obligatoire (voir Principe II). Les traces d'atelier (tours de vote
+  et votes) sont exportées, mais n'ont pas à être réimportées.
 - Les formats d'export sont documentés et versionnés. Une rupture de format DOIT être
   annoncée et accompagnée d'une conversion des anciens fichiers.
 
@@ -163,4 +165,4 @@ sauvegarder et changer d'outil sans dépendre de celui-ci.
 - **Conformité** : toute relecture de PR vérifie le respect des principes. Une dérogation
   DOIT être justifiée par écrit dans le plan concerné (« Complexity Tracking »).
 
-**Version**: 2.1.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
+**Version**: 2.2.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11

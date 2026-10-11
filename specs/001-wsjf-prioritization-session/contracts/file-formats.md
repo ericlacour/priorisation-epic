@@ -145,28 +145,15 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
 **Règles** :
 - `computed` est informatif. À l'import, il est **recalculé**, puis comparé à la valeur du
   fichier : un écart produit un avertissement, et on garde le calcul.
-- **Créer une nouvelle session à partir d'un JSON** (`POST /api/sessions/from-json`) :
-  - on reprend l'échelle, la méthode, les `features`, ainsi que les **tours révélés** et
-    leurs votes ;
-  - chaque pseudo présent dans les votes devient un participant hors ligne, sans jeton
-    et jamais connecté. Le premier qui rejoint avec ce pseudo le reprend immédiatement,
-    avec ses votes ;
-  - le créateur devient l'animateur. Si son pseudo figure déjà dans les votes du fichier
-    (comparaison insensible à la casse), il reprend ce participant et ses votes ;
-  - les dates sont restaurées telles quelles : `updatedAt` de chaque vote, `openedAt` et
-    `revealedAt` de chaque tour. Cela conserve l'auteur et la date de chaque évaluation
-    (constitution III). Un fichier ancien sans ces dates prend la date de l'import, et
-    l'aperçu le signale par un avertissement. Ajouter ces champs ne change pas
-    `formatVersion`, car c'est un ajout ;
-  - un tour encore ouvert n'est jamais présent dans un export (SC-004).
-
-  C'est l'aller-retour US4, scénario 3, et SC-008.
-- **Importer dans une session existante** (`POST /api/sessions/{id}/imports`) : seules
-  les `features` sont importées. Si la session est en préparation et ne contient encore
-  aucune fonctionnalité, l'échelle du fichier est appliquée. Sinon, on garde l'échelle de
-  la session, et les valeurs hors échelle donnent un avertissement. Les `rounds` sont
-  ignorés.
-- Pour l'aller-retour SC-008, le test compare les fonctionnalités, l'échelle, les scores,
-  les tours et les votes entre la session d'origine et la nouvelle session.
+- **Importer un JSON** (`POST /api/sessions/{id}/imports`) : seules les `features` sont
+  importées. Si la session est en préparation et ne contient encore aucune
+  fonctionnalité, l'échelle du fichier est appliquée : c'est l'aller-retour (US4,
+  scénario 3, et SC-008). Sinon, on garde l'échelle de la session, et les valeurs hors
+  échelle donnent un avertissement.
+- Les `rounds` et les votes ne sont **jamais réimportés** (constitution VI) : ils restent
+  lisibles dans l'export, avec leurs dates (`openedAt`, `revealedAt` et `updatedAt`).
+- Pour l'aller-retour SC-008, le test compare les fonctionnalités, les valeurs, l'échelle
+  et les scores entre la session d'origine et la session vide dans laquelle l'export est
+  importé.
 - L'export JSON d'une session qui a un tour ouvert **n'inclut pas** les votes de ce tour
   (SC-004).

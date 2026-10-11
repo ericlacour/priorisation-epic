@@ -64,8 +64,8 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | pseudo | texte (1 à 40 car., espaces retirés aux extrémités) | Unique par session sans tenir compte de la casse (FR-003) |
 | role | enum `FACILITATOR`, `PARTICIPANT` | Exactement un `FACILITATOR` par session |
 | businessRole | texte, facultatif | Rôle métier indicatif (PO, PM, Architecte…) |
-| participantTokenHash | texte, **facultatif** | Empreinte du jeton de reprise envoyé dans le message WebSocket `hello`. Vide pour un participant recréé à partir d'un export JSON, tant que personne n'a repris ce pseudo |
-| joinedAt / lastSeenAt | horodatages, `lastSeenAt` **facultatif** | `lastSeenAt` est vide tant que le participant ne s'est jamais connecté. Il est mis à jour à chaque `heartbeat` (au plus une fois toutes les 30 s en base) et à la fermeture de la dernière connexion du participant. L'absence de 10 minutes se compte depuis cette fermeture |
+| participantTokenHash | texte | Empreinte du jeton de reprise envoyé dans le message WebSocket `hello` |
+| joinedAt / lastSeenAt | horodatages | `lastSeenAt` est mis à jour à chaque `heartbeat` (au plus une fois toutes les 30 s en base) et à la fermeture de la dernière connexion du participant. L'absence de 10 minutes se compte depuis cette fermeture |
 
 **Règles** :
 - Les droits d'animateur (`FACILITATOR`) sont accordés **uniquement** à la présentation
@@ -175,9 +175,6 @@ change vraiment.
 - Un `POST /participants` avec ce pseudo rattache alors le nouvel arrivant au participant
   existant, qui garde ses votes. Un nouveau jeton est émis, et l'empreinte de l'ancien est
   remplacée.
-- Un participant qui ne s'est **jamais connecté** (`lastSeenAt` vide, cas d'un participant
-  recréé à partir d'un export) est **reprenable immédiatement** : le premier qui rejoint
-  avec ce pseudo le reprend, avec ses votes.
 - Avant ces 10 minutes, le pseudo est refusé (`PseudoTaken`).
 - Le rôle `FACILITATOR` ne se reprend jamais par pseudo, seulement par le lien
   d'animation.
