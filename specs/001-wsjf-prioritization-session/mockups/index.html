@@ -332,6 +332,28 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
 .pick tr.locked td { color: var(--muted); }
 .pick input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+a.fid { color: var(--primary-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.drawer-stage { position: relative; min-height: 860px; overflow: hidden; }
+.drawer-under { filter: saturate(.6); }
+.drawer-backdrop { position: absolute; inset: 0; background: rgba(22,24,28,.45); }
+.drawer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%);
+  background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow);
+  display: grid; grid-template-rows: auto 1fr auto;
+}
+.drawer-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+.drawer-body { padding: 4px 20px 16px; overflow-y: auto; }
+.drawer-body h3 { margin: 16px 0 8px; font-size: 15px; }
+.drawer-foot { padding: 12px 20px; border-top: 1px solid var(--border); }
+.desc { font-size: 15px; line-height: 1.55; }
+.desc p { margin: 0 0 8px; }
+.crit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.crit-grid > div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--surface-muted); }
+.crit-grid b { font-size: 20px; }
+.drawer .formula { font-variant-numeric: tabular-nums; }
+.drawer .contrib { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 14px; margin-top: 10px; }
+@container (max-width: 600px) { .drawer { width: 100%; border-left: 0; } }
 .screen { display: none; }
 .screen.active { display: block; }
 .anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
@@ -356,6 +378,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
   <button type="button" data-screen="s3">3. Rejoindre</button>
   <button type="button" data-screen="s4">4. Tableau (animateur)</button>
   <button type="button" data-screen="s4b">4 bis. Ouvrir un tour</button>
+  <button type="button" data-screen="s4c">4 ter. Descriptif</button>
   <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
@@ -452,7 +475,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
 </section>
 
 <!-- ======================= 4. TABLEAU ANIMATEUR ======================= -->
-<section class="screen" id="s4" data-note="US1, FR-004, FR-005, FR-014 à FR-016a, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
+<section class="screen" id="s4" data-note="US1, FR-004, FR-005, FR-014 à FR-016b, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
@@ -476,14 +499,14 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <table aria-label="Tableau WSJF">
             <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th><th></th></tr></thead>
             <tbody>
-              <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button" aria-expanded="true">Détail</button></td></tr>
-              <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Détail</button></td></tr>
-              <tr class="edit-row"><td><span class="rank">3</span></td><td>F-2</td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button" title="Le tableau se retrie à l'enregistrement">Enregistrer</button></td></tr>
-              <tr><td><span class="rank">4</span></td><td>F-5</td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Hors échelle : à revoir">13</span></td><td class="num">—</td><td class="num">à revoir</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr class="edit-row"><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button" title="Le tableau se retrie à l'enregistrement">Enregistrer</button></td></tr>
+              <tr><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Hors échelle : à revoir">13</span></td><td class="num">—</td><td class="num">à revoir</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
             </tbody>
           </table>
-          <div class="legend">CoD = BV + TC + RR/OE ; WSJF = CoD / JS. À WSJF égal : CoD le plus élevé d'abord, puis identifiant. Les fonctionnalités incomplètes ou à revoir sont placées en fin de tableau.</div>
+          <div class="legend">Cliquez sur un identifiant pour lire le descriptif de la fonctionnalité et le détail du calcul. CoD = BV + TC + RR/OE ; WSJF = CoD / JS. À WSJF égal : CoD le plus élevé d'abord, puis identifiant. Les fonctionnalités incomplètes ou à revoir sont placées en fin de tableau.</div>
         </div>
         <div class="feature-cards">
           <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span><span>CoD 16</span></div></div>
@@ -492,17 +515,6 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <div class="fcard"><div class="row1"><span class="rank">4</span><b>F-5 · Recherche</b><span class="badge warn" style="margin-left:auto">à revoir</span></div><div class="crit"><span>BV 7</span><span>TC 2</span><span>RR/OE 4</span><span>JS <span class="review">13</span></span></div></div>
           <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div><div class="crit"><span>BV 6</span><span>TC —</span><span>RR/OE —</span><span>JS —</span></div></div>
           <p class="help">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</p>
-        </div>
-        <div class="popover" role="dialog" aria-label="Détail du calcul de F-1">
-          <b>Détail du calcul : F-1</b>
-          <div class="formula">CoD = 8 + 5 + 3 = <b>16</b> ; WSJF = 16 / 4 = <b>4,00</b></div>
-          <div class="contrib">
-            <span>BV</span><span class="bar" style="width:100%"></span><span>8</span>
-            <span>TC</span><span class="bar" style="width:62%"></span><span>5</span>
-            <span>RR/OE</span><span class="bar" style="width:37%"></span><span>3</span>
-            <span>JS</span><span class="bar" style="width:50%;background:var(--muted)"></span><span>4</span>
-          </div>
-          <p class="help" style="margin-bottom:0">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
         </div>
         <div class="notice danger no-phone" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
       </div>
@@ -560,13 +572,13 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
         <table class="pick">
           <thead><tr><th style="width:44px"><input type="checkbox" aria-label="Tout sélectionner"></th><th>Identifiant</th><th>Titre</th><th>État</th></tr></thead>
           <tbody>
-            <tr class="sel"><td><input type="checkbox" checked aria-label="F-3"></td><td>F-3</td><td class="title">Programme de fidélité</td><td><span class="badge">non évaluée</span></td></tr>
-            <tr class="sel"><td><input type="checkbox" checked aria-label="F-7"></td><td>F-7</td><td class="title">Carte cadeau dématérialisée</td><td><span class="badge">non évaluée</span></td></tr>
-            <tr class="sel"><td><input type="checkbox" checked aria-label="F-5"></td><td>F-5</td><td class="title">Refonte de la recherche</td><td><span class="badge warn">à revoir</span></td></tr>
-            <tr><td><input type="checkbox" aria-label="F-1"></td><td>F-1</td><td class="title">Paiement en un clic</td><td><span class="muted small">WSJF 4,00</span></td></tr>
-            <tr><td><input type="checkbox" aria-label="F-4"></td><td>F-4</td><td class="title">Export comptable mensuel</td><td><span class="muted small">WSJF 2,60</span></td></tr>
-            <tr><td><input type="checkbox" aria-label="F-2"></td><td>F-2</td><td class="title">Notifications de livraison</td><td><span class="muted small">WSJF 2,00</span></td></tr>
-            <tr class="locked"><td><input type="checkbox" disabled aria-label="F-6, déjà dans le tour 3"></td><td>F-6</td><td class="title">Suivi des retours produits</td><td><span class="badge vote">déjà dans le tour 3</span></td></tr>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-3"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td><span class="badge">non évaluée</span></td></tr>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-7"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-7">F-7</a></td><td class="title">Carte cadeau dématérialisée</td><td><span class="badge">non évaluée</span></td></tr>
+            <tr class="sel"><td><input type="checkbox" checked aria-label="F-5"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title">Refonte de la recherche</td><td><span class="badge warn">à revoir</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-1"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic</td><td><span class="muted small">WSJF 4,00</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-4"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td><span class="muted small">WSJF 2,60</span></td></tr>
+            <tr><td><input type="checkbox" aria-label="F-2"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title">Notifications de livraison</td><td><span class="muted small">WSJF 2,00</span></td></tr>
+            <tr class="locked"><td><input type="checkbox" disabled aria-label="F-6, déjà dans le tour 3"></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-6">F-6</a></td><td class="title">Suivi des retours produits</td><td><span class="badge vote">déjà dans le tour 3</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -576,6 +588,64 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
         <span class="actions"><button class="btn" type="button" data-go="s4">Annuler</button><button class="btn primary" type="button" data-go="s5">Ouvrir le tour (3 fonctionnalités)</button></span>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ======================= 4 ter. DESCRIPTIF D'UNE FONCTIONNALITÉ ======================= -->
+<section class="screen" id="s4c" data-note="FR-016, FR-016b. Panneau ouvert en cliquant sur l'identifiant d'une fonctionnalité (tableau, vote, révélation). Il se ferme par la croix, la touche Échap ou un clic à côté. Sur téléphone, il occupe tout l'écran.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="drawer-stage">
+    <div class="page drawer-under" aria-hidden="true">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th></tr></thead>
+          <tbody>
+            <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td></tr>
+            <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+            <tr><td><span class="rank">3</span></td><td>F-2</td><td class="title">Notifications de livraison</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num wsjf">2,00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="drawer-backdrop"></div>
+    <aside class="drawer" role="dialog" aria-labelledby="dr-t" aria-modal="true">
+      <div class="drawer-head">
+        <div><span class="muted small">F-1 · rang 1</span><h2 id="dr-t" style="margin:2px 0 0">Paiement en un clic</h2></div>
+        <button class="btn sm" type="button" aria-label="Fermer" data-go="s4">✕</button>
+      </div>
+      <div class="drawer-body">
+        <h3>Descriptif</h3>
+        <div class="desc">
+          <p>Permettre aux clients déjà identifiés de payer en un seul clic, avec le moyen de paiement enregistré lors de leur dernier achat.</p>
+          <p><b>Objectif :</b> réduire l'abandon de panier sur mobile (aujourd'hui 68 % au moment du paiement).</p>
+          <p><b>Hors périmètre :</b> paiement fractionné, cartes cadeaux.</p>
+        </div>
+        <h3>Valeurs retenues</h3>
+        <div class="crit-grid">
+          <div><span class="muted small">BV · Business Value</span><b>8</b></div>
+          <div><span class="muted small">TC · Time Criticality</span><b>5</b></div>
+          <div><span class="muted small">RR/OE · Risk Reduction / Opportunity Enablement</span><b>3</b></div>
+          <div><span class="muted small">JS · Job Size</span><b>4</b></div>
+        </div>
+        <h3>Détail du calcul</h3>
+        <div class="formula">CoD = 8 + 5 + 3 = <b>16</b> ; WSJF = 16 / 4 = <b>4,00</b></div>
+        <div class="contrib">
+          <span>BV</span><span class="bar" style="width:100%"></span><span>8</span>
+          <span>TC</span><span class="bar" style="width:62%"></span><span>5</span>
+          <span>RR/OE</span><span class="bar" style="width:37%"></span><span>3</span>
+          <span>JS</span><span class="bar" style="width:50%;background:var(--muted)"></span><span>4</span>
+        </div>
+        <p class="help">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
+      </div>
+      <div class="drawer-foot no-phone">
+        <button class="btn" type="button">Modifier le titre et le descriptif</button>
+      </div>
+    </aside>
   </div>
 </section>
 
@@ -596,7 +666,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <h2 style="margin:0">Votre vote</h2>
           <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Les définitions sont dans l'encadré « Comprendre le WSJF », à droite.</p>
           <div class="vote-feature done">
-            <div class="actions" style="justify-content:space-between"><b>F-1 · Paiement en un clic</b><span class="badge live">Noté</span></div>
+            <div class="actions" style="justify-content:space-between"><b><a href="#" class="fid" data-go="s4c">F-1</a> · Paiement en un clic</b><span class="badge live">Noté</span></div>
             <div class="vote-inputs">
               <label>BV · Business Value<input class="input" inputmode="numeric" value="8"></label>
               <label>TC · Time Criticality<input class="input" inputmode="numeric" value="4"></label>
@@ -605,7 +675,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
             </div>
           </div>
           <div class="vote-feature">
-            <div class="actions" style="justify-content:space-between"><b>F-2 · Notifications de livraison</b><span class="badge">À noter</span></div>
+            <div class="actions" style="justify-content:space-between"><b><a href="#" class="fid" data-go="s4c">F-2</a> · Notifications de livraison</b><span class="badge">À noter</span></div>
             <div class="vote-inputs">
               <label>BV · Business Value<input class="input" inputmode="numeric" value="3"></label>
               <label>TC · Time Criticality<input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
@@ -619,10 +689,10 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <table aria-label="Tableau WSJF">
             <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th></tr></thead>
             <tbody>
-              <tr><td><span class="rank">1</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
-              <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
-              <tr class="masked"><td>—</td><td>F-1</td><td class="title">Paiement en un clic <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
-              <tr class="masked"><td>—</td><td>F-2</td><td class="title">Notifications de livraison <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
+              <tr><td><span class="rank">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
+              <tr class="masked"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
+              <tr class="masked"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title">Notifications de livraison <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
             </tbody>
           </table>
           <div class="legend">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</div>
@@ -672,7 +742,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
     <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
     <div class="notice success"><span class="ico">✓</span><span><b>Tour 2 révélé</b> : 2 fonctionnalités. Discutez des écarts, puis fixez les valeurs retenues.</span></div>
     <div class="card" style="display:grid;gap:12px">
-      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-1 · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
+      <div class="actions" style="justify-content:space-between"><h2 style="margin:0"><a href="#" class="fid" data-go="s4c">F-1</a> · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
       <div class="table-wrap">
         <table class="reveal-grid">
           <thead><tr><th>Participant</th><th><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th></tr></thead>
@@ -695,7 +765,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
       </div>
     </div>
     <div class="card" style="display:grid;gap:12px">
-      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-2 · Notifications de livraison</h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
+      <div class="actions" style="justify-content:space-between"><h2 style="margin:0"><a href="#" class="fid" data-go="s4c">F-2</a> · Notifications de livraison</h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
       <div class="table-wrap">
         <table class="reveal-grid">
           <thead><tr><th>Participant</th><th><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th></tr></thead>
@@ -741,7 +811,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
           <table>
             <thead><tr><th>Ligne</th><th>Identifiant</th><th>Motif</th></tr></thead>
             <tbody>
-              <tr><td>7</td><td>F-1</td><td style="white-space:normal">Identifiant déjà utilisé dans la session</td></tr>
+              <tr><td>7</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td style="white-space:normal">Identifiant déjà utilisé dans la session</td></tr>
               <tr><td>12</td><td>—</td><td style="white-space:normal">Identifiant vide</td></tr>
             </tbody>
           </table>
@@ -845,7 +915,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
   }
   navBtns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.screen); }); });
   document.querySelectorAll('[data-go]').forEach(function (b) {
-    b.addEventListener('click', function () { show(b.dataset.go); window.scrollTo(0, 0); });
+    b.addEventListener('click', function (e) { e.preventDefault(); show(b.dataset.go); window.scrollTo(0, 0); });
   });
   document.querySelectorAll('[data-frame]').forEach(function (b) {
     b.addEventListener('click', function () {

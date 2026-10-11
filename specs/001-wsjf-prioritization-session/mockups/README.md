@@ -1,6 +1,6 @@
 # Maquettes : session de priorisation WSJF
 
-Maquettes cliquables des 10 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
+Maquettes cliquables des 11 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
 La barre du haut permet de basculer entre ordinateur et téléphone, et entre thème clair et
 thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 
@@ -16,6 +16,7 @@ l'application.
 | Retri du tableau | Quand l'animateur valide la ligne, pas à chaque frappe (FR-015) |
 | Consensus | Champs vides, sauf pour un critère où tous les votants ont saisi la même valeur (FR-021) |
 | Sigles WSJF | Définition au survol, au focus ou au toucher. Encadré « Comprendre le WSJF » repliable et dépliable. Le panneau de vote n'affiche que le sigle et le nom complet (FR-016a) |
+| Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
 ## Charte
@@ -51,6 +52,7 @@ Les contrastes vérifiés sont tous au moins AA :
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
 | 4 | Tableau, vue animateur, session en préparation | US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |
 | 4 bis | Ouvrir un tour : choix des fonctionnalités | FR-018 |
+| 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
 | 5 | Tour en cours, vue participant | US2, FR-019, FR-019a, SC-004 |
 | 6 | Révélation et consensus | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |

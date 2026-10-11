@@ -25,6 +25,7 @@
 - Q : l'animateur peut-il saisir directement les valeurs d'une fonctionnalité qui est dans un tour ouvert ? → A: Non. C'est refusé tant que le tour n'est pas révélé ; titre et description restent modifiables.
 - Q : peut-on changer l'échelle pendant un tour de vote ouvert ? → A: Non. C'est refusé tant qu'un tour est ouvert.
 - Q : faut-il afficher l'historique des modifications de valeurs ? → A: Non, il ne sert pas. Les modifications restent enregistrées (constitution III) mais ne sont pas affichées en V1.
+- Q : comment consulter le descriptif d'une fonctionnalité sans surcharger l'écran ? → A: Clic sur l'identifiant, qui ouvre un panneau de détail (descriptif, valeurs, calcul).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -328,6 +329,15 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
+- **FR-016b**: Pour lire le descriptif d'une fonctionnalité sans surcharger les écrans, un
+  clic sur son **identifiant** (dans le tableau, le panneau de vote, la révélation ou le
+  choix des fonctionnalités d'un tour) DOIT ouvrir un **panneau de détail** par-dessus
+  l'écran. Ce panneau affiche l'identifiant, le rang, le titre, le **descriptif complet**,
+  les valeurs retenues et le détail du calcul (FR-016). Il se ferme par une croix, la touche
+  Échap ou un clic à côté, sans perdre la saisie en cours. Sur téléphone, il occupe tout
+  l'écran. Pendant un tour ouvert, un participant y lit le descriptif, mais les valeurs et
+  le calcul d'une fonctionnalité du tour restent masqués (FR-019a). L'animateur peut y
+  modifier le titre et le descriptif.
 - **FR-016a**: Partout où apparaissent les sigles BV, TC, RR/OE, JS, CoD et WSJF
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
