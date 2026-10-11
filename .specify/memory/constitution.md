@@ -45,8 +45,14 @@ L'outil sert une équipe qui partage les mêmes epics et le même classement.
   auteur et sa date.
 - Les modifications concurrentes NE DOIVENT PAS s'écraser silencieusement : un conflit
   DOIT être détecté puis signalé ou résolu explicitement.
-- L'accès DOIT être authentifié. Une gestion fine des rôles n'est ajoutée que lorsqu'une
-  spec le demande.
+- **Version 1 : identification par pseudo.** Un utilisateur entre dans l'application en
+  saisissant un pseudo. Il n'y a ni mot de passe, ni authentification, ni gestion des
+  comptes ou des rôles. Le pseudo DOIT être demandé avant toute modification et sert
+  d'auteur dans l'historique des modifications.
+- Le pseudo est déclaratif : il identifie un auteur sans le prouver. Aucune
+  fonctionnalité de la version 1 NE DOIT dépendre d'une identité vérifiée.
+- L'authentification et la gestion des utilisateurs sont hors périmètre de la version 1.
+  Pour les ajouter, il faut d'abord amender cette constitution.
 
 **Rationale** : la priorisation est une décision collective. L'équipe doit travailler sur
 une source de vérité unique et savoir qui a changé quoi.
@@ -113,6 +119,17 @@ sauvegarder et changer d'outil sans dépendre de celui-ci.
   Aucune donnée réelle ni aucun secret n'est commité dans le dépôt.
 - **Sécurité** : les secrets passent par des variables d'environnement, et toutes les
   entrées utilisateur sont validées côté serveur.
+- **Outillage de sécurité du dépôt** : trois outils DOIVENT être actifs sur le dépôt
+  GitHub.
+  - **Dependabot** : alertes de sécurité et PR de mise à jour des dépendances, pour
+    chaque écosystème utilisé (paquets applicatifs et GitHub Actions).
+  - **CodeQL** : analyse statique du code sur chaque pull request et sur la branche
+    principale, pour chaque langage du projet.
+  - **Gitleaks** : détection de secrets sur chaque pull request et sur la branche
+    principale.
+- Une alerte Dependabot ou CodeQL de sévérité haute ou critique DOIT être corrigée, ou
+  sa dérogation justifiée par écrit, avant le merge ou la release suivante. Un secret
+  détecté par Gitleaks DOIT être révoqué puis retiré du dépôt.
 
 ## Workflow de développement
 
@@ -124,7 +141,8 @@ sauvegarder et changer d'outil sans dépendre de celui-ci.
 - **Branches et PR** : une branche par fonctionnalité, et merge via pull request
   uniquement.
 - **Quality gates avant merge** : tests verts (Principe II), relecture d'au moins une
-  autre personne, et aucune régression sur l'explicabilité du score (Principe I).
+  autre personne, aucune régression sur l'explicabilité du score (Principe I), et
+  analyses CodeQL et Gitleaks au vert (voir Contraintes techniques).
 
 ## Governance
 
@@ -140,4 +158,4 @@ sauvegarder et changer d'outil sans dépendre de celui-ci.
 - **Conformité** : toute relecture de PR vérifie le respect des principes. Une dérogation
   DOIT être justifiée par écrit dans le plan concerné (« Complexity Tracking »).
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
+**Version**: 2.0.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-11
