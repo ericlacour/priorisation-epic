@@ -429,3 +429,28 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   prévue dans cette fonctionnalité.
 - L'interface, les exports et les messages sont en français (principe V de la
   constitution).
+
+### Hors périmètre de la version 1
+
+Les sujets suivants ne seront **pas** gérés dans la première version de l'application.
+Chacun demandera sa propre spec, et, pour certains, un amendement de la constitution :
+
+- **Authentification** : pas de compte ni de mot de passe. L'identification se fait par
+  pseudo, plus le lien d'animation (FR-002, constitution III).
+- **Gestion des équipes** liées au projet ou aux fonctionnalités : pas de notion
+  d'équipe, de rattachement d'une fonctionnalité à une équipe, ni de droits par équipe.
+- **Connexion à Jira** : pas d'import ni de synchronisation depuis ou vers Jira. Les
+  fonctionnalités se saisissent à la main ou s'importent par fichier (FR-007).
+- **Connexion à Confluence** : pas de publication automatique. L'export « format
+  Confluence » (FR-023), un tableau à copier-coller ou du *wiki markup*, reste dans le
+  périmètre.
+- **IA / LLM** : aucune suggestion de valeurs, d'estimation ni d'analyse automatique.
+- **Notifications** : ni e-mail, ni message, ni alerte en dehors de l'application. La
+  mise à jour en direct du tableau pendant une session (FR-015) n'est pas une
+  notification et reste dans le périmètre.
+- **Pondérations WSJF personnalisées** : la formule est fixe, CoD = BV + TC + RR/OE et
+  WSJF = CoD / JS, sans poids par critère (FR-017).
+- **Autres méthodes de scoring** (RICE, MoSCoW…) : seule la méthode WSJF existe. Le
+  modèle permet d'en ajouter plus tard (FR-017).
+- **Fonctionnalités avancées de SAFe** : pas de gestion des PI, des ART, des
+  dépendances, de la capacité ou des objectifs de PI.

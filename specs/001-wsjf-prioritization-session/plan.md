@@ -64,6 +64,9 @@ Le détail des choix est dans [research.md](./research.md).
   de PP (limitation de débit, tailles maximales, CORS).
 - Interface en français.
 - Import limité à 5 Mo et 1 000 lignes.
+- Hors périmètre de la v1 (voir spec, « Hors périmètre de la version 1 ») : authentification,
+  équipes, Jira, connexion à Confluence, IA / LLM, notifications, pondérations WSJF,
+  autres méthodes, fonctionnalités avancées de SAFe. Aucune tâche ne doit les couvrir.
 
 **Scale/Scope**: environ 20 sessions actives en même temps, 10 participants et 50 à 100 fonctionnalités par session, une dizaine d'écrans
 
