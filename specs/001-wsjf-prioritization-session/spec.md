@@ -337,7 +337,13 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   Échap ou un clic à côté, sans perdre la saisie en cours. Sur téléphone, il occupe tout
   l'écran. Pendant un tour ouvert, un participant y lit le descriptif, mais les valeurs et
   le calcul d'une fonctionnalité du tour restent masqués (FR-019a). L'animateur peut y
-  modifier le titre et le descriptif.
+  modifier le titre et le descriptif. Il passe alors en **mode édition**, avec deux
+  boutons, **« Enregistrer »** et « Annuler ». Rien n'est envoyé avant « Enregistrer ».
+  À l'enregistrement, la modification est visible **immédiatement par tous les membres
+  connectés**, comme toute autre modification (FR-015), et un message confirme
+  l'enregistrement. « Annuler » abandonne la saisie. Si la fonctionnalité a été modifiée
+  entre-temps, la version actuelle est affichée avant d'écraser quoi que ce soit (cas
+  limite « Modifications simultanées »).
 - **FR-016a**: Partout où apparaissent les sigles BV, TC, RR/OE, JS, CoD et WSJF
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au

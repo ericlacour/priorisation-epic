@@ -354,6 +354,11 @@ a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; bo
 .drawer .formula { font-variant-numeric: tabular-nums; }
 .drawer .contrib { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 14px; margin-top: 10px; }
 @container (max-width: 600px) { .drawer { width: 100%; border-left: 0; } }
+.drawer .edit-only { display: none; }
+.drawer.editing .edit-only { display: block; }
+.drawer.editing .edit-only.actions { display: flex; }
+.drawer.editing .view-only { display: none; }
+textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 .screen { display: none; }
 .screen.active { display: block; }
 .anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
@@ -592,7 +597,7 @@ a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; bo
 </section>
 
 <!-- ======================= 4 ter. DESCRIPTIF D'UNE FONCTIONNALITÉ ======================= -->
-<section class="screen" id="s4c" data-note="FR-016, FR-016b. Panneau ouvert en cliquant sur l'identifiant d'une fonctionnalité (tableau, vote, révélation). Il se ferme par la croix, la touche Échap ou un clic à côté. Sur téléphone, il occupe tout l'écran.">
+<section class="screen" id="s4c" data-note="FR-016, FR-016b. Cliquez sur « Modifier le titre et le descriptif » pour voir le mode édition (Enregistrer / Annuler). Panneau ouvert en cliquant sur l'identifiant d'une fonctionnalité (tableau, vote, révélation). Il se ferme par la croix, la touche Échap ou un clic à côté. Sur téléphone, il occupe tout l'écran.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
@@ -615,12 +620,21 @@ a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; bo
     <div class="drawer-backdrop"></div>
     <aside class="drawer" role="dialog" aria-labelledby="dr-t" aria-modal="true">
       <div class="drawer-head">
-        <div><span class="muted small">F-1 · rang 1</span><h2 id="dr-t" style="margin:2px 0 0">Paiement en un clic</h2></div>
+        <div style="flex:1"><span class="muted small">F-1 · rang 1</span><h2 id="dr-t" class="view-only" style="margin:2px 0 0">Paiement en un clic</h2><div class="edit-only field" style="margin:6px 0 0"><label for="dr-title">Titre</label><input id="dr-title" class="input" value="Paiement en un clic"></div></div>
         <button class="btn sm" type="button" aria-label="Fermer" data-go="s4">✕</button>
       </div>
       <div class="drawer-body">
-        <h3>Descriptif</h3>
-        <div class="desc">
+        <h3 class="view-only">Descriptif</h3>
+        <div class="edit-only field" style="margin-top:16px">
+          <label for="dr-desc">Descriptif</label>
+          <textarea id="dr-desc" class="input" rows="8">Permettre aux clients déjà identifiés de payer en un seul clic, avec le moyen de paiement enregistré lors de leur dernier achat.
+
+Objectif : réduire l'abandon de panier sur mobile (aujourd'hui 68 % au moment du paiement).
+
+Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
+          <span class="help">5 000 caractères au plus. Les autres participants verront la modification dès l'enregistrement.</span>
+        </div>
+        <div class="desc view-only">
           <p>Permettre aux clients déjà identifiés de payer en un seul clic, avec le moyen de paiement enregistré lors de leur dernier achat.</p>
           <p><b>Objectif :</b> réduire l'abandon de panier sur mobile (aujourd'hui 68 % au moment du paiement).</p>
           <p><b>Hors périmètre :</b> paiement fractionné, cartes cadeaux.</p>
@@ -643,7 +657,9 @@ a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; bo
         <p class="help">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
       </div>
       <div class="drawer-foot no-phone">
-        <button class="btn" type="button">Modifier le titre et le descriptif</button>
+        <div class="view-only"><button class="btn" type="button" data-edit="on">Modifier le titre et le descriptif</button></div>
+        <div class="edit-only actions" style="justify-content:flex-end"><button class="btn" type="button" data-edit="off">Annuler</button><button class="btn primary" type="button" data-edit="save">Enregistrer</button></div>
+        <div class="notice success saved-msg" style="margin-top:10px;display:none"><span class="ico">✓</span><span>Modification enregistrée et visible par tous les participants.</span></div>
       </div>
     </aside>
   </div>
@@ -934,6 +950,19 @@ a.fid:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; bo
     d.addEventListener('toggle', function () {
       try { localStorage.setItem('mock-glossary', d.open ? 'open' : 'closed'); } catch (e) {}
       document.querySelectorAll('.glossary-box').forEach(function (o) { if (o !== d) o.open = d.open; });
+    });
+  });
+  document.querySelectorAll('[data-edit]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = b.closest('.drawer'), msg = d.querySelector('.saved-msg');
+      if (b.dataset.edit === 'on') { d.classList.add('editing'); msg.style.display = 'none'; d.querySelector('#dr-title').focus(); }
+      else {
+        if (b.dataset.edit === 'save') {
+          var t = d.querySelector('#dr-title').value, h = d.querySelector('#dr-t'); if (t) h.textContent = t;
+          msg.style.display = 'flex';
+        }
+        d.classList.remove('editing');
+      }
     });
   });
   var start = 's1';
