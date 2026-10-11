@@ -2,7 +2,7 @@
 
 **Feature** : `001-wsjf-prioritization-session` | **Date** : 2026-10-11 | **Plan** : [plan.md](./plan.md)
 
-Les identifiants de code sont en anglais (voir [research.md](./research.md), R11). Le terme
+Les identifiants de code sont en anglais (voir [research.md](./research.md), R13). Le terme
 métier français est indiqué entre parenthèses.
 
 ## Vue d'ensemble
@@ -21,8 +21,7 @@ Session 1───* ImportPreview (temporaire)
 
 | Champ | Type | Règles |
 |-------|------|--------|
-| id | UUID | Clé primaire |
-| inviteCode | texte (22 car.) | Unique, aléatoire sur 128 bits, en base64url. Forme le lien d'invitation |
+| sessionId | texte (22 car.) | Clé primaire, aléatoire sur 128 bits, en base64url sans remplissage (comme dans planning-poker). Forme le lien d'invitation `/s/{sessionId}` |
 | animationTokenHash | texte | Empreinte SHA-256 du jeton d'animation. Le jeton lui-même n'est jamais stocké |
 | name | texte (1 à 120 car.) | Obligatoire |
 | status | enum `PREPARATION`, `IN_PROGRESS`, `CLOSED` | Vaut `PREPARATION` à la création |
@@ -53,11 +52,11 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
-| sessionId | UUID | Clé étrangère vers Session |
+| sessionId | texte (22 car.) | Clé étrangère vers Session |
 | pseudo | texte (1 à 40 car., espaces retirés aux extrémités) | Unique par session sans tenir compte de la casse (FR-003) |
 | role | enum `FACILITATOR`, `PARTICIPANT` | Exactement un `FACILITATOR` par session |
 | businessRole | texte, facultatif | Rôle métier indicatif (PO, PM, Architecte…) |
-| participantTokenHash | texte | Empreinte du jeton de reprise envoyé dans `X-Participant-Token` |
+| participantTokenHash | texte | Empreinte du jeton de reprise envoyé dans le message WebSocket `hello` |
 | joinedAt / lastSeenAt | horodatages | `lastSeenAt` sert à afficher qui est présent (FR-005) |
 
 **Règles** :
@@ -66,14 +65,17 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - Transmission du rôle (FR-002a) : en une seule transaction, l'ancien animateur passe
   `PARTICIPANT` et le bénéficiaire passe `FACILITATOR`. Le serveur génère un nouveau jeton
   d'animation, remplace son empreinte dans `animationTokenHash` et trace l'opération dans
-  le `ChangeLogEntry`.
+  le `ChangeLogEntry`. Le nouveau jeton est envoyé uniquement à la connexion du
+  bénéficiaire, dans le message WebSocket `facilitatorHandover`.
+- Présence (FR-005) : un participant est « en ligne » tant qu'il a une connexion
+  WebSocket ouverte qui a réussi son `hello`.
 
 ## Feature (Fonctionnalité)
 
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
-| sessionId | UUID | Clé étrangère |
+| sessionId | texte (22 car.) | Clé étrangère |
 | externalId | texte (1 à 50 car.) | « Identifiant » métier. Unique par session sans tenir compte de la casse |
 | title | texte (1 à 200 car.) | Obligatoire |
 | description | texte (≤ 5 000 car.) | Facultative |
@@ -100,7 +102,7 @@ ensuite les fonctionnalités incomplètes ou à revoir, par `externalId` croissa
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
-| sessionId | UUID | Clé étrangère |
+| sessionId | texte (22 car.) | Clé étrangère |
 | number | entier | Numéro séquentiel dans la session, à partir de 1 |
 | status | enum `OPEN`, `REVEALED` | |
 | previousRoundId | UUID, facultatif | Rempli quand le tour est relancé à partir d'un tour précédent (FR-022) |
@@ -111,7 +113,7 @@ font partie du tour (au moins une, FR-018).
 
 **Règles** :
 - Une fonctionnalité ne peut appartenir qu'à **un seul tour `OPEN`** à la fois. La règle
-  est vérifiée sous verrou sur la session (research, R7).
+  est vérifiée sous verrou sur la session (research, R7 : verrou par session).
 - `OPEN → REVEALED` est la seule transition possible. Elle est réservée à l'animateur et
   porte sur toutes les fonctionnalités du tour à la fois (FR-020).
 - Un tour `REVEALED` est immuable.
@@ -126,7 +128,7 @@ font partie du tour (au moins une, FR-018).
 | updatedAt | horodatage | |
 
 **Règles de visibilité** (FR-019, FR-019a, SC-004), appliquées par le serveur à chaque
-lecture :
+`sessionState` envoyé, connexion par connexion, ainsi qu'aux réponses REST et aux exports :
 - Tant que le tour est `OPEN`, chacun ne voit que ses propres valeurs. Les autres membres
   voient seulement, pour chaque participant, le nombre de fonctionnalités dont les quatre
   critères sont renseignés.
@@ -142,7 +144,7 @@ lecture :
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
-| sessionId | UUID | Clé étrangère |
+| sessionId | texte (22 car.) | Clé étrangère |
 | at | horodatage | |
 | authorPseudo | texte | Pseudo de l'auteur au moment de l'action |
 | entityType | enum `SESSION`, `FEATURE`, `ROUND`, `PARTICIPANT` | |
@@ -159,7 +161,7 @@ modifiées ni supprimées.
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | `previewId` |
-| sessionId | UUID | |
+| sessionId | texte (22 car.) | |
 | sourceType | enum `XLSX`, `CSV`, `JSON` | |
 | validRows | JSON | Lignes qui seront importées |
 | rejectedRows | JSON | Pour chaque ligne rejetée : numéro de ligne, identifiant et motif en français |
