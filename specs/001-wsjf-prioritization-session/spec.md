@@ -243,10 +243,10 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
 - **FR-017**: La méthode de priorisation DOIT être identifiée explicitement pour chaque
-  session (en v1, « WSJF » uniquement). La méthode choisie pour une session ne change pas
-  quand une autre méthode est ajoutée à l'outil. [NEEDS CLARIFICATION: que signifie
-  « la méthode doit pouvoir être modifiable » ? Pouvoir ajouter d'autres méthodes plus
-  tard, permettre à l'animateur d'ajuster la formule WSJF (critères, poids), ou les deux ?]
+  session. En v1, seule la méthode WSJF existe, et sa formule et ses critères ne sont pas
+  modifiables par l'utilisateur. D'autres méthodes (RICE, MoSCoW…) pourront être ajoutées
+  dans une version ultérieure. La méthode choisie pour une session ne change pas quand une
+  autre méthode est ajoutée à l'outil.
 
 **Vote masqué et consensus**
 
@@ -344,6 +344,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - En plus des formats demandés (import Excel, export Confluence et CSV), l'import CSV et
   JSON et l'export JSON sont inclus pour respecter le principe VI de la constitution
   (Données portables).
+- « La méthode doit pouvoir être modifiable » signifie que d'autres méthodes pourront être
+  ajoutées plus tard. En v1, la méthode WSJF est figée et aucune configuration de formule
+  n'est proposée.
 - Les sessions sont conservées sans limite de durée en v1. Leur suppression n'est pas
   prévue dans cette fonctionnalité.
 - L'interface, les exports et les messages sont en français (principe V de la

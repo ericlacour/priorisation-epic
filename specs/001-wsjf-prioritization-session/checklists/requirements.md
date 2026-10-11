@@ -31,8 +31,8 @@
 
 ## Notes
 
-- 3 [NEEDS CLARIFICATION] markers remain (FR-017 méthode modifiable, FR-021 saisie du
-  consensus, FR-026 visibilité des sessions); awaiting user answers.
+- 2 [NEEDS CLARIFICATION] markers remain (FR-021 saisie du
+  consensus, FR-026 visibilité des sessions); FR-017 resolved (Q1: A).
 - Formats .xlsx, CSV, JSON and "Confluence" are user-facing file formats requested by the
   user or required by the constitution (principle VI), not implementation choices.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
