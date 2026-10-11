@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,8 +31,9 @@
 
 ## Notes
 
-- 2 [NEEDS CLARIFICATION] markers remain (FR-021 saisie du
-  consensus, FR-026 visibilité des sessions); FR-017 resolved (Q1: A).
+- All clarifications resolved: FR-017 (Q1: A, WSJF fixed in v1), FR-021 (Q2: A, only the
+  animateur sets retained values), FR-026 (Q3: A, all sessions visible to everyone).
+- Validation passed on iteration 2; all items complete.
 - Formats .xlsx, CSV, JSON and "Confluence" are user-facing file formats requested by the
   user or required by the constitution (principle VI), not implementation choices.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

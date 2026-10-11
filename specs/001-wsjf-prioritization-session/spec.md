@@ -14,7 +14,7 @@
 
 L'animateur crée une session en indiquant son pseudo, lui donne un nom, puis saisit à la
 main les fonctionnalités à prioriser (identifiant, titre, description). Avec l'équipe, il
-renseigne directement, pour chaque fonctionnalité, les valeurs retenues pour BV, TC, RR/OE
+fixe directement, pour chaque fonctionnalité, les valeurs retenues pour BV, TC, RR/OE
 et JS. Le tableau affiche, pour chaque fonctionnalité, ces quatre valeurs, le Cost of Delay
 (CoD = BV + TC + RR/OE) et le WSJF (CoD / JS), trié par WSJF décroissant. Chaque
 modification d'une valeur recalcule immédiatement le CoD, le WSJF et le tri.
@@ -35,7 +35,7 @@ vérifier les CoD, les WSJF et l'ordre du tableau, y compris après modification
 3. **Given** une fonctionnalité dont le JS n'est pas encore renseigné, **When** le tableau
    s'affiche, **Then** son CoD et son WSJF apparaissent comme « non calculé » et elle est
    placée après toutes les fonctionnalités complètes.
-4. **Given** l'échelle par défaut 1 à 10, **When** l'utilisateur saisit 0, 11 ou une valeur
+4. **Given** l'échelle par défaut 1 à 10, **When** l'animateur ou un participant saisit 0, 11 ou une valeur
    non entière, **Then** la saisie est refusée avec un message indiquant les valeurs
    autorisées.
 5. **Given** une fonctionnalité du tableau, **When** l'utilisateur consulte son détail,
@@ -73,7 +73,7 @@ jour du tableau.
 3. **Given** des votes enregistrés sur F-1, **When** l'animateur révèle le tour, **Then**
    tous les membres voient, pour chaque participant et chaque critère, la valeur saisie,
    ainsi que le minimum et le maximum de chaque critère.
-4. **Given** un tour révélé, **When** les valeurs communes sont saisies, **Then** elles
+4. **Given** un tour révélé, **When** l'animateur saisit les valeurs communes, **Then** elles
    deviennent les valeurs de F-1 dans le tableau, qui se recalcule et se retrie.
 5. **Given** un tour révélé sans accord, **When** l'animateur lance un nouveau tour, **Then**
    les participants votent à nouveau en masqué et les votes du tour précédent restent
@@ -174,8 +174,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **Égalité de WSJF** : à WSJF égal, la fonctionnalité au CoD le plus élevé passe devant ;
   à CoD égal aussi, l'ordre alphabétique de l'identifiant départage. Cette règle est
   affichée dans l'aide du tableau.
-- **Modifications simultanées** : si deux personnes modifient la même valeur en même temps,
-  la seconde est prévenue que la valeur a changé et voit la nouvelle valeur avant de
+- **Modifications simultanées** : si la même valeur est modifiée deux fois en même temps
+  (par exemple par l'animateur depuis deux onglets), la seconde modification est prévenue que la valeur a changé et voit la nouvelle valeur avant de
   confirmer ou d'annuler sa propre saisie.
 - **Pseudo déjà utilisé** dans la session : l'utilisateur est invité à en choisir un autre.
 - **Participant qui quitte la session** pendant un vote : ses votes déjà enregistrés sont
@@ -259,10 +259,10 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. Après révélation, les
   valeurs de chaque participant, ainsi que le minimum et le maximum par critère, sont
   visibles par tous, et le tour n'accepte plus de vote.
-- **FR-021**: Après révélation, les valeurs communes retenues DOIVENT pouvoir être
-  saisies. Elles deviennent les valeurs de la fonctionnalité.
-  [NEEDS CLARIFICATION: qui saisit les valeurs communes après discussion ? L'animateur
-  seul, ou n'importe quel membre de la session ?]
+- **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
+  retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité. Plus
+  généralement, seul l'animateur modifie les valeurs retenues des fonctionnalités, y
+  compris en saisie directe. Les participants ne saisissent que leurs propres votes.
 - **FR-022**: L'animateur DOIT pouvoir lancer un nouveau tour de vote sur une
   fonctionnalité déjà votée, sans limite de nombre. Les tours précédents restent
   consultables.
@@ -278,11 +278,10 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-025**: Le système DOIT conserver, pour chaque modification de valeur, de
   fonctionnalité ou d'échelle, le pseudo de son auteur, sa date et l'ancienne et la
   nouvelle valeur. Cet historique est consultable.
-- **FR-026**: Le système DOIT conserver les sessions et proposer une liste des sessions
-  permettant de les rouvrir. Une session clôturée est consultable en lecture seule, et
-  son animateur peut la rouvrir.
-  [NEEDS CLARIFICATION: qui peut voir la liste des sessions et y accéder ? Toute personne
-  ayant accès à l'outil, ou seulement les personnes ayant le lien de la session ?]
+- **FR-026**: Le système DOIT conserver les sessions et proposer une liste de toutes les
+  sessions, visible par toute personne ayant accès à l'outil, permettant de les ouvrir.
+  Une session clôturée est consultable en lecture seule, et son animateur peut la
+  rouvrir.
 - **FR-027**: Les messages d'erreur DOIVENT indiquer ce qui ne va pas et comment corriger
   (par exemple : « Le JS doit être un nombre entier entre 1 et 10 »).
 
@@ -347,6 +346,11 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - « La méthode doit pouvoir être modifiable » signifie que d'autres méthodes pourront être
   ajoutées plus tard. En v1, la méthode WSJF est figée et aucune configuration de formule
   n'est proposée.
+- Seul l'animateur modifie les valeurs retenues (saisie directe ou consensus). Les
+  participants voient le tableau en direct et votent lors des tours masqués.
+- Toutes les sessions sont visibles par toute personne ayant accès à l'outil : la v1 ne
+  prévoit aucune confidentialité entre équipes. L'outil est donc destiné à un usage
+  interne, sur un périmètre de confiance.
 - Les sessions sont conservées sans limite de durée en v1. Leur suppression n'est pas
   prévue dans cette fonctionnalité.
 - L'interface, les exports et les messages sont en français (principe V de la
