@@ -76,7 +76,8 @@ Les formules sont lues par leur dernière valeur calculée.
   - Le WSJF a 2 décimales avec une virgule (`4,00`).
   - Une fonctionnalité incomplète a `Rang`, `CoD` et `WSJF` vides.
 - Un CSV exporté peut être réimporté : les colonnes `Rang`, `CoD` et `WSJF` sont alors
-  ignorées, car elles sont toujours recalculées.
+  ignorées, car elles sont toujours recalculées. Cet aller-retour, dans une session vide de
+  même échelle, est testé (constitution VI).
 
 ## CSV des votes (`csv-votes`, export uniquement)
 
@@ -84,7 +85,9 @@ Ce format rend les évaluations exportables en CSV (constitution VI). Il suit le
 règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180.
 
 - **Colonnes** : `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`.
-- **Une ligne** par tour, fonctionnalité et participant attendu, triée par tour, puis par
+- **Une ligne** par tour, fonctionnalité et participant **inscrit dans la session au
+  moment de la révélation du tour**, animateur compris (la même liste que celle qui sert à
+  afficher « n'a pas voté »), triée par tour, puis par
   identifiant, puis par pseudo. `A voté` vaut `oui` ou `non`. Les critères non saisis
   sont laissés vides.
 - **Seuls les tours révélés** sont exportés. Les votes d'un tour encore ouvert ne
@@ -140,14 +143,21 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
 **Règles** :
 - `computed` est informatif. À l'import, il est **recalculé**, puis comparé à la valeur du
   fichier : un écart produit un avertissement, et on garde le calcul.
-- Si la session cible est en préparation et ne contient encore aucune fonctionnalité,
-  l'import applique **l'échelle du fichier**, puis importe les `features`. C'est le cas de
-  l'aller-retour (US4, scénario 3).
-- Si la session contient déjà des fonctionnalités, seules les `features` sont importées,
-  avec l'échelle de la session. Les valeurs hors échelle donnent un avertissement.
-- Les `rounds` et les votes ne sont jamais réimportés : ils restent l'historique de la
-  session d'origine.
-- Pour l'aller-retour SC-008, le test compare les données et les scores entre l'export et
-  la réimport dans une nouvelle session.
+- **Créer une nouvelle session à partir d'un JSON** (`POST /api/sessions/from-json`) :
+  - on reprend l'échelle, la méthode, les `features`, ainsi que les **tours révélés** et
+    leurs votes ;
+  - chaque pseudo présent dans les votes devient un participant hors ligne, sans jeton.
+    On reprend sa place par la règle des 10 minutes d'absence ;
+  - le créateur devient l'animateur ;
+  - un tour encore ouvert n'est jamais présent dans un export (SC-004).
+
+  C'est l'aller-retour US4, scénario 3, et SC-008.
+- **Importer dans une session existante** (`POST /api/sessions/{id}/imports`) : seules
+  les `features` sont importées. Si la session est en préparation et ne contient encore
+  aucune fonctionnalité, l'échelle du fichier est appliquée. Sinon, on garde l'échelle de
+  la session, et les valeurs hors échelle donnent un avertissement. Les `rounds` sont
+  ignorés.
+- Pour l'aller-retour SC-008, le test compare les fonctionnalités, l'échelle, les scores,
+  les tours et les votes entre la session d'origine et la nouvelle session.
 - L'export JSON d'une session qui a un tour ouvert **n'inclut pas** les votes de ce tour
   (SC-004).

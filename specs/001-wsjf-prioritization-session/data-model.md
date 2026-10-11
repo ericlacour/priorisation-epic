@@ -59,7 +59,7 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | role | enum `FACILITATOR`, `PARTICIPANT` | Exactement un `FACILITATOR` par session |
 | businessRole | texte, facultatif | Rôle métier indicatif (PO, PM, Architecte…) |
 | participantTokenHash | texte | Empreinte du jeton de reprise envoyé dans le message WebSocket `hello` |
-| joinedAt / lastSeenAt | horodatages | `lastSeenAt` sert à afficher qui est présent (FR-005) |
+| joinedAt / lastSeenAt | horodatages | `lastSeenAt` est mis à jour à chaque `heartbeat` (au plus une fois toutes les 30 s en base) et à la fermeture de la dernière connexion du participant. L'absence de 10 minutes se compte depuis cette fermeture |
 
 **Règles** :
 - Les droits d'animateur (`FACILITATOR`) sont accordés **uniquement** à la présentation
@@ -139,7 +139,8 @@ font partie du tour (au moins une, FR-018).
   portent le marqueur `votingInProgress = true` et sont placées en fin de tableau.
   L'animateur, lui, voit les valeurs retenues.
 - Une fois le tour `REVEALED`, tout le monde voit tous les votes, ainsi que le minimum et le
-  maximum de chaque critère. Les participants qui n'ont pas voté sont signalés.
+  maximum de chaque critère. Les participants qui n'ont pas voté sont signalés. Ce sont
+  les participants inscrits dans la session au moment de la révélation, animateur compris.
 
 ## ChangeLogEntry (Entrée d'historique)
 

@@ -77,6 +77,9 @@ jour du tableau.
 
 **Acceptance Scenarios**:
 
+0. **Given** une session en préparation, **When** l'animateur tente d'ouvrir un tour,
+   **Then** l'action est refusée avec le message « Démarrez la session pour ouvrir un tour
+   de vote ». **When** il démarre la session, **Then** il peut ouvrir un tour.
 1. **Given** une session préparée, **When** l'animateur partage le lien d'invitation et
    qu'un participant l'ouvre puis saisit son pseudo, **Then** le participant rejoint la
    session et apparaît dans la liste des participants de l'animateur.
@@ -163,9 +166,9 @@ JSON dans une nouvelle session et vérifier que les valeurs et scores sont ident
 2. **Given** un tableau priorisé, **When** l'utilisateur exporte en CSV, **Then** le fichier
    contient les mêmes colonnes et lignes, et s'ouvre correctement (accents, séparateurs,
    décimales) dans un tableur configuré en français.
-3. **Given** une session exportée en JSON, **When** cet export est réimporté dans une
-   nouvelle session, **Then** les fonctionnalités, valeurs, échelle et scores sont
-   identiques.
+3. **Given** une session exportée en JSON, **When** l'animateur crée une nouvelle session
+   à partir de cet export, **Then** les fonctionnalités, valeurs, échelle, scores, tours
+   et votes sont identiques.
 
 ---
 
@@ -354,8 +357,13 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   les accents et un tableur français).
 - **FR-024**: Tout membre DOIT pouvoir exporter les votes des tours révélés en CSV
   (constitution VI), et la session complète en JSON
-  (fonctionnalités, valeurs, échelle, méthode, tours de vote). Un export suivi d'un
-  réimport DOIT redonner les mêmes données et les mêmes scores.
+  (fonctionnalités, valeurs, échelle, méthode, tours de vote). Une **nouvelle session
+  créée à partir d'un export JSON** DOIT redonner les mêmes données (fonctionnalités,
+  valeurs, échelle, méthode, tours de vote et votes) et donc les mêmes scores. Les votes
+  sont rattachés aux pseudos, recréés comme participants hors ligne. Importer un JSON
+  dans une session existante n'ajoute que les fonctionnalités. Le CSV tableau exporté
+  puis réimporté dans une session vide de même échelle redonne les mêmes fonctionnalités
+  et les mêmes scores.
 - **FR-025**: Le système DOIT conserver, pour chaque **modification d'une valeur retenue**
   (BV, TC, RR/OE ou JS d'une fonctionnalité existante) et pour chaque **changement
   d'échelle**, le pseudo de son auteur, sa date, l'ancienne et la nouvelle valeur. Cet
