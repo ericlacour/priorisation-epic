@@ -245,8 +245,6 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 .vote-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
 @container (max-width: 700px) { .vote-inputs { grid-template-columns: 1fr; } }
 .vote-inputs label { display: grid; grid-template-columns: minmax(0, 1fr) 96px; column-gap: 12px; align-items: center; font-size: 14px; font-weight: 600; }
-.vote-inputs label .def { grid-column: 1; }
-.vote-inputs label .input { grid-column: 2; grid-row: 1 / span 2; }
 .vote-inputs .input { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .vote-inputs .input.error, .vote-inputs .input[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
 .phone-readonly { display: none; }
@@ -317,6 +315,13 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 }
 th:last-child .term:hover::after, th:last-child .term:focus-visible::after,
 th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visible::after { left: auto; right: 0; transform: none; }
+.glossary-box summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.glossary-box summary::-webkit-details-marker { display: none; }
+.glossary-box summary h3 { margin: 0; }
+.glossary-box summary::after { content: "Replier ▴"; font-size: 13px; font-weight: 600; color: var(--primary-ink); }
+.glossary-box:not([open]) summary::after { content: "Déplier ▾"; }
+.glossary-box[open] summary { margin-bottom: 12px; }
+.glossary-box summary:focus-visible { outline: 3px solid var(--primary); outline-offset: 4px; border-radius: 6px; }
 .glossary { margin: 0; display: grid; gap: 8px; font-size: 14px; }
 .glossary dt { font-weight: 700; }
 .glossary dd { margin: 0 0 4px; color: var(--muted); }
@@ -497,8 +502,8 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
         <div class="notice danger no-phone" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
       </div>
       <aside class="side">
-        <div class="card">
-          <h3>Comprendre le WSJF</h3>
+        <details class="card glossary-box" open>
+          <summary><h3>Comprendre le WSJF</h3></summary>
           <dl class="glossary">
             <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
             <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
@@ -507,7 +512,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
             <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
             <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
           </dl>
-        </div>
+        </details>
         <div class="card">
           <h3>Participants (3)</h3>
           <ul class="plist">
@@ -541,23 +546,23 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
       <div style="display:grid;gap:16px">
         <div class="card no-phone" style="display:grid;gap:12px">
           <h2 style="margin:0">Votre vote</h2>
-          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Survolez ou touchez un sigle pour revoir sa signification.</p>
+          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Les définitions sont dans l'encadré « Comprendre le WSJF », à droite.</p>
           <div class="vote-feature done">
             <div class="actions" style="justify-content:space-between"><b>F-1 · Paiement en un clic</b><span class="badge live">Noté</span></div>
             <div class="vote-inputs">
-              <label>BV · Business Value<span class="def">Valeur apportée aux utilisateurs ou au business.</span><input class="input" inputmode="numeric" value="8"></label>
-              <label>TC · Time Criticality<span class="def">Importance de réaliser rapidement la fonctionnalité.</span><input class="input" inputmode="numeric" value="4"></label>
-              <label>RR/OE · Risk Reduction / Opportunity Enablement<span class="def">Capacité à réduire un risque ou à permettre une opportunité.</span><input class="input" inputmode="numeric" value="3"></label>
-              <label>JS · Job Size<span class="def">Taille relative du travail nécessaire.</span><input class="input" inputmode="numeric" value="5"></label>
+              <label>BV · Business Value<input class="input" inputmode="numeric" value="8"></label>
+              <label>TC · Time Criticality<input class="input" inputmode="numeric" value="4"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" value="3"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" value="5"></label>
             </div>
           </div>
           <div class="vote-feature">
             <div class="actions" style="justify-content:space-between"><b>F-2 · Notifications de livraison</b><span class="badge">À noter</span></div>
             <div class="vote-inputs">
-              <label>BV · Business Value<span class="def">Valeur apportée aux utilisateurs ou au business.</span><input class="input" inputmode="numeric" value="3"></label>
-              <label>TC · Time Criticality<span class="def">Importance de réaliser rapidement la fonctionnalité.</span><input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
-              <label>RR/OE · Risk Reduction / Opportunity Enablement<span class="def">Capacité à réduire un risque ou à permettre une opportunité.</span><input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
-              <label>JS · Job Size<span class="def">Taille relative du travail nécessaire.</span><input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>BV · Business Value<input class="input" inputmode="numeric" value="3"></label>
+              <label>TC · Time Criticality<input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="—"></label>
             </div>
             <p class="err small" id="tc-err" style="margin:0;color:var(--danger)">TC : saisissez un nombre entier entre 1 et 10. RR/OE : « 2,5 » n'est pas un nombre entier.</p>
           </div>
@@ -582,8 +587,8 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
         </div>
       </div>
       <aside class="side">
-        <div class="card">
-          <h3>Comprendre le WSJF</h3>
+        <details class="card glossary-box" open>
+          <summary><h3>Comprendre le WSJF</h3></summary>
           <dl class="glossary">
             <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
             <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
@@ -592,7 +597,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
             <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
             <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
           </dl>
-        </div>
+        </details>
         <div class="card">
           <h3>Avancement du tour 2</h3>
           <ul class="plist">
@@ -813,6 +818,13 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
     b.addEventListener('click', function () {
       document.documentElement.setAttribute('data-theme', b.dataset.themeBtn);
       document.querySelectorAll('[data-theme-btn]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+  document.querySelectorAll('.glossary-box').forEach(function (d) {
+    try { if (localStorage.getItem('mock-glossary') === 'closed') d.removeAttribute('open'); } catch (e) {}
+    d.addEventListener('toggle', function () {
+      try { localStorage.setItem('mock-glossary', d.open ? 'open' : 'closed'); } catch (e) {}
+      document.querySelectorAll('.glossary-box').forEach(function (o) { if (o !== d) o.open = d.open; });
     });
   });
   var start = 's1';

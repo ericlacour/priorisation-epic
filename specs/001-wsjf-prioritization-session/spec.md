@@ -330,8 +330,11 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-016a**: Partout où apparaissent les sigles BV, TC, RR/OE, JS, CoD et WSJF
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
-  toucher. Un encadré « Comprendre le WSJF » regroupe toutes les définitions, et le
-  panneau de vote affiche la définition à côté de chaque critère. Les définitions sont :
+  toucher. Un encadré « Comprendre le WSJF », dans le panneau latéral, regroupe toutes
+  les définitions. On peut le **replier et le déplier**, et son état est mémorisé dans le
+  navigateur. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
+  (par exemple « BV · Business Value »), sans répéter la définition. Les définitions
+  sont :
   - **BV · Business Value** : valeur apportée aux utilisateurs ou au business ;
   - **TC · Time Criticality** : importance de réaliser rapidement la fonctionnalité ;
   - **RR/OE · Risk Reduction / Opportunity Enablement** : capacité à réduire un risque ou
