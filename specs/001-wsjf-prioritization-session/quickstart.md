@@ -70,14 +70,17 @@ ouvert.
 ## Valider le déploiement sur Render (V1 temporaire, comme planning-poker)
 
 1. Dans Render, faire **New → Blueprint**, choisir le dépôt `ericlacour/priorisation-epic`
-   et le fichier `deploy/render.yaml`. Le blueprint crée l'API (Docker), le site statique
-   et la base Postgres.
-2. Renseigner `API_BASE_URL` sur le front et `ALLOWED_ORIGINS` sur l'API. `DATABASE_URL`
-   est reliée automatiquement à la base par le blueprint.
-3. Créer les secrets et variables GitHub du déploiement : `RENDER_DEPLOY_HOOK_BACKEND`,
+   et le fichier `deploy/render.yaml`. Le blueprint crée l'API (Docker) et le site
+   statique.
+2. Dans Neon, créer un projet `priorisation-epic` dans la région **AWS Europe
+   (Frankfurt)**, puis copier la chaîne de connexion **directe** (sans `-pooler`), avec
+   `sslmode=require`.
+3. Renseigner les variables : `API_BASE_URL` sur le front ; `ALLOWED_ORIGINS` et
+   `DATABASE_URL` (la chaîne Neon) sur l'API. Ces valeurs ne sont jamais commitées.
+4. Créer les secrets et variables GitHub du déploiement : `RENDER_DEPLOY_HOOK_BACKEND`,
    `RENDER_DEPLOY_HOOK_FRONTEND`, `RENDER_API_KEY`, `RENDER_BACKEND_SERVICE_ID` et
    `RENDER_FRONTEND_SERVICE_ID`. Les détails sont dans `deploy/README.md`.
-4. Vérifier que la CI de `main` est verte, puis poser une étiquette `v0.1` sur la tête de
+5. Vérifier que la CI de `main` est verte, puis poser une étiquette `v0.1` sur la tête de
    `main`, en dehors d'un atelier.
 
 **Résultat attendu** : `https://<api>.onrender.com/api/health` répond `{"status":"UP"}`.
@@ -85,10 +88,13 @@ Une session créée existe toujours après un redéploiement, puisqu'elle est en
 15 minutes d'inactivité, le premier accès affiche l'écran de réveil, puis l'application
 répond.
 
-**Base de données** : le plan Free de Render Postgres **expire au bout de 30 jours**.
-Avant d'y mettre des données réelles, il faut passer à un plan payant ou pointer
-`DATABASE_URL` vers une base externe sans expiration. Voir [research.md](./research.md),
-section R11.
+Après 5 minutes d'inactivité, la base Neon se met en veille : la requête suivante la
+réveille, sans erreur côté application.
+
+**Base de données (Neon, offre gratuite)** : la restauration ne couvre que 6 heures. Il
+faut exporter la session en JSON après chaque atelier important. **Consigne : ne pas
+saisir de données confidentielles tant que l'application est sur Neon.** Voir
+[research.md](./research.md), section R11.
 
 ## Valider l'outillage de sécurité (constitution)
 

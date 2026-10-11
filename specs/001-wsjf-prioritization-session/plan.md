@@ -21,9 +21,9 @@ met à jour en temps réel chez tous. Il s'exporte en CSV, Confluence et JSON.
   destinataire**, ce qui garantit le masquage des votes.
 - **Contrat** : un dossier `contract/` (OpenAPI 3.2, AsyncAPI 3.1, JSON Schema et
   exemples) validé en CI.
-- **Hébergement V1** : déploiement **temporaire sur Render**, comme PP (API en Docker
-  compatible OpenShift, site statique, et en plus Render Postgres), déclenché par une
-  étiquette `v*`.
+- **Hébergement V1, temporaire** : l'application est sur **Render**, comme PP (API en
+  Docker compatible OpenShift et site statique), déployée en posant une étiquette `v*`.
+  La base est sur **Neon** (offre gratuite, sans expiration).
 - **Sécurité du dépôt** : Dependabot aux conventions de PP. **CodeQL et Gitleaks** sont
   ajoutés, comme l'exige la constitution.
 
@@ -39,7 +39,7 @@ Le détail des choix est dans [research.md](./research.md).
 - Front : Angular 22.x (standalone, signals), API `WebSocket` native du navigateur.
 - Contrat : Redocly CLI, `@asyncapi/parser`, Ajv.
 
-**Storage**: PostgreSQL 17, avec un schéma versionné par migrations Flyway. La connexion passe par `DATABASE_URL`. En V1, la base est sur Render Postgres ou sur une base externe : à choisir, voir research, R11
+**Storage**: PostgreSQL 17, avec un schéma versionné par migrations Flyway. La connexion passe par `DATABASE_URL`. En V1, la base est sur **Neon**, offre gratuite, région AWS Frankfurt, connexion directe en SSL. Voir research, R11
 
 **Testing**:
 - Back : JUnit 5, AssertJ, jqwik, `spring-boot-starter-webmvc-test`, tests WebSocket,
@@ -49,7 +49,7 @@ Le détail des choix est dans [research.md](./research.md).
   `@axe-core/playwright` pour l'accessibilité.
 - Contrat : `npm run validate` et `npm test`.
 
-**Target Platform**: V1 sur Render (Web Service Docker, Static Site, Postgres, région Frankfurt). L'image est compatible OpenShift en vue de la cible pérenne commune avec PP. Navigateurs récents, testés sur Chromium et WebKit
+**Target Platform**: V1 sur Render (Web Service Docker et Static Site, région Frankfurt) et base sur Neon (AWS Frankfurt). L'image est compatible OpenShift en vue de la cible pérenne commune avec PP. Navigateurs récents, testés sur Chromium et WebKit
 
 **Project Type**: application web (`contract/`, `backend/`, `frontend/`, `deploy/`), avec la même organisation que PP
 
@@ -93,9 +93,11 @@ Ce contrôle est fait par rapport à la constitution v2.0.0.
    et les exports. Les exemples du contrat et des tests aller-retour le vérifient.
 2. **Exposition publique sur Render** : la spec suppose un usage interne. Ce n'est pas une
    violation de la constitution, mais c'est un **risque accepté** pour la V1 temporaire :
-   pas de données confidentielles tant que l'application tourne sur Render.
-3. **La base Render Postgres Free expire au bout de 30 jours** : il faut un plan payant ou
-   une base externe avant d'y mettre des données réelles (research, R11).
+   **consigne : ne pas saisir de données confidentielles tant que l'application est sur
+   Neon.**
+3. **Limites de Neon en gratuit** : restauration sur 6 heures seulement et mise en veille
+   après 5 minutes. On exporte en JSON après chaque atelier important, et les connexions
+   sont validées avant usage pour supporter le réveil de la base (research, R11).
 
 ## Project Structure
 
@@ -161,7 +163,7 @@ frontend/                                  # Angular 22
     └── history/
 
 deploy/                                    # Render V1, comme PP
-├── render.yaml                            # API Docker, site statique, Postgres
+├── render.yaml                            # API Docker et site statique (DATABASE_URL Neon en secret)
 ├── render-deploy.sh (+ .test.sh)
 └── README.md
 
@@ -179,7 +181,7 @@ deploy/                                    # Render V1, comme PP
 un back hexagonal, un front Angular, un déploiement Render par blueprint. Les seules
 différences sont imposées par la spec ou la constitution :
 - l'adaptateur `persistence` (PostgreSQL) remplace l'adaptateur `memory` ;
-- la base Render Postgres s'ajoute au blueprint ;
+- la base est sur Neon, hors du blueprint, et reliée par la variable secrète `DATABASE_URL` ;
 - CodeQL et Gitleaks s'ajoutent à la CI.
 
 ## Complexity Tracking

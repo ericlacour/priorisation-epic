@@ -184,7 +184,9 @@ planning-poker est indiquée, sous la forme `PP : …`.
 
 ## R11. Hébergement V1 : Render, comme planning-poker
 
-- **Décision** : un *blueprint* `deploy/render.yaml`, sur le modèle de PP, avec trois
+- **Décision** : l'application est hébergée sur **Render** (comme PP) et la base sur
+  **Neon** (PostgreSQL managé, offre gratuite), choix fait par l'utilisateur le
+  2026-10-11. Le *blueprint* `deploy/render.yaml`, sur le modèle de PP, déclare deux
   ressources :
   1. un **Web Service Docker** `priorisation-epic-api` : image du back compatible
      OpenShift (UID arbitraire, groupe 0, système de fichiers en lecture seule hors
@@ -193,42 +195,62 @@ planning-poker est indiquée, sous la forme `PP : …`.
   2. un **Static Site** `priorisation-epic` : le build Angular, avec une règle de
      réécriture `/* → /index.html`, une CSP injectée au build à partir de `API_BASE_URL`
      et les en-têtes de sécurité de PP ;
-  3. une **base Render Postgres**, dans la même région, reliée par `DATABASE_URL`
-     (`fromDatabase` dans le blueprint).
+  La base n'est **pas** dans le blueprint : c'est un projet Neon, créé dans la région
+  **AWS Europe (Frankfurt)** pour rester proche de l'API. Sa chaîne de connexion est une
+  variable secrète `DATABASE_URL` du Web Service (`sync: false`).
 - **Déploiement** :
   - On déploie en posant une étiquette `v*` sur la tête de `main`, en dehors des ateliers.
     `.github/workflows/deploy.yml` et `deploy/render-deploy.sh` sont repris de PP.
   - Les origines autorisées (`ALLOWED_ORIGINS`) et l'URL de l'API (`API_BASE_URL`) se
     renseignent comme dans PP.
-- **Base de données sur Render** : le plan **Free** de Render Postgres expire 30 jours
-  après sa création ; il reste 14 jours pour passer à un plan payant, sinon la base est
-  supprimée. Il est aussi limité à 1 Go, sans sauvegarde, et à une seule base gratuite
-  par espace de travail ([docs Render](https://render.com/docs/free)). La décision est
-  donc la suivante :
-  - **Free** pour les essais uniquement ;
-  - **plan payant d'entrée de gamme** dès qu'on garde de vraies données ;
-  - **ou bien** une base PostgreSQL externe gratuite et sans expiration (par exemple
-    Neon), reliée par `DATABASE_URL`, sans rien changer au code.
-
-  Le choix final revient à l'utilisateur. Dans tous les cas, l'export JSON (FR-024) sert
-  de sauvegarde manuelle.
+- **Pourquoi Neon plutôt que Render Postgres** : la base gratuite de Render expire 30
+  jours après sa création, puis elle est supprimée si on ne passe pas à un plan payant
+  ([docs Render](https://render.com/docs/free)). L'offre gratuite de Neon n'expire pas.
+- **Offre gratuite de Neon**, d'après sa documentation
+  ([limites](https://neon.com/faqs/free-plan-limits-and-quotas),
+  [plans](https://neon.com/docs/introduction/plans)) :
+  - 0,5 Go de stockage par projet, largement suffisant pour quelques centaines de
+    sessions ;
+  - 100 heures de calcul par mois et par projet ;
+  - la base se met en veille après 5 minutes d'inactivité, et ce réglage ne peut pas
+    être désactivé en gratuit ;
+  - restauration possible sur les 6 dernières heures seulement.
+- **Conséquences pour le code** :
+  - Neon fournit une URL `postgresql://…?sslmode=require`. La configuration du back
+    accepte cette forme de `DATABASE_URL` et la convertit en URL JDBC, en gardant SSL
+    obligatoire.
+  - On utilise l'adresse **directe** de Neon, pas l'adresse avec *pooler* :
+    - Flyway et les requêtes préparées de Hibernate fonctionnent sans précaution ;
+    - le pool HikariCP est petit (5 connexions au plus) ;
+    - les connexions sont validées avant usage, ce qui couvre la reprise après la mise
+      en veille.
+  - Le premier accès après une mise en veille de la base peut prendre une seconde de
+    plus. C'est compatible avec SC-002, qui mesure la propagation pendant un atelier,
+    base éveillée.
+- **Sauvegardes** : la restauration gratuite ne couvre que 6 heures. L'export JSON
+  (FR-024) sert donc de sauvegarde manuelle : il faut l'utiliser après chaque atelier
+  important.
 - **Mise en veille** : un Web Service Render Free s'endort après environ 15 minutes sans
   trafic. Comme dans PP, le `heartbeat` WebSocket garde l'API éveillée pendant un
   atelier, et le front affiche un écran « réveil du service » au premier accès (sur le
   modèle du composant `wake` de PP).
-- **Exposition publique** : sur Render, l'application est accessible depuis Internet. La
-  spec suppose un usage interne (pas d'authentification, toutes les sessions visibles).
+- **Exposition publique** : sur Render, l'application est accessible depuis Internet, et
+  ses données sont chez un fournisseur tiers (Neon). La spec suppose un usage interne (pas d'authentification, toutes les sessions visibles).
   Pour cette V1 temporaire, ce risque est **accepté**, avec les mêmes garde-fous que PP :
   - limite du nombre de créations de sessions par adresse (`CreationRateLimiter`) ;
   - taille maximale des requêtes (`RequestBodyLimitFilter`) ;
   - taille maximale des messages WebSocket ;
   - CORS restreint à l'origine du front.
 
-  **Consigne d'usage** : ne pas saisir de données confidentielles tant que l'application
-  est sur Render.
+  **Consigne d'usage (décidée par l'utilisateur)** : ne pas saisir de données
+  confidentielles tant que l'application est sur Neon. Concrètement, cette consigne
+  s'applique tant que la base est chez Neon et que l'application est exposée sur
+  Render.
 - **Cible pérenne** : elle reste à choisir, en commun avec PP. Comme l'image est
   compatible OpenShift et que toute la configuration passe par des variables
-  d'environnement, la migration ne devrait toucher que `deploy/`.
+  d'environnement, la migration ne devrait toucher que `deploy/`. Pour la base, il
+  suffira d'exporter les données depuis Neon (`pg_dump`), de les restaurer chez la
+  nouvelle cible, puis de changer `DATABASE_URL`.
 
 ## R12. Contrat d'échange : dossier `contract/` (comme planning-poker)
 
