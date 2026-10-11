@@ -13,6 +13,7 @@
 ### Session 2026-10-11
 
 - Q: Les valeurs des critères sont-elles des entiers continus ou la suite de Fibonacci ? → A: L'animateur choisit pour chaque session : entiers continus ou suite de Fibonacci.
+- Q: Un tour de vote masqué porte-t-il sur une fonctionnalité, toutes, ou une sélection ? → A: L'animateur choisit les fonctionnalités incluses dans un tour (une, plusieurs ou toutes), révèle le tour entier, puis peut relancer un tour sur les seules fonctionnalités en désaccord.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -53,12 +54,14 @@ vérifier les CoD, les WSJF et l'ordre du tableau, y compris après modification
 ### User Story 2 - Évaluation individuelle masquée puis consensus (Priority: P2)
 
 L'animateur invite les participants (Product Owner, Product Management, Architecte…) à
-rejoindre la session. Chaque participant entre avec un pseudo et saisit, pour chaque
-fonctionnalité, ses propres valeurs BV, TC, RR/OE et JS, sans voir celles des autres.
-L'animateur voit qui a déjà voté, sans voir les valeurs. Quand il le décide, il révèle les
-valeurs de chacun pour une fonctionnalité. L'équipe en discute et fixe une valeur commune
-par critère. Si l'équipe n'est pas d'accord, l'animateur relance un nouveau tour de vote
-masqué sur cette fonctionnalité, autant de fois que nécessaire.
+rejoindre la session. Il ouvre un tour de vote masqué sur les fonctionnalités de son
+choix : une seule, plusieurs ou toutes. Chaque participant entre avec un pseudo et saisit,
+pour chaque fonctionnalité du tour, ses propres valeurs BV, TC, RR/OE et JS, sans voir
+celles des autres. L'animateur voit qui a déjà voté, sans voir les valeurs. Quand il le
+décide, il révèle le tour entier. L'équipe discute fonctionnalité par fonctionnalité et
+fixe une valeur commune par critère. Si l'équipe n'est pas d'accord sur certaines
+fonctionnalités, l'animateur relance un nouveau tour masqué sur ces seules
+fonctionnalités, autant de fois que nécessaire.
 
 **Why this priority**: le vote masqué évite l'effet d'ancrage et fait apparaître les
 désaccords. Il apporte une forte valeur, mais la session reste utilisable sans lui
@@ -86,6 +89,10 @@ jour du tableau.
    consultables dans l'historique de F-1.
 6. **Given** un participant qui n'a pas voté, **When** l'animateur révèle le tour, **Then**
    la révélation a lieu et ce participant apparaît comme « n'a pas voté ».
+7. **Given** un tour ouvert sur F-1, F-2 et F-3, **When** l'animateur le révèle, **Then** les
+   votes des trois fonctionnalités deviennent visibles en même temps. **When** l'équipe
+   s'accorde sur F-1 et F-3 mais pas sur F-2, **Then** l'animateur saisit les valeurs
+   communes de F-1 et F-3 et lance un nouveau tour sur F-2 seule.
 
 ---
 
@@ -269,22 +276,26 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 
 **Vote masqué et consensus**
 
-- **FR-018**: L'animateur DOIT pouvoir ouvrir un tour de vote masqué sur une
-  fonctionnalité. Le vote masqué est facultatif : les valeurs peuvent toujours être saisies
-  directement.
+- **FR-018**: L'animateur DOIT pouvoir ouvrir un tour de vote masqué en choisissant les
+  fonctionnalités qu'il inclut : une, plusieurs ou toutes celles de la session. Une
+  fonctionnalité ne peut appartenir qu'à un seul tour ouvert à la fois. Le vote masqué est
+  facultatif : les valeurs peuvent toujours être saisies directement.
 - **FR-019**: Pendant un tour ouvert, chaque participant DOIT pouvoir saisir et modifier ses
-  propres valeurs pour les quatre critères. Personne, y compris l'animateur, ne voit les
-  valeurs des autres avant la révélation. Tous voient qui a voté.
-- **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. Après révélation, les
-  valeurs de chaque participant, ainsi que le minimum et le maximum par critère, sont
-  visibles par tous, et le tour n'accepte plus de vote.
+  propres valeurs pour les quatre critères de chaque fonctionnalité du tour. Personne, y
+  compris l'animateur, ne voit les valeurs des autres avant la révélation. Tous voient,
+  pour chaque participant, combien de fonctionnalités du tour il a déjà notées.
+- **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. La révélation porte
+  sur toutes les fonctionnalités du tour à la fois. Après révélation, pour chaque
+  fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
+  maximum par critère sont visibles par tous, et le tour n'accepte plus de vote.
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
   retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité. Plus
   généralement, seul l'animateur modifie les valeurs retenues des fonctionnalités, y
   compris en saisie directe. Les participants ne saisissent que leurs propres votes.
-- **FR-022**: L'animateur DOIT pouvoir lancer un nouveau tour de vote sur une
-  fonctionnalité déjà votée, sans limite de nombre. Les tours précédents restent
-  consultables.
+- **FR-022**: Après révélation, l'animateur DOIT pouvoir lancer un nouveau tour sur une
+  sélection des fonctionnalités du tour précédent (typiquement celles sans accord), sans
+  limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
+  fonctionnalité.
 
 **Export, historique et consultation**
 
@@ -316,9 +327,11 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **Fonctionnalité** : un élément à prioriser. Elle a un identifiant, un titre, une
   description et les valeurs retenues pour BV, TC, RR/OE et JS. Le CoD, le WSJF et le
   rang sont toujours calculés à partir de ces valeurs, jamais saisis.
-- **Tour de vote** : une évaluation masquée d'une fonctionnalité. Il a un numéro d'ordre,
-  un statut (ouvert, révélé) et des votes.
-- **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant dans un tour.
+- **Tour de vote** : une évaluation masquée portant sur une ou plusieurs fonctionnalités
+  choisies par l'animateur. Il a un numéro d'ordre, un statut (ouvert, révélé), la liste
+  de ses fonctionnalités et des votes.
+- **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant pour une
+  fonctionnalité dans un tour.
 - **Entrée d'historique** : une modification tracée. Elle a un auteur (pseudo), une date,
   l'élément modifié et l'ancienne et la nouvelle valeur.
 
@@ -354,7 +367,6 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   Lors de la saisie, l'interface propose les valeurs autorisées par l'échelle.
 - RR et OE forment un seul critère, « RR/OE » : réduction de risque ou opportunité.
 - L'animateur peut lui aussi voter lors des tours masqués.
-- La révélation se fait fonctionnalité par fonctionnalité.
 - Les valeurs communes ne sont pas calculées automatiquement à partir des votes (pas de
   moyenne imposée) : elles résultent de la discussion de l'équipe.
 - Le « format Confluence » désigne un tableau qui se colle directement dans une page
