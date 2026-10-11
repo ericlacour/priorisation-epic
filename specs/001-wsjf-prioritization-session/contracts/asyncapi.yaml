@@ -52,7 +52,8 @@ channels:
       `updateFeature` changing criteria / `deleteFeature` on a feature in an open round),
       `ROUND_REVEALED`, `SCALE_IMPACT` (with `impactedValues`),
       `UNKNOWN_PARTICIPANT`, `SESSION_NOT_STARTED` (`openRound` while in PREPARATION),
-      `ROUND_OPEN` (`changeStatus CLOSE` while a round is open), `PARTICIPANT_OFFLINE`
+      `ROUND_OPEN` (`changeStatus CLOSE` or a scale change in `updateSettings` while a
+      round is open), `PARTICIPANT_OFFLINE`
       (`transferFacilitator` to a participant with no open connection).
     parameters:
       sessionId:

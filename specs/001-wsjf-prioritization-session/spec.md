@@ -23,6 +23,7 @@
 - Q (maquettes) : que contiennent les champs de consensus au départ ? → A: Ils sont vides, sauf pour un critère où tous les votants ont saisi la même valeur.
 - Q (maquettes) : la saisie est-elle possible sur téléphone en V1 ? → A: Non : lecture seule sur téléphone, saisie sur ordinateur.
 - Q : l'animateur peut-il saisir directement les valeurs d'une fonctionnalité qui est dans un tour ouvert ? → A: Non. C'est refusé tant que le tour n'est pas révélé ; titre et description restent modifiables.
+- Q : peut-on changer l'échelle pendant un tour de vote ouvert ? → A: Non. C'est refusé tant qu'un tour est ouvert.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -308,7 +309,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-011**: Lorsqu'un changement de type ou de borne d'échelle rend des valeurs existantes hors échelle, le
   système DOIT prévenir l'animateur avant d'appliquer le changement. S'il confirme, ces
   valeurs sont marquées « à revoir » et la fonctionnalité concernée est exclue du calcul
-  jusqu'à correction.
+  jusqu'à correction. **Le changement d'échelle est refusé tant qu'un tour de vote est
+  ouvert**, avec le message « Un tour de vote est en cours : révélez-le avant de changer
+  l'échelle ». Changer le nom de la session reste possible.
 - **FR-012**: Pour chaque fonctionnalité dont les quatre critères sont renseignés, le
   système DOIT calculer CoD = BV + TC + RR/OE et WSJF = CoD / JS.
 - **FR-013**: Le WSJF DOIT être affiché avec deux décimales et une virgule décimale. Le

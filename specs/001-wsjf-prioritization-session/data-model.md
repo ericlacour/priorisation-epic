@@ -51,6 +51,8 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - Un tour de vote ne peut être ouvert qu'en `IN_PROGRESS`. En `PREPARATION`, `openRound`
   renvoie `error SESSION_NOT_STARTED` (FR-004, FR-018).
 - `CLOSE` n'est possible que s'il n'y a aucun tour `OPEN`, sinon `error ROUND_OPEN`.
+- Un changement d'échelle (`updateSettings` avec `scale`) est refusé tant qu'un tour est
+  `OPEN` : `error ROUND_OPEN` (FR-011). Renommer la session reste possible.
 - En `IN_PROGRESS`, supprimer une fonctionnalité demande une confirmation.
 
 ## Participant (Participant)

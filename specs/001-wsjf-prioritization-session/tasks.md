@@ -380,7 +380,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Tests de User Story 3 (à écrire d'abord, ils doivent échouer)
 
 - [ ] T083 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
-- [ ] T084 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, criterion, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`
+- [ ] T084 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, criterion, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`. Tant qu'un tour est `OPEN`, un changement d'échelle renvoie `ROUND_OPEN` sans rien modifier, alors qu'un simple renommage est accepté
 - [ ] T085 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
   - en-têtes imposés, insensibles à la casse et aux espaces ;
   - fichier refusé en entier sans `Identifiant` ou sans `Titre` ;
@@ -405,7 +405,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Implémentation de User Story 3
 
 - [ ] T088 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
-- [ ] T089 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm`) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
+- [ ] T089 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; changement d'échelle refusé avec `ROUND_OPEN` tant qu'un tour est ouvert, FR-011) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
 - [ ] T090 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description`, `BV`, `TC`, `RR/OE`, `JS`, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
 - [ ] T091 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes `Rang`, `CoD` et `WSJF` ignorées)
 - [ ] T092 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `computed` recalculé, avec un avertissement en cas d'écart ; lecture des `rounds` et des votes avec leurs dates (`openedAt`, `revealedAt`, `updatedAt` ; si elles manquent, date de l'import et avertissement dans l'aperçu), appliqués **uniquement** en création de session à partir d'un export (T104) et ignorés à l'import dans une session existante ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
@@ -415,7 +415,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - confirmation ou annulation ;
   - récapitulatif final ;
   - lien « Télécharger le modèle ».
-- [ ] T095 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne. Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
+- [ ] T095 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne. Tant qu'un tour est ouvert, le choix de l'échelle est désactivé, avec l'explication « Un tour de vote est en cours : révélez-le avant de changer l'échelle ». Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
 - [ ] T096 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
 
 **Checkpoint** : US1, US2 et US3 fonctionnent indépendamment.
