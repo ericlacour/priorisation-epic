@@ -22,6 +22,7 @@
 - Q (maquettes) : quand le tableau se retrie-t-il pendant la saisie de l'animateur ? → A: Quand il valide la ligne, pas à chaque frappe.
 - Q (maquettes) : que contiennent les champs de consensus au départ ? → A: Ils sont vides, sauf pour un critère où tous les votants ont saisi la même valeur.
 - Q (maquettes) : la saisie est-elle possible sur téléphone en V1 ? → A: Non : lecture seule sur téléphone, saisie sur ordinateur.
+- Q : l'animateur peut-il saisir directement les valeurs d'une fonctionnalité qui est dans un tour ouvert ? → A: Non. C'est refusé tant que le tour n'est pas révélé ; titre et description restent modifiables.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -335,7 +336,11 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   fonctionnalités qu'il inclut : une, plusieurs ou toutes celles de la session. Une
   fonctionnalité ne peut appartenir qu'à un seul tour ouvert à la fois. Un tour ne peut
   être ouvert que si la session est **en cours** (FR-004). Le vote masqué est facultatif :
-  les valeurs peuvent toujours être saisies directement.
+  les valeurs peuvent toujours être saisies directement, **sauf pour une fonctionnalité qui
+  est dans un tour ouvert**. Tant que ce tour n'est pas révélé, ses valeurs retenues ne
+  peuvent être ni modifiées ni supprimées, avec le message « Cette fonctionnalité est en
+  cours de vote : révélez le tour avant de modifier ses valeurs ». Son titre et sa
+  description restent modifiables.
 - **FR-019**: Pendant un tour ouvert, chaque participant DOIT pouvoir saisir et modifier ses
   propres valeurs pour les quatre critères de chaque fonctionnalité du tour, par **saisie
   directe** d'un nombre. La saisie est contrôlée : une valeur qui n'est pas un entier, qui

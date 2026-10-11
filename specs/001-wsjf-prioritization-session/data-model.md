@@ -44,6 +44,10 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - En statut `CLOSED`, toute écriture est refusée (lecture seule), sauf « rouvrir ».
 - Les fonctionnalités, les valeurs et l'échelle sont modifiables en `PREPARATION` comme en
   `IN_PROGRESS`. L'import est possible dans les deux statuts.
+- Une fonctionnalité qui est dans un tour `OPEN` ne peut pas voir ses valeurs retenues
+  (`bv`, `tc`, `rrOe`, `js`) modifiées, ni être supprimée, tant que le tour n'est pas
+  révélé : `error FEATURE_IN_OPEN_ROUND` (FR-018). Son titre et sa description restent
+  modifiables.
 - Un tour de vote ne peut être ouvert qu'en `IN_PROGRESS`. En `PREPARATION`, `openRound`
   renvoie `error SESSION_NOT_STARTED` (FR-004, FR-018).
 - `CLOSE` n'est possible que s'il n'y a aucun tour `OPEN`, sinon `error ROUND_OPEN`.
