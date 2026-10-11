@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquettes Priorisation WSJF</title>
+<style>
+/* ============================================================
+   Jetons de design (voir DESIGN.md dans ce dossier)
+   Rouge principal, anthracite à la place du noir, gris chauds.
+   ============================================================ */
+:root, :root[data-theme="light"] {
+  --bg: #F7F5F3;
+  --surface: #FFFFFF;
+  --surface-muted: #F0EDEA;
+  --fg: #2F3338;
+  --muted: #6B7079;
+  --border: #E2DED9;
+  --primary: #E2001A;
+  --primary-hover: #C8001A;
+  --primary-ink: #C8001A;      /* rouge pour du texte sur fond clair */
+  --primary-fg: #FFFFFF;
+  --primary-soft: #FDE8EA;
+  --success: #16754F;
+  --success-soft: #E3F4EC;
+  --warning: #8A560C;
+  --warning-soft: #FBF0DC;
+  --danger: #A11423;
+  --danger-soft: #FCE9EA;
+  --info-soft: #EEF0F3;
+  --online: #16754F;
+  --offline: #8A8F98;
+  --masked: repeating-linear-gradient(135deg, #F0EDEA 0 6px, #E7E3DE 6px 12px);
+  --shadow: 0 1px 2px rgba(47,51,56,.06), 0 4px 16px rgba(47,51,56,.06);
+}
+:root[data-theme="dark"] {
+  --bg: #16181C;
+  --surface: #1F2227;
+  --surface-muted: #282C32;
+  --fg: #ECEDEF;
+  --muted: #A3A8B0;
+  --border: #33373E;
+  --primary: #FF6B76;
+  --primary-hover: #FF808A;
+  --primary-ink: #FF808A;
+  --primary-fg: #16181C;
+  --primary-soft: #3A1E22;
+  --success: #42C58E;
+  --success-soft: #173A2C;
+  --warning: #E3A94B;
+  --warning-soft: #3A2E17;
+  --danger: #FF8A80;
+  --danger-soft: #3D1F1E;
+  --info-soft: #262A31;
+  --online: #42C58E;
+  --offline: #7A8191;
+  --masked: repeating-linear-gradient(135deg, #282C32 0 6px, #2F343B 6px 12px);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181C; --surface: #1F2227; --surface-muted: #282C32; --fg: #ECEDEF; --muted: #A3A8B0;
+    --border: #33373E; --primary: #FF6B76; --primary-hover: #FF808A; --primary-ink: #FF808A;
+    --primary-fg: #16181C; --primary-soft: #3A1E22; --success: #42C58E; --success-soft: #173A2C;
+    --warning: #E3A94B; --warning-soft: #3A2E17; --danger: #FF8A80; --danger-soft: #3D1F1E;
+    --info-soft: #262A31; --online: #42C58E; --offline: #7A8191;
+    --masked: repeating-linear-gradient(135deg, #282C32 0 6px, #2F343B 6px 12px);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 400 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--primary-ink); }
+
+/* ---------- Barre de pilotage des maquettes (hors produit) ---------- */
+.mock-bar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  padding: 10px 16px; background: var(--surface-muted); border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.mock-bar strong { margin-right: 8px; }
+.mock-bar .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.mock-bar .seg button { border: 0; background: var(--surface); padding: 6px 10px; cursor: pointer; }
+.mock-bar .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.mock-nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.mock-nav button {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  padding: 4px 12px; font-size: 14px; cursor: pointer;
+}
+.mock-nav button[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+.mock-note {
+  max-width: 1200px; margin: 12px auto 0; padding: 0 16px; font-size: 14px; color: var(--muted);
+}
+
+/* ---------- Cadre PC / téléphone ---------- */
+.stage { padding: 16px; display: flex; justify-content: center; }
+.frame {
+  width: 100%; max-width: 1200px; container-type: inline-size;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.frame.phone { max-width: 390px; }
+
+/* ---------- Composants produit ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--surface); border-bottom: 3px solid var(--primary);
+}
+.logo {
+  width: 32px; height: 32px; border-radius: 8px; background: var(--primary); color: var(--primary-fg);
+  display: grid; place-items: center; font-weight: 800; font-size: 14px; flex: none;
+}
+.topbar .title { font-weight: 700; font-size: 18px; }
+.topbar .sub { color: var(--muted); font-size: 14px; }
+.topbar .spacer { flex: 1; }
+.page { padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@container (max-width: 600px) { .page { padding: 16px; } }
+
+.notice {
+  display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-radius: 10px;
+  background: var(--warning-soft); color: var(--warning); font-size: 14px;
+}
+.notice.info { background: var(--info-soft); color: var(--fg); }
+.notice.danger { background: var(--danger-soft); color: var(--danger); }
+.notice.success { background: var(--success-soft); color: var(--success); }
+.notice .ico { font-weight: 800; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+}
+.card h2, .card h3 { margin: 0 0 12px; }
+h1 { font-size: 26px; margin: 0; line-height: 1.2; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.layout-board { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; align-items: start; }
+@container (max-width: 900px) { .layout-board { grid-template-columns: 1fr; } }
+@container (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 14px; font-weight: 500; }
+.input, select.input {
+  min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); width: 100%;
+}
+.input:focus-visible, .btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.input.error { border-color: var(--danger); }
+.field .err { color: var(--danger); font-size: 14px; }
+.help { font-size: 13px; color: var(--muted); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; font-weight: 600; white-space: nowrap;
+}
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+.btn.primary:hover { background: var(--primary-hover); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--primary-ink); }
+.btn.sm { min-height: 36px; padding: 4px 10px; font-size: 14px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; background: var(--surface-muted); color: var(--fg); white-space: nowrap;
+}
+.badge.prep { background: var(--info-soft); }
+.badge.live { background: var(--success-soft); color: var(--success); }
+.badge.closed { background: var(--surface-muted); color: var(--muted); }
+.badge.warn { background: var(--warning-soft); color: var(--warning); }
+.badge.vote { background: var(--primary-soft); color: var(--primary-ink); }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.on { background: var(--online); }
+.dot.off { background: var(--offline); }
+
+/* Tableau WSJF */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; background: var(--surface-muted); position: sticky; top: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.title { white-space: normal; min-width: 180px; }
+td.wsjf { font-weight: 800; color: var(--primary-ink); }
+tr:last-child td { border-bottom: 0; }
+tr.masked td.cell-mask { background: var(--masked); color: var(--muted); }
+tr.incomplete td { color: var(--muted); }
+.review { background: var(--warning-soft); color: var(--warning); border-radius: 6px; padding: 0 6px; font-weight: 700; }
+.rank { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-muted); font-weight: 700; }
+tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
+.legend { font-size: 13px; color: var(--muted); padding: 10px 14px; border-top: 1px solid var(--border); }
+.edit-row td { background: var(--primary-soft); }
+.edit-row .input { min-height: 36px; padding: 4px 8px; width: 52px; }
+.edit-row .input.wide { width: 100%; }
+
+/* Liste téléphone du tableau */
+.feature-cards { display: none; gap: 10px; }
+.fcard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; }
+.fcard .row1 { display: flex; gap: 10px; align-items: center; }
+.fcard .crit { display: flex; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.fcard .wsjf-big { margin-left: auto; font-size: 20px; font-weight: 800; color: var(--primary-ink); }
+@container (max-width: 600px) {
+  .desktop-only { display: none !important; }
+  .feature-cards { display: grid; }
+}
+@container (min-width: 601px) { .phone-only { display: none !important; } }
+
+/* Popover détail du calcul */
+.popover {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 14px 16px;
+  box-shadow: var(--shadow); max-width: 420px;
+}
+.popover .formula { font-variant-numeric: tabular-nums; font-size: 15px; }
+.popover .contrib { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 14px; margin-top: 10px; }
+.bar { height: 8px; border-radius: 99px; background: var(--primary); }
+
+/* Panneau latéral */
+.side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.layout-board > * { min-width: 0; }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plist li { display: flex; gap: 8px; align-items: center; font-size: 15px; }
+.plist .role { margin-left: auto; font-size: 12px; color: var(--muted); }
+.plist .progress { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Vote */
+.vote-feature { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--surface); display: grid; gap: 10px; }
+.vote-feature.done { border-color: var(--success); }
+.crit-row { display: grid; grid-template-columns: 70px 1fr; gap: 8px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface); font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+.chip.sm { min-width: 34px; min-height: 34px; font-size: 14px; }
+
+/* Révélation */
+.reveal-grid th, .reveal-grid td { text-align: center; }
+.reveal-grid td:first-child, .reveal-grid th:first-child { text-align: left; }
+.minmax td { font-weight: 700; background: var(--surface-muted); }
+.spread { color: var(--warning); }
+.novote td { color: var(--muted); font-style: italic; }
+
+/* Aperçu import */
+.stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat { flex: 1; min-width: 120px; border-radius: 12px; padding: 12px 14px; background: var(--surface-muted); }
+.stat b { display: block; font-size: 26px; line-height: 1.1; }
+.stat.ok b { color: var(--success); }
+.stat.ko b { color: var(--danger); }
+.stat.wn b { color: var(--warning); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.tabs button { border: 0; background: none; padding: 8px 12px; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--primary); }
+.dropzone { border: 2px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center; background: var(--surface-muted); }
+
+/* Modale simulée */
+.modal-backdrop { background: rgba(22,24,28,.45); padding: 24px; display: grid; place-items: center; }
+.modal { width: min(760px, 100%); background: var(--surface); border-radius: 14px; box-shadow: var(--shadow); padding: 22px; display: grid; gap: 14px; }
+.modal h2 { margin: 0; }
+@container (max-width: 600px) { .modal-backdrop { padding: 10px; } .modal { padding: 16px; } }
+
+/* Radios type d'échelle */
+.radio-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@container (max-width: 600px) { .radio-cards { grid-template-columns: 1fr; } }
+.radio-card { border: 2px solid var(--border); border-radius: 12px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; }
+.radio-card[aria-checked="true"] { border-color: var(--primary); background: var(--primary-soft); }
+
+/* Liens */
+.linkbox { display: flex; gap: 8px; align-items: center; }
+.linkbox code {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 10px 12px; border-radius: 10px; background: var(--surface-muted); font-size: 14px;
+}
+.secret { border: 2px solid var(--primary); border-radius: 12px; padding: 16px; background: var(--primary-soft); }
+
+/* Historique */
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.timeline li { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 14px; }
+@container (max-width: 600px) { .timeline li { grid-template-columns: 1fr; gap: 2px; } }
+.timeline .when { color: var(--muted); font-variant-numeric: tabular-nums; }
+.old { text-decoration: line-through; color: var(--muted); }
+.new { font-weight: 700; }
+
+.export-list { display: grid; gap: 10px; }
+.export-item { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); flex-wrap: wrap; }
+.version { font-size: 12px; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 0 6px; margin-left: 6px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+.anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="mock-bar" role="region" aria-label="Pilotage des maquettes">
+  <strong>Maquettes : session de priorisation WSJF</strong>
+  <span class="seg" role="group" aria-label="Format">
+    <button type="button" data-frame="pc" aria-pressed="true">Ordinateur</button>
+    <button type="button" data-frame="phone" aria-pressed="false">Téléphone</button>
+  </span>
+  <span class="seg" role="group" aria-label="Thème">
+    <button type="button" data-theme-btn="light" aria-pressed="true">Clair</button>
+    <button type="button" data-theme-btn="dark" aria-pressed="false">Sombre</button>
+  </span>
+</div>
+<nav class="mock-nav" aria-label="Écrans">
+  <button type="button" data-screen="s1">1. Accueil</button>
+  <button type="button" data-screen="s2">2. Session créée</button>
+  <button type="button" data-screen="s3">3. Rejoindre</button>
+  <button type="button" data-screen="s4">4. Tableau (animateur)</button>
+  <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
+  <button type="button" data-screen="s6">6. Révélation et consensus</button>
+  <button type="button" data-screen="s7">7. Import</button>
+  <button type="button" data-screen="s8">8. Échelle</button>
+  <button type="button" data-screen="s9">9. Exports et historique</button>
+</nav>
+<p class="mock-note" id="screen-note"></p>
+
+<div class="stage">
+<div class="frame" id="frame">
+
+<!-- ======================= 1. ACCUEIL ======================= -->
+<section class="screen" id="s1" data-note="US5, FR-001, FR-024, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">Priorisation WSJF</div><div class="sub">Sessions de priorisation d'équipe</div></div>
+  </header>
+  <div class="page">
+    <div class="notice" role="note"><span class="ico">!</span><span>Version temporaire : ne saisissez pas de données confidentielles.</span></div>
+    <div class="grid-2">
+      <div class="card">
+        <h2>Créer une session</h2>
+        <div class="field"><label for="n1">Nom de la session</label><input id="n1" class="input" value="PI 27 – Epics plateforme"></div>
+        <div class="field"><label for="p1">Votre pseudo</label><input id="p1" class="input" value="eric"><span class="help">Vous serez l'animateur de la session.</span></div>
+        <button class="btn primary" type="button" data-go="s2">Créer la session</button>
+      </div>
+      <div class="card">
+        <h2>Créer à partir d'un export JSON</h2>
+        <p class="muted small" style="margin-top:0">Recrée une session complète : fonctionnalités, échelle, tours révélés et votes.</p>
+        <div class="dropzone small">Déposez un fichier <b>.json</b> exporté depuis l'outil<br><button class="btn sm" type="button" style="margin-top:8px">Choisir un fichier</button></div>
+        <div class="field" style="margin-top:14px"><label for="p2">Votre pseudo</label><input id="p2" class="input" placeholder="Pseudo"></div>
+        <button class="btn" type="button">Créer depuis l'export</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Sessions</h2><span class="muted small">Les plus récentes d'abord</span></div>
+      <div class="table-wrap desktop-only">
+        <table>
+          <thead><tr><th>Nom</th><th>Animateur</th><th>Créée le</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>PI 27 – Epics plateforme</td><td>eric</td><td>11/10/2026</td><td><span class="badge live">En cours</span></td><td><button class="btn sm" type="button" data-go="s3">Rejoindre</button></td></tr>
+            <tr><td>Roadmap paiement T1</td><td>sophie</td><td>08/10/2026</td><td><span class="badge prep">En préparation</span></td><td><button class="btn sm" type="button">Rejoindre</button></td></tr>
+            <tr><td>PI 26 – Epics plateforme</td><td>eric</td><td>02/07/2026</td><td><span class="badge closed">Clôturée</span></td><td><button class="btn sm" type="button">Consulter</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="feature-cards">
+        <div class="fcard"><div class="row1"><b>PI 27 – Epics plateforme</b><span class="badge live" style="margin-left:auto">En cours</span></div><div class="crit">eric · 11/10/2026</div><button class="btn sm" type="button" data-go="s3">Rejoindre</button></div>
+        <div class="fcard"><div class="row1"><b>Roadmap paiement T1</b><span class="badge prep" style="margin-left:auto">En préparation</span></div><div class="crit">sophie · 08/10/2026</div></div>
+        <div class="fcard"><div class="row1"><b>PI 26 – Epics plateforme</b><span class="badge closed" style="margin-left:auto">Clôturée</span></div><div class="crit">eric · 02/07/2026</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 2. SESSION CRÉÉE ======================= -->
+<section class="screen" id="s2" data-note="FR-002. Deux liens distincts. Le lien d'animation porte le jeton après # : il n'est jamais envoyé au serveur.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Session créée</div></div>
+  </header>
+  <div class="page" style="max-width:760px;margin:0 auto">
+    <div class="notice success"><span class="ico">✓</span><span>Votre session est prête. Vous en êtes l'animateur.</span></div>
+    <div class="card">
+      <h2>1. Lien d'invitation</h2>
+      <p class="muted small" style="margin-top:0">À partager avec l'équipe. Chacun choisira un pseudo.</p>
+      <div class="linkbox"><code>https://priorisation.example/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
+    </div>
+    <div class="secret">
+      <h2 style="margin-top:0">2. Votre lien d'animation privé</h2>
+      <p class="small" style="margin-top:0"><b>À garder pour vous.</b> C'est le seul moyen de reprendre la main en tant qu'animateur depuis un autre poste. Ne le partagez pas.</p>
+      <div class="linkbox"><code>https://priorisation.example/s/Qx7mK2pLr9TzA4bWcE1yNg/animer#Hk3…9sQ</code><button class="btn sm" type="button">Copier</button></div>
+      <p class="help" style="margin-bottom:0">Vous pourrez le réafficher plus tard depuis la session, avec « Afficher mon lien d'animation ».</p>
+    </div>
+    <div class="actions"><button class="btn primary" type="button" data-go="s4">Aller à la session</button></div>
+  </div>
+</section>
+
+<!-- ======================= 3. REJOINDRE ======================= -->
+<section class="screen" id="s3" data-note="FR-002, FR-003, cas limites « Pseudo déjà utilisé » et « Participant qui quitte » (reprise après 10 min d'absence).">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animée par eric · <span class="badge live">En cours</span></div></div>
+  </header>
+  <div class="page" style="max-width:520px;margin:0 auto">
+    <div class="card">
+      <h2>Rejoindre la session</h2>
+      <div class="field">
+        <label for="ps">Votre pseudo</label>
+        <input id="ps" class="input error" value="alice" aria-describedby="ps-err">
+        <span class="err" id="ps-err">Ce pseudo est déjà utilisé dans la session. Choisissez-en un autre, ou revenez depuis le navigateur que vous utilisiez. Il sera libéré après 10 minutes d'absence.</span>
+      </div>
+      <div class="field">
+        <label for="rl">Votre rôle (facultatif)</label>
+        <select id="rl" class="input"><option>—</option><option>Product Owner</option><option>Product Management</option><option>Architecte</option></select>
+      </div>
+      <button class="btn primary" type="button" data-go="s5">Rejoindre</button>
+    </div>
+    <p class="muted small">Pas de compte ni de mot de passe : votre pseudo vous identifie dans cette session.</p>
+  </div>
+</section>
+
+<!-- ======================= 4. TABLEAU ANIMATEUR ======================= -->
+<section class="screen" id="s4" data-note="US1, FR-004, FR-005, FR-014 à FR-016, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge prep">En préparation</span>
+  </header>
+  <div class="page">
+    <div class="actions">
+      <button class="btn primary" type="button">Démarrer la session</button>
+      <button class="btn" type="button">+ Fonctionnalité</button>
+      <button class="btn" type="button" data-go="s7">Importer</button>
+      <button class="btn" type="button" data-go="s8">Échelle</button>
+      <button class="btn" type="button" data-go="s9">Exporter</button>
+      <button class="btn" type="button" disabled title="Démarrez la session pour ouvrir un tour de vote">Ouvrir un tour</button>
+      <span class="help">Démarrez la session pour ouvrir un tour de vote.</span>
+    </div>
+    <div class="layout-board">
+      <div style="display:grid;gap:12px">
+        <div class="table-wrap desktop-only">
+          <table aria-label="Tableau WSJF">
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button" aria-expanded="true">Détail</button></td></tr>
+              <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Détail</button></td></tr>
+              <tr class="edit-row"><td><span class="rank">3</span></td><td>F-2</td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button">Enregistrer</button></td></tr>
+              <tr><td><span class="rank">4</span></td><td>F-5</td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Hors échelle : à revoir">13</span></td><td class="num">—</td><td class="num">à revoir</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+            </tbody>
+          </table>
+          <div class="legend">CoD = BV + TC + RR/OE ; WSJF = CoD / JS. À WSJF égal : CoD le plus élevé d'abord, puis identifiant. Les fonctionnalités incomplètes ou à revoir sont placées en fin de tableau.</div>
+        </div>
+        <div class="feature-cards">
+          <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span><span>CoD 16</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">2</span><b>F-4 · Export comptable</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span><span>CoD 13</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">3</span><b>F-2 · Notifications</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span><span>CoD 6</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">4</span><b>F-5 · Recherche</b><span class="badge warn" style="margin-left:auto">à revoir</span></div><div class="crit"><span>BV 7</span><span>TC 2</span><span>RR/OE 4</span><span>JS <span class="review">13</span></span></div></div>
+          <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div><div class="crit"><span>BV 6</span><span>TC —</span><span>RR/OE —</span><span>JS —</span></div></div>
+          <p class="help">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</p>
+        </div>
+        <div class="popover" role="dialog" aria-label="Détail du calcul de F-1">
+          <b>Détail du calcul : F-1</b>
+          <div class="formula">CoD = 8 + 5 + 3 = <b>16</b> ; WSJF = 16 / 4 = <b>4,00</b></div>
+          <div class="contrib">
+            <span>BV</span><span class="bar" style="width:100%"></span><span>8</span>
+            <span>TC</span><span class="bar" style="width:62%"></span><span>5</span>
+            <span>RR/OE</span><span class="bar" style="width:37%"></span><span>3</span>
+            <span>JS</span><span class="bar" style="width:50%;background:var(--muted)"></span><span>4</span>
+          </div>
+          <p class="help" style="margin-bottom:0">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
+        </div>
+        <div class="notice danger" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Participants (3)</h3>
+          <ul class="plist">
+            <li><span class="dot on"></span>eric<span class="role">animateur</span></li>
+            <li><span class="dot on"></span>alice<span class="role">PO</span></li>
+            <li><span class="dot off"></span>bob<span class="role">hors ligne</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Inviter</h3>
+          <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
+          <button class="btn ghost sm" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5. TOUR EN COURS : PARTICIPANT ======================= -->
+<section class="screen" id="s5" data-note="US2, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="page">
+    <div class="notice info"><span class="ico">●</span><span><b>Tour 2 en cours</b> sur 2 fonctionnalités. Vos votes restent cachés jusqu'à la révélation par l'animateur.</span></div>
+    <div class="layout-board">
+      <div style="display:grid;gap:16px">
+        <div class="card" style="display:grid;gap:12px">
+          <h2 style="margin:0">Votre vote</h2>
+          <div class="vote-feature done">
+            <div class="actions" style="justify-content:space-between"><b>F-1 · Paiement en un clic</b><span class="badge live">Noté</span></div>
+            <div class="crit-row"><span class="small">BV</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button" aria-pressed="true">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <div class="crit-row"><span class="small">TC</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button" aria-pressed="true">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <div class="crit-row"><span class="small">RR/OE</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button" aria-pressed="true">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <div class="crit-row"><span class="small">JS</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button" aria-pressed="true">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+          </div>
+          <div class="vote-feature">
+            <div class="actions" style="justify-content:space-between"><b>F-2 · Notifications de livraison</b><span class="badge">À noter</span></div>
+            <div class="crit-row"><span class="small">BV</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button" aria-pressed="true">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <div class="crit-row"><span class="small">TC</span><div class="chips"><button class="chip sm" type="button">1</button><button class="chip sm" type="button">2</button><button class="chip sm" type="button">3</button><button class="chip sm" type="button">4</button><button class="chip sm" type="button">5</button><button class="chip sm" type="button">6</button><button class="chip sm" type="button">7</button><button class="chip sm" type="button">8</button><button class="chip sm" type="button">9</button><button class="chip sm" type="button">10</button></div></div>
+            <p class="help" style="margin:0">Il reste TC, RR/OE et JS à noter.</p>
+          </div>
+        </div>
+        <div class="table-wrap desktop-only">
+          <table aria-label="Tableau WSJF">
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank">1</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+              <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
+              <tr class="masked"><td>—</td><td>F-1</td><td class="title">Paiement en un clic <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
+              <tr class="masked"><td>—</td><td>F-2</td><td class="title">Notifications de livraison <span class="badge vote">vote en cours</span></td><td class="num cell-mask" colspan="6" style="text-align:center">valeurs masquées jusqu'à la révélation</td></tr>
+            </tbody>
+          </table>
+          <div class="legend">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</div>
+        </div>
+        <div class="feature-cards">
+          <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-4 · Export comptable</b><span class="wsjf-big">2,60</span></div></div>
+          <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div></div>
+          <div class="fcard" style="background:var(--masked)"><div class="row1"><b>F-1 · Paiement</b><span class="badge vote" style="margin-left:auto">vote en cours</span></div></div>
+          <div class="fcard" style="background:var(--masked)"><div class="row1"><b>F-2 · Notifications</b><span class="badge vote" style="margin-left:auto">vote en cours</span></div></div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Avancement du tour 2</h3>
+          <ul class="plist">
+            <li><span class="dot on"></span>alice (vous)<span class="progress">1 / 2</span></li>
+            <li><span class="dot on"></span>eric<span class="progress">2 / 2</span></li>
+            <li><span class="dot off"></span>bob<span class="progress">0 / 2</span></li>
+          </ul>
+          <p class="help" style="margin-bottom:0">Personne, pas même l'animateur, ne voit les valeurs des autres avant la révélation.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 6. RÉVÉLATION ET CONSENSUS ======================= -->
+<section class="screen" id="s6" data-note="FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Il saisit les valeurs communes ; il peut relancer un tour sur les seules fonctionnalités en désaccord.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="page">
+    <div class="notice success"><span class="ico">✓</span><span><b>Tour 2 révélé</b> : 2 fonctionnalités. Discutez des écarts, puis fixez les valeurs retenues.</span></div>
+    <div class="card" style="display:grid;gap:12px">
+      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-1 · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
+      <div class="table-wrap">
+        <table class="reveal-grid">
+          <thead><tr><th>Participant</th><th>BV</th><th>TC</th><th>RR/OE</th><th>JS</th></tr></thead>
+          <tbody>
+            <tr><td>alice</td><td>8</td><td>4</td><td>3</td><td>5</td></tr>
+            <tr><td>eric</td><td>8</td><td>5</td><td>3</td><td>4</td></tr>
+            <tr class="novote"><td>bob</td><td colspan="4">n'a pas voté</td></tr>
+            <tr class="minmax"><td>Min – max</td><td>8 – 8</td><td>4 – 5</td><td>3 – 3</td><td>4 – 5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <span class="small" style="font-weight:600">Valeurs retenues :</span>
+        <label class="small">BV <input class="input" style="width:64px;min-height:36px" value="8"></label>
+        <label class="small">TC <input class="input" style="width:64px;min-height:36px" value="5"></label>
+        <label class="small">RR/OE <input class="input" style="width:64px;min-height:36px" value="3"></label>
+        <label class="small">JS <input class="input" style="width:64px;min-height:36px" value="4"></label>
+        <button class="btn primary sm" type="button">Valider : WSJF 4,00</button>
+      </div>
+    </div>
+    <div class="card" style="display:grid;gap:12px">
+      <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-2 · Notifications de livraison <span class="badge warn">écart important</span></h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
+      <div class="table-wrap">
+        <table class="reveal-grid">
+          <thead><tr><th>Participant</th><th>BV</th><th>TC</th><th>RR/OE</th><th>JS</th></tr></thead>
+          <tbody>
+            <tr><td>alice</td><td>3</td><td>8</td><td>2</td><td>2</td></tr>
+            <tr><td>eric</td><td>2</td><td>2</td><td>2</td><td>6</td></tr>
+            <tr class="novote"><td>bob</td><td colspan="4">n'a pas voté</td></tr>
+            <tr class="minmax"><td>Min – max</td><td>2 – 3</td><td class="spread">2 – 8</td><td>2 – 2</td><td class="spread">2 – 6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="button">Relancer un tour sur la sélection (1)</button>
+      <button class="btn" type="button">Voir les tours précédents</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 7. IMPORT ======================= -->
+<section class="screen" id="s7" data-note="FR-007, FR-007a, FR-008. Aperçu avant import : rien n'est écrit avant la confirmation. En-têtes imposés.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
+  </header>
+  <div class="modal-backdrop">
+    <div class="modal" role="dialog" aria-labelledby="imp-t">
+      <h2 id="imp-t">Importer des fonctionnalités</h2>
+      <div class="dropzone small"><b>epics-pi27.xlsx</b> · 20 lignes lues<br><span class="muted">Formats acceptés : .xlsx, .csv, .json · 5 Mo et 1 000 lignes au plus</span></div>
+      <p class="small" style="margin:0">En-têtes attendus : <code>Identifiant</code>, <code>Titre</code>, <code>Description</code>, <code>BV</code>, <code>TC</code>, <code>RR/OE</code>, <code>JS</code>. <a href="#">Télécharger le modèle Excel</a></p>
+      <div class="stats">
+        <div class="stat ok"><b>18</b><span class="small">lignes valides</span></div>
+        <div class="stat ko"><b>2</b><span class="small">lignes rejetées</span></div>
+        <div class="stat wn"><b>1</b><span class="small">avertissement</span></div>
+      </div>
+      <div>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" aria-selected="false">Valides (18)</button>
+          <button type="button" role="tab" aria-selected="true">Rejetées (2)</button>
+          <button type="button" role="tab" aria-selected="false">Avertissements (1)</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ligne</th><th>Identifiant</th><th>Motif</th></tr></thead>
+            <tbody>
+              <tr><td>7</td><td>F-1</td><td style="white-space:normal">Identifiant déjà utilisé dans la session</td></tr>
+              <tr><td>12</td><td>—</td><td style="white-space:normal">Identifiant vide</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="help">Avertissement, ligne 15 (F-19) : BV = 12 hors échelle (1 à 10). La ligne sera importée sans cette valeur.</p>
+      </div>
+      <div class="actions" style="justify-content:flex-end">
+        <button class="btn" type="button">Annuler</button>
+        <button class="btn primary" type="button">Importer 18 lignes</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 8. ÉCHELLE ======================= -->
+<section class="screen" id="s8" data-note="FR-009 à FR-011. Passage en Fibonacci borne 13 : 5 valeurs deviennent hors échelle, une redevient valide ; confirmation obligatoire.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
+  </header>
+  <div class="modal-backdrop">
+    <div class="modal" role="dialog" aria-labelledby="sc-t">
+      <h2 id="sc-t">Échelle des valeurs</h2>
+      <div class="radio-cards" role="radiogroup" aria-label="Type d'échelle">
+        <div class="radio-card" role="radio" aria-checked="false" tabindex="0"><b>Entiers continus</b><span class="small muted">Tout entier de 1 à la borne (10, 20, 50…)</span></div>
+        <div class="radio-card" role="radio" aria-checked="true" tabindex="0"><b>Suite de Fibonacci</b><span class="small muted">1, 2, 3, 5, 8, 13, 20, 40, 100</span></div>
+      </div>
+      <div class="field" style="max-width:260px">
+        <label for="bmax">Borne supérieure</label>
+        <select id="bmax" class="input"><option>8</option><option selected>13</option><option>20</option><option>40</option><option>100</option></select>
+      </div>
+      <div><span class="small" style="font-weight:600">Valeurs autorisées :</span>
+        <div class="chips" style="margin-top:6px"><span class="chip sm" style="display:inline-grid;place-items:center">1</span><span class="chip sm" style="display:inline-grid;place-items:center">2</span><span class="chip sm" style="display:inline-grid;place-items:center">3</span><span class="chip sm" style="display:inline-grid;place-items:center">5</span><span class="chip sm" style="display:inline-grid;place-items:center">8</span><span class="chip sm" style="display:inline-grid;place-items:center">13</span></div>
+      </div>
+      <div class="notice" role="alert" style="display:block">
+        <b>5 valeurs deviennent hors échelle.</b> Elles seront marquées « à revoir » et les fonctionnalités concernées sortiront du calcul jusqu'à correction :
+        <ul style="margin:6px 0 0;padding-left:20px">
+          <li>F-1 : JS = 4</li>
+          <li>F-4 : TC = 6</li>
+          <li>F-3 : BV = 6</li>
+          <li>F-5 : BV = 7, RR/OE = 4</li>
+        </ul>
+        <p class="small" style="margin:6px 0 0">À l'inverse, le JS = 13 de F-5, hors échelle aujourd'hui, redevient valide.</p>
+      </div>
+      <div class="actions" style="justify-content:flex-end">
+        <button class="btn" type="button">Annuler</button>
+        <button class="btn primary" type="button">Confirmer le changement</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 9. EXPORTS ET HISTORIQUE ======================= -->
+<section class="screen" id="s9" data-note="FR-023 à FR-025. Formats versionnés. L'historique ne garde que les changements de valeurs retenues et d'échelle.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PE</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="page">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Exporter</h2>
+        <div class="export-list">
+          <div class="export-item"><div><b>Tableau CSV</b><span class="version">tableau-v1</span><div class="help">Pour Excel, dans l'ordre du tableau</div></div><button class="btn sm" type="button">Télécharger</button></div>
+          <div class="export-item"><div><b>Votes CSV</b><span class="version">votes-v1</span><div class="help">Votes des tours révélés uniquement</div></div><button class="btn sm" type="button">Télécharger</button></div>
+          <div class="export-item"><div><b>Confluence</b><span class="version">confluence-v1</span><div class="help">Tableau prêt à coller dans une page</div></div><div class="actions"><button class="btn primary sm" type="button">Copier pour Confluence</button><button class="btn ghost sm" type="button">Wiki markup</button></div></div>
+          <div class="export-item"><div><b>Session complète JSON</b><span class="version">v1</span><div class="help">Sauvegarde : permet de recréer la session</div></div><button class="btn sm" type="button">Télécharger</button></div>
+        </div>
+        <div class="notice success" style="margin-top:12px"><span class="ico">✓</span><span>Tableau copié. Collez-le dans votre page Confluence.</span></div>
+        <p class="help">Pendant un tour ouvert, les fonctionnalités en vote sont exportées sans leurs valeurs.</p>
+      </div>
+      <div class="card">
+        <h2>Historique</h2>
+        <div class="field" style="max-width:260px"><label for="hf">Fonctionnalité</label><select id="hf" class="input"><option>Toutes</option><option>F-1</option><option>F-2</option></select></div>
+        <ul class="timeline">
+          <li><span class="when">11/10/2026 14:52</span><span><b>eric</b> · F-1 · JS : <span class="old">5</span> → <span class="new">4</span></span></li>
+          <li><span class="when">11/10/2026 14:51</span><span><b>eric</b> · F-1 · TC : <span class="old">4</span> → <span class="new">5</span></span></li>
+          <li><span class="when">11/10/2026 14:20</span><span><b>eric</b> · Échelle : <span class="old">entiers 1 à 20</span> → <span class="new">entiers 1 à 10</span></span></li>
+          <li><span class="when">11/10/2026 14:05</span><span><b>eric</b> · F-4 · BV : <span class="old">3</span> → <span class="new">5</span></span></li>
+        </ul>
+        <hr style="border:0;border-top:1px solid var(--border);margin:16px 0">
+        <h3>Tours révélés</h3>
+        <ul class="plist">
+          <li>Tour 2 · F-1, F-2 · révélé le 11/10/2026 à 14:48<span class="role"><a href="#">Voir</a></span></li>
+          <li>Tour 1 · F-1, F-2, F-4 · révélé le 11/10/2026 à 14:30<span class="role"><a href="#">Voir</a></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div>
+
+<script>
+(function () {
+  var screens = document.querySelectorAll('.screen');
+  var navBtns = document.querySelectorAll('[data-screen]');
+  var note = document.getElementById('screen-note');
+  function show(id) {
+    screens.forEach(function (s) { s.classList.toggle('active', s.id === id); });
+    navBtns.forEach(function (b) {
+      if (b.dataset.screen === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    var s = document.getElementById(id);
+    note.textContent = s ? s.dataset.note : '';
+    try { localStorage.setItem('mock-screen', id); } catch (e) {}
+  }
+  navBtns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.screen); }); });
+  document.querySelectorAll('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () { show(b.dataset.go); window.scrollTo(0, 0); });
+  });
+  document.querySelectorAll('[data-frame]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.getElementById('frame').classList.toggle('phone', b.dataset.frame === 'phone');
+      document.querySelectorAll('[data-frame]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+  document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.documentElement.setAttribute('data-theme', b.dataset.themeBtn);
+      document.querySelectorAll('[data-theme-btn]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+  var start = 's1';
+  try { start = localStorage.getItem('mock-screen') || 's1'; } catch (e) {}
+  if (location.hash && document.getElementById(location.hash.slice(1))) start = location.hash.slice(1);
+  show(start);
+})();
+</script>
+</body>
+</html>
