@@ -8,6 +8,12 @@
 
 **Input**: User description: "une équipe composé d'un animateur et d'utilisateurs (Product Owner, Product Management, Architecte). L'animateur peut préparer la session , il y indique les fonctionnalités à prioriser soit en les saisissant manuellement soit en important un fichier Excel. Une fonctionnalité est composée des champs suivants : identifiant, titre, description, Valeur métier (BV) , criticité temporelle (TC) , réduction risque ou opportunité (RR ou OE), taille du taille (JS)  l'animateur invite ensuite les utilisateurs à le rejoindre pour prioriser les fonctionnalités. La priorisation se fait à l'aide de la méthode WSJF (aujourd'hui une seule méthode; mais elle doit pouvoir être modifiable). Soit chaque participant remplit pour chaque fonctionnalité chaque critère du WSJF (BV,TC,RR/OE,JS) de façon masqué, puis l'animateur révèle les critères saisies par chacun et on se met d'accord pour un critère commun (on peut le faire plusieurs fois si l'équipe n'est pas d'accord). Si l'équipe  est déjà d'accord , la saisie par participant est optionnelle : on va directement saisir pour chaque fonctionnalité les critères du WSJF.  le WSJF est calculé de la sorte WSJ=COST OF DELAY/JS et COST OF DELAY=BV+TC+RR. le JS ne peut être nul, chaque composant est saisie avec une valeur de 1 à 10, l'animateur peut changer ces valeurs si besoin (de 1 à 20 , de 1 à 50...). On affiche donc les fonctionnalités avec chacune de ces valeurs et on calcule le WSJF que l'on affiche et que l'on tri par ordre décroissant du WSJF. Toute modification de BV,TC,RR/OE,JS  entraine la mise à jour de COST OF DELAY , WSJF et du tri du tableau. Les données du tableau sont exportables (format Confluence ou format csv). On peut revenir sur les données d'une session pour revisualiser les fonctionnalités de cette session."
 
+## Clarifications
+
+### Session 2026-10-11
+
+- Q: Les valeurs des critères sont-elles des entiers continus ou la suite de Fibonacci ? → A: L'animateur choisit pour chaque session : entiers continus ou suite de Fibonacci.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Prioriser des fonctionnalités en saisie directe (Priority: P1)
@@ -86,8 +92,9 @@ jour du tableau.
 ### User Story 3 - Préparer la session par import Excel et régler l'échelle (Priority: P3)
 
 Avant la séance, l'animateur importe un fichier Excel contenant les fonctionnalités à
-prioriser au lieu de les saisir une à une. Il peut aussi modifier l'échelle des valeurs
-(par exemple de 1 à 20 ou de 1 à 50 au lieu de 1 à 10).
+prioriser au lieu de les saisir une à une. Il choisit aussi le type d'échelle (entiers
+continus ou suite de Fibonacci) et sa borne supérieure (par exemple de 1 à 20 ou de 1 à
+50 au lieu de 1 à 10).
 
 **Why this priority**: l'import fait gagner du temps sur des listes longues, et l'échelle
 réglable adapte l'outil aux habitudes de l'équipe. La saisie manuelle et l'échelle par
@@ -95,7 +102,8 @@ défaut couvrent déjà le besoin minimal.
 
 **Independent Test**: importer un fichier Excel de 20 lignes dont 2 invalides, vérifier
 l'aperçu, confirmer, puis vérifier les 18 fonctionnalités créées. Changer l'échelle en 1 à
-20 et vérifier qu'une valeur de 15 est acceptée.
+20 et vérifier qu'une valeur de 15 est acceptée. Passer en suite de Fibonacci jusqu'à 20
+et vérifier que 13 est accepté et que 10 est refusé.
 
 **Acceptance Scenarios**:
 
@@ -113,6 +121,10 @@ l'aperçu, confirmer, puis vérifier les 18 fonctionnalités créées. Changer l
    1–10, **Then** il est prévenu des valeurs devenues hors échelle. S'il confirme, ces
    valeurs sont signalées « à revoir » et la fonctionnalité concernée sort du calcul
    jusqu'à correction.
+6. **Given** une session en entiers continus de 1 à 10, **When** l'animateur choisit la
+   suite de Fibonacci avec la borne 13, **Then** seules les valeurs 1, 2, 3, 5, 8 et 13
+   sont proposées et acceptées. Les valeurs déjà saisies qui ne font pas partie de la
+   suite (par exemple 4 ou 10) sont traitées comme au scénario 5.
 
 ---
 
@@ -185,6 +197,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   l'historique.
 - **Fichier d'import** vide, illisible, au mauvais format ou sans colonne obligatoire :
   l'import est refusé avec un message qui indique la cause et le format attendu.
+- **Valeur hors suite de Fibonacci** (par exemple 4 sur une échelle Fibonacci) : la saisie
+  est refusée, et le message liste les valeurs autorisées.
 - **Import de valeurs de critères hors échelle** : la ligne est importée sans ces valeurs,
   et l'aperçu le signale.
 - **Session sans aucune fonctionnalité complète** : le tableau affiche les fonctionnalités
@@ -221,11 +235,16 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 
 **Échelle et calcul WSJF**
 
-- **FR-009**: Chaque critère (BV, TC, RR/OE, JS) DOIT être une valeur entière comprise dans
-  l'échelle de la session : de 1 à 10 par défaut.
-- **FR-010**: L'animateur DOIT pouvoir changer la borne supérieure de l'échelle (par
-  exemple 20 ou 50). La borne inférieure reste 1, ce qui garantit un JS jamais nul.
-- **FR-011**: Lorsqu'un changement d'échelle rend des valeurs existantes hors échelle, le
+- **FR-009**: Chaque session DOIT avoir une échelle, définie par un type et une borne
+  supérieure. Chaque critère (BV, TC, RR/OE, JS) DOIT être une valeur autorisée par cette
+  échelle. Par défaut, l'échelle est en entiers continus de 1 à 10.
+- **FR-010**: L'animateur DOIT pouvoir choisir, pour chaque session, le type d'échelle et
+  sa borne supérieure :
+  - **Entiers continus** : tout entier de 1 à la borne (par exemple 10, 20 ou 50).
+  - **Suite de Fibonacci** : les valeurs 1, 2, 3, 5, 8, 13, 20, 40 et 100 qui ne
+    dépassent pas la borne. La borne est l'une de ces valeurs, 20 par défaut.
+  La plus petite valeur est 1 dans les deux cas, ce qui garantit un JS jamais nul.
+- **FR-011**: Lorsqu'un changement de type ou de borne d'échelle rend des valeurs existantes hors échelle, le
   système DOIT prévenir l'animateur avant d'appliquer le changement. S'il confirme, ces
   valeurs sont marquées « à revoir » et la fonctionnalité concernée est exclue du calcul
   jusqu'à correction.
@@ -288,7 +307,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 ### Key Entities *(include if feature involves data)*
 
 - **Session** : une séance de priorisation. Elle a un nom, un animateur (pseudo), un
-  statut, une date de création, une méthode (WSJF) et une échelle (borne supérieure).
+  statut, une date de création, une méthode (WSJF) et une échelle (type : entiers continus
+  ou Fibonacci ; borne supérieure).
   Elle contient des fonctionnalités et des participants.
 - **Participant** : une personne identifiée par un pseudo dans une session, avec un rôle
   « animateur » ou « participant ». Le rôle métier (PO, PM, Architecte) peut être indiqué
@@ -330,8 +350,8 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   authentification. Le rôle « animateur » appartient au créateur de la session.
 - Les participants participent en même temps, chacun depuis son propre poste, et voient
   les changements des autres en direct.
-- Les valeurs des critères sont des nombres entiers (pas de suite de Fibonacci en v1). La
-  borne inférieure de l'échelle est toujours 1.
+- La suite de Fibonacci utilisée est la variante SAFe (1, 2, 3, 5, 8, 13, 20, 40, 100).
+  Lors de la saisie, l'interface propose les valeurs autorisées par l'échelle.
 - RR et OE forment un seul critère, « RR/OE » : réduction de risque ou opportunité.
 - L'animateur peut lui aussi voter lors des tours masqués.
 - La révélation se fait fonctionnalité par fonctionnalité.
