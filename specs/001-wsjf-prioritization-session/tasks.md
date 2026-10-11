@@ -458,21 +458,21 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ## Phase 8 : User Story 5 — Revoir une session passée (Priority: P5)
 
-**Objectif** : lister les sessions, clôturer et rouvrir une session, consulter une session clôturée en lecture seule avec son historique.
+**Objectif** : lister les sessions, clôturer et rouvrir une session, consulter une session clôturée en lecture seule avec ses tours révélés.
 
-**Test indépendant** : clôturer une session, la rouvrir depuis la liste, vérifier le tableau et l'historique (quickstart V13).
+**Test indépendant** : clôturer une session, la rouvrir depuis la liste, vérifier le tableau et les tours révélés (quickstart V13).
 
 ### Tests de User Story 5 (à écrire d'abord, ils doivent échouer)
 
 - [ ] T107 [P] [US5] Compléter `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur ; `CLOSE` refusé avec `ROUND_OPEN` tant qu'un tour est ouvert ; en `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
-- [ ] T108 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne) et `HistoryControllerTest.java` (`GET /api/sessions/{sessionId}/history`, avec le filtre `featureId`, de la plus récente à la plus ancienne)
+- [ ] T108 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne)
 
 ### Implémentation de User Story 5
 
 - [ ] T109 [US5] Étendre `domain/SessionStatus.java` et `application/ChangeStatusUseCase.java` avec `CLOSE` et `REOPEN` (le `START` existe depuis US2). Compléter `contract/schemas/change-status.json`, ajouter le code `ROUND_OPEN` dans `error.json` et leurs exemples. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
-- [ ] T110 [US5] Implémenter `adapter/in/rest/SessionListController.java` et `adapter/in/rest/HistoryController.java`, avec les schémas `session-summary.json` et `history-entry.json` et leurs exemples dans `contract/`
+- [ ] T110 [US5] Implémenter `adapter/in/rest/SessionListController.java`, avec le schéma `session-summary.json` et ses exemples dans `contract/`
 - [ ] T111 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
-- [ ] T112 [P] [US5] Front, `frontend/src/app/history/history.component.ts` : historique des modifications (auteur, date, champ, ancienne et nouvelle valeur) et des tours révélés, consultable fonctionnalité par fonctionnalité
+- [ ] T112 [P] [US5] Front, `frontend/src/app/rounds-history/revealed-rounds.component.ts` : liste des tours révélés (numéro, fonctionnalités, date de révélation) avec, pour chacun, l'affichage de ses votes, comme sur l'écran 9 des maquettes. Les données viennent de `sessionState.revealedRounds` (tous les tours révélés, du plus récent au plus ancien), à ajouter dans `SessionStateAssembler` et dans `contract/schemas/session-state.json`. Pas d'historique des modifications de valeurs (FR-025)
 - [ ] T113 [US5] Front, boutons Clôturer et Rouvrir pour l'animateur (Démarrer existe depuis US2), et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
 - [ ] T114 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
 

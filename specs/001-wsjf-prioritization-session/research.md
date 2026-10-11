@@ -52,7 +52,7 @@ planning-poker est indiquée, sous la forme `PP : …`.
   message. C'est le **seul canal** des actions de session : ajouter, modifier ou supprimer
   une fonctionnalité, changer les réglages, changer le statut, ouvrir un tour, voter,
   révéler, transmettre le rôle. REST ne sert qu'à l'entrée (créer, rejoindre, lister),
-  aux fichiers (import, export, modèle), à l'historique et à la santé de l'application.
+  aux fichiers (import, export, modèle) et à la santé de l'application.
 - **Poignée de main**, comme dans PP :
   1. le client ouvre le WebSocket ;
   2. son premier message, dans les 5 s, est `hello {participantToken, animationToken?}` ;
@@ -150,7 +150,8 @@ planning-poker est indiquée, sous la forme `PP : …`.
 - **Décision** : une table `change_log`, volontairement **limitée** aux modifications de
   valeurs retenues (`VALUE_CHANGE`) et aux changements d'échelle (`SCALE_CHANGE`), qui
   sont le minimum exigé par la constitution III. Elle est alimentée dans la même
-  transaction que la modification, et lue par `GET /api/sessions/{sessionId}/history`.
+  transaction que la modification. Elle n'est **pas affichée** en V1, et aucune API ne la
+  lit : l'utilisateur a jugé l'historique des modifications inutile à l'écran.
   Les votes gardent déjà leur auteur et leur date dans la table `vote`.
 - **Alternatives écartées** : Hibernate Envers ; des triggers SQL.
 

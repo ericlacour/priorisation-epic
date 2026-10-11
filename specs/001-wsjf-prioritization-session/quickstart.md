@@ -63,7 +63,7 @@ ouvert.
 | V10 | US3 : échelle | Pendant un tour ouvert, tenter de changer l'échelle (refusé). Après révélation, passer en Fibonacci avec la borne 13, alors que des valeurs 4 et 10 existent | Un avertissement liste les valeurs impactées (`SCALE_IMPACT`). Après confirmation, elles sont marquées « à revoir » et la fonctionnalité sort du calcul |
 | V11 | US4 : exports | Exporter en CSV, puis copier pour Confluence et coller dans une page | Le CSV s'ouvre dans Excel FR avec accents et virgules corrects. Le tableau collé dans Confluence est conforme |
 | V12 | US4 : aller-retour | Exporter en JSON, puis importer ce fichier dans une nouvelle session encore vide. Exporter aussi le CSV tableau et l'importer dans une autre session vide | JSON : fonctionnalités, valeurs, échelle et scores identiques ; tours et votes non réimportés. CSV : fonctionnalités et scores identiques |
-| V13 | US5 : consultation | Clôturer, puis rouvrir depuis la liste des sessions | La session est en lecture seule, et l'historique montre les auteurs et les dates. L'animateur peut la rouvrir avec son lien |
+| V13 | US5 : consultation | Clôturer, puis rouvrir depuis la liste des sessions | La session est en lecture seule, et les tours révélés restent consultables. L'animateur peut la rouvrir avec son lien |
 | V14 | Concurrence | Modifier le BV de F-1 dans deux onglets d'animateur | Le second reçoit `STALE_VERSION` et voit la valeur actuelle avant de confirmer |
 | V15 | Reconnexion | Couper puis rétablir le réseau d'un participant | Il se reconnecte automatiquement et retrouve son état et ses votes |
 

@@ -55,4 +55,4 @@ Les contrastes vérifiés sont tous au moins AA :
 | 6 | Révélation et consensus | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |
 | 8 | Réglage de l'échelle | FR-009 à FR-011 |
-| 9 | Exports et historique | FR-023 à FR-025 |
+| 9 | Exports et tours révélés | FR-022 à FR-024 |

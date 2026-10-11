@@ -360,7 +360,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
   <button type="button" data-screen="s8">8. Échelle</button>
-  <button type="button" data-screen="s9">9. Exports et historique</button>
+  <button type="button" data-screen="s9">9. Exports et tours révélés</button>
 </nav>
 <p class="mock-note" id="screen-note"></p>
 
@@ -795,7 +795,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
 </section>
 
 <!-- ======================= 9. EXPORTS ET HISTORIQUE ======================= -->
-<section class="screen" id="s9" data-note="Disponible aussi sur téléphone (consultation). FR-023 à FR-025. Formats versionnés. L'historique ne garde que les changements de valeurs retenues et d'échelle.">
+<section class="screen" id="s9" data-note="Disponible aussi sur téléphone (consultation). FR-022 à FR-024. Formats versionnés. Pas d'historique des modifications à l'écran (FR-025).">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice</div></div>
@@ -816,16 +816,7 @@ th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visibl
         <p class="help">Pendant un tour ouvert, les fonctionnalités en vote sont exportées sans leurs valeurs.</p>
       </div>
       <div class="card">
-        <h2>Historique</h2>
-        <div class="field" style="max-width:260px"><label for="hf">Fonctionnalité</label><select id="hf" class="input"><option>Toutes</option><option>F-1</option><option>F-2</option></select></div>
-        <ul class="timeline">
-          <li><span class="when">11/10/2026 14:52</span><span><b>eric</b> · F-1 · JS : <span class="old">5</span> → <span class="new">4</span></span></li>
-          <li><span class="when">11/10/2026 14:51</span><span><b>eric</b> · F-1 · TC : <span class="old">4</span> → <span class="new">5</span></span></li>
-          <li><span class="when">11/10/2026 14:20</span><span><b>eric</b> · Échelle : <span class="old">entiers 1 à 20</span> → <span class="new">entiers 1 à 10</span></span></li>
-          <li><span class="when">11/10/2026 14:05</span><span><b>eric</b> · F-4 · BV : <span class="old">3</span> → <span class="new">5</span></span></li>
-        </ul>
-        <hr style="border:0;border-top:1px solid var(--border);margin:16px 0">
-        <h3>Tours révélés</h3>
+        <h2>Tours révélés</h2>
         <ul class="plist">
           <li>Tour 2 · F-1, F-2 · révélé le 11/10/2026 à 14:48<span class="role"><a href="#">Voir</a></span></li>
           <li>Tour 1 · F-1, F-2, F-4 · révélé le 11/10/2026 à 14:30<span class="role"><a href="#">Voir</a></span></li>

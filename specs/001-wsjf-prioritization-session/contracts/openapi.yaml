@@ -5,7 +5,7 @@ info:
   description: |
     Design of the REST surface for feature 001-wsjf-prioritization-session, aligned with
     planning-poker (AD-2): REST covers only entry (create, join, list), files (import, export,
-    template), history and health. **Every live session action goes through the WebSocket**
+    template) and health. **Every live session action goes through the WebSocket**
     described in asyncapi.yaml.
 
     - Errors are `application/problem+json` (RFC 9457) with a French `detail`.
@@ -171,18 +171,6 @@ components:
       properties:
         imported: { type: integer }
         rejected: { type: integer }
-    HistoryEntry:
-      type: object
-      required: [at, authorPseudo, entityType, action]
-      properties:
-        at: { type: string, format: date-time }
-        authorPseudo: { type: string }
-        entityType: { type: string, enum: [SESSION, FEATURE] }
-        entityId: { type: string }
-        action: { type: string, enum: [VALUE_CHANGE, SCALE_CHANGE] }
-        field: { type: [string, 'null'] }
-        oldValue: {}
-        newValue: {}
     HealthResponse:
       type: object
       required: [status]
@@ -345,23 +333,4 @@ paths:
             text/plain: {}
             text/html: {}
             application/json: {}
-        '404': { $ref: '#/components/responses/SessionNotFound' }
-
-  /api/sessions/{sessionId}/history:
-    parameters: [{ $ref: '#/components/parameters/sessionId' }]
-    get:
-      operationId: getHistory
-      summary: Change history, newest first (FR-025)
-      parameters:
-        - name: featureId
-          in: query
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items: { $ref: '#/components/schemas/HistoryEntry' }
         '404': { $ref: '#/components/responses/SessionNotFound' }

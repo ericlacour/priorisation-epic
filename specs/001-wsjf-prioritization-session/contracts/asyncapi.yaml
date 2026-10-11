@@ -387,3 +387,7 @@ components:
           type: array
           description: Most recent revealed round of each feature, for the consensus step
           items: { $ref: '#/components/schemas/round' }
+        revealedRounds:
+          type: array
+          description: All revealed rounds, newest first, with their results (FR-022, US5 consultation)
+          items: { $ref: '#/components/schemas/round' }

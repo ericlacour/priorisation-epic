@@ -119,7 +119,7 @@ specs/001-wsjf-prioritization-session/
 ├── data-model.md        # Phase 1 : entités, règles, transitions
 ├── quickstart.md        # Phase 1 : guide de validation
 ├── contracts/           # Phase 1 : conception, à transcrire dans contract/
-│   ├── openapi.yaml     # REST : entrée, fichiers, historique, santé
+│   ├── openapi.yaml     # REST : entrée, fichiers, santé
 │   ├── asyncapi.yaml    # WebSocket : intentions et sessionState filtré
 │   └── file-formats.md  # Excel, CSV, Confluence, JSON
 ├── mockups/             # Contrat d'interface : 9 écrans cliquables (index.html) et charte (README.md)
@@ -147,7 +147,7 @@ backend/                                   # Maven, Java 25, Spring Boot 4.1
     ├── main/java/com/priorisationepic/
     │   ├── domain/                        # Java pur : WsjfMethod, Scale, Ranking, règles des tours et de visibilité
     │   ├── application/                   # cas d'usage et ports (SessionRepository, Broadcaster, Clock), SessionLocks
-    │   ├── adapter/in/rest/               # entrée, import et export, historique, santé, limites (comme PP)
+    │   ├── adapter/in/rest/               # entrée, import et export, santé, limites (comme PP)
     │   ├── adapter/in/ws/                 # SessionSocketHandler, WebSocketBroadcaster, ClientMessages, ServerMessages
     │   ├── adapter/in/scheduling/         # purge des aperçus d'import expirés
     │   ├── adapter/out/persistence/       # JPA et Flyway (remplace adapter/out/memory de PP)
@@ -169,7 +169,7 @@ frontend/                                  # Angular 22
     ├── board/                             # tableau WSJF, détail du calcul, édition
     ├── rounds/                            # vote masqué, révélation, consensus
     ├── import-export/
-    └── history/
+    └── rounds-history/                    # liste des tours révélés (consultation)
 
 deploy/                                    # Render V1, comme PP
 ├── render.yaml                            # API Docker et site statique (DATABASE_URL Neon en secret)

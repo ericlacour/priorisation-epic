@@ -150,7 +150,7 @@ font partie du tour (au moins une, FR-018).
   (identique chez tous les votants, sinon vide), qui préremplit le consensus (FR-021). Les participants qui n'ont pas voté sont signalés. Ce sont
   les participants inscrits dans la session au moment de la révélation, animateur compris.
 
-## ChangeLogEntry (Entrée d'historique)
+## ChangeLogEntry (Entrée d'historique, enregistrée mais non affichée en V1)
 
 | Champ | Type | Règles |
 |-------|------|--------|

@@ -24,6 +24,7 @@
 - Q (maquettes) : la saisie est-elle possible sur téléphone en V1 ? → A: Non : lecture seule sur téléphone, saisie sur ordinateur.
 - Q : l'animateur peut-il saisir directement les valeurs d'une fonctionnalité qui est dans un tour ouvert ? → A: Non. C'est refusé tant que le tour n'est pas révélé ; titre et description restent modifiables.
 - Q : peut-on changer l'échelle pendant un tour de vote ouvert ? → A: Non. C'est refusé tant qu'un tour est ouvert.
+- Q : faut-il afficher l'historique des modifications de valeurs ? → A: Non, il ne sert pas. Les modifications restent enregistrées (constitution III) mais ne sont pas affichées en V1.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -188,7 +189,7 @@ fonctionnalités, leurs valeurs, leur classement et l'historique des tours de vo
 n'est pas nécessaire au déroulement d'une séance.
 
 **Independent Test**: clôturer une session, la rouvrir depuis la liste des sessions, et
-vérifier que le tableau et l'historique sont identiques à ceux de la fin de séance.
+vérifier que le tableau et les tours révélés sont identiques à ceux de la fin de séance.
 
 **Acceptance Scenarios**:
 
@@ -196,7 +197,7 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
    sessions, **Then** il voit pour chacune le nom, l'animateur, la date et le statut
    (en préparation, en cours, clôturée), triées de la plus récente à la plus ancienne.
 2. **Given** une session clôturée, **When** un utilisateur l'ouvre, **Then** il voit le
-   tableau final en lecture seule, ainsi que l'historique des votes et des modifications.
+   tableau final en lecture seule, ainsi que les tours révélés et leurs votes.
 3. **Given** une session clôturée, **When** son animateur l'ouvre via son lien d'animation
    et la rouvre, **Then** elle repasse au statut « en cours » et redevient modifiable.
 
@@ -388,7 +389,7 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
   fonctionnalité.
 
-**Export, historique et consultation**
+**Export et consultation**
 
 - **FR-023**: Tout membre DOIT pouvoir exporter le tableau dans l'ordre affiché au format
   Confluence (tableau à coller dans une page) et au format CSV (encodage compatible avec
@@ -401,11 +402,12 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   Les tours et les votes restent lisibles dans l'export, mais ne sont pas réimportés. Le
   CSV tableau exporté puis réimporté dans une session vide de même échelle redonne les
   mêmes fonctionnalités et les mêmes scores.
-- **FR-025**: Le système DOIT conserver, pour chaque **modification d'une valeur retenue**
-  (BV, TC, RR/OE ou JS d'une fonctionnalité existante) et pour chaque **changement
-  d'échelle**, le pseudo de son auteur, sa date, l'ancienne et la nouvelle valeur. Cet
-  historique est consultable. Les autres opérations ne sont pas tracées dans
-  l'historique, pour rester simple : création, modification du titre ou de la
+- **FR-025**: Le système DOIT enregistrer, pour chaque **modification d'une valeur
+  retenue** (BV, TC, RR/OE ou JS d'une fonctionnalité existante) et pour chaque
+  **changement d'échelle**, le pseudo de son auteur, sa date, l'ancienne et la nouvelle
+  valeur (constitution III). Cet enregistrement **n'est pas affiché** dans l'application
+  en V1 : il n'y a pas d'écran d'historique des modifications. Les autres opérations ne
+  sont pas enregistrées, pour rester simple : création, modification du titre ou de la
   description, suppression, import, changement de statut, transmission du rôle. Les votes
   gardent leur auteur et leur date dans les tours de vote (constitution III).
 - **FR-026**: Le système DOIT conserver les sessions et proposer une liste de toutes les
@@ -433,8 +435,9 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
   de ses fonctionnalités et des votes.
 - **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant pour une
   fonctionnalité dans un tour.
-- **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025). Elle
-  a un auteur (pseudo), une date, l'élément modifié, l'ancienne et la nouvelle valeur.
+- **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025),
+  enregistrée mais non affichée en V1. Elle a un auteur (pseudo), une date, l'élément
+  modifié, l'ancienne et la nouvelle valeur.
 
 ## Success Criteria *(mandatory)*
 
@@ -524,6 +527,6 @@ Chacun demandera sa propre spec, et, pour certains, un amendement de la constitu
 - **Fonctionnalités avancées de SAFe** : pas de gestion des PI, des ART, des
   dépendances, de la capacité ou des objectifs de PI.
 - **Saisie sur téléphone** : sur un écran de téléphone (moins de 600 px de large), la
-  session est consultable en lecture seule : tableau, résultats, historique et exports.
+  session est consultable en lecture seule : tableau, résultats, tours révélés et exports.
   Saisir, voter et animer demandent un écran d'ordinateur, et un message l'indique
   (« Pour voter ou modifier, utilisez un ordinateur »).
