@@ -242,8 +242,11 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 }
 .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
 .chip.sm { min-width: 34px; min-height: 34px; font-size: 14px; }
-.vote-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 120px)); gap: 10px; }
-.vote-inputs label { display: grid; gap: 4px; font-size: 14px; font-weight: 500; }
+.vote-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+@container (max-width: 700px) { .vote-inputs { grid-template-columns: 1fr; } }
+.vote-inputs label { display: grid; grid-template-columns: minmax(0, 1fr) 96px; column-gap: 12px; align-items: center; font-size: 14px; font-weight: 600; }
+.vote-inputs label .def { grid-column: 1; }
+.vote-inputs label .input { grid-column: 2; grid-row: 1 / span 2; }
 .vote-inputs .input { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .vote-inputs .input.error, .vote-inputs .input[aria-invalid="true"] { border-color: var(--danger); background: var(--danger-soft); }
 .phone-readonly { display: none; }
@@ -299,6 +302,26 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 .export-list { display: grid; gap: 10px; }
 .export-item { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); flex-wrap: wrap; }
 .version { font-size: 12px; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 0 6px; margin-left: 6px; }
+
+
+/* Termes WSJF : définition au survol, au focus clavier ou au toucher */
+.term {
+  position: relative; border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: help;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.term:hover::after, .term:focus-visible::after {
+  content: attr(data-tip); position: absolute; z-index: 20; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 260px; white-space: normal; text-align: left;
+  background: var(--fg); color: var(--bg); font-size: 13px; font-weight: 500; line-height: 1.4;
+  padding: 8px 10px; border-radius: 8px; box-shadow: var(--shadow);
+}
+th:last-child .term:hover::after, th:last-child .term:focus-visible::after,
+th:nth-last-child(2) .term:hover::after, th:nth-last-child(2) .term:focus-visible::after { left: auto; right: 0; transform: none; }
+.glossary { margin: 0; display: grid; gap: 8px; font-size: 14px; }
+.glossary dt { font-weight: 700; }
+.glossary dd { margin: 0 0 4px; color: var(--muted); }
+.vote-inputs .def { font-size: 13px; font-weight: 400; color: var(--muted); line-height: 1.35; }
+.table-wrap { overflow-y: visible; }
 
 .screen { display: none; }
 .screen.active { display: block; }
@@ -419,7 +442,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 4. TABLEAU ANIMATEUR ======================= -->
-<section class="screen" id="s4" data-note="US1, FR-004, FR-005, FR-014 à FR-016, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
+<section class="screen" id="s4" data-note="US1, FR-004, FR-005, FR-014 à FR-016a, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
@@ -441,7 +464,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       <div style="display:grid;gap:12px">
         <div class="table-wrap desktop-only">
           <table aria-label="Tableau WSJF">
-            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th><th></th></tr></thead>
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th><th></th></tr></thead>
             <tbody>
               <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button" aria-expanded="true">Détail</button></td></tr>
               <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Détail</button></td></tr>
@@ -475,6 +498,17 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       </div>
       <aside class="side">
         <div class="card">
+          <h3>Comprendre le WSJF</h3>
+          <dl class="glossary">
+            <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
+            <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
+            <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité.</dd>
+            <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire.</dd>
+            <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
+            <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
+          </dl>
+        </div>
+        <div class="card">
           <h3>Participants (3)</h3>
           <ul class="plist">
             <li><span class="dot on"></span>eric<span class="role">animateur</span></li>
@@ -493,7 +527,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 </section>
 
 <!-- ======================= 5. TOUR EN COURS : PARTICIPANT ======================= -->
-<section class="screen" id="s5" data-note="US2, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
+<section class="screen" id="s5" data-note="US2, FR-016a, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PE</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Échelle 1 à 10</div></div>
@@ -507,30 +541,30 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       <div style="display:grid;gap:16px">
         <div class="card no-phone" style="display:grid;gap:12px">
           <h2 style="margin:0">Votre vote</h2>
-          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère.</p>
+          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Survolez ou touchez un sigle pour revoir sa signification.</p>
           <div class="vote-feature done">
             <div class="actions" style="justify-content:space-between"><b>F-1 · Paiement en un clic</b><span class="badge live">Noté</span></div>
             <div class="vote-inputs">
-              <label>BV<input class="input" inputmode="numeric" value="8"></label>
-              <label>TC<input class="input" inputmode="numeric" value="4"></label>
-              <label>RR/OE<input class="input" inputmode="numeric" value="3"></label>
-              <label>JS<input class="input" inputmode="numeric" value="5"></label>
+              <label>BV · Business Value<span class="def">Valeur apportée aux utilisateurs ou au business.</span><input class="input" inputmode="numeric" value="8"></label>
+              <label>TC · Time Criticality<span class="def">Importance de réaliser rapidement la fonctionnalité.</span><input class="input" inputmode="numeric" value="4"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<span class="def">Capacité à réduire un risque ou à permettre une opportunité.</span><input class="input" inputmode="numeric" value="3"></label>
+              <label>JS · Job Size<span class="def">Taille relative du travail nécessaire.</span><input class="input" inputmode="numeric" value="5"></label>
             </div>
           </div>
           <div class="vote-feature">
             <div class="actions" style="justify-content:space-between"><b>F-2 · Notifications de livraison</b><span class="badge">À noter</span></div>
             <div class="vote-inputs">
-              <label>BV<input class="input" inputmode="numeric" value="3"></label>
-              <label>TC<input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
-              <label>RR/OE<input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
-              <label>JS<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>BV · Business Value<span class="def">Valeur apportée aux utilisateurs ou au business.</span><input class="input" inputmode="numeric" value="3"></label>
+              <label>TC · Time Criticality<span class="def">Importance de réaliser rapidement la fonctionnalité.</span><input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<span class="def">Capacité à réduire un risque ou à permettre une opportunité.</span><input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
+              <label>JS · Job Size<span class="def">Taille relative du travail nécessaire.</span><input class="input" inputmode="numeric" placeholder="—"></label>
             </div>
             <p class="err small" id="tc-err" style="margin:0;color:var(--danger)">TC : saisissez un nombre entier entre 1 et 10. RR/OE : « 2,5 » n'est pas un nombre entier.</p>
           </div>
         </div>
         <div class="table-wrap desktop-only">
           <table aria-label="Tableau WSJF">
-            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th></tr></thead>
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th></tr></thead>
             <tbody>
               <tr><td><span class="rank">1</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
               <tr class="incomplete"><td>—</td><td>F-3</td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
@@ -548,6 +582,17 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
         </div>
       </div>
       <aside class="side">
+        <div class="card">
+          <h3>Comprendre le WSJF</h3>
+          <dl class="glossary">
+            <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
+            <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
+            <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité.</dd>
+            <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire.</dd>
+            <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
+            <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
+          </dl>
+        </div>
         <div class="card">
           <h3>Avancement du tour 2</h3>
           <ul class="plist">
@@ -577,7 +622,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-1 · Paiement en un clic</h2><label class="small"><input type="checkbox"> Relancer un tour</label></div>
       <div class="table-wrap">
         <table class="reveal-grid">
-          <thead><tr><th>Participant</th><th>BV</th><th>TC</th><th>RR/OE</th><th>JS</th></tr></thead>
+          <thead><tr><th>Participant</th><th><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th></tr></thead>
           <tbody>
             <tr><td>alice</td><td>8</td><td>4</td><td>3</td><td>5</td></tr>
             <tr><td>eric</td><td>8</td><td>5</td><td>3</td><td>4</td></tr>
@@ -588,10 +633,10 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       </div>
       <div class="actions no-phone">
         <span class="small" style="font-weight:600">Valeurs retenues :</span>
-        <label class="small">BV <input class="input" style="width:64px;min-height:36px" value="8" title="Prérempli : tous les votants ont saisi 8"></label>
-        <label class="small">TC <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
-        <label class="small">RR/OE <input class="input" style="width:64px;min-height:36px" value="3" title="Prérempli : tous les votants ont saisi 3"></label>
-        <label class="small">JS <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
+        <label class="small"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button> <input class="input" style="width:64px;min-height:36px" value="8" title="Prérempli : tous les votants ont saisi 8"></label>
+        <label class="small"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button> <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
+        <label class="small"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button> <input class="input" style="width:64px;min-height:36px" value="3" title="Prérempli : tous les votants ont saisi 3"></label>
+        <label class="small"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button> <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
         <button class="btn primary sm" type="button" disabled>Valider</button>
         <span class="help">BV et RR/OE sont préremplis car tous les votants ont saisi la même valeur.</span>
       </div>
@@ -600,7 +645,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
       <div class="actions" style="justify-content:space-between"><h2 style="margin:0">F-2 · Notifications de livraison</h2><label class="small"><input type="checkbox" checked> Relancer un tour</label></div>
       <div class="table-wrap">
         <table class="reveal-grid">
-          <thead><tr><th>Participant</th><th>BV</th><th>TC</th><th>RR/OE</th><th>JS</th></tr></thead>
+          <thead><tr><th>Participant</th><th><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th></tr></thead>
           <tbody>
             <tr><td>alice</td><td>3</td><td>8</td><td>2</td><td>2</td></tr>
             <tr><td>eric</td><td>2</td><td>2</td><td>2</td><td>6</td></tr>

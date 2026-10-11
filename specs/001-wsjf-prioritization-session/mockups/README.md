@@ -15,6 +15,7 @@ l'application.
 | Écart important | Signalé quand le maximum moins le minimum est strictement supérieur à 3 (FR-020) |
 | Retri du tableau | Quand l'animateur valide la ligne, pas à chaque frappe (FR-015) |
 | Consensus | Champs vides, sauf pour un critère où tous les votants ont saisi la même valeur (FR-021) |
+| Sigles WSJF | Définition au survol, au focus ou au toucher, définitions dans le panneau de vote, et encadré « Comprendre le WSJF » (FR-016a) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
 ## Charte

@@ -327,6 +327,18 @@ vérifier que le tableau et l'historique sont identiques à ceux de la fin de s�
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
+- **FR-016a**: Partout où apparaissent les sigles BV, TC, RR/OE, JS, CoD et WSJF
+  (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
+  retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
+  toucher. Un encadré « Comprendre le WSJF » regroupe toutes les définitions, et le
+  panneau de vote affiche la définition à côté de chaque critère. Les définitions sont :
+  - **BV · Business Value** : valeur apportée aux utilisateurs ou au business ;
+  - **TC · Time Criticality** : importance de réaliser rapidement la fonctionnalité ;
+  - **RR/OE · Risk Reduction / Opportunity Enablement** : capacité à réduire un risque ou
+    à permettre une opportunité ;
+  - **JS · Job Size** : taille relative du travail nécessaire ;
+  - **CoD · Cost of Delay** : coût du retard, BV + TC + RR/OE ;
+  - **WSJF** : CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.
 - **FR-017**: La méthode de priorisation DOIT être identifiée explicitement pour chaque
   session. En v1, seule la méthode WSJF existe, et sa formule et ses critères ne sont pas
   modifiables par l'utilisateur. D'autres méthodes (RICE, MoSCoW…) pourront être ajoutées
