@@ -16,6 +16,7 @@ l'application.
 | Retri du tableau | Quand l'animateur valide la ligne, pas à chaque frappe (FR-015) |
 | Consensus | Champs vides, sauf pour un critère où tous les votants ont saisi la même valeur (FR-021) |
 | Sigles WSJF | Définition au survol, au focus ou au toucher. Encadré « Comprendre le WSJF » repliable et dépliable. Le panneau de vote n'affiche que le sigle et le nom complet (FR-016a) |
+| Tableau de l'animateur | Tient dans 1280 × 720 sans défilement de la page ; seule la liste défile, en-tête figé (FR-014a) |
 | Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
