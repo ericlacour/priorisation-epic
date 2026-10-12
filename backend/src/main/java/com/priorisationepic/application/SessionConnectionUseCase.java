@@ -72,13 +72,19 @@ public class SessionConnectionUseCase {
                   animationToken != null
                       && sessions.animationTokenMatches(sessionId, animationToken);
               boolean rejected = animationToken != null && !facilitator;
+              boolean alreadyOnline = broadcaster.hasConnection(sessionId, participant.id());
               if (!broadcaster.attach(connectionId, sessionId, participant.id(), facilitator)) {
                 return new ConnectResult.ConnectionClosed();
               }
               Instant now = clock.now();
               participants.updateLastSeen(participant.id(), now);
               lastSeenWritten.put(participant.id(), now);
-              broadcaster.publishTo(connectionId);
+              if (alreadyOnline) {
+                broadcaster.publishTo(connectionId);
+              } else {
+                // Première connexion du participant : les autres le voient en ligne (FR-005).
+                broadcaster.publish(sessionId);
+              }
               if (rejected) {
                 broadcaster.sendError(connectionId, ErrorCode.FORBIDDEN);
               }
@@ -93,7 +99,8 @@ public class SessionConnectionUseCase {
 
   /**
    * Fermeture d'une connexion. Sans effet si elle n'était pas rattachée. À la fermeture de la
-   * dernière connexion du participant, sa dernière activité est enregistrée.
+   * dernière connexion du participant, sa dernière activité est enregistrée et son absence est
+   * diffusée.
    */
   public void disconnect(SessionId sessionId, UUID participantId, String connectionId) {
     boolean detached =
@@ -107,6 +114,8 @@ public class SessionConnectionUseCase {
                 Instant now = clock.now();
                 participants.updateLastSeen(participantId, now);
                 lastSeenWritten.remove(participantId);
+                // Dernière connexion fermée : les autres le voient hors ligne (FR-005).
+                broadcaster.publish(sessionId);
               }
               return true;
             });

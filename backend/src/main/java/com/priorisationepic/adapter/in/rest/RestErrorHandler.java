@@ -1,7 +1,14 @@
 package com.priorisationepic.adapter.in.rest;
 
+import com.priorisationepic.domain.InvalidParticipantException;
+import com.priorisationepic.domain.InvalidPseudoException;
+import com.priorisationepic.domain.InvalidSessionException;
+import com.priorisationepic.domain.method.UnknownMethodException;
+import com.priorisationepic.domain.scale.InvalidScaleException;
 import java.net.URI;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +56,41 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
         .body(problem);
   }
 
+  @ExceptionHandler(SessionNotFoundException.class)
+  ProblemDetail sessionNotFound(Locale locale) {
+    return problem(HttpStatus.NOT_FOUND, "error.session-not-found", locale);
+  }
+
+  @ExceptionHandler(PseudoTakenException.class)
+  ProblemDetail pseudoTaken(Locale locale) {
+    return problem(HttpStatus.CONFLICT, "error.pseudo-taken", locale);
+  }
+
+  @ExceptionHandler(InvalidPseudoException.class)
+  ProblemDetail invalidPseudo(Locale locale) {
+    return invalid("pseudo", "error.invalid-pseudo", locale);
+  }
+
+  @ExceptionHandler(InvalidSessionException.class)
+  ProblemDetail invalidName(Locale locale) {
+    return invalid("name", "error.invalid-name", locale);
+  }
+
+  @ExceptionHandler(InvalidParticipantException.class)
+  ProblemDetail invalidBusinessRole(Locale locale) {
+    return invalid("businessRole", "error.invalid-business-role", locale);
+  }
+
+  @ExceptionHandler(UnknownMethodException.class)
+  ProblemDetail unknownMethod(Locale locale) {
+    return invalid("method", "error.unknown-method", locale);
+  }
+
+  @ExceptionHandler(InvalidScaleException.class)
+  ProblemDetail invalidScale(Locale locale) {
+    return invalid("scale", "error.invalid-scale", locale);
+  }
+
   @ExceptionHandler(MalformedRequestException.class)
   ProblemDetail malformed(Locale locale) {
     return problem(HttpStatus.BAD_REQUEST, "error.malformed-body", locale);
@@ -74,6 +116,13 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
       problem.setType(ABOUT_BLANK);
     }
     return super.createResponseEntity(body, headers, statusCode, request);
+  }
+
+  /** 400 sur un champ précis : le message sert de {@code detail} et de message du champ. */
+  private ProblemDetail invalid(String field, String messageKey, Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, messageKey, locale);
+    problem.setProperty("errors", List.of(Map.of("field", field, "message", problem.getDetail())));
+    return problem;
   }
 
   private ProblemDetail problem(HttpStatus status, String messageKey, Locale locale) {

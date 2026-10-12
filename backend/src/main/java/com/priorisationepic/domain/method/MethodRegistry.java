@@ -1,5 +1,6 @@
 package com.priorisationepic.domain.method;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,15 @@ public final class MethodRegistry {
     return latest(defaultKey);
   }
 
-  /** Les méthodes proposées à la création : la dernière version de chacune, triées par clé. */
+  /**
+   * Les méthodes proposées à la création : la dernière version de chacune, la méthode par défaut en
+   * tête (celle que le formulaire présélectionne), puis les autres triées par clé.
+   */
   public List<PrioritizationMethod> available() {
-    return methods.keySet().stream().sorted().map(this::latest).toList();
+    return methods.keySet().stream()
+        .sorted(
+            Comparator.comparing((String key) -> !key.equals(defaultKey)).thenComparing(key -> key))
+        .map(this::latest)
+        .toList();
   }
 }

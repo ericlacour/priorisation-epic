@@ -27,7 +27,7 @@ import java.util.UUID;
 public class FeatureUseCase {
 
   /** Qui agit : le participant rattaché à la connexion. */
-  public record Actor(UUID participantId, Pseudo pseudo, boolean facilitator) {}
+  public record Actor(UUID participantId, boolean facilitator) {}
 
   public record Add(
       String externalId, String title, String description, Map<String, Integer> criteria) {}
@@ -55,6 +55,7 @@ public class FeatureUseCase {
   private static final Outcome ACCEPTED = new Outcome.Accepted();
 
   private final SessionRepository sessions;
+  private final ParticipantRepository participants;
   private final FeatureRepository features;
   private final ChangeLogWriter changeLog;
   private final Broadcaster broadcaster;
@@ -66,6 +67,7 @@ public class FeatureUseCase {
 
   public FeatureUseCase(
       SessionRepository sessions,
+      ParticipantRepository participants,
       FeatureRepository features,
       ChangeLogWriter changeLog,
       Broadcaster broadcaster,
@@ -75,6 +77,7 @@ public class FeatureUseCase {
       IdGenerator ids,
       MethodRegistry registry) {
     this.sessions = sessions;
+    this.participants = participants;
     this.features = features;
     this.changeLog = changeLog;
     this.broadcaster = broadcaster;
@@ -213,13 +216,14 @@ public class FeatureUseCase {
     }
     Feature toSave = after;
     Map<String, Integer> criteriaChanges = changes;
+    Pseudo author = participants.find(actor.participantId()).orElseThrow().pseudo();
     transactions.inTransaction(
         () -> {
           features.update(toSave);
           for (String key : criteriaChanges.keySet()) {
             changeLog.valueChanged(
                 session.sessionId(),
-                actor.pseudo(),
+                author,
                 toSave.id(),
                 key,
                 before.criteria().value(key).isPresent()

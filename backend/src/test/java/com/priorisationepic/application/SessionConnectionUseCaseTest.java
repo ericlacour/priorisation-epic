@@ -78,15 +78,39 @@ class SessionConnectionUseCaseTest {
   }
 
   @Test
-  void aValidTokenAttachesAndSendsTheStateToThatConnectionOnly() {
+  void aFirstConnectionAttachesAndPublishesTheNewPresenceToEveryone() {
     ConnectResult result = useCase.connect(RAW, "alice-token", null, "c1");
 
     assertThat(result).isEqualTo(new ConnectResult.Connected(ALICE, false, false));
     assertThat(broadcaster.attached.get("c1").facilitator()).isFalse();
-    assertThat(broadcaster.publishedTo).containsExactly("c1");
-    assertThat(broadcaster.published).isEmpty();
+    assertThat(broadcaster.published).containsExactly(SESSION);
+    assertThat(broadcaster.publishedTo).isEmpty();
     assertThat(broadcaster.errors).isEmpty();
     assertThat(lastSeen.get(ALICE)).isEqualTo(clock.instant());
+  }
+
+  @Test
+  void aSecondConnectionOfTheSameParticipantOnlyGetsItsOwnState() {
+    useCase.connect(RAW, "alice-token", null, "c1");
+    broadcaster.published.clear();
+
+    useCase.connect(RAW, "alice-token", null, "c2");
+
+    assertThat(broadcaster.published).isEmpty();
+    assertThat(broadcaster.publishedTo).containsExactly("c2");
+  }
+
+  @Test
+  void onlyTheLastClosedConnectionPublishesTheAbsence() {
+    useCase.connect(RAW, "alice-token", null, "c1");
+    useCase.connect(RAW, "alice-token", null, "c2");
+    broadcaster.published.clear();
+
+    useCase.disconnect(SESSION, ALICE, "c1");
+    assertThat(broadcaster.published).isEmpty();
+
+    useCase.disconnect(SESSION, ALICE, "c2");
+    assertThat(broadcaster.published).containsExactly(SESSION);
   }
 
   @Test

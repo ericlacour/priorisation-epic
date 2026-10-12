@@ -10,7 +10,9 @@ import com.priorisationepic.application.FeatureUseCase.Update;
 import com.priorisationepic.domain.ChangeLogEntry;
 import com.priorisationepic.domain.Feature;
 import com.priorisationepic.domain.IdGenerator;
+import com.priorisationepic.domain.Participant;
 import com.priorisationepic.domain.Pseudo;
+import com.priorisationepic.domain.Role;
 import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.Tokens;
@@ -28,17 +30,20 @@ import org.junit.jupiter.api.Test;
 class FeatureUseCaseTest {
 
   private static final SessionId SESSION = new SessionId("k3Jx9QvT2mLpZ8wR4nYb7A");
-  private static final Actor FACILITATOR = new Actor(UUID.randomUUID(), Pseudo.of("eric"), true);
-  private static final Actor PARTICIPANT = new Actor(UUID.randomUUID(), Pseudo.of("alice"), false);
+  private static final UUID ERIC_ID = UUID.randomUUID();
+  private static final Actor FACILITATOR = new Actor(ERIC_ID, true);
+  private static final Actor PARTICIPANT = new Actor(UUID.randomUUID(), false);
 
   private final MutableClock clock = new MutableClock(Instant.parse("2026-10-12T08:00:00Z"));
   private final InMemorySessionRepository sessions = new InMemorySessionRepository();
+  private final InMemoryParticipantRepository participants = new InMemoryParticipantRepository();
   private final InMemoryFeatureRepository features = new InMemoryFeatureRepository();
   private final List<ChangeLogEntry> log = new ArrayList<>();
   private final RecordingBroadcaster broadcaster = new RecordingBroadcaster();
   private final FeatureUseCase useCase =
       new FeatureUseCase(
           sessions,
+          participants,
           features,
           new ChangeLogWriter(log::add, clock::instant, new IdGenerator(new Random(5))),
           broadcaster,
@@ -58,6 +63,14 @@ class FeatureUseCaseTest {
             null,
             Tokens.hash("animation"),
             Pseudo.of("eric"),
+            clock.instant()));
+    participants.insert(
+        Participant.join(
+            ERIC_ID,
+            SESSION,
+            Pseudo.of("eric"),
+            Role.FACILITATOR,
+            Tokens.hash("eric-token"),
             clock.instant()));
   }
 

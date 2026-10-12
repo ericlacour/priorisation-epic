@@ -20,6 +20,7 @@
   <properties>
     <java.version>25</java.version>
     <archunit.version>1.5.1</archunit.version>
+    <json-schema-validator.version>2.0.1</json-schema-validator.version>
     <jqwik.version>1.10.2</jqwik.version>
     <poi.version>5.5.1</poi.version>
     <commons-csv.version>1.14.1</commons-csv.version>
@@ -81,6 +82,12 @@
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
       <version>${archunit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${json-schema-validator.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

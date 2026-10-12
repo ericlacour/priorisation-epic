@@ -130,8 +130,9 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   void aValidHelloKeepsTheConnectionOpenAndRecordsPresence() throws Exception {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
 
-    // Pas de réponse tant que le sessionState n'est pas défini, mais la connexion reste ouverte.
+    // Le sessionState arrive, la connexion reste ouverte.
     assertThat(client.next(500)).isNull();
     assertThat(client.closed.get()).isFalse();
     Timestamp lastSeen =
@@ -144,6 +145,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   void aValidAnimationTokenGetsNoError() throws Exception {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN, SessionFixtures.ANIMATION_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
     assertThat(client.next(500)).isNull();
     assertThat(client.closed.get()).isFalse();
   }
@@ -153,7 +155,11 @@ class SessionSocketHandlerTest extends PostgresTestBase {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN, "wrong-animation-token");
 
-    assertThat(client.next(5_000)).isEqualTo("{\"type\":\"error\",\"code\":\"FORBIDDEN\"}");
+    String first = client.next(5_000);
+    String second = client.next(5_000);
+    assertThat(java.util.List.of(first, second))
+        .anyMatch(m -> m.equals("{\"type\":\"error\",\"code\":\"FORBIDDEN\"}"))
+        .anyMatch(m -> m.contains("\"type\":\"sessionState\""));
     assertThat(client.closed.get()).isFalse();
   }
 
@@ -161,6 +167,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   void aHeartbeatHasNoEffectAndNoReply() throws Exception {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
     client.send("{\"type\":\"heartbeat\"}");
     assertThat(client.next(500)).isNull();
     assertThat(client.closed.get()).isFalse();
@@ -170,6 +177,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   void invalidMessagesAfterTheHelloGetInvalidMessageAndChangeNothing() throws Exception {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
     for (String payload :
         new String[] {
           "not json",
@@ -191,6 +199,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   void aBinaryMessageAfterTheHelloGetsInvalidMessage() throws Exception {
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
     client.socket.sendBinary(java.nio.ByteBuffer.wrap(new byte[] {1}), true).join();
     assertThat(client.next(5_000)).contains("INVALID_MESSAGE");
   }
@@ -211,6 +220,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
         "update participant set last_seen_at = now() - interval '1 hour' where id = ?", alice);
     WsTestClient client = open(SessionFixtures.SESSION_ID);
     client.hello(SessionFixtures.ALICE_TOKEN);
+    assertThat(client.next(5_000)).contains("\"type\":\"sessionState\"");
     assertThat(client.next(300)).isNull();
     jdbc.update(
         "update participant set last_seen_at = now() - interval '1 hour' where id = ?", alice);

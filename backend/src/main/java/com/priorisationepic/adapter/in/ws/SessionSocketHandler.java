@@ -1,11 +1,16 @@
 package com.priorisationepic.adapter.in.ws;
 
+import com.priorisationepic.adapter.in.ws.ClientMessages.AddFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ClientMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.DeleteFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
 import com.priorisationepic.application.ConnectResult;
 import com.priorisationepic.application.ErrorCode;
+import com.priorisationepic.application.FeatureUseCase;
 import com.priorisationepic.application.SessionConnectionUseCase;
+import com.priorisationepic.domain.SessionId;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -15,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -40,8 +46,10 @@ import tools.jackson.databind.json.JsonMapper;
  * le premier message ne se concurrencent jamais.
  *
  * <p>Ensuite, tout message et tout pong comptent comme activité ; {@code heartbeat} n'a pas d'autre
- * effet ; tout le reste (second {@code hello}, JSON invalide, {@code type} inconnu, message hors
- * schéma) reçoit {@code error INVALID_MESSAGE}, sans effet.
+ * effet ; {@code addFeature}, {@code updateFeature} et {@code deleteFeature} sont confiés au cas
+ * d'usage des fonctionnalités, qui diffuse le nouvel état s'il les accepte (sinon seule la
+ * connexion fautive reçoit {@code error}) ; tout le reste (second {@code hello}, JSON invalide,
+ * {@code type} inconnu, message hors schéma) reçoit {@code error INVALID_MESSAGE}, sans effet.
  */
 @Component
 public class SessionSocketHandler extends TextWebSocketHandler implements DisposableBean {
@@ -55,6 +63,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
 
   private final JsonMapper jsonMapper;
   private final SessionConnectionUseCase connections;
+  private final FeatureUseCase features;
   private final WebSocketBroadcaster broadcaster;
   private final Duration helloTimeout;
   private final ScheduledExecutorService timer =
@@ -65,10 +74,12 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   public SessionSocketHandler(
       JsonMapper jsonMapper,
       SessionConnectionUseCase connections,
+      FeatureUseCase features,
       WebSocketBroadcaster broadcaster,
       @Value("${priorisation-epic.hello-timeout:5s}") Duration helloTimeout) {
     this.jsonMapper = jsonMapper;
     this.connections = connections;
+    this.features = features;
     this.broadcaster = broadcaster;
     this.helloTimeout = helloTimeout;
   }
@@ -115,6 +126,16 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       case HeartbeatMessage heartbeat -> {
         // Signe de vie du client : rien d'autre que l'activité.
       }
+      case AddFeatureMessage add ->
+          intent(session, actor -> features.add(actor.sessionId(), actor.actor(), add.command()));
+      case UpdateFeatureMessage update ->
+          intent(
+              session,
+              actor -> features.update(actor.sessionId(), actor.actor(), update.command()));
+      case DeleteFeatureMessage delete ->
+          intent(
+              session,
+              actor -> features.delete(actor.sessionId(), actor.actor(), delete.command()));
       default -> broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }
@@ -150,6 +171,28 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   @Override
   public void destroy() {
     timer.shutdownNow();
+  }
+
+  /** Qui parle : la session et le participant de la connexion, avec ses droits. */
+  private record Speaker(SessionId sessionId, FeatureUseCase.Actor actor) {}
+
+  /**
+   * Une intention de fonctionnalité. Le cas d'usage diffuse le nouvel état s'il l'accepte ; sinon
+   * seule cette connexion reçoit {@code error}, et rien n'a changé.
+   */
+  private void intent(WebSocketSession session, Function<Speaker, FeatureUseCase.Outcome> run) {
+    WsConnection.Attachment attachment = broadcaster.attachmentOf(session.getId());
+    if (attachment == null) {
+      return;
+    }
+    FeatureUseCase.Outcome outcome =
+        run.apply(
+            new Speaker(
+                attachment.sessionId(),
+                new FeatureUseCase.Actor(attachment.participantId(), attachment.facilitator())));
+    if (outcome instanceof FeatureUseCase.Outcome.Rejected rejected) {
+      broadcaster.sendError(session.getId(), rejected.code(), rejected.featureId());
+    }
   }
 
   private void handshake(WebSocketSession session, ClientMessage parsed) {
