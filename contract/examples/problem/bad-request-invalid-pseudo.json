@@ -1,0 +1,12 @@
+{
+  "type": "about:blank",
+  "title": "Requête invalide",
+  "status": 400,
+  "detail": "Le pseudo doit contenir entre 1 et 40 caractères.",
+  "errors": [
+    {
+      "field": "pseudo",
+      "message": "Le pseudo est obligatoire."
+    }
+  ]
+}

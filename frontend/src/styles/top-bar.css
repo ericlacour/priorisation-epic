@@ -1,0 +1,93 @@
+.top-bar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Pastille « PF ». */
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-fg);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Menu du thème : liste déroulante sous la barre. */
+.theme-menu {
+  position: relative;
+  display: flex;
+}
+
+.chev {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: -4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.menu-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  padding: 4px 0;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 16px 0 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item[aria-checked='true'] {
+  background: var(--primary-soft);
+}
+
+.menu-check {
+  width: 1em;
+  color: var(--primary-ink);
+  font-weight: 700;
+}
+
+@media (max-width: 599px) {
+  .top-bar {
+    padding: 0 16px;
+  }
+}

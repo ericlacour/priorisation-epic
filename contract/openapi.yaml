@@ -1,0 +1,99 @@
+openapi: 3.2.0
+info:
+  title: Priorisation Epic - REST API
+  version: 1.0.0
+  description: |
+    REST surface of the webservice, aligned with planning-poker (AD-2): REST covers only entry
+    (create, join, list), files (import, export, template) and health. **Every live session
+    action goes through the WebSocket** described in `asyncapi.yaml`.
+
+    - Errors are `application/problem+json` (RFC 9457) with a French `detail` (FR-027).
+    - Tokens never appear in URLs. REST calls that need one send `X-Participant-Token` and, for
+      facilitator-only actions, `X-Animation-Token`.
+    - The contract only evolves by addition. The operations of the user journeys are added to
+      this file with their schemas, task by task.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+
+servers:
+  - url: http://localhost:8080
+    description: Local development. Deployed URLs come from `apiBaseUrl` in the front's `/config.json`.
+
+security: []
+
+tags:
+  - name: health
+    description: Wake-up probe.
+
+paths:
+  /api/health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Wake-up and health probe
+      description: Answers 200 as soon as the webservice is ready. Used by Render as health check and polled by the front during a cold start.
+      responses:
+        '200':
+          description: The webservice is ready.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/health-response.json'
+
+components:
+  securitySchemes:
+    participantToken:
+      type: apiKey
+      in: header
+      name: X-Participant-Token
+    animationToken:
+      type: apiKey
+      in: header
+      name: X-Animation-Token
+  parameters:
+    sessionId:
+      name: sessionId
+      in: path
+      required: true
+      description: 128 random bits, base64url without padding (22 characters).
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{22}$'
+  responses:
+    BadRequest:
+      description: Invalid request (French message).
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    SessionNotFound:
+      description: Unknown session.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    Forbidden:
+      description: Facilitator-only action, or session closed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    PseudoTaken:
+      description: Pseudo already used in this session.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    PayloadTooLarge:
+      description: Request body above the limit (5 MB for imports, small elsewhere).
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    TooManyRequests:
+      description: Too many session creations from the same address.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'

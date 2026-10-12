@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Action interdite",
+  "status": 403,
+  "detail": "Seul l'animateur peut faire cette action."
+}

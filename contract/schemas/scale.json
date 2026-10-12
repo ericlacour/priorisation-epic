@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scale.json",
+  "title": "Scale",
+  "description": "Scale of a session (FR-009 to FR-011). allowedValues is present in sessionState only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "max"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["CONTINUOUS", "FIBONACCI"]
+    },
+    "max": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "allowedValues": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  }
+}

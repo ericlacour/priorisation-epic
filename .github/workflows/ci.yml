@@ -1,0 +1,130 @@
+# CI : contrat, webservice, front et parcours de bout en bout à chaque push sur main et sur chaque pull request.
+# Aucun déploiement ici.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: contract
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: contract/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run validate
+      - run: npm test
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: priorisation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d priorisation"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+      # Spotless, Error Prone, tests (Testcontainers), JaCoCo.
+      - run: ./mvnw -B verify
+      - name: Image Docker
+        run: docker build -t priorisation-epic-api:ci .
+      - name: L'image démarre sous un UID arbitraire, en lecture seule hors /tmp, avec des journaux JSON
+        run: |
+          docker run -d --name api --read-only --tmpfs /tmp -u 54321:0 --network host \
+            -e PORT=9090 \
+            -e DATABASE_URL=postgresql://ci:ci@localhost:5432/priorisation \
+            priorisation-epic-api:ci
+          for _ in $(seq 1 60); do
+            if curl -sf http://localhost:9090/api/health; then
+              docker logs api 2>&1 | jq -se 'length > 0 and all(has("@timestamp"))' > /dev/null
+              exit $?
+            fi
+            sleep 1
+          done
+          docker logs api
+          exit 1
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      # Tests unitaires avec les seuils de couverture (80 % des lignes, 70 % des branches).
+      - run: npm test
+      - name: Build de production
+        run: npm run build
+        env:
+          API_BASE_URL: https://api.example.invalid
+      - name: Build e2e
+        run: npm run build:e2e
+        env:
+          API_BASE_URL: http://127.0.0.1:4310
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run e2e
+      - name: Traces des e2e en échec
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-results
+          path: frontend/test-results/
+          retention-days: 7
+
+  # Parcours complets contre le vrai webservice : vide jusqu'à T048.
+  journeys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - run: echo "Les parcours sont ajoutés avec T048."

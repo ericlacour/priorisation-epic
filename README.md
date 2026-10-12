@@ -3,6 +3,59 @@
 Application web pour prioriser les fonctionnalités d'une équipe avec la méthode WSJF.
 La spécification se trouve dans [`specs/001-wsjf-prioritization-session/`](specs/001-wsjf-prioritization-session/).
 
+## Organisation du dépôt
+
+| Dossier | Contenu |
+|---------|---------|
+| `contract/` | Contrat d'échange front / webservice : OpenAPI, AsyncAPI, schémas JSON et exemples. Scripts `npm run validate` et `npm test` |
+| `backend/` | Webservice Java 25 / Spring Boot 4.1, en architecture hexagonale (`domain`, `application`, `adapter`, `config`), Maven (`./mvnw verify`) |
+| `frontend/` | Front Angular 22 (`npm start`, `npm test`, `npm run lint`, `npm run e2e`) |
+| `deploy/` | Blueprint et mode d'emploi du déploiement |
+| `.github/` | CI et outillage de sécurité |
+| `specs/` | Spécification, plan et tâches de la feature 001 |
+
+Prérequis : JDK 25 (Temurin) et Node.js ≥ 24.15.
+
+### Vérifications avant un push
+
+```bash
+(cd backend && ./mvnw -B verify)                 # Spotless, Error Prone, tests, JaCoCo
+(cd frontend && npm ci && npm run lint && npm run format:check && npm test)
+(cd contract && npm ci && npm run format:check && npm run validate && npm test)
+```
+
+`./mvnw spotless:apply` reformate le Java. Une dérogation Error Prone se fait au cas par cas avec
+`@SuppressWarnings("NomDeLaVérification")` et un commentaire qui explique pourquoi.
+
+### Base de données et configuration du webservice
+
+| Variable | Rôle |
+|----------|------|
+| `PORT` | Port HTTP (8080 par défaut) |
+| `DATABASE_URL` | Base PostgreSQL 17 au format `postgresql://utilisateur:motdepasse@hôte[:port]/base?sslmode=require` (celui de Neon). `DatabaseUrlConfig` la convertit en URL JDBC ; sans elle, `SPRING_DATASOURCE_*` s'applique |
+| `ALLOWED_ORIGINS` | Origines `http(s)://hôte[:port]` du front, séparées par des virgules, pour CORS et le WebSocket. Aucune par défaut ; un joker `*` ou un chemin empêche le démarrage |
+
+Le schéma est créé par les migrations Flyway (`backend/src/main/resources/db/migration/`).
+Les tests qui démarrent l'application utilisent PostgreSQL 17 par Testcontainers (Docker
+requis). Sans Docker, `TEST_DATABASE_URL` (même format que `DATABASE_URL`) désigne une base
+PostgreSQL jetable : `TEST_DATABASE_URL=postgresql://postgres@localhost:5433/pe ./mvnw verify`.
+
+### Intégration continue
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) lance, sur `main` et sur chaque PR :
+`contract` (format, validation, tests), `backend` (`./mvnw verify` avec un service
+PostgreSQL 17, puis l'image Docker, démarrée sous un UID arbitraire en lecture seule hors
+`/tmp`, avec des journaux JSON), `frontend` (lint, format, tests avec seuils de couverture,
+builds, e2e Playwright sur Chromium, Firefox et WebKit) et `journeys` (vide jusqu'à T048).
+
+### Sessions Claude Code dans le cloud
+
+Le hook `SessionStart` ([`.claude/settings.json`](.claude/settings.json),
+[`.claude/hooks/session-start.sh`](.claude/hooks/session-start.sh)) prépare la session : il installe
+Temurin 25 et Node 24 s'ils manquent, lance `./mvnw dependency:go-offline` dans `backend/` et
+`npm ci` dans `frontend/` et `contract/` (les dossiers absents sont ignorés). Il ne tourne que dans
+le cloud (`CLAUDE_CODE_REMOTE=true`) et reste exécutable à la main.
+
 ## Sécurité du dépôt
 
 Le dépôt applique l'outillage de sécurité exigé par la constitution

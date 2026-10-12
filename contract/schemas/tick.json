@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tick.json",
+  "title": "tick (server → client)",
+  "description": "Server sign of life, every 5 s. The client declares the connection lost after 12 s of silence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type"],
+  "properties": {
+    "type": {
+      "const": "tick"
+    }
+  }
+}

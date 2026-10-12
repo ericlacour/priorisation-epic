@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "problem.json",
+  "title": "Problem (application/problem+json, RFC 9457)",
+  "description": "REST error. `detail` is a French, actionable message read from the back's messages.properties (FR-027).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "status", "detail"],
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 400,
+      "maximum": 599
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "message"],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "instance": {
+      "type": "string"
+    }
+  }
+}

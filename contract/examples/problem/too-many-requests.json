@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Too Many Requests",
+  "status": 429,
+  "detail": "Trop de sessions créées depuis cette adresse. Réessayez dans une minute."
+}
