@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "session-summary.json",
+  "title": "Session summary",
+  "description": "One row of GET /api/sessions, newest first (FR-026).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "name",
+    "facilitatorPseudo",
+    "createdAt",
+    "status",
+    "method",
+    "methodVersion"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "facilitatorPseudo": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PREPARATION", "IN_PROGRESS", "CLOSED"]
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "methodVersion": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

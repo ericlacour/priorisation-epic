@@ -1,0 +1,206 @@
+{
+  "type": "sessionState",
+  "version": 7,
+  "sessionId": "Qm9yZWFsaXNQcmlvcml0eQ",
+  "name": "Atelier T4",
+  "status": "IN_PROGRESS",
+  "method": "WSJF",
+  "methodVersion": 1,
+  "methodDefinition": {
+    "key": "WSJF",
+    "version": 1,
+    "name": "WSJF",
+    "criteria": [
+      {
+        "key": "bv",
+        "code": "BV",
+        "label": "Business Value",
+        "definition": "Valeur apportée aux utilisateurs ou à l'entreprise : plus elle est élevée, plus la fonctionnalité compte.",
+        "header": "BV"
+      },
+      {
+        "key": "tc",
+        "code": "TC",
+        "label": "Time Criticality",
+        "definition": "Urgence : la valeur diminue avec le temps ou une échéance approche.",
+        "header": "TC"
+      },
+      {
+        "key": "rrOe",
+        "code": "RR/OE",
+        "label": "Risk Reduction / Opportunity Enablement",
+        "definition": "Risque réduit ou opportunité ouverte par la fonctionnalité.",
+        "header": "RR/OE"
+      },
+      {
+        "key": "js",
+        "code": "JS",
+        "label": "Job Size",
+        "definition": "Taille du travail : plus elle est élevée, plus le score baisse.",
+        "header": "JS"
+      }
+    ],
+    "computedValues": [
+      {
+        "key": "cod",
+        "code": "CoD",
+        "label": "Cost of Delay",
+        "definition": "Coût du retard : BV + TC + RR/OE.",
+        "header": "CoD",
+        "display": "INTEGER"
+      },
+      {
+        "key": "wsjf",
+        "code": "WSJF",
+        "label": "Weighted Shortest Job First",
+        "definition": "Priorité : CoD divisé par JS. Plus il est élevé, plus la fonctionnalité passe tôt.",
+        "header": "WSJF",
+        "display": "DECIMAL_2"
+      }
+    ],
+    "formula": "CoD = BV + TC + RR/OE ; WSJF = CoD / JS",
+    "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant sans tenir compte de la casse. Les fonctionnalités incomplètes ou hors échelle viennent ensuite, par identifiant croissant."
+  },
+  "formula": "CoD = BV + TC + RR/OE ; WSJF = CoD / JS",
+  "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant sans tenir compte de la casse. Les fonctionnalités incomplètes ou hors échelle viennent ensuite, par identifiant croissant.",
+  "scale": {
+    "type": "CONTINUOUS",
+    "max": 10,
+    "allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  },
+  "participants": [
+    {
+      "participantId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "pseudo": "anim",
+      "role": "FACILITATOR",
+      "businessRole": "Product Owner",
+      "online": true
+    },
+    {
+      "participantId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "pseudo": "alice",
+      "role": "PARTICIPANT",
+      "businessRole": null,
+      "online": true
+    },
+    {
+      "participantId": "a1b2c3d4-0003-4000-8000-000000000003",
+      "pseudo": "bob",
+      "role": "PARTICIPANT",
+      "online": false
+    }
+  ],
+  "features": [
+    {
+      "id": "6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f",
+      "externalId": "F-1",
+      "title": "Connexion SSO",
+      "description": "Permettre la connexion unique via l'annuaire de l'entreprise.",
+      "version": 0,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "bv": 8,
+        "tc": 5,
+        "rrOe": 3,
+        "js": 4
+      },
+      "score": {
+        "complete": true,
+        "outOfScale": [],
+        "computed": {
+          "cod": {
+            "numerator": 16,
+            "denominator": 1,
+            "display": "16"
+          },
+          "wsjf": {
+            "numerator": 4,
+            "denominator": 1,
+            "display": "4,00"
+          }
+        },
+        "explanation": "CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00",
+        "rank": 1
+      }
+    },
+    {
+      "id": "7a2d3e4f-5c6b-4d8e-9fa0-1b2c3d4e5f60",
+      "externalId": "F-2",
+      "title": "Export PDF",
+      "description": null,
+      "version": 2,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "bv": 2,
+        "tc": 2,
+        "rrOe": 2,
+        "js": 3
+      },
+      "score": {
+        "complete": true,
+        "outOfScale": [],
+        "computed": {
+          "cod": {
+            "numerator": 6,
+            "denominator": 1,
+            "display": "6"
+          },
+          "wsjf": {
+            "numerator": 2,
+            "denominator": 1,
+            "display": "2,00"
+          }
+        },
+        "explanation": "CoD = 2 + 2 + 2 = 6 ; WSJF = 6 / 3 = 2,00",
+        "rank": 2
+      }
+    },
+    {
+      "id": "8b3e4f5a-6d7c-4e9f-8ab1-2c3d4e5f6071",
+      "externalId": "F-3",
+      "title": "Notifications",
+      "description": null,
+      "version": 0,
+      "markedForReview": true,
+      "reviewReason": "descriptif à compléter",
+      "criteria": {
+        "bv": 5,
+        "tc": null,
+        "rrOe": 3,
+        "js": 2
+      },
+      "score": {
+        "complete": false,
+        "outOfScale": [],
+        "computed": null,
+        "explanation": null,
+        "rank": null
+      }
+    },
+    {
+      "id": "9c4f5a6b-7e8d-4fa0-9bc2-3d4e5f607182",
+      "externalId": "F-4",
+      "title": "Tableau de bord",
+      "description": null,
+      "version": 0,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "bv": 12,
+        "tc": 3,
+        "rrOe": 3,
+        "js": 5
+      },
+      "score": {
+        "complete": false,
+        "outOfScale": ["bv"],
+        "computed": null,
+        "explanation": null,
+        "rank": null
+      }
+    }
+  ],
+  "me": null
+}

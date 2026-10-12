@@ -56,6 +56,14 @@ channels:
         $ref: '#/components/messages/tick'
       error:
         $ref: '#/components/messages/error'
+      addFeature:
+        $ref: '#/components/messages/addFeature'
+      updateFeature:
+        $ref: '#/components/messages/updateFeature'
+      deleteFeature:
+        $ref: '#/components/messages/deleteFeature'
+      sessionState:
+        $ref: '#/components/messages/sessionState'
     x-close-codes:
       - code: 4401
         reason: Unknown participant token. The client shows the Join screen.
@@ -95,6 +103,34 @@ operations:
     summary: An intent was refused or a message was invalid.
     messages:
       - $ref: '#/channels/session/messages/error'
+  receiveAddFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Add a feature (FR-006) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/addFeature'
+  receiveUpdateFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Edit a feature, its retained values or its review mark (FR-006, FR-006a, FR-015) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/updateFeature'
+  receiveDeleteFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Soft-delete a feature (FR-015) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/deleteFeature'
+  sendSessionState:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: Full state, filtered for each recipient, sent after hello and after every accepted change.
+    messages:
+      - $ref: '#/channels/session/messages/sessionState'
 
 components:
   messages:
@@ -122,3 +158,27 @@ components:
       summary: An intent was refused or a message was invalid.
       payload:
         $ref: './schemas/error.json'
+    addFeature:
+      name: addFeature
+      title: addFeature
+      summary: Add a feature (FR-006) - facilitator only.
+      payload:
+        $ref: './schemas/add-feature.json'
+    updateFeature:
+      name: updateFeature
+      title: updateFeature
+      summary: Edit a feature, its retained values or its review mark - facilitator only. Carries the feature version.
+      payload:
+        $ref: './schemas/update-feature.json'
+    deleteFeature:
+      name: deleteFeature
+      title: deleteFeature
+      summary: Soft-delete a feature - facilitator only. Carries the feature version.
+      payload:
+        $ref: './schemas/delete-feature.json'
+    sessionState:
+      name: sessionState
+      title: sessionState
+      summary: Full state of the session for one recipient, including the method definition.
+      payload:
+        $ref: './schemas/session-state.json'

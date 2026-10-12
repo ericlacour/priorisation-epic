@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "outOfScale": [],
+  "computed": {
+    "ratio": {
+      "numerator": 5,
+      "denominator": 2,
+      "display": "2,50"
+    }
+  },
+  "explanation": "Ratio = 5 / 2 = 2,50",
+  "rank": 2
+}

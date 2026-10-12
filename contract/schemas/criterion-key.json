@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "criterion-key.json",
+  "title": "Criterion key",
+  "description": "Technical key of a criterion (or of a computed value) declared by the session's method definition, in camelCase. The contract never lists them (FR-017a, FR-017b).",
+  "type": "string",
+  "pattern": "^[a-z][a-zA-Z0-9]{0,19}$"
+}

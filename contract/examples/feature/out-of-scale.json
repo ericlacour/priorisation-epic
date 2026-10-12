@@ -1,0 +1,22 @@
+{
+  "id": "9c4f5a6b-7e8d-4fa0-9bc2-3d4e5f607182",
+  "externalId": "F-4",
+  "title": "Tableau de bord",
+  "description": null,
+  "version": 0,
+  "markedForReview": false,
+  "reviewReason": null,
+  "criteria": {
+    "bv": 12,
+    "tc": 3,
+    "rrOe": 3,
+    "js": 5
+  },
+  "score": {
+    "complete": false,
+    "outOfScale": ["bv"],
+    "computed": null,
+    "explanation": null,
+    "rank": null
+  }
+}

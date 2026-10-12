@@ -1,0 +1,9 @@
+{
+  "type": "addFeature",
+  "externalId": "R-1",
+  "title": "Recherche globale",
+  "criteria": {
+    "reach": 9,
+    "effort": 3
+  }
+}

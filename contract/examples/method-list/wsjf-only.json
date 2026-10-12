@@ -1,0 +1,57 @@
+[
+  {
+    "key": "WSJF",
+    "version": 1,
+    "name": "WSJF",
+    "criteria": [
+      {
+        "key": "bv",
+        "code": "BV",
+        "label": "Business Value",
+        "definition": "Valeur apportée aux utilisateurs ou à l'entreprise : plus elle est élevée, plus la fonctionnalité compte.",
+        "header": "BV"
+      },
+      {
+        "key": "tc",
+        "code": "TC",
+        "label": "Time Criticality",
+        "definition": "Urgence : la valeur diminue avec le temps ou une échéance approche.",
+        "header": "TC"
+      },
+      {
+        "key": "rrOe",
+        "code": "RR/OE",
+        "label": "Risk Reduction / Opportunity Enablement",
+        "definition": "Risque réduit ou opportunité ouverte par la fonctionnalité.",
+        "header": "RR/OE"
+      },
+      {
+        "key": "js",
+        "code": "JS",
+        "label": "Job Size",
+        "definition": "Taille du travail : plus elle est élevée, plus le score baisse.",
+        "header": "JS"
+      }
+    ],
+    "computedValues": [
+      {
+        "key": "cod",
+        "code": "CoD",
+        "label": "Cost of Delay",
+        "definition": "Coût du retard : BV + TC + RR/OE.",
+        "header": "CoD",
+        "display": "INTEGER"
+      },
+      {
+        "key": "wsjf",
+        "code": "WSJF",
+        "label": "Weighted Shortest Job First",
+        "definition": "Priorité : CoD divisé par JS. Plus il est élevé, plus la fonctionnalité passe tôt.",
+        "header": "WSJF",
+        "display": "DECIMAL_2"
+      }
+    ],
+    "formula": "CoD = BV + TC + RR/OE ; WSJF = CoD / JS",
+    "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant sans tenir compte de la casse. Les fonctionnalités incomplètes ou hors échelle viennent ensuite, par identifiant croissant."
+  }
+]

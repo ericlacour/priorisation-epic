@@ -2,11 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "criteria.json",
   "title": "Criteria values",
-  "description": "Values by criterion key of the session's method (FR-017b). A missing key or null means \"not entered\". Unknown keys get error UNKNOWN_CRITERION. The contract never lists the criteria of a method: methodDefinition does.",
+  "description": "Values by criterion key of the session's method (FR-017b). A missing key or null means \"not entered\" (\"no opinion\" in a vote). Unknown keys get error UNKNOWN_CRITERION. The contract never lists the criteria of a method: methodDefinition does. Integers >= 1; membership in the scale is checked by the server (error INVALID_VALUE).",
   "type": "object",
   "propertyNames": {
-    "type": "string",
-    "pattern": "^[a-z][a-zA-Z0-9]{0,19}$"
+    "$ref": "criterion-key.json"
   },
   "additionalProperties": {
     "type": ["integer", "null"],

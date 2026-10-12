@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "method-definition.json",
+  "title": "Method definition",
+  "description": "Single source of a prioritization method's criteria, computed values, labels and help texts (FR-016a, FR-017a), sent as is in sessionState and by GET /api/methods. All texts are French. Criteria and computed values are listed in display order. A method is identified by (key, version).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["key", "version", "name", "criteria", "computedValues", "formula", "tieBreakRule"],
+  "properties": {
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "description": "Method identifier. Sent as `method` when creating a session."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Entered criteria, in display order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "code", "label", "definition", "header"],
+        "properties": {
+          "key": {
+            "$ref": "criterion-key.json"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Short code shown in column headers."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Full name."
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1,
+            "description": "French help text."
+          },
+          "header": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Column header for import and export."
+          }
+        }
+      }
+    },
+    "computedValues": {
+      "type": "array",
+      "description": "Values computed from the criteria, in display order. Their keys are the keys of score.computed.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "code", "label", "definition", "header", "display"],
+        "properties": {
+          "key": {
+            "$ref": "criterion-key.json"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "header": {
+            "type": "string",
+            "minLength": 1
+          },
+          "display": {
+            "type": "string",
+            "enum": ["INTEGER", "DECIMAL_2"]
+          }
+        }
+      }
+    },
+    "formula": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Displayed formula, written in French by the method."
+    },
+    "tieBreakRule": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Displayed sort and tie-break rule."
+    }
+  }
+}

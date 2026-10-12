@@ -25,6 +25,10 @@ security: []
 tags:
   - name: health
     description: Wake-up probe.
+  - name: sessions
+    description: Create, list, consult and join sessions.
+  - name: methods
+    description: Prioritization methods offered at session creation.
 
 paths:
   /api/health:
@@ -40,6 +44,114 @@ paths:
             application/json:
               schema:
                 $ref: './schemas/health-response.json'
+
+  /api/sessions:
+    get:
+      tags: [sessions]
+      operationId: listSessions
+      summary: List all sessions, newest first (FR-026)
+      responses:
+        '200':
+          description: The sessions, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/session-summary.json'
+    post:
+      tags: [sessions]
+      operationId: createSession
+      summary: Create a session; the creator becomes facilitator (FR-001, FR-002)
+      description: |
+        The session gets the requested method (WSJF by default) in its latest version, then keeps it
+        (FR-017, FR-017d). An unknown method is refused with 400. Only the hashes of the returned
+        tokens are stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/create-session-request.json'
+      responses:
+        '201':
+          description: Created. The creator is the facilitator.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/create-session-response.json'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/sessionId'
+    get:
+      tags: [sessions]
+      operationId: getSession
+      summary: Read-only view for consultation without joining (FR-026)
+      description: |
+        Same payload as the WebSocket `sessionState`, filtered as for a non-facilitator participant
+        with no votes of its own, and with `me` set to null. Used to browse past sessions and to show
+        the session name on the join screen.
+      responses:
+        '200':
+          description: The session state.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/session-state.json'
+        '404':
+          $ref: '#/components/responses/SessionNotFound'
+
+  /api/sessions/{sessionId}/participants:
+    parameters:
+      - $ref: '#/components/parameters/sessionId'
+    post:
+      tags: [sessions]
+      operationId: joinSession
+      summary: Join with a pseudo (FR-002, FR-003)
+      description: |
+        Returns the participant token to send in `hello`. If the pseudo is taken (case-insensitive)
+        by a participant absent for at least 10 minutes, the newcomer takes that participant over
+        (votes kept, new token); otherwise 409. The facilitator role is never taken over this way.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/join-session-request.json'
+      responses:
+        '201':
+          description: Joined.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/join-session-response.json'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/SessionNotFound'
+        '409':
+          $ref: '#/components/responses/PseudoTaken'
+
+  /api/methods:
+    get:
+      tags: [methods]
+      operationId: listMethods
+      summary: Methods offered at session creation, each in its latest version (FR-017c, FR-017d)
+      description: WSJF only in V1. Used by the creation form and its "method detail" panel.
+      responses:
+        '200':
+          description: The available methods.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/method-list.json'
 
 components:
   securitySchemes:

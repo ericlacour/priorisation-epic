@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "create-session-request.json",
+  "title": "Create session request",
+  "description": "Body of POST /api/sessions. The creator becomes facilitator (FR-001, FR-002). When `method` is absent the server uses its default method (the one GET /api/methods lists first and the creation form preselects); an unknown key gets 400. `scale` defaults to CONTINUOUS up to 10 (allowedValues is ignored in a request).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "pseudo"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "pseudo": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "description": "Key of a method from GET /api/methods; its latest version is used, then frozen (FR-017, FR-017d)."
+    },
+    "scale": {
+      "$ref": "scale.json"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Atelier T4",
+  "pseudo": "anim",
+  "method": "WSJF",
+  "scale": {
+    "type": "FIBONACCI",
+    "max": 21
+  }
+}

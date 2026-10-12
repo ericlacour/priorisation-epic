@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "error.json",
-  "title": "error (server → client)",
+  "title": "error (server \u2192 client)",
   "description": "A forbidden or invalid intent changed nothing. The text shown comes from the front. STALE_VERSION: the intent carried an outdated feature version (no silent overwrite, constitution III). SCALE_IMPACT carries impactedValues.",
   "type": "object",
   "additionalProperties": false,
@@ -44,8 +44,7 @@
             "type": "string"
           },
           "criterion": {
-            "type": "string",
-            "pattern": "^[a-z][a-zA-Z0-9]{0,19}$"
+            "$ref": "criterion-key.json"
           },
           "value": {
             "type": "integer",

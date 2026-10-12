@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "feature.json",
+  "title": "Feature",
+  "description": "A feature as seen by one recipient in sessionState. `criteria` and `score` are null when `votingInProgress` is true and the recipient is not the facilitator (FR-019a); a feature with no value entered has an empty `criteria` object.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "externalId",
+    "title",
+    "description",
+    "version",
+    "markedForReview",
+    "reviewReason",
+    "criteria",
+    "score"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "externalId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 5000
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optimistic lock: sent back in updateFeature and deleteFeature."
+    },
+    "markedForReview": {
+      "type": "boolean",
+      "description": "Facilitator reminder (FR-006a); no effect on score or sort."
+    },
+    "reviewReason": {
+      "type": ["string", "null"],
+      "maxLength": 200
+    },
+    "votingInProgress": {
+      "type": "boolean",
+      "description": "Optional, absent means false. Set by the server from user story 2 on, while the feature is in an open round."
+    },
+    "criteria": {
+      "oneOf": [
+        {
+          "$ref": "criteria.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "score": {
+      "oneOf": [
+        {
+          "$ref": "score.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

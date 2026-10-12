@@ -1,0 +1,18 @@
+{
+  "complete": true,
+  "outOfScale": [],
+  "computed": {
+    "cod": {
+      "numerator": 16,
+      "denominator": 1,
+      "display": "16"
+    },
+    "wsjf": {
+      "numerator": 4,
+      "denominator": 1,
+      "display": "4,00"
+    }
+  },
+  "explanation": "CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00",
+  "rank": 1
+}

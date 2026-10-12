@@ -18,7 +18,7 @@ Les documents de conception de la feature (`specs/001-wsjf-prioritization-sessio
 
 ## Schémas communs
 
-`problem`, `hello`, `heartbeat`, `tick`, `error`, `health-response`, `criteria` et `scale`. Le contrat ne liste jamais les critères d'une méthode (FR-017a, FR-017b) : `criteria` est une table de valeurs indexée par les clés que `methodDefinition` déclare.
+`problem`, `hello`, `heartbeat`, `tick`, `error`, `health-response`, `criterion-key`, `criteria`, `exact-value`, `scale`, `method-definition`, `score` et `feature`. Le contrat ne liste jamais les critères d'une méthode (FR-017a, FR-017b) : `criteria` est une table de valeurs indexée par les clés que `methodDefinition` déclare.
 
 ## Valider le contrat
 
@@ -39,6 +39,8 @@ npm run format:check
 - chaque schéma référencé par un document a au moins un exemple dans `examples/<schéma>/` ;
 - chaque exemple est valide contre son schéma ;
 - chaque réponse d'erreur REST nommée (`BadRequest`, `SessionNotFound`…) a un exemple `examples/problem/<nom-en-kebab>*.json`.
+
+Aucun schéma ne nomme un critère ni une valeur calculée du WSJF (`bv`, `tc`, `rrOe`, `js`, `cod`, `wsjf`) : seuls les exemples le font, avec une méthode fictive à deux critères (`reach`, `effort`) pour le prouver.
 
 Les règles métier sur `sessionState` qu'un JSON Schema ne sait pas exprimer se branchent dans `SESSION_STATE_RULES` (`scripts/validate.mjs`).
 

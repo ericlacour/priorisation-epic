@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "exact-value.json",
+  "title": "Exact value",
+  "description": "A computed value as an exact fraction (integers have denominator 1) plus its display string, already formatted per the `display` of the computed value definition (INTEGER: \"16\"; DECIMAL_2: \"4,00\", HALF_UP, decimal comma). The front shows `display` as is and never recomputes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["numerator", "denominator", "display"],
+  "properties": {
+    "numerator": {
+      "type": "integer"
+    },
+    "denominator": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "display": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "add-feature.json",
+  "title": "addFeature (client → server)",
+  "description": "Facilitator only. Adds a feature (FR-006). externalId is unique per session, case-insensitively (DUPLICATE_EXTERNAL_ID). Criteria are optional.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "externalId", "title"],
+  "properties": {
+    "type": {
+      "const": "addFeature"
+    },
+    "externalId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 5000
+    },
+    "criteria": {
+      "$ref": "criteria.json"
+    }
+  }
+}

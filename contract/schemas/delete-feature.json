@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "delete-feature.json",
+  "title": "deleteFeature (client → server)",
+  "description": "Facilitator only. Soft delete (FR-015). Carries the feature `version` it read. A feature in an open round cannot be deleted (FEATURE_IN_OPEN_ROUND).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId", "version"],
+  "properties": {
+    "type": {
+      "const": "deleteFeature"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

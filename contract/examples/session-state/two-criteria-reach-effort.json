@@ -1,0 +1,137 @@
+{
+  "type": "sessionState",
+  "version": 3,
+  "sessionId": "Qm9yZWFsaXNQcmlvcml0eS",
+  "name": "Atelier fictif",
+  "status": "IN_PROGRESS",
+  "method": "REACH_EFFORT",
+  "methodVersion": 1,
+  "methodDefinition": {
+    "key": "REACH_EFFORT",
+    "version": 1,
+    "name": "Portée sur effort (méthode fictive)",
+    "criteria": [
+      {
+        "key": "reach",
+        "code": "Portée",
+        "label": "Reach",
+        "definition": "Nombre de personnes touchées.",
+        "header": "Reach"
+      },
+      {
+        "key": "effort",
+        "code": "Effort",
+        "label": "Effort",
+        "definition": "Travail nécessaire pour livrer.",
+        "header": "Effort"
+      }
+    ],
+    "computedValues": [
+      {
+        "key": "ratio",
+        "code": "Ratio",
+        "label": "Reach / Effort",
+        "definition": "Portée divisée par effort.",
+        "header": "Ratio",
+        "display": "DECIMAL_2"
+      }
+    ],
+    "formula": "Ratio = Portée / Effort",
+    "tieBreakRule": "Ratio décroissant, puis identifiant croissant sans tenir compte de la casse. Les fonctionnalités incomplètes viennent ensuite."
+  },
+  "formula": "Ratio = Portée / Effort",
+  "tieBreakRule": "Ratio décroissant, puis identifiant croissant sans tenir compte de la casse. Les fonctionnalités incomplètes viennent ensuite.",
+  "scale": {
+    "type": "CONTINUOUS",
+    "max": 10,
+    "allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  },
+  "me": {
+    "participantId": "a1b2c3d4-0001-4000-8000-000000000001",
+    "pseudo": "anim",
+    "role": "FACILITATOR"
+  },
+  "participants": [
+    {
+      "participantId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "pseudo": "anim",
+      "role": "FACILITATOR",
+      "businessRole": "Product Owner",
+      "online": true
+    }
+  ],
+  "features": [
+    {
+      "id": "6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f",
+      "externalId": "R-1",
+      "title": "Recherche globale",
+      "description": null,
+      "version": 0,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "reach": 9,
+        "effort": 3
+      },
+      "score": {
+        "complete": true,
+        "outOfScale": [],
+        "computed": {
+          "ratio": {
+            "numerator": 3,
+            "denominator": 1,
+            "display": "3,00"
+          }
+        },
+        "explanation": "Ratio = 9 / 3 = 3,00",
+        "rank": 1
+      }
+    },
+    {
+      "id": "7a2d3e4f-5c6b-4d8e-9fa0-1b2c3d4e5f60",
+      "externalId": "R-2",
+      "title": "Mode hors ligne",
+      "description": null,
+      "version": 0,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "reach": 5,
+        "effort": 2
+      },
+      "score": {
+        "complete": true,
+        "outOfScale": [],
+        "computed": {
+          "ratio": {
+            "numerator": 5,
+            "denominator": 2,
+            "display": "2,50"
+          }
+        },
+        "explanation": "Ratio = 5 / 2 = 2,50",
+        "rank": 2
+      }
+    },
+    {
+      "id": "8b3e4f5a-6d7c-4e9f-8ab1-2c3d4e5f6071",
+      "externalId": "R-3",
+      "title": "Thème sombre",
+      "description": null,
+      "version": 0,
+      "markedForReview": false,
+      "reviewReason": null,
+      "criteria": {
+        "reach": 4,
+        "effort": null
+      },
+      "score": {
+        "complete": false,
+        "outOfScale": [],
+        "computed": null,
+        "explanation": null,
+        "rank": null
+      }
+    }
+  ]
+}

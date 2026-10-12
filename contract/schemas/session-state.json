@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "session-state.json",
+  "title": "sessionState (server → client)",
+  "description": "Full state of the session, sent to a connection after hello and after every accepted change, filtered for its recipient. Also the body of GET /api/sessions/{sessionId}, where `me` is null (consultation without joining). Rounds are added by user story 2. The front builds columns, inputs, help and the method panel from `methodDefinition` only (FR-017b).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "version",
+    "sessionId",
+    "name",
+    "status",
+    "method",
+    "methodVersion",
+    "methodDefinition",
+    "formula",
+    "tieBreakRule",
+    "scale",
+    "me",
+    "participants",
+    "features"
+  ],
+  "properties": {
+    "type": {
+      "const": "sessionState"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Increases on every accepted change."
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PREPARATION", "IN_PROGRESS", "CLOSED"]
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "description": "Equals methodDefinition.key."
+    },
+    "methodVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Equals methodDefinition.version."
+    },
+    "methodDefinition": {
+      "$ref": "method-definition.json"
+    },
+    "formula": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Equals methodDefinition.formula."
+    },
+    "tieBreakRule": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Equals methodDefinition.tieBreakRule."
+    },
+    "scale": {
+      "$ref": "scale.json",
+      "required": ["type", "max", "allowedValues"]
+    },
+    "me": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["participantId", "pseudo", "role"],
+          "properties": {
+            "participantId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "pseudo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "role": {
+              "type": "string",
+              "enum": ["FACILITATOR", "PARTICIPANT"]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The recipient; null in the REST consultation."
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["participantId", "pseudo", "role", "online"],
+        "properties": {
+          "participantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pseudo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "role": {
+            "type": "string",
+            "enum": ["FACILITATOR", "PARTICIPANT"]
+          },
+          "businessRole": {
+            "type": ["string", "null"],
+            "maxLength": 40
+          },
+          "online": {
+            "type": "boolean",
+            "description": "At least one open connection that passed hello (FR-005)."
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "$ref": "feature.json"
+      },
+      "description": "Sorted per FR-014: complete features by the method order then externalId, then the others by externalId."
+    }
+  }
+}

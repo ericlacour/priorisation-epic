@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "score.json",
+  "title": "Score",
+  "description": "Computed by the domain only, never entered nor stored (FR-016). `computed` is null unless `complete`. `rank` is the 1-based position among the complete features after the FR-014 sort, null when not complete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["complete", "outOfScale", "computed", "explanation", "rank"],
+  "properties": {
+    "complete": {
+      "type": "boolean",
+      "description": "True when the method declares the feature computable (all criteria entered and within the current scale)."
+    },
+    "outOfScale": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "criterion-key.json"
+      },
+      "description": "Criteria entered but outside the current scale (displayed \"hors échelle\", FR-011)."
+    },
+    "computed": {
+      "oneOf": [
+        {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "criterion-key.json"
+          },
+          "additionalProperties": {
+            "$ref": "exact-value.json"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "By key of methodDefinition.computedValues; null when not complete."
+    },
+    "explanation": {
+      "type": ["string", "null"],
+      "description": "Calculation detail with the real values (FR-016), written by the method; null when not complete."
+    },
+    "rank": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    }
+  }
+}

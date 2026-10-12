@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { readdirSync } from 'node:fs';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { SESSION_STATE_RULES, validateContract } from './validate.mjs';
@@ -189,7 +190,7 @@ test('une opération OpenAPI 3.2 additionalOperations hors surface est refusée'
 
 test('la sonde de santé est obligatoire', async () => {
   const dir = copyContract();
-  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/methods:');
+  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/healthz:');
   const { errors } = await validateContract(dir);
   assert.ok(hasError(errors, 'surface REST', 'GET /api/health'), errors.join('\n'));
 });
@@ -244,7 +245,7 @@ test("le point d'extension sessionState applique les règles métier aux exemple
     type: 'object',
   };
   writeFileSync(join(dir, 'schemas/session-state.json'), JSON.stringify(stateSchema));
-  mkdirSync(join(dir, 'examples/session-state'));
+  mkdirSync(join(dir, 'examples/session-state'), { recursive: true });
   writeFileSync(join(dir, 'examples/session-state/a.json'), JSON.stringify({ broken: true }));
   SESSION_STATE_RULES.push((state, fail) => {
     if (state.broken) fail('état cassé');
@@ -255,4 +256,64 @@ test("le point d'extension sessionState applique les règles métier aux exemple
   } finally {
     SESSION_STATE_RULES.pop();
   }
+});
+
+test('aucun schéma ne nomme un critère ou une valeur du WSJF en dehors des exemples (FR-017a, FR-017b)', () => {
+  const forbidden = ['bv', 'tc', 'rrOe', 'js', 'cod', 'wsjf'];
+  const found = [];
+  // Parcourt toutes les clés et toutes les valeurs texte : seuls les mots entiers comptent.
+  const visit = (node, file, path) => {
+    const check = (text) => {
+      for (const word of forbidden) {
+        if (new RegExp(`(^|[^A-Za-z0-9])${word}([^A-Za-z0-9]|$)`, 'i').test(text))
+          found.push(`${file} ${path} : ${word}`);
+      }
+    };
+    if (typeof node === 'string') check(node);
+    else if (Array.isArray(node)) node.forEach((n, i) => visit(n, file, `${path}[${i}]`));
+    else if (node && typeof node === 'object') {
+      for (const [key, value] of Object.entries(node)) {
+        check(key);
+        visit(value, file, `${path}.${key}`);
+      }
+    }
+  };
+  for (const file of readdirSync(join(source, 'schemas')).filter((f) => f.endsWith('.json'))) {
+    visit(JSON.parse(readFileSync(join(source, 'schemas', file), 'utf8')), file, '');
+  }
+  assert.deepEqual(found, []);
+});
+
+test('un schéma qui nomme un critère du WSJF est détecté par la vérification de généricité', () => {
+  // La vérification ci-dessus doit mordre : elle trouve « bv » dans un schéma falsifié.
+  const re = /(^|[^A-Za-z0-9])bv([^A-Za-z0-9]|$)/i;
+  assert.ok(re.test('required: bv'));
+  assert.ok(!re.test('bvx'));
+});
+
+test('un sessionState sans methodDefinition ou sans allowedValues est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/session-state/wsjf-facilitator.json', (s) => {
+    delete s.methodDefinition;
+    delete s.scale.allowedValues;
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/session-state/wsjf-facilitator.json', 'methodDefinition'),
+    errors.join('\n'),
+  );
+  assert.ok(hasError(errors, 'examples/session-state/wsjf-facilitator.json', 'allowedValues'));
+});
+
+test('un critère à zéro ou un pseudo trop long dans une requête est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/add-feature/with-criteria.json', (s) => {
+    s.criteria.bv = 0;
+  });
+  editJson(dir, 'examples/join-session-request/pseudo-only.json', (s) => {
+    s.pseudo = 'x'.repeat(41);
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, 'examples/add-feature/with-criteria.json'), errors.join('\n'));
+  assert.ok(hasError(errors, 'examples/join-session-request/pseudo-only.json', 'pseudo'));
 });

@@ -1,0 +1,12 @@
+{
+  "type": "addFeature",
+  "externalId": "F-1",
+  "title": "Connexion SSO",
+  "description": "Permettre la connexion unique via l'annuaire de l'entreprise.",
+  "criteria": {
+    "bv": 8,
+    "tc": 5,
+    "rrOe": 3,
+    "js": 4
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "join-session-response.json",
+  "title": "Join session response",
+  "description": "201 of POST /api/sessions/{sessionId}/participants: the participant token to send in `hello`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["participantToken"],
+  "properties": {
+    "participantToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  }
+}

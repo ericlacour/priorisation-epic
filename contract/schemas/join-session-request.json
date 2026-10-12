@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "join-session-request.json",
+  "title": "Join session request",
+  "description": "Body of POST /api/sessions/{sessionId}/participants (FR-002, FR-003). A pseudo already taken gives 409 PseudoTaken, unless its owner has been absent for 10 minutes: the newcomer then takes that participant over.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pseudo"],
+  "properties": {
+    "pseudo": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "businessRole": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    }
+  }
+}
