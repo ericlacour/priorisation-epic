@@ -307,7 +307,7 @@ components:
             required: [participantId, completedCount]
             properties:
               participantId: { type: string, format: uuid }
-              completedCount: { type: integer }
+              completedCount: { type: integer, description: 'Features of the round with at least one criterion entered (FR-019)' }
         myVotes:
           type: object
           description: Recipient's own votes, by featureId (only ones visible while OPEN)
@@ -329,15 +329,19 @@ components:
                       required: [participantId, voted]
                       properties:
                         participantId: { type: string, format: uuid }
-                        voted: { type: boolean }
-              min: { $ref: '#/components/schemas/criteria' }
-              max: { $ref: '#/components/schemas/criteria' }
+                        voted: { type: boolean, description: 'True when at least one criterion is entered; a null criterion means "no opinion" (FR-019)' }
+              min:
+                description: Over entered values only; null for a criterion nobody entered (FR-020)
+                $ref: '#/components/schemas/criteria'
+              max:
+                description: Over entered values only; null for a criterion nobody entered (FR-020)
+                $ref: '#/components/schemas/criteria'
               largeSpread:
                 type: array
                 description: Criteria where max - min > 3 (FR-020)
                 items: { type: string, enum: [bv, tc, rrOe, js] }
               unanimous:
-                description: Value per criterion when every voter entered the same one, else null; prefills consensus (FR-021)
+                description: Value per criterion when everyone who entered a value for it entered the same one, else null (also null when nobody entered one); prefills consensus (FR-021)
                 $ref: '#/components/schemas/criteria'
     sessionState:
       type: object

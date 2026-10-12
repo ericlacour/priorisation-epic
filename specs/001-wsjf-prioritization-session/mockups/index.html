@@ -256,6 +256,7 @@ tr:first-child .rank { background: var(--primary); color: var(--primary-fg); }
 .minmax td { font-weight: 700; background: var(--surface-muted); }
 .spread { color: var(--warning); }
 .novote td { color: var(--muted); font-style: italic; }
+.noopinion { color: var(--muted); font-style: italic; }
 
 /* Aperçu import */
 .stats { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -726,7 +727,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
 </section>
 
 <!-- ======================= 5. TOUR EN COURS : PARTICIPANT ======================= -->
-<section class="screen fit fit-vote" id="s5" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : le panneau de vote et le tableau défilent chacun de leur côté. US2, FR-016a, FR-019, FR-019a, SC-004. Vue d'alice (participante). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
+<section class="screen fit fit-vote" id="s5" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : le panneau de vote et le tableau défilent chacun de leur côté. US2, FR-016a, FR-019, FR-019a, SC-004. Vue d'alice (participante). Un critère peut rester vide : il vaut « sans avis » (F-1 : JS non renseigné). Les fonctionnalités du tour sont masquées (valeurs, CoD, WSJF) et placées en fin de tableau.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Échelle 1 à 10</div></div>
@@ -740,14 +741,14 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
       <div class="vote-col" style="display:grid;gap:16px">
         <div class="card no-phone vote-card" style="display:grid;gap:12px">
           <h2 style="margin:0">Votre vote</h2>
-          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10 pour chaque critère. Les définitions sont dans l'encadré « Comprendre le WSJF », à droite.</p>
+          <p class="help" style="margin:0">Saisissez un nombre entier entre 1 et 10. Laissez vide un critère sur lequel vous n'avez pas d'avis (par exemple le JS, si ce n'est pas votre domaine). Les définitions sont dans l'encadré « Comprendre le WSJF », à droite.</p>
           <div class="vote-feature done">
             <div class="actions" style="justify-content:space-between"><b><a href="#" class="fid" data-go="s4c">F-1</a> · Paiement en un clic</b><span class="badge live">Noté</span></div>
             <div class="vote-inputs">
               <label>BV · Business Value<input class="input" inputmode="numeric" value="8"></label>
               <label>TC · Time Criticality<input class="input" inputmode="numeric" value="4"></label>
               <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" value="3"></label>
-              <label>JS · Job Size<input class="input" inputmode="numeric" value="5"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="sans avis"></label>
             </div>
           </div>
           <div class="vote-feature">
@@ -756,17 +757,17 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
               <label>BV · Business Value<input class="input" inputmode="numeric" value="3"></label>
               <label>TC · Time Criticality<input class="input error" inputmode="numeric" value="12" aria-describedby="tc-err"></label>
               <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" value="2,5" aria-invalid="true"></label>
-              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="sans avis"></label>
             </div>
             <p class="err small" id="tc-err" style="margin:0;color:var(--danger)">TC : saisissez un nombre entier entre 1 et 10. RR/OE : « 2,5 » n'est pas un nombre entier.</p>
           </div>
           <div class="vote-feature">
             <div class="actions" style="justify-content:space-between"><b><a href="#" class="fid" data-go="s4c">F-8</a> · Réservation de créneau de livraison</b><span class="badge">À noter</span></div>
             <div class="vote-inputs">
-              <label>BV · Business Value<input class="input" inputmode="numeric" placeholder="—"></label>
-              <label>TC · Time Criticality<input class="input" inputmode="numeric" placeholder="—"></label>
-              <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" placeholder="—"></label>
-              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="—"></label>
+              <label>BV · Business Value<input class="input" inputmode="numeric" placeholder="sans avis"></label>
+              <label>TC · Time Criticality<input class="input" inputmode="numeric" placeholder="sans avis"></label>
+              <label>RR/OE · Risk Reduction / Opportunity Enablement<input class="input" inputmode="numeric" placeholder="sans avis"></label>
+              <label>JS · Job Size<input class="input" inputmode="numeric" placeholder="sans avis"></label>
             </div>
           </div>
         </div>
@@ -817,7 +818,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
 </section>
 
 <!-- ======================= 6. RÉVÉLATION ET CONSENSUS ======================= -->
-<section class="screen fit fit-reveal" id="s6" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible. FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Écart important = maximum moins minimum strictement supérieur à 3. Les champs de consensus sont vides, sauf si tous les votants ont saisi la même valeur.">
+<section class="screen fit fit-reveal" id="s6" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible. FR-020 à FR-022. Vue de l'animateur après révélation du tour 2. Écart important = maximum moins minimum strictement supérieur à 3. Les champs de consensus sont vides, sauf si tous ceux qui ont donné une valeur ont saisi la même. Un critère laissé vide s'affiche « sans avis » et n'entre ni dans le min – max ni dans le préremplissage (FR-019).">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous)</div></div>
@@ -834,10 +835,10 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
         <table class="reveal-grid">
           <thead><tr><th>Participant</th><th><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th></tr></thead>
           <tbody>
-            <tr><td>alice</td><td>8</td><td>4</td><td>3</td><td>5</td></tr>
+            <tr><td>alice</td><td>8</td><td>4</td><td>3</td><td class="noopinion">sans avis</td></tr>
             <tr><td>eric</td><td>8</td><td>5</td><td>3</td><td>4</td></tr>
             <tr class="novote"><td>bob</td><td colspan="4">n'a pas voté</td></tr>
-            <tr class="minmax"><td>Min – max</td><td>8 – 8</td><td>4 – 5</td><td>3 – 3</td><td>4 – 5</td></tr>
+            <tr class="minmax"><td>Min – max</td><td>8 – 8</td><td>4 – 5</td><td>3 – 3</td><td>4 – 4</td></tr>
           </tbody>
         </table>
       </div>
@@ -846,9 +847,9 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
         <label class="small"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button> <input class="input" style="width:64px;min-height:36px" value="8" title="Prérempli : tous les votants ont saisi 8"></label>
         <label class="small"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button> <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
         <label class="small"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button> <input class="input" style="width:64px;min-height:36px" value="3" title="Prérempli : tous les votants ont saisi 3"></label>
-        <label class="small"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button> <input class="input" style="width:64px;min-height:36px" placeholder="—"></label>
+        <label class="small"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button> <input class="input" style="width:64px;min-height:36px" value="4" title="Prérempli : seul eric a donné une valeur (alice : sans avis)"></label>
         <button class="btn primary sm" type="button" disabled>Valider</button>
-        <span class="help">BV et RR/OE sont préremplis car tous les votants ont saisi la même valeur.</span>
+        <span class="help">BV, RR/OE et JS sont préremplis car tous ceux qui ont donné une valeur ont saisi la même. Les « sans avis » ne comptent pas.</span>
       </div>
     </div>
     <div class="card" style="display:grid;gap:12px">

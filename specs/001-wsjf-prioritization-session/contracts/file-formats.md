@@ -90,8 +90,8 @@ règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180
 - **Une ligne** par tour, fonctionnalité et participant **inscrit dans la session au
   moment de la révélation du tour**, animateur compris (la même liste que celle qui sert à
   afficher « n'a pas voté »), triée par tour, puis par
-  identifiant, puis par pseudo. `A voté` vaut `oui` ou `non`. Les critères non saisis
-  sont laissés vides.
+  identifiant, puis par pseudo. `A voté` vaut `oui` si au moins un critère est saisi,
+  sinon `non`. Les critères non saisis (« sans avis », FR-019) sont laissés vides.
 - **Seuls les tours révélés** sont exportés. Les votes d'un tour encore ouvert ne
   sortent jamais (SC-004).
 - Ce format n'est pas réimportable : les tours appartiennent à la session d'origine.

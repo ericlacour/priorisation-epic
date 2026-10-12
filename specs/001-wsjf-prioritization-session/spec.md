@@ -28,6 +28,7 @@
 - Q : comment consulter le descriptif d'une fonctionnalité sans surcharger l'écran ? → A: Clic sur l'identifiant, qui ouvre un panneau de détail (descriptif, valeurs, calcul).
 - Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile. Même règle pour les écrans du tour en cours et de la révélation.
 - Q : comment indiquer qu'une fonctionnalité est « à revoir » ? → A: Marque posée par l'animateur, avec un motif facultatif, sans effet sur le classement, pour la reprendre lors d'un prochain tour. Les valeurs sorties de l'échelle sont signalées séparément « hors échelle » (calculé).
+- Q : un participant peut-il ne pas noter un critère lors d'un tour (il ne sait pas, ou ce n'est pas son domaine, par exemple le JS) ? → A: Oui. Un critère laissé vide vaut « sans avis ». Il est ignoré dans le minimum, le maximum, l'écart important et le préremplissage du consensus.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -113,6 +114,10 @@ jour du tableau.
    votes des trois fonctionnalités deviennent visibles en même temps. **When** l'équipe
    s'accorde sur F-1 et F-3 mais pas sur F-2, **Then** l'animateur saisit les valeurs
    communes de F-1 et F-3 et lance un nouveau tour sur F-2 seule.
+8. **Given** un tour ouvert sur F-1, **When** alice saisit BV, TC et RR/OE mais laisse JS
+   vide, et que l'animateur saisit les quatre critères avec JS = 4, **Then** alice compte
+   comme ayant noté F-1. À la révélation, son JS apparaît « sans avis », le minimum et le
+   maximum du JS valent 4, et le JS retenu est prérempli à 4.
 
 ---
 
@@ -402,9 +407,13 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   propres valeurs pour les quatre critères de chaque fonctionnalité du tour, par **saisie
   directe** d'un nombre. La saisie est contrôlée : une valeur qui n'est pas un entier, qui
   sort de l'échelle ou, en Fibonacci, qui n'appartient pas à la suite est refusée avec un
-  message qui donne les valeurs autorisées (FR-027). Personne, y
-  compris l'animateur, ne voit les valeurs des autres avant la révélation. Tous voient,
-  pour chaque participant, combien de fonctionnalités du tour il a déjà notées.
+  message qui donne les valeurs autorisées (FR-027). Chaque critère est **facultatif** :
+  un participant peut laisser vide un critère sur lequel il n'a pas d'avis (par exemple le
+  JS, s'il n'est pas de son domaine). Un critère vide vaut « sans avis ». Une
+  fonctionnalité compte comme **notée** dès qu'au moins un de ses critères a une valeur.
+  Personne, y compris l'animateur, ne voit les valeurs des autres avant la révélation.
+  Tous voient, pour chaque participant, combien de fonctionnalités du tour il a déjà
+  notées.
 - **FR-019a**: Pendant un tour ouvert, pour éviter l'effet d'ancrage, le système DOIT
   masquer aux participants, pour les seules fonctionnalités du tour, les valeurs retenues
   (BV, TC, RR/OE, JS), le CoD, le WSJF et les votes des tours précédents. Ces
@@ -415,13 +424,17 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   sur toutes les fonctionnalités du tour à la fois. Après révélation, pour chaque
   fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
   maximum par critère sont visibles par tous, et le tour n'accepte plus de vote. Un
-  critère est signalé **« écart important »** quand l'écart entre le maximum et le minimum
-  est **strictement supérieur à 3**.
+  critère laissé vide est affiché « sans avis » et n'entre ni dans le minimum ni dans le
+  maximum. Si personne n'a donné de valeur pour un critère, son minimum et son maximum
+  restent vides. Un participant qui n'a donné aucune valeur pour une fonctionnalité est
+  affiché « n'a pas voté ». Un critère est signalé **« écart important »** quand l'écart
+  entre le maximum et le minimum est **strictement supérieur à 3**.
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
   retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité (voir FR-006).
   Les champs de consensus sont **vides** au départ. Seul un critère pour lequel **tous
-  les votants** ont saisi la même valeur est prérempli avec cette valeur. Les participants
-  qui n'ont pas voté ne comptent pas.
+  ceux qui ont donné une valeur** ont saisi la même est prérempli avec cette valeur. Les
+  participants qui n'ont pas voté, et les « sans avis » sur ce critère, ne comptent pas.
+  Un critère sans aucune valeur n'est pas prérempli.
 - **FR-022**: Après révélation, l'animateur DOIT pouvoir lancer un nouveau tour sur une
   sélection des fonctionnalités du tour précédent (typiquement celles sans accord), sans
   limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
@@ -472,7 +485,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   choisies par l'animateur. Il a un numéro d'ordre, un statut (ouvert, révélé), la liste
   de ses fonctionnalités et des votes.
 - **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant pour une
-  fonctionnalité dans un tour.
+  fonctionnalité dans un tour. Chaque valeur est facultative (« sans avis »).
 - **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025),
   enregistrée mais non affichée en V1. Elle a un auteur (pseudo), une date, l'élément
   modifié, l'ancienne et la nouvelle valeur.

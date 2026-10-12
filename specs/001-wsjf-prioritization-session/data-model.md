@@ -138,22 +138,26 @@ font partie du tour (au moins une, FR-018).
 |-------|------|--------|
 | id | UUID | |
 | roundId, featureId, participantId | UUID | Unique sur (`roundId`, `featureId`, `participantId`) |
-| bv, tc, rrOe, js | entier, facultatif | Chaque valeur doit appartenir à l'échelle courante de la session |
+| bv, tc, rrOe, js | entier, facultatif | Chaque valeur doit appartenir à l'échelle courante de la session. Vide = « sans avis » (FR-019) |
 | updatedAt | horodatage | |
 
 **Règles de visibilité** (FR-019, FR-019a, SC-004), appliquées par le serveur à chaque
 `sessionState` envoyé, connexion par connexion, ainsi qu'aux réponses REST et aux exports :
 - Tant que le tour est `OPEN`, chacun ne voit que ses propres valeurs. Les autres membres
-  voient seulement, pour chaque participant, le nombre de fonctionnalités dont les quatre
-  critères sont renseignés.
+  voient seulement, pour chaque participant, le nombre de fonctionnalités notées, c'est-à-dire
+  ayant au moins un critère renseigné (FR-019).
 - Tant que le tour est `OPEN`, un participant non animateur voit les fonctionnalités du tour
   sans `bv`, `tc`, `rrOe`, `js`, `cod`, `wsjf`, ni votes des tours précédents. Elles
   portent le marqueur `votingInProgress = true` et sont placées en fin de tableau.
   L'animateur, lui, voit les valeurs retenues.
 - Une fois le tour `REVEALED`, tout le monde voit tous les votes, ainsi que le minimum et le
-  maximum de chaque critère. Le domaine calcule aussi, par critère, l'**écart important**
+  maximum de chaque critère, calculés sur les seules valeurs saisies : un critère vide
+  (« sans avis ») est ignoré, et un critère sans aucune valeur a un minimum et un maximum
+  vides. Le domaine calcule aussi, par critère, l'**écart important**
   (maximum moins minimum strictement supérieur à 3, FR-020) et la **valeur unanime**
-  (identique chez tous les votants, sinon vide), qui préremplit le consensus (FR-021). Les participants qui n'ont pas voté sont signalés. Ce sont
+  (identique chez tous ceux qui ont donné une valeur pour ce critère, vide si elles diffèrent
+  ou s'il n'y en a aucune), qui préremplit le consensus (FR-021). Les participants qui n'ont
+  donné aucune valeur pour une fonctionnalité sont signalés « n'a pas voté ». Ce sont
   les participants inscrits dans la session au moment de la révélation, animateur compris.
 - Tous les tours révélés restent visibles par tous, du plus récent au plus ancien, avec
   leurs votes (`revealedRounds` dans `sessionState`, FR-022, écran 9). Un tour encore
