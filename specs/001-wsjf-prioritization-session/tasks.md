@@ -90,17 +90,17 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
     - `backend` (Temurin 25 : `./mvnw -B verify`, puis build de l'image Docker) ;
     - `frontend` (Node 24 : `npm ci`, `npm test`, build de production avec `API_BASE_URL=https://api.example.invalid`, build e2e, `npx playwright install --with-deps chromium firefox webkit`, `npm run e2e`) ;
     - `journeys`, qui reste vide jusqu'à T048.
-- [ ] T011 [P] Créer `.github/dependabot.yml` avec les conventions de PP : `.github/dependabot.yml`.
+- [X] T011 [P] Créer `.github/dependabot.yml` avec les conventions de PP : `.github/dependabot.yml`.
   - Écosystèmes : `npm` (`/frontend`, `/contract`), `maven` (`/backend`), `docker` (`/backend`) et `github-actions` (`/`).
   - Fréquence `interval: monthly`, `cooldown.default-days: 7`, préfixes `chore(deps)` et `chore(ci)`.
   - Groupes : `angular` (`@angular/*` et `typescript`), mineures et patchs par écosystème, `temurin`.
   - Exclusions : versions majeures et mineures de `typescript`, version majeure de `eclipse-temurin`.
-- [ ] T012 [P] Créer `.github/workflows/codeql.yml`.
+- [X] T012 [P] Créer `.github/workflows/codeql.yml`.
   - Langages `java-kotlin` (build manuel avec `./mvnw -B -DskipTests package` dans `backend/`), `javascript-typescript` et `actions`.
   - Déclencheurs : `pull_request`, `push` sur `main` et `schedule` hebdomadaire.
   - Permissions `security-events: write`, `contents: read`, `actions: read`.
-- [ ] T013 [P] Créer `.github/workflows/gitleaks.yml` (`gitleaks/gitleaks-action` sur `pull_request` et `push` sur `main`, avec `fetch-depth: 0`) et `.gitleaks.toml` (`[extend] useDefault = true`, liste blanche limitée aux exemples factices de `contract/examples/`)
-- [ ] T014 [P] Documenter dans `README.md`, section « Sécurité du dépôt », les réglages GitHub à activer à la main :
+- [X] T013 [P] Créer `.github/workflows/gitleaks.yml` (`gitleaks/gitleaks-action` sur `pull_request` et `push` sur `main`, avec `fetch-depth: 0`) et `.gitleaks.toml` (`[extend] useDefault = true`, liste blanche limitée aux exemples factices de `contract/examples/`)
+- [X] T014 [P] Documenter dans `README.md`, section « Sécurité du dépôt », les réglages GitHub à activer à la main :
   - alertes et mises à jour de sécurité Dependabot ;
   - protection de `main`, avec CI, CodeQL et Gitleaks obligatoires et une relecture ;
   - règle de publication : avant de poser une étiquette `v*`, vérifier dans *Security → Dependabot alerts* et *Code scanning* qu'aucune alerte haute ou critique n'est ouverte, sinon documenter la dérogation dans la PR ou l'issue correspondante (constitution, outillage de sécurité).

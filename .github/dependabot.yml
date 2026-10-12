@@ -1,0 +1,91 @@
+# Mises à jour des dépendances (constitution, outillage de sécurité ; research R15, tâche T011).
+# Conventions de planning-poker : mensuel, 7 jours de délai, mineures et patchs groupés.
+# Les écosystèmes npm, maven et docker visent des dossiers créés au début de
+# l'implémentation (T001 à T003, T015). D'ici là, Dependabot signale « fichier de dépendances
+# introuvable » dans ses journaux pour ces entrées, sans effet sur les PR.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      angular:
+        patterns:
+          - "@angular/*"
+          - "@angular-devkit/*"
+          - "typescript"
+      npm-minor-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # TypeScript ne change de version majeure ou mineure qu'avec un `ng update`.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+
+  - package-ecosystem: npm
+    directory: /contract
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      contract-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      maven-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      temurin:
+        patterns:
+          - "eclipse-temurin*"
+    ignore:
+      # Pas de changement de version majeure de Java par Dependabot.
+      - dependency-name: eclipse-temurin
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch
