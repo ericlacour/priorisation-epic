@@ -38,6 +38,8 @@ export const MESSAGES = {
     methodLoading: 'Chargement des méthodes…',
     methodsError: 'Les méthodes ne se chargent pas : la méthode par défaut sera utilisée.',
     methodDetail: 'Voir le détail de la méthode',
+    methodOption: (name: string, version: number, formula: string) =>
+      `${name} (version ${version}) : ${formula}`,
     submit: 'Créer la session',
     creating: 'Création…',
     nameRequired: 'Saisissez un nom de session (120 caractères au plus).',

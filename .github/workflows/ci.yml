@@ -122,9 +122,56 @@ jobs:
           path: frontend/test-results/
           retention-days: 7
 
-  # Parcours complets contre le vrai webservice : vide jusqu'à T048.
+  # Parcours complets contre le vrai webservice (jar) et le front construit, sur PostgreSQL.
   journeys:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: journeys
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d journeys"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
-      - run: echo "Les parcours sont ajoutés avec T048."
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Webservice
+        working-directory: backend
+        run: ./mvnw -B package -DskipTests
+      - name: Front (vise le webservice local, http://localhost:8080)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build:e2e
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Parcours
+        working-directory: frontend
+        run: npm run e2e:journeys
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/journeys
+      - name: Traces des parcours en échec
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: journeys-test-results
+          path: frontend/test-results/
+          retention-days: 7
