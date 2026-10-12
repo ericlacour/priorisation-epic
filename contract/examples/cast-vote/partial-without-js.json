@@ -1,0 +1,10 @@
+{
+  "type": "castVote",
+  "roundId": "b0c1d2e3-f4a5-4b6c-8d7e-9f0a1b2c3d4e",
+  "featureId": "6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f",
+  "criteria": {
+    "bv": 8,
+    "tc": 5,
+    "rrOe": 3
+  }
+}

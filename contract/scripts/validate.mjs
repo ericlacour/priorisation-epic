@@ -241,9 +241,55 @@ function checkProblemResponses(openapi, ajv, problems) {
   return errors;
 }
 
-// Point d'extension : règles métier sur `sessionState` qu'un JSON Schema ne sait pas exprimer (ajoutées en T070).
-// Chaque règle reçoit l'état d'un exemple et une fonction `fail(message)`.
-export const SESSION_STATE_RULES = [];
+// Règles métier sur `sessionState` qu'un JSON Schema ne sait pas exprimer : le masquage du vote (FR-019, FR-019a,
+// SC-004). Chaque règle reçoit l'état d'un exemple et une fonction `fail(message)`. Le tableau est aussi un point
+// d'extension pour les tests.
+const isFacilitator = (state) => state.me?.role === 'FACILITATOR';
+
+export const SESSION_STATE_RULES = [
+  // Pendant un tour OPEN, `results` vaut null ; un tour REVEALED a ses résultats et aucun vote personnel.
+  (state, fail) => {
+    for (const round of [...(state.openRounds ?? []), ...(state.lastRevealedRounds ?? [])]) {
+      if (round.status === 'OPEN' && round.results !== null)
+        fail(`le tour ${round.number} est OPEN : results doit valoir null`);
+      if (round.status === 'REVEALED' && round.results === null)
+        fail(`le tour ${round.number} est REVEALED : results ne doit pas être null`);
+      if (round.status === 'REVEALED' && Object.keys(round.myVotes).length > 0)
+        fail(`le tour ${round.number} est REVEALED : myVotes doit être vide`);
+    }
+    for (const round of state.openRounds ?? [])
+      if (round.status !== 'OPEN') fail(`openRounds ne contient que des tours OPEN`);
+    for (const round of state.lastRevealedRounds ?? [])
+      if (round.status !== 'REVEALED')
+        fail(`lastRevealedRounds ne contient que des tours REVEALED`);
+  },
+  // `myVotes` ne contient que des votes sur des fonctionnalités du tour, et rien pour une consultation sans `me`.
+  (state, fail) => {
+    for (const round of state.openRounds ?? []) {
+      const keys = Object.keys(round.myVotes);
+      if (state.me === null && keys.length > 0)
+        fail(`le tour ${round.number} : myVotes doit être vide sans destinataire (me est null)`);
+      for (const key of keys)
+        if (!round.featureIds.includes(key))
+          fail(`le tour ${round.number} : myVotes contient un vote hors du tour (${key})`);
+    }
+  },
+  // Pour un non-animateur, une fonctionnalité en vote n'a ni critères ni score, et celles d'un tour OPEN sont
+  // marquées `votingInProgress`.
+  (state, fail) => {
+    if (isFacilitator(state)) return;
+    const open = new Set((state.openRounds ?? []).flatMap((r) => r.featureIds));
+    for (const feature of state.features ?? []) {
+      if (open.has(feature.id) && feature.votingInProgress !== true)
+        fail(`${feature.externalId} est dans un tour OPEN : votingInProgress doit valoir true`);
+      if (
+        feature.votingInProgress === true &&
+        (feature.criteria !== null || feature.score !== null)
+      )
+        fail(`${feature.externalId} est en vote : criteria et score doivent valoir null`);
+    }
+  },
+];
 
 function checkSessionStates(states, rules = SESSION_STATE_RULES) {
   const errors = [];

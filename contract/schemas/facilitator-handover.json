@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "facilitator-handover.json",
+  "title": "facilitatorHandover (server → client)",
+  "description": "Sent only to the connections of the participant who just received the facilitator role (FR-002a): the new animation token, to be stored as the private link.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "animationToken"],
+  "properties": {
+    "type": {
+      "const": "facilitatorHandover"
+    },
+    "animationToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  }
+}

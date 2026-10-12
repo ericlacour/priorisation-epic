@@ -317,3 +317,70 @@ test('un critère à zéro ou un pseudo trop long dans une requête est refusé'
   assert.ok(hasError(errors, 'examples/add-feature/with-criteria.json'), errors.join('\n'));
   assert.ok(hasError(errors, 'examples/join-session-request/pseudo-only.json', 'pseudo'));
 });
+
+// Règles de masquage (T070) : chaque exemple de tour est falsifié et la validation doit le refuser.
+const maskingCase = (title, example, change, ...parts) =>
+  test(title, async () => {
+    const dir = copyContract();
+    editJson(dir, `examples/session-state/${example}.json`, change);
+    const { errors } = await validateContract(dir);
+    assert.ok(
+      hasError(errors, `examples/session-state/${example}.json`, ...parts),
+      errors.join('\n'),
+    );
+  });
+
+maskingCase(
+  'un tour OPEN dont results n’est pas null est refusé',
+  'open-round-participant',
+  (s) => (s.openRounds[0].results = []),
+  'results doit valoir null',
+);
+maskingCase(
+  'un tour REVEALED sans résultats est refusé',
+  'revealed-with-non-voter',
+  (s) => (s.lastRevealedRounds[0].results = null),
+  'results ne doit pas être null',
+);
+maskingCase(
+  'un tour REVEALED qui garde des votes personnels est refusé',
+  'revealed-with-non-voter',
+  (s) => (s.lastRevealedRounds[0].myVotes = { [s.lastRevealedRounds[0].featureIds[0]]: { bv: 1 } }),
+  'myVotes doit être vide',
+);
+maskingCase(
+  'un vote personnel hors du tour est refusé',
+  'open-round-participant',
+  (s) => (s.openRounds[0].myVotes['00000000-0000-4000-8000-000000000000'] = { bv: 1 }),
+  'hors du tour',
+);
+maskingCase(
+  'une fonctionnalité en vote dont un participant voit les critères est refusée',
+  'open-round-participant',
+  (s) => (s.features.find((f) => f.votingInProgress).criteria = { bv: 8 }),
+  'criteria et score doivent valoir null',
+);
+maskingCase(
+  'une fonctionnalité en vote dont un participant voit le score est refusée',
+  'open-round-participant',
+  (s) => {
+    const f = s.features.find((x) => x.votingInProgress);
+    f.score = { complete: false, outOfScale: [], computed: null, explanation: null, rank: null };
+  },
+  'criteria et score doivent valoir null',
+);
+maskingCase(
+  'une fonctionnalité d’un tour OPEN non marquée votingInProgress est refusée pour un participant',
+  'open-round-participant',
+  (s) => delete s.features.find((f) => f.votingInProgress).votingInProgress,
+  'votingInProgress doit valoir true',
+);
+
+test('l’animateur voit les valeurs retenues d’une fonctionnalité en vote', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/session-state/open-round-facilitator.json', (s) => {
+    assert.ok(s.features.some((f) => f.votingInProgress && f.criteria !== null));
+  });
+  const { errors } = await validateContract(dir);
+  assert.deepEqual(errors, []);
+});

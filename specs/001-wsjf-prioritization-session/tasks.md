@@ -358,7 +358,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Contrat de User Story 2
 
-- [ ] T070 [US2] Ajouter au contrat :
+- [x] T070 [US2] Ajouter au contrat :
   - les schémas `contract/schemas/open-round.json`, `cast-vote.json`, `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json`, `change-status.json` (`START` en US2 ; `CLOSE` et `REOPEN` ajoutés en US5) et `round.json`, les codes d'erreur `SESSION_NOT_STARTED` et `PARTICIPANT_OFFLINE` dans `error.json`, et compléter `session-state.json` avec `openRounds` et `lastRevealedRounds` ;
   - leurs exemples, dont `examples/session-state/open-round-participant.json`, `open-round-facilitator.json` et `revealed-with-non-voter.json`.
 

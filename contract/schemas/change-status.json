@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "change-status.json",
+  "title": "changeStatus (client → server)",
+  "description": "Facilitator only. START moves the session from PREPARATION to IN_PROGRESS (FR-004); on a session already in progress it changes nothing. CLOSE and REOPEN are added by user story 5.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "action"],
+  "properties": {
+    "type": {
+      "const": "changeStatus"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["START"]
+    }
+  }
+}

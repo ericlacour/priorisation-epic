@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cast-vote.json",
+  "title": "castVote (client → server)",
+  "description": "Any member, the facilitator included, votes on a feature of an OPEN round (FR-019). `criteria` replaces the sender's previous vote on that feature: a missing key or null means \"sans avis\", an empty object clears the vote. Values outside the scale get INVALID_VALUE, unknown keys UNKNOWN_CRITERION, a revealed round ROUND_REVEALED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "roundId", "featureId", "criteria"],
+  "properties": {
+    "type": {
+      "const": "castVote"
+    },
+    "roundId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criteria": {
+      "$ref": "criteria.json"
+    }
+  }
+}

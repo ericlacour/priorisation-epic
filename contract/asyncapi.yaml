@@ -64,6 +64,18 @@ channels:
         $ref: '#/components/messages/deleteFeature'
       sessionState:
         $ref: '#/components/messages/sessionState'
+      changeStatus:
+        $ref: '#/components/messages/changeStatus'
+      openRound:
+        $ref: '#/components/messages/openRound'
+      castVote:
+        $ref: '#/components/messages/castVote'
+      revealRound:
+        $ref: '#/components/messages/revealRound'
+      transferFacilitator:
+        $ref: '#/components/messages/transferFacilitator'
+      facilitatorHandover:
+        $ref: '#/components/messages/facilitatorHandover'
     x-close-codes:
       - code: 4401
         reason: Unknown participant token. The client shows the Join screen.
@@ -131,6 +143,48 @@ operations:
     summary: Full state, filtered for each recipient, sent after hello and after every accepted change.
     messages:
       - $ref: '#/channels/session/messages/sessionState'
+  receiveChangeStatus:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Start the session (FR-004) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/changeStatus'
+  receiveOpenRound:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Open a masked voting round on chosen features (FR-018) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/openRound'
+  receiveCastVote:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Vote on a feature of an open round (FR-019) - any member.
+    messages:
+      - $ref: '#/channels/session/messages/castVote'
+  receiveRevealRound:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Reveal an open round (FR-020) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/revealRound'
+  receiveTransferFacilitator:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Hand the facilitator role to a connected participant (FR-002a) - facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/transferFacilitator'
+  sendFacilitatorHandover:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: The new animation token, sent only to the new facilitator (FR-002a).
+    messages:
+      - $ref: '#/channels/session/messages/facilitatorHandover'
 
 components:
   messages:
@@ -182,3 +236,39 @@ components:
       summary: Full state of the session for one recipient, including the method definition.
       payload:
         $ref: './schemas/session-state.json'
+    changeStatus:
+      name: changeStatus
+      title: changeStatus
+      summary: Start the session (FR-004) - facilitator only.
+      payload:
+        $ref: './schemas/change-status.json'
+    openRound:
+      name: openRound
+      title: openRound
+      summary: Open a masked voting round on chosen features (FR-018) - facilitator only.
+      payload:
+        $ref: './schemas/open-round.json'
+    castVote:
+      name: castVote
+      title: castVote
+      summary: Vote on a feature of an open round (FR-019) - any member.
+      payload:
+        $ref: './schemas/cast-vote.json'
+    revealRound:
+      name: revealRound
+      title: revealRound
+      summary: Reveal an open round (FR-020) - facilitator only.
+      payload:
+        $ref: './schemas/reveal-round.json'
+    transferFacilitator:
+      name: transferFacilitator
+      title: transferFacilitator
+      summary: Hand the facilitator role to a connected participant (FR-002a) - facilitator only.
+      payload:
+        $ref: './schemas/transfer-facilitator.json'
+    facilitatorHandover:
+      name: facilitatorHandover
+      title: facilitatorHandover
+      summary: The new animation token, sent only to the new facilitator (FR-002a).
+      payload:
+        $ref: './schemas/facilitator-handover.json'

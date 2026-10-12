@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "transfer-facilitator.json",
+  "title": "transferFacilitator (client → server)",
+  "description": "Facilitator only. Hands the facilitator role to a participant who has an open connection (FR-002a); otherwise PARTICIPANT_OFFLINE and nothing changes. The old facilitator becomes a plain participant and its animation token stops giving rights.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "participantId"],
+  "properties": {
+    "type": {
+      "const": "transferFacilitator"
+    },
+    "participantId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

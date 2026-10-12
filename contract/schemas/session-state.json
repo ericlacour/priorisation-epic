@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "session-state.json",
   "title": "sessionState (server → client)",
-  "description": "Full state of the session, sent to a connection after hello and after every accepted change, filtered for its recipient. Also the body of GET /api/sessions/{sessionId}, where `me` is null (consultation without joining). Rounds are added by user story 2. The front builds columns, inputs, help and the method panel from `methodDefinition` only (FR-017b).",
+  "description": "Full state of the session, sent to a connection after hello and after every accepted change, filtered for its recipient. Also the body of GET /api/sessions/{sessionId}, where `me` is null (consultation without joining). Rounds (`openRounds`, `lastRevealedRounds`) come with user story 2. The front builds columns, inputs, help and the method panel from `methodDefinition` only (FR-017b).",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -136,6 +136,20 @@
         "$ref": "feature.json"
       },
       "description": "Sorted per FR-014: complete features by the method order then externalId, then the others by externalId."
+    },
+    "openRounds": {
+      "type": "array",
+      "items": {
+        "$ref": "round.json"
+      },
+      "description": "The rounds in progress (status OPEN), oldest first; absent means none. Filtered for the recipient (FR-019, FR-019a)."
+    },
+    "lastRevealedRounds": {
+      "type": "array",
+      "items": {
+        "$ref": "round.json"
+      },
+      "description": "Every revealed round, most recent first; absent means none (FR-022)."
     }
   }
 }
