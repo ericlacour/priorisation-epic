@@ -1,8 +1,13 @@
 package com.priorisationepic.adapter.in.ws;
 
 import com.priorisationepic.application.Change;
+import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.FeatureUseCase;
+import com.priorisationepic.application.RoundUseCase;
+import com.priorisationepic.application.VoteUseCase;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +50,21 @@ final class ClientMessages {
   /** {@code delete-feature.json} */
   record DeleteFeatureMessage(FeatureUseCase.Delete command) implements ClientMessage {}
 
+  /** {@code change-status.json} */
+  record ChangeStatusMessage(ChangeStatusUseCase.Action action) implements ClientMessage {}
+
+  /** {@code open-round.json} */
+  record OpenRoundMessage(RoundUseCase.Open command) implements ClientMessage {}
+
+  /** {@code cast-vote.json} */
+  record CastVoteMessage(VoteUseCase.Cast command) implements ClientMessage {}
+
+  /** {@code reveal-round.json} */
+  record RevealRoundMessage(UUID roundId) implements ClientMessage {}
+
+  /** {@code transfer-facilitator.json} */
+  record TransferFacilitatorMessage(UUID participantId) implements ClientMessage {}
+
   /** JSON invalide, {@code type} inconnu ou message hors schéma. */
   record Invalid() implements ClientMessage {}
 
@@ -64,6 +84,11 @@ final class ClientMessages {
       case "addFeature" -> addFeature(node);
       case "updateFeature" -> updateFeature(node);
       case "deleteFeature" -> deleteFeature(node);
+      case "changeStatus" -> changeStatus(node);
+      case "openRound" -> openRound(node);
+      case "castVote" -> castVote(node);
+      case "revealRound" -> revealRound(node);
+      case "transferFacilitator" -> transferFacilitator(node);
       default -> new Invalid();
     };
   }
@@ -164,6 +189,61 @@ final class ClientMessages {
         new FeatureUseCase.Delete(featureId, node.get("version").asLong()));
   }
 
+  private static ClientMessage changeStatus(JsonNode node) {
+    if (node.size() != 2 || !node.path("action").isString()) {
+      return new Invalid();
+    }
+    return "START".equals(node.get("action").asString())
+        ? new ChangeStatusMessage(ChangeStatusUseCase.Action.START)
+        : new Invalid();
+  }
+
+  private static ClientMessage openRound(JsonNode node) {
+    JsonNode ids = node.get("featureIds");
+    boolean withPrevious = node.has("previousRoundId");
+    if (!onlyFields(node, Set.of("type", "featureIds", "previousRoundId"))
+        || ids == null
+        || !ids.isArray()
+        || ids.isEmpty()) {
+      return new Invalid();
+    }
+    List<UUID> featureIds = new ArrayList<>();
+    for (JsonNode id : ids) {
+      UUID parsed = uuid(id);
+      if (parsed == null || featureIds.contains(parsed)) {
+        return new Invalid();
+      }
+      featureIds.add(parsed);
+    }
+    UUID previous = withPrevious ? uuid(node.get("previousRoundId")) : null;
+    if (withPrevious && previous == null) {
+      return new Invalid();
+    }
+    return new OpenRoundMessage(new RoundUseCase.Open(featureIds, previous));
+  }
+
+  private static ClientMessage castVote(JsonNode node) {
+    UUID roundId = uuid(node.get("roundId"));
+    UUID featureId = uuid(node.get("featureId"));
+    Map<String, Integer> criteria = criteria(node.get("criteria"));
+    if (node.size() != 4 || roundId == null || featureId == null || criteria == null) {
+      return new Invalid();
+    }
+    return new CastVoteMessage(new VoteUseCase.Cast(roundId, featureId, criteria));
+  }
+
+  private static ClientMessage revealRound(JsonNode node) {
+    UUID roundId = uuid(node.get("roundId"));
+    return node.size() == 2 && roundId != null ? new RevealRoundMessage(roundId) : new Invalid();
+  }
+
+  private static ClientMessage transferFacilitator(JsonNode node) {
+    UUID participantId = uuid(node.get("participantId"));
+    return node.size() == 2 && participantId != null
+        ? new TransferFacilitatorMessage(participantId)
+        : new Invalid();
+  }
+
   /** Un champ texte facultatif : absent, ou présent (éventuellement nul). */
   private static Change<String> text(JsonNode node, String field) {
     if (!node.has(field)) {
@@ -196,7 +276,10 @@ final class ClientMessages {
   }
 
   private static UUID featureId(JsonNode node) {
-    JsonNode value = node.get("featureId");
+    return uuid(node.get("featureId"));
+  }
+
+  private static UUID uuid(JsonNode value) {
     if (value == null || !value.isString()) {
       return null;
     }

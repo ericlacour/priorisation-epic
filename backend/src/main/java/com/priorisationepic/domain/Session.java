@@ -75,6 +75,11 @@ public record Session(
     return status == SessionStatus.CLOSED;
   }
 
+  /** Un tour de vote ne s'ouvre qu'en cours de session (FR-004, FR-018). */
+  public boolean canOpenRound() {
+    return status == SessionStatus.IN_PROGRESS;
+  }
+
   /** PREPARATION vers IN_PROGRESS. */
   public Session start() {
     return transition(SessionStatus.PREPARATION, SessionStatus.IN_PROGRESS);

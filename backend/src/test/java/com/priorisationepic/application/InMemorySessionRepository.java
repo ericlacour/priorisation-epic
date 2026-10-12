@@ -2,6 +2,7 @@ package com.priorisationepic.application;
 
 import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
+import com.priorisationepic.domain.SessionStatus;
 import com.priorisationepic.domain.Tokens;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +39,29 @@ public final class InMemorySessionRepository implements SessionRepository {
     Session next = sessions.get(sessionId).withVersion(sessions.get(sessionId).version() + 1);
     sessions.put(sessionId, next);
     return next.version();
+  }
+
+  @Override
+  public void updateStatus(SessionId sessionId, SessionStatus status) {
+    Session s = sessions.get(sessionId);
+    sessions.put(
+        sessionId,
+        new Session(
+            s.sessionId(),
+            s.animationTokenHash(),
+            s.name(),
+            status,
+            s.method(),
+            s.methodVersion(),
+            s.scale(),
+            s.createdAt(),
+            s.createdByPseudo(),
+            s.version()));
+  }
+
+  @Override
+  public void updateAnimationTokenHash(SessionId sessionId, String hash) {
+    sessions.put(sessionId, sessions.get(sessionId).withAnimationTokenHash(hash));
   }
 
   /** Remplace une session déjà enregistrée (pour mettre un test dans un statut donné). */

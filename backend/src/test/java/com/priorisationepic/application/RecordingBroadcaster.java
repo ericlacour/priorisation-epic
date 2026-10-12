@@ -44,6 +44,24 @@ public final class RecordingBroadcaster implements Broadcaster {
     published.add(sessionId);
   }
 
+  public final List<String> facilitatorChanges = new ArrayList<>();
+  public final List<String> handovers = new ArrayList<>();
+
+  @Override
+  public void setFacilitator(SessionId sessionId, UUID participantId, boolean facilitator) {
+    facilitatorChanges.add(participantId + ":" + facilitator);
+    attached.replaceAll(
+        (id, a) ->
+            a.participantId().equals(participantId)
+                ? new Attached(a.sessionId(), a.participantId(), facilitator)
+                : a);
+  }
+
+  @Override
+  public void sendHandover(SessionId sessionId, UUID participantId, String animationToken) {
+    handovers.add(participantId + ":" + animationToken);
+  }
+
   @Override
   public void publishTo(String connectionId) {
     publishedTo.add(connectionId);

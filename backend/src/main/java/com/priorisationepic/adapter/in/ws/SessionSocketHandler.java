@@ -1,15 +1,26 @@
 package com.priorisationepic.adapter.in.ws;
 
 import com.priorisationepic.adapter.in.ws.ClientMessages.AddFeatureMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.CastVoteMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.ChangeStatusMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ClientMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.DeleteFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.OpenRoundMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.RevealRoundMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.TransferFacilitatorMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
+import com.priorisationepic.application.Actor;
+import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.ConnectResult;
 import com.priorisationepic.application.ErrorCode;
 import com.priorisationepic.application.FeatureUseCase;
+import com.priorisationepic.application.Outcome;
+import com.priorisationepic.application.RoundUseCase;
 import com.priorisationepic.application.SessionConnectionUseCase;
+import com.priorisationepic.application.TransferFacilitatorUseCase;
+import com.priorisationepic.application.VoteUseCase;
 import com.priorisationepic.domain.SessionId;
 import java.io.IOException;
 import java.net.URI;
@@ -47,9 +58,10 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * <p>Ensuite, tout message et tout pong comptent comme activité ; {@code heartbeat} n'a pas d'autre
  * effet ; {@code addFeature}, {@code updateFeature} et {@code deleteFeature} sont confiés au cas
- * d'usage des fonctionnalités, qui diffuse le nouvel état s'il les accepte (sinon seule la
- * connexion fautive reçoit {@code error}) ; tout le reste (second {@code hello}, JSON invalide,
- * {@code type} inconnu, message hors schéma) reçoit {@code error INVALID_MESSAGE}, sans effet.
+ * d'usage des fonctionnalités, des tours, des votes, du statut et de la transmission du rôle, qui
+ * diffusent le nouvel état s'il les accepte (sinon seule la connexion fautive reçoit {@code error})
+ * ; tout le reste (second {@code hello}, JSON invalide, {@code type} inconnu, message hors schéma)
+ * reçoit {@code error INVALID_MESSAGE}, sans effet.
  */
 @Component
 public class SessionSocketHandler extends TextWebSocketHandler implements DisposableBean {
@@ -64,6 +76,10 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   private final JsonMapper jsonMapper;
   private final SessionConnectionUseCase connections;
   private final FeatureUseCase features;
+  private final RoundUseCase roundUseCase;
+  private final VoteUseCase votes;
+  private final ChangeStatusUseCase statuses;
+  private final TransferFacilitatorUseCase transfers;
   private final WebSocketBroadcaster broadcaster;
   private final Duration helloTimeout;
   private final ScheduledExecutorService timer =
@@ -75,11 +91,19 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       JsonMapper jsonMapper,
       SessionConnectionUseCase connections,
       FeatureUseCase features,
+      RoundUseCase roundUseCase,
+      VoteUseCase votes,
+      ChangeStatusUseCase statuses,
+      TransferFacilitatorUseCase transfers,
       WebSocketBroadcaster broadcaster,
       @Value("${priorisation-epic.hello-timeout:5s}") Duration helloTimeout) {
     this.jsonMapper = jsonMapper;
     this.connections = connections;
     this.features = features;
+    this.roundUseCase = roundUseCase;
+    this.votes = votes;
+    this.statuses = statuses;
+    this.transfers = transfers;
     this.broadcaster = broadcaster;
     this.helloTimeout = helloTimeout;
   }
@@ -132,6 +156,19 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
           intent(
               session,
               actor -> features.update(actor.sessionId(), actor.actor(), update.command()));
+      case ChangeStatusMessage status ->
+          intent(session, who -> statuses.change(who.sessionId(), who.actor(), status.action()));
+      case OpenRoundMessage open ->
+          intent(session, who -> roundUseCase.open(who.sessionId(), who.actor(), open.command()));
+      case CastVoteMessage cast ->
+          intent(session, who -> votes.cast(who.sessionId(), who.actor(), cast.command()));
+      case RevealRoundMessage reveal ->
+          intent(
+              session, who -> roundUseCase.reveal(who.sessionId(), who.actor(), reveal.roundId()));
+      case TransferFacilitatorMessage transfer ->
+          intent(
+              session,
+              who -> transfers.transfer(who.sessionId(), who.actor(), transfer.participantId()));
       case DeleteFeatureMessage delete ->
           intent(
               session,
@@ -174,23 +211,23 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   }
 
   /** Qui parle : la session et le participant de la connexion, avec ses droits. */
-  private record Speaker(SessionId sessionId, FeatureUseCase.Actor actor) {}
+  private record Speaker(SessionId sessionId, Actor actor) {}
 
   /**
    * Une intention de fonctionnalité. Le cas d'usage diffuse le nouvel état s'il l'accepte ; sinon
    * seule cette connexion reçoit {@code error}, et rien n'a changé.
    */
-  private void intent(WebSocketSession session, Function<Speaker, FeatureUseCase.Outcome> run) {
+  private void intent(WebSocketSession session, Function<Speaker, Outcome> run) {
     WsConnection.Attachment attachment = broadcaster.attachmentOf(session.getId());
     if (attachment == null) {
       return;
     }
-    FeatureUseCase.Outcome outcome =
+    Outcome outcome =
         run.apply(
             new Speaker(
                 attachment.sessionId(),
-                new FeatureUseCase.Actor(attachment.participantId(), attachment.facilitator())));
-    if (outcome instanceof FeatureUseCase.Outcome.Rejected rejected) {
+                new Actor(attachment.participantId(), attachment.facilitator())));
+    if (outcome instanceof Outcome.Rejected rejected) {
       broadcaster.sendError(session.getId(), rejected.code(), rejected.featureId());
     }
   }

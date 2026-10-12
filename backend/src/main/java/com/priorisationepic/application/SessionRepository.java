@@ -2,6 +2,7 @@ package com.priorisationepic.application;
 
 import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
+import com.priorisationepic.domain.SessionStatus;
 import java.util.Optional;
 
 /** Accès aux sessions. */
@@ -22,4 +23,10 @@ public interface SessionRepository {
    * changement accepté : c'est le numéro de version du {@code sessionState} diffusé.
    */
   long bumpVersion(SessionId sessionId);
+
+  /** Change le statut de la session. */
+  void updateStatus(SessionId sessionId, SessionStatus status);
+
+  /** Remplace l'empreinte du jeton d'animation : l'ancien jeton ne donne plus de droits. */
+  void updateAnimationTokenHash(SessionId sessionId, String hash);
 }

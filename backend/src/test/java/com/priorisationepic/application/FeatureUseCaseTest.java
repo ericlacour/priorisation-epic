@@ -2,10 +2,8 @@ package com.priorisationepic.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.priorisationepic.application.FeatureUseCase.Actor;
 import com.priorisationepic.application.FeatureUseCase.Add;
 import com.priorisationepic.application.FeatureUseCase.Delete;
-import com.priorisationepic.application.FeatureUseCase.Outcome;
 import com.priorisationepic.application.FeatureUseCase.Update;
 import com.priorisationepic.domain.ChangeLogEntry;
 import com.priorisationepic.domain.Feature;
@@ -38,6 +36,7 @@ class FeatureUseCaseTest {
   private final InMemorySessionRepository sessions = new InMemorySessionRepository();
   private final InMemoryParticipantRepository participants = new InMemoryParticipantRepository();
   private final InMemoryFeatureRepository features = new InMemoryFeatureRepository();
+  private final InMemoryRoundRepository rounds = new InMemoryRoundRepository();
   private final List<ChangeLogEntry> log = new ArrayList<>();
   private final RecordingBroadcaster broadcaster = new RecordingBroadcaster();
   private final FeatureUseCase useCase =
@@ -45,6 +44,7 @@ class FeatureUseCaseTest {
           sessions,
           participants,
           features,
+          rounds,
           new ChangeLogWriter(log::add, clock::instant, new IdGenerator(new Random(5))),
           broadcaster,
           new SessionLocks(),
@@ -387,5 +387,65 @@ class FeatureUseCaseTest {
     assertRejected(
         useCase.add(new SessionId("z".repeat(22)), FACILITATOR, add("F-1", "T", null)),
         ErrorCode.FORBIDDEN);
+  }
+
+  private void openRoundOn(Feature f) {
+    rounds.insert(
+        com.priorisationepic.domain.round.VotingRound.open(
+            UUID.randomUUID(), SESSION, 1, List.of(f.id()), null, clock.instant()));
+  }
+
+  @Test
+  void criteriaOfAFeatureInAnOpenRoundCannotChangeNorBeDeleted() {
+    Feature f = addAndGet("F-1", Map.of("bv", 8));
+    openRoundOn(f);
+    long version = sessionVersion();
+
+    Outcome edit = useCase.update(SESSION, FACILITATOR, setCriteria(f, Map.of("bv", 2)));
+    assertRejected(edit, ErrorCode.FEATURE_IN_OPEN_ROUND);
+    assertThat(((Outcome.Rejected) edit).featureId()).isEqualTo(f.id());
+    assertRejected(
+        useCase.delete(SESSION, FACILITATOR, new Delete(f.id(), f.version())),
+        ErrorCode.FEATURE_IN_OPEN_ROUND);
+
+    assertThat(features.features.get(f.id()).criteria().value("bv").getAsInt()).isEqualTo(8);
+    assertThat(features.features.get(f.id()).isDeleted()).isFalse();
+    assertThat(sessionVersion()).isEqualTo(version);
+    assertThat(log).isEmpty();
+  }
+
+  @Test
+  void titleDescriptionAndReviewMarkStayEditableDuringARound() {
+    Feature f = addAndGet("F-1", Map.of("bv", 8));
+    openRoundOn(f);
+    Outcome outcome =
+        useCase.update(
+            SESSION,
+            FACILITATOR,
+            update(
+                f,
+                Change.absent(),
+                Change.set("Nouveau titre"),
+                Change.absent(),
+                Change.set(true),
+                Change.set("à revoir")));
+    assertThat(outcome).isEqualTo(Outcome.CHANGED);
+    assertThat(features.features.get(f.id()).title()).isEqualTo("Nouveau titre");
+    assertThat(features.features.get(f.id()).markedForReview()).isTrue();
+  }
+
+  @Test
+  void otherFeaturesStayEditableAndEditingIsPossibleAgainOnceTheRoundIsRevealed() {
+    Feature inRound = addAndGet("F-1", Map.of("bv", 8));
+    Feature other = addAndGet("F-2", Map.of("bv", 3));
+    openRoundOn(inRound);
+    assertThat(useCase.update(SESSION, FACILITATOR, setCriteria(other, Map.of("bv", 4))))
+        .isEqualTo(Outcome.CHANGED);
+
+    UUID roundId = rounds.rounds.keySet().iterator().next();
+    rounds.markRevealed(roundId, clock.instant());
+    assertThat(useCase.update(SESSION, FACILITATOR, setCriteria(inRound, Map.of("bv", 5))))
+        .isEqualTo(Outcome.CHANGED);
+    assertThat(features.features.get(inRound.id()).criteria().value("bv").getAsInt()).isEqualTo(5);
   }
 }

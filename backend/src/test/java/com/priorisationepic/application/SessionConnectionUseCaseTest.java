@@ -30,7 +30,12 @@ class SessionConnectionUseCaseTest {
 
   private final SessionConnectionUseCase useCase =
       new SessionConnectionUseCase(
-          sessions, participants, broadcaster, new SessionLocks(), clock::instant);
+          sessions,
+          participants,
+          broadcaster,
+          new SessionLocks(),
+          new InMemoryTransactions(),
+          clock::instant);
 
   @BeforeEach
   void seed() {
@@ -120,6 +125,34 @@ class SessionConnectionUseCaseTest {
     assertThat(result).isEqualTo(new ConnectResult.Connected(ALICE, true, false));
     assertThat(broadcaster.attached.get("c1").facilitator()).isTrue();
     assertThat(broadcaster.errors).isEmpty();
+  }
+
+  @Test
+  void theAnimationLinkOpenedByAnotherParticipantTakesTheRoleOverFromTheFormerFacilitator() {
+    UUID bob = UUID.randomUUID();
+    participants.insert(
+        com.priorisationepic.domain.Participant.join(
+            bob,
+            SESSION,
+            com.priorisationepic.domain.Pseudo.of("bob"),
+            com.priorisationepic.domain.Role.PARTICIPANT,
+            com.priorisationepic.domain.Tokens.hash("bob-token"),
+            clock.instant()));
+    useCase.connect(RAW, "alice-token", "animation", "c1");
+    broadcaster.published.clear();
+    long version = sessions.find(SESSION).orElseThrow().version();
+
+    ConnectResult result = useCase.connect(RAW, "bob-token", "animation", "c2");
+
+    assertThat(result).isEqualTo(new ConnectResult.Connected(bob, true, false));
+    assertThat(participants.find(bob).orElseThrow().role())
+        .isEqualTo(com.priorisationepic.domain.Role.FACILITATOR);
+    assertThat(participants.find(ALICE).orElseThrow().role())
+        .isEqualTo(com.priorisationepic.domain.Role.PARTICIPANT);
+    assertThat(broadcaster.attached.get("c1").facilitator()).isFalse();
+    assertThat(broadcaster.attached.get("c2").facilitator()).isTrue();
+    assertThat(broadcaster.published).containsExactly(SESSION);
+    assertThat(sessions.find(SESSION).orElseThrow().version()).isEqualTo(version + 1);
   }
 
   @Test

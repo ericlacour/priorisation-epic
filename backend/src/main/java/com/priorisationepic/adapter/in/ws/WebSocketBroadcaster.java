@@ -9,6 +9,7 @@ import com.priorisationepic.domain.SessionId;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -162,6 +163,31 @@ public class WebSocketBroadcaster implements Broadcaster, ConnectionMaintenance,
       String key = attachment.participantId() + (attachment.facilitator() ? ":f" : ":p");
       cache.computeIfAbsent(key, k -> stateText(attachment)).ifPresent(connection::enqueue);
     }
+  }
+
+  @Override
+  public void setFacilitator(SessionId sessionId, UUID participantId, boolean facilitator) {
+    forParticipant(sessionId, participantId).forEach(c -> c.setFacilitator(facilitator));
+  }
+
+  @Override
+  public void sendHandover(SessionId sessionId, UUID participantId, String animationToken) {
+    TextMessage message = toText(ServerMessages.HandoverMessage.of(animationToken));
+    forParticipant(sessionId, participantId).forEach(c -> c.enqueue(message));
+  }
+
+  private List<WsConnection> forParticipant(SessionId sessionId, UUID participantId) {
+    Set<WsConnection> targets = bySession.get(sessionId);
+    if (targets == null) {
+      return List.of();
+    }
+    return targets.stream()
+        .filter(
+            c -> {
+              WsConnection.Attachment a = c.attachment();
+              return a != null && a.participantId().equals(participantId);
+            })
+        .toList();
   }
 
   @Override

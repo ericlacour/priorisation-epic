@@ -26,9 +26,6 @@ import java.util.UUID;
  */
 public class FeatureUseCase {
 
-  /** Qui agit : le participant rattaché à la connexion. */
-  public record Actor(UUID participantId, boolean facilitator) {}
-
   public record Add(
       String externalId, String title, String description, Map<String, Integer> criteria) {}
 
@@ -44,19 +41,10 @@ public class FeatureUseCase {
 
   public record Delete(UUID featureId, long version) {}
 
-  /** Issue d'une intention. */
-  public sealed interface Outcome {
-
-    record Accepted() implements Outcome {}
-
-    record Rejected(ErrorCode code, UUID featureId) implements Outcome {}
-  }
-
-  private static final Outcome ACCEPTED = new Outcome.Accepted();
-
   private final SessionRepository sessions;
   private final ParticipantRepository participants;
   private final FeatureRepository features;
+  private final RoundRepository rounds;
   private final ChangeLogWriter changeLog;
   private final Broadcaster broadcaster;
   private final SessionLocks locks;
@@ -69,6 +57,7 @@ public class FeatureUseCase {
       SessionRepository sessions,
       ParticipantRepository participants,
       FeatureRepository features,
+      RoundRepository rounds,
       ChangeLogWriter changeLog,
       Broadcaster broadcaster,
       SessionLocks locks,
@@ -79,6 +68,7 @@ public class FeatureUseCase {
     this.sessions = sessions;
     this.participants = participants;
     this.features = features;
+    this.rounds = rounds;
     this.changeLog = changeLog;
     this.broadcaster = broadcaster;
     this.locks = locks;
@@ -128,7 +118,7 @@ public class FeatureUseCase {
                 return reject(ErrorCode.STALE_VERSION, null);
               }
             });
-    if (outcome instanceof Outcome.Accepted) {
+    if (outcome instanceof Outcome.Accepted accepted && accepted.changed()) {
       broadcaster.publish(sessionId);
     }
     return outcome;
@@ -160,7 +150,7 @@ public class FeatureUseCase {
           sessions.bumpVersion(session.sessionId());
           return null;
         });
-    return ACCEPTED;
+    return Outcome.CHANGED;
   }
 
   private Outcome updateLocked(Session session, Actor actor, Update command) {
@@ -172,6 +162,13 @@ public class FeatureUseCase {
     }
     Feature before = found.get();
     Feature after = before;
+    boolean changesCriteria =
+        command.criteria().present()
+            && command.criteria().value() != null
+            && !command.criteria().value().isEmpty();
+    if (changesCriteria && inOpenRound(session, command.featureId())) {
+      return reject(ErrorCode.FEATURE_IN_OPEN_ROUND, command.featureId());
+    }
     if (command.externalId().present()) {
       Feature renamed = after.withExternalId(command.externalId().value());
       if (!renamed.externalKey().equals(before.externalKey())
@@ -212,7 +209,7 @@ public class FeatureUseCase {
       after = after.markForReview(command.reviewReason().value());
     }
     if (after.equals(before)) {
-      return ACCEPTED;
+      return Outcome.UNCHANGED;
     }
     Feature toSave = after;
     Map<String, Integer> criteriaChanges = changes;
@@ -236,7 +233,7 @@ public class FeatureUseCase {
           sessions.bumpVersion(session.sessionId());
           return null;
         });
-    return ACCEPTED;
+    return Outcome.CHANGED;
   }
 
   private Outcome deleteLocked(Session session, Delete command) {
@@ -244,10 +241,13 @@ public class FeatureUseCase {
     Optional<Feature> found =
         features.findActive(session.sessionId(), command.featureId(), definition);
     if (found.isEmpty()) {
-      return ACCEPTED;
+      return Outcome.UNCHANGED;
     }
     if (found.get().version() != command.version()) {
       return reject(ErrorCode.STALE_VERSION, command.featureId());
+    }
+    if (inOpenRound(session, command.featureId())) {
+      return reject(ErrorCode.FEATURE_IN_OPEN_ROUND, command.featureId());
     }
     transactions.inTransaction(
         () -> {
@@ -255,7 +255,14 @@ public class FeatureUseCase {
           sessions.bumpVersion(session.sessionId());
           return null;
         });
-    return ACCEPTED;
+    return Outcome.CHANGED;
+  }
+
+  /**
+   * Une fonctionnalité d'un tour ouvert garde ses valeurs retenues jusqu'à la révélation (FR-018).
+   */
+  private boolean inOpenRound(Session session, UUID featureId) {
+    return rounds.featuresInOpenRounds(session.sessionId()).contains(featureId);
   }
 
   private MethodDefinition definitionOf(Session session) {

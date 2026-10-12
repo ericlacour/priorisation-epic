@@ -3,6 +3,7 @@ package com.priorisationepic.application;
 import com.priorisationepic.domain.Participant;
 import com.priorisationepic.domain.ParticipantIdentity;
 import com.priorisationepic.domain.Pseudo;
+import com.priorisationepic.domain.Role;
 import com.priorisationepic.domain.SessionId;
 import java.time.Instant;
 import java.util.List;
@@ -30,4 +31,7 @@ public interface ParticipantRepository {
 
   /** Reprise d'un pseudo : enregistre la nouvelle empreinte de jeton et la dernière activité. */
   void updateToken(Participant participant);
+
+  /** Change le rôle du participant (animateur ou participant). */
+  void updateRole(UUID participantId, Role role);
 }

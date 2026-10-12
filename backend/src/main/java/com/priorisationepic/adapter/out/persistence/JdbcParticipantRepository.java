@@ -125,6 +125,14 @@ class JdbcParticipantRepository implements ParticipantRepository {
         .update();
   }
 
+  @Override
+  public void updateRole(UUID participantId, Role role) {
+    jdbc.sql("update participant set role = :role where id = :id")
+        .param("role", role.name())
+        .param("id", participantId)
+        .update();
+  }
+
   private static Participant participant(ResultSet rs, int row) throws SQLException {
     return new Participant(
         rs.getObject("id", UUID.class),

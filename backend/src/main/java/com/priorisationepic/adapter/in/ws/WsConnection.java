@@ -92,6 +92,13 @@ final class WsConnection {
     return true;
   }
 
+  /** Change les droits d'animateur de la connexion rattachée ; sans effet si elle ne l'est pas. */
+  synchronized void setFacilitator(boolean facilitator) {
+    if (attachment != null) {
+      attachment = new Attachment(attachment.sessionId(), attachment.participantId(), facilitator);
+    }
+  }
+
   synchronized Attachment attachment() {
     return attachment;
   }

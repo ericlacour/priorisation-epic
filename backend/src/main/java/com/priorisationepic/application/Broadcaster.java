@@ -22,6 +22,15 @@ public interface Broadcaster {
   /** Envoie son {@code sessionState} à chaque connexion de la session. */
   void publish(SessionId sessionId);
 
+  /**
+   * Change les droits d'animateur de toutes les connexions du participant (prise ou transmission du
+   * rôle, FR-002a).
+   */
+  void setFacilitator(SessionId sessionId, UUID participantId, boolean facilitator);
+
+  /** Envoie {@code facilitatorHandover} aux seules connexions du participant. */
+  void sendHandover(SessionId sessionId, UUID participantId, String animationToken);
+
   /** Envoie son {@code sessionState} à une seule connexion. */
   void publishTo(String connectionId);
 

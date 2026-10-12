@@ -27,6 +27,7 @@ public class SessionConnectionUseCase {
   private final Broadcaster broadcaster;
   private final SessionLocks locks;
   private final ClockPort clock;
+  private final FacilitatorRoles roles;
   private final Map<UUID, Instant> lastSeenWritten = new ConcurrentHashMap<>();
 
   public SessionConnectionUseCase(
@@ -34,12 +35,14 @@ public class SessionConnectionUseCase {
       ParticipantRepository participants,
       Broadcaster broadcaster,
       SessionLocks locks,
+      Transactions transactions,
       ClockPort clock) {
     this.sessions = sessions;
     this.participants = participants;
     this.broadcaster = broadcaster;
     this.locks = locks;
     this.clock = clock;
+    this.roles = new FacilitatorRoles(participants, sessions, transactions, broadcaster);
   }
 
   /**
@@ -79,7 +82,9 @@ public class SessionConnectionUseCase {
               Instant now = clock.now();
               participants.updateLastSeen(participant.id(), now);
               lastSeenWritten.put(participant.id(), now);
-              if (alreadyOnline) {
+              // Le lien d'animation donne le rôle : l'ancien animateur redevient participant.
+              boolean tookOver = facilitator && roles.transferTo(sessionId, participant.id());
+              if (alreadyOnline && !tookOver) {
                 broadcaster.publishTo(connectionId);
               } else {
                 // Première connexion du participant : les autres le voient en ligne (FR-005).

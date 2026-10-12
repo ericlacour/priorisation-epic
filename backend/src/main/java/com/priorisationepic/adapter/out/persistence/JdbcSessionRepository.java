@@ -95,4 +95,20 @@ class JdbcSessionRepository implements SessionRepository {
         .query(Long.class)
         .single();
   }
+
+  @Override
+  public void updateStatus(SessionId sessionId, SessionStatus status) {
+    jdbc.sql("update session set status = :status where session_id = :id")
+        .param("status", status.name())
+        .param("id", sessionId.value())
+        .update();
+  }
+
+  @Override
+  public void updateAnimationTokenHash(SessionId sessionId, String hash) {
+    jdbc.sql("update session set animation_token_hash = :hash where session_id = :id")
+        .param("hash", hash)
+        .param("id", sessionId.value())
+        .update();
+  }
 }

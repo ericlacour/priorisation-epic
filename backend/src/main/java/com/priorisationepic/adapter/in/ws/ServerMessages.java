@@ -17,6 +17,19 @@ final class ServerMessages {
     static final TickMessage INSTANCE = new TickMessage("tick");
   }
 
+  /** {@code facilitator-handover.json} : contient un jeton, jamais dans un journal. */
+  record HandoverMessage(String type, String animationToken) {
+
+    static HandoverMessage of(String animationToken) {
+      return new HandoverMessage("facilitatorHandover", animationToken);
+    }
+
+    @Override
+    public String toString() {
+      return "HandoverMessage[***]";
+    }
+  }
+
   /** {@code error.json} */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   record ErrorMessage(String type, String code, UUID featureId) {

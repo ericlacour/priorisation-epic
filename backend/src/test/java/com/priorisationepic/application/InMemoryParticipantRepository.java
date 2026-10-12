@@ -3,6 +3,7 @@ package com.priorisationepic.application;
 import com.priorisationepic.domain.Participant;
 import com.priorisationepic.domain.ParticipantIdentity;
 import com.priorisationepic.domain.Pseudo;
+import com.priorisationepic.domain.Role;
 import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.Tokens;
 import java.time.Instant;
@@ -63,5 +64,10 @@ public final class InMemoryParticipantRepository implements ParticipantRepositor
   @Override
   public void updateToken(Participant participant) {
     participants.put(participant.id(), participant);
+  }
+
+  @Override
+  public void updateRole(UUID participantId, Role role) {
+    participants.put(participantId, participants.get(participantId).withRole(role));
   }
 }

@@ -25,7 +25,9 @@ public record SessionState(
     ScaleView scale,
     Me me,
     List<ParticipantView> participants,
-    List<FeatureView> features) {
+    List<FeatureView> features,
+    List<RoundView> openRounds,
+    List<RoundView> lastRevealedRounds) {
 
   public record ScaleView(String type, int max, List<Integer> allowedValues) {}
 
@@ -42,6 +44,7 @@ public record SessionState(
       long version,
       boolean markedForReview,
       String reviewReason,
+      boolean votingInProgress,
       Map<String, Integer> criteria,
       ScoreView score) {}
 
@@ -53,4 +56,28 @@ public record SessionState(
       Integer rank) {}
 
   public record ExactValue(BigInteger numerator, BigInteger denominator, String display) {}
+
+  /** Un tour vu par un destinataire : ses votes à lui seul tant qu'il est ouvert (FR-019). */
+  public record RoundView(
+      UUID id,
+      int number,
+      String status,
+      UUID previousRoundId,
+      List<UUID> featureIds,
+      List<ProgressView> progress,
+      Map<UUID, Map<String, Integer>> myVotes,
+      List<FeatureResultView> results) {}
+
+  public record ProgressView(UUID participantId, int completedCount) {}
+
+  public record FeatureResultView(
+      UUID featureId,
+      List<VoteView> votes,
+      List<UUID> nonVoters,
+      Map<String, Integer> min,
+      Map<String, Integer> max,
+      List<String> largeSpread,
+      Map<String, Integer> unanimous) {}
+
+  public record VoteView(UUID participantId, Map<String, Integer> criteria) {}
 }

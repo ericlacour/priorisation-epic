@@ -34,13 +34,14 @@ class SessionStateAssemblerTest {
   private final InMemorySessionRepository sessions = new InMemorySessionRepository();
   private final InMemoryParticipantRepository participants = new InMemoryParticipantRepository();
   private final InMemoryFeatureRepository features = new InMemoryFeatureRepository();
+  private final InMemoryRoundRepository rounds = new InMemoryRoundRepository();
   private final Set<UUID> online = new HashSet<>();
   private final UUID eric = UUID.randomUUID();
   private final UUID alice = UUID.randomUUID();
 
   private SessionStateAssembler assembler(MethodRegistry registry) {
     return new SessionStateAssembler(
-        sessions, participants, features, registry, (s, p) -> online.contains(p));
+        sessions, participants, features, rounds, registry, (s, p) -> online.contains(p));
   }
 
   private void seed(MethodRegistry registry, String methodKey) {
@@ -160,5 +161,170 @@ class SessionStateAssemblerTest {
     assertThat(view.score().complete()).isFalse();
     assertThat(view.score().outOfScale()).containsExactly("bv");
     assertThat(view.score().rank()).isNull();
+  }
+
+  private UUID idOf(String externalId) {
+    return features.features.values().stream()
+        .filter(f -> f.externalId().equals(externalId))
+        .findFirst()
+        .orElseThrow()
+        .id();
+  }
+
+  private com.priorisationepic.domain.round.VotingRound openRound(int number, String... ids) {
+    var round =
+        com.priorisationepic.domain.round.VotingRound.open(
+            UUID.randomUUID(),
+            SESSION,
+            number,
+            java.util.Arrays.stream(ids).map(this::idOf).toList(),
+            null,
+            NOW.plusSeconds(60));
+    rounds.insert(round);
+    return round;
+  }
+
+  private void vote(
+      com.priorisationepic.domain.round.VotingRound round,
+      UUID who,
+      String ext,
+      Map<String, Integer> v) {
+    rounds.saveVote(
+        new com.priorisationepic.domain.round.Vote(
+            round.id(), idOf(ext), who, v, NOW.plusSeconds(90)));
+  }
+
+  private void threeFeaturesAndARoundOnTheFirstTwo() {
+    MethodRegistry registry = MethodRegistry.standard();
+    seed(registry, null);
+    feature(registry, "F-1", null, Map.of("bv", 8, "tc", 5, "rrOe", 3, "js", 4));
+    feature(registry, "F-2", null, Map.of("bv", 5, "tc", 5, "rrOe", 3, "js", 4));
+    feature(registry, "F-3", null, Map.of("bv", 1, "tc", 1, "rrOe", 1, "js", 4));
+  }
+
+  @Test
+  void aParticipantDoesNotSeeValuesScoresOrRanksLeakingFromFeaturesBeingVotedOn() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    openRound(1, "F-1", "F-2");
+    MethodRegistry registry = MethodRegistry.standard();
+
+    SessionState state =
+        (SessionState) assembler(registry).stateFor(SESSION, alice, false).orElseThrow();
+
+    assertThat(state.features())
+        .extracting(FeatureView::externalId)
+        .containsExactly("F-3", "F-1", "F-2");
+    FeatureView free = state.features().get(0);
+    assertThat(free.votingInProgress()).isFalse();
+    assertThat(free.score().rank()).isEqualTo(1);
+    for (FeatureView masked : state.features().subList(1, 3)) {
+      assertThat(masked.votingInProgress()).isTrue();
+      assertThat(masked.criteria()).isNull();
+      assertThat(masked.score()).isNull();
+    }
+    assertThat(ContractSchemas.violations("session-state.json", json(state))).isEmpty();
+    assertThat(json(state)).doesNotContain("\"cod\":{\"numerator\":16");
+  }
+
+  @Test
+  void theFacilitatorSeesTheRetainedValuesOfFeaturesBeingVotedOn() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    openRound(1, "F-1", "F-2");
+    SessionState state =
+        (SessionState)
+            assembler(MethodRegistry.standard()).stateFor(SESSION, eric, true).orElseThrow();
+    assertThat(state.features())
+        .extracting(FeatureView::externalId)
+        .containsExactly("F-1", "F-2", "F-3");
+    assertThat(state.features().get(0).votingInProgress()).isTrue();
+    assertThat(state.features().get(0).criteria()).containsEntry("bv", 8);
+    assertThat(state.features().get(0).score().rank()).isEqualTo(1);
+    assertThat(ContractSchemas.violations("session-state.json", json(state))).isEmpty();
+  }
+
+  @Test
+  void duringARoundEveryoneSeesOnlyTheirOwnVotesAndTheProgressOfEveryone() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    var round = openRound(1, "F-1", "F-2");
+    vote(round, alice, "F-1", Map.of("bv", 9, "tc", 2));
+    vote(round, eric, "F-1", Map.of("bv", 3));
+    vote(round, eric, "F-2", Map.of("js", 6));
+    MethodRegistry registry = MethodRegistry.standard();
+
+    SessionState asAlice =
+        (SessionState) assembler(registry).stateFor(SESSION, alice, false).orElseThrow();
+    SessionState asEric =
+        (SessionState) assembler(registry).stateFor(SESSION, eric, true).orElseThrow();
+    SessionState consultation = assembler(registry).consultation(SESSION).orElseThrow();
+
+    var aliceRound = asAlice.openRounds().get(0);
+    assertThat(aliceRound.results()).isNull();
+    assertThat(aliceRound.myVotes()).containsOnlyKeys(idOf("F-1"));
+    assertThat(aliceRound.myVotes().get(idOf("F-1"))).containsEntry("bv", 9);
+    assertThat(aliceRound.progress())
+        .extracting(p -> p.participantId() + ":" + p.completedCount())
+        .containsExactly(eric + ":2", alice + ":1");
+    assertThat(asEric.openRounds().get(0).myVotes()).containsOnlyKeys(idOf("F-1"), idOf("F-2"));
+    assertThat(asEric.openRounds().get(0).myVotes().get(idOf("F-1"))).containsEntry("bv", 3);
+    assertThat(consultation.openRounds().get(0).myVotes()).isEmpty();
+    assertThat(json(asAlice)).doesNotContain("\"bv\":3");
+    for (SessionState s : List.of(asAlice, asEric, consultation)) {
+      assertThat(ContractSchemas.violations("session-state.json", json(s))).isEmpty();
+    }
+  }
+
+  @Test
+  void aRevealedRoundShowsEveryVoteMinMaxSpreadAndNonVoters() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    var round = openRound(1, "F-1");
+    vote(round, alice, "F-1", Map.of("bv", 9, "tc", 2));
+    vote(round, eric, "F-1", Map.of("bv", 3, "tc", 2));
+    rounds.markRevealed(round.id(), NOW.plusSeconds(120));
+    MethodRegistry registry = MethodRegistry.standard();
+
+    SessionState asAlice =
+        (SessionState) assembler(registry).stateFor(SESSION, alice, false).orElseThrow();
+
+    assertThat(asAlice.openRounds()).isEmpty();
+    var revealed = asAlice.lastRevealedRounds().get(0);
+    assertThat(revealed.myVotes()).isEmpty();
+    var result = revealed.results().get(0);
+    assertThat(result.votes()).hasSize(2);
+    assertThat(result.min()).containsEntry("bv", 3);
+    assertThat(result.max()).containsEntry("bv", 9);
+    assertThat(result.largeSpread()).containsExactly("bv");
+    assertThat(result.unanimous().get("tc")).isEqualTo(2);
+    assertThat(result.unanimous().get("bv")).isNull();
+    assertThat(result.min().get("js")).isNull();
+    assertThat(asAlice.features()).allMatch(f -> !f.votingInProgress());
+    assertThat(ContractSchemas.violations("session-state.json", json(asAlice))).isEmpty();
+  }
+
+  @Test
+  void aParticipantDoesNotSeeThePreviousVotesOfAFeatureVotedOnAgain() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    var first = openRound(1, "F-1");
+    vote(first, eric, "F-1", Map.of("bv", 3));
+    rounds.markRevealed(first.id(), NOW.plusSeconds(120));
+    openRound(2, "F-1");
+    MethodRegistry registry = MethodRegistry.standard();
+
+    SessionState asAlice =
+        (SessionState) assembler(registry).stateFor(SESSION, alice, false).orElseThrow();
+    SessionState asEric =
+        (SessionState) assembler(registry).stateFor(SESSION, eric, true).orElseThrow();
+
+    assertThat(asAlice.lastRevealedRounds().get(0).results()).isEmpty();
+    assertThat(asEric.lastRevealedRounds().get(0).results()).hasSize(1);
+    assertThat(ContractSchemas.violations("session-state.json", json(asAlice))).isEmpty();
+  }
+
+  @Test
+  void aParticipantWhoJoinedAfterTheRevealIsNotANonVoter() {
+    threeFeaturesAndARoundOnTheFirstTwo();
+    var round = openRound(1, "F-1");
+    rounds.markRevealed(round.id(), NOW.minusSeconds(10));
+    SessionState state = assembler(MethodRegistry.standard()).consultation(SESSION).orElseThrow();
+    assertThat(state.lastRevealedRounds().get(0).results().get(0).nonVoters()).isEmpty();
   }
 }

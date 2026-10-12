@@ -3,17 +3,22 @@ package com.priorisationepic.config;
 import com.priorisationepic.application.Broadcaster;
 import com.priorisationepic.application.ChangeLogRepository;
 import com.priorisationepic.application.ChangeLogWriter;
+import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.CreateSessionUseCase;
 import com.priorisationepic.application.FeatureRepository;
 import com.priorisationepic.application.FeatureUseCase;
 import com.priorisationepic.application.JoinSessionUseCase;
 import com.priorisationepic.application.ParticipantRepository;
+import com.priorisationepic.application.RoundRepository;
+import com.priorisationepic.application.RoundUseCase;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.SessionLocks;
 import com.priorisationepic.application.SessionRepository;
 import com.priorisationepic.application.SessionStateAssembler;
 import com.priorisationepic.application.Transactions;
+import com.priorisationepic.application.TransferFacilitatorUseCase;
+import com.priorisationepic.application.VoteUseCase;
 import com.priorisationepic.domain.IdGenerator;
 import com.priorisationepic.domain.method.MethodRegistry;
 import java.security.SecureRandom;
@@ -55,8 +60,10 @@ public class ApplicationConfig {
       ParticipantRepository participants,
       Broadcaster broadcaster,
       SessionLocks locks,
+      Transactions transactions,
       ClockPort clock) {
-    return new SessionConnectionUseCase(sessions, participants, broadcaster, locks, clock);
+    return new SessionConnectionUseCase(
+        sessions, participants, broadcaster, locks, transactions, clock);
   }
 
   @Bean
@@ -94,6 +101,7 @@ public class ApplicationConfig {
       SessionRepository sessions,
       ParticipantRepository participants,
       FeatureRepository features,
+      RoundRepository rounds,
       ChangeLogWriter changeLog,
       Broadcaster broadcaster,
       SessionLocks locks,
@@ -105,6 +113,7 @@ public class ApplicationConfig {
         sessions,
         participants,
         features,
+        rounds,
         changeLog,
         broadcaster,
         locks,
@@ -123,14 +132,64 @@ public class ApplicationConfig {
       SessionRepository sessions,
       ParticipantRepository participants,
       FeatureRepository features,
+      RoundRepository rounds,
       MethodRegistry methods,
       ObjectProvider<Broadcaster> broadcaster) {
     return new SessionStateAssembler(
         sessions,
         participants,
         features,
+        rounds,
         methods,
         (sessionId, participantId) ->
             broadcaster.getObject().hasConnection(sessionId, participantId));
+  }
+
+  @Bean
+  public RoundUseCase roundUseCase(
+      SessionRepository sessions,
+      FeatureRepository features,
+      RoundRepository rounds,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions,
+      ClockPort clock,
+      IdGenerator ids,
+      MethodRegistry methods) {
+    return new RoundUseCase(
+        sessions, features, rounds, broadcaster, locks, transactions, clock, ids, methods);
+  }
+
+  @Bean
+  public VoteUseCase voteUseCase(
+      SessionRepository sessions,
+      RoundRepository rounds,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions,
+      ClockPort clock,
+      MethodRegistry methods) {
+    return new VoteUseCase(sessions, rounds, broadcaster, locks, transactions, clock, methods);
+  }
+
+  @Bean
+  public ChangeStatusUseCase changeStatusUseCase(
+      SessionRepository sessions,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions) {
+    return new ChangeStatusUseCase(sessions, broadcaster, locks, transactions);
+  }
+
+  @Bean
+  public TransferFacilitatorUseCase transferFacilitatorUseCase(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions,
+      IdGenerator ids) {
+    return new TransferFacilitatorUseCase(
+        sessions, participants, broadcaster, locks, transactions, ids);
   }
 }
