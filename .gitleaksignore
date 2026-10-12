@@ -1,0 +1,5 @@
+# Faux positifs vérifiés, ignorés un par un par leur empreinte Gitleaks.
+# Ne jamais y mettre un vrai secret : un vrai secret se révoque puis se retire du dépôt.
+
+# Empreinte SHA-256 d'un fichier (pas un secret) dans un manifeste BMAD, dossier _bmad/ supprimé depuis.
+daa3b2780690f1a2eb45d06d282833ad3fffed8d:_bmad/_config/files-manifest.csv:generic-api-key:48

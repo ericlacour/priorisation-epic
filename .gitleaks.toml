@@ -1,0 +1,11 @@
+# Configuration Gitleaks (tâche T013) : règles par défaut, plus une seule exception.
+title = "priorisation-epic"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Exemples factices du contrat (jetons de démonstration, jamais réels)"
+paths = [
+  '''^contract/examples/''',
+]

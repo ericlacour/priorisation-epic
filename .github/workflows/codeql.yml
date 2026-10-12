@@ -1,0 +1,84 @@
+# Analyse statique CodeQL (constitution, outillage de sécurité ; research R15, tâche T012).
+# Tant que backend/, frontend/ et contract/ n'existent pas, les analyses Java et
+# JavaScript/TypeScript sont sautées et le job reste vert ; `actions` est toujours analysé.
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Detect sources
+        id: sources
+        env:
+          LANGUAGE: ${{ matrix.language }}
+        run: |
+          present=true
+          case "$LANGUAGE" in
+            java-kotlin) [ -f backend/pom.xml ] || present=false ;;
+            javascript-typescript) [ -f frontend/package.json ] || [ -f contract/package.json ] || present=false ;;
+          esac
+          echo "present=$present" >> "$GITHUB_OUTPUT"
+          if [ "$present" = false ]; then
+            echo "::notice::Aucune source $LANGUAGE pour l'instant : analyse sautée."
+          fi
+
+      - name: Set up Java
+        if: steps.sources.outputs.present == 'true' && matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Initialize CodeQL
+        if: steps.sources.outputs.present == 'true'
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Build backend
+        if: steps.sources.outputs.present == 'true' && matrix.language == 'java-kotlin'
+        working-directory: backend
+        run: ./mvnw -B -DskipTests package
+
+      - name: Analyze
+        if: steps.sources.outputs.present == 'true'
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

@@ -1,0 +1,34 @@
+# Bloque une PR qui ajoute une dépendance vulnérable (gravité haute ou critique),
+# avant le merge. Dependabot, lui, ne signale une vulnérabilité qu'une fois la
+# dépendance sur main (constitution, outillage de sécurité).
+name: Dependency Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Review dependencies
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
