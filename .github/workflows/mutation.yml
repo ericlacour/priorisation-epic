@@ -1,0 +1,44 @@
+# Tests de mutation PIT sur le domaine (research R14, constitution II) : chaque lundi, à la demande,
+# et sur les PR qui modifient le domaine. Échec sous 80 % de mutants tués.
+name: Mutation
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - backend/src/main/java/com/priorisationepic/domain/**
+      - backend/pom.xml
+      - .github/workflows/mutation.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+      - run: ./mvnw -B -Pmutation verify
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: pit-report
+          path: backend/target/pit-reports
+          if-no-files-found: ignore

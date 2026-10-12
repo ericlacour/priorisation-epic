@@ -27,6 +27,8 @@
     <google-java-format.version>1.36.1</google-java-format.version>
     <spotless.version>3.10.4</spotless.version>
     <jacoco.version>0.8.15</jacoco.version>
+    <pitest.version>1.30.0</pitest.version>
+    <pitest-junit5.version>1.2.3</pitest-junit5.version>
   </properties>
 
   <dependencies>
@@ -207,4 +209,51 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <!-- Tests de mutation PIT sur le domaine (research R14, constitution II) :
+         ./mvnw -B -Pmutation verify échoue sous 80 % de mutants tués.
+         Un mutant survivant se corrige par un test, pas par une exclusion. -->
+    <profile>
+      <id>mutation</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>${pitest.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>${pitest-junit5.version}</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <targetClasses>
+                <param>com.priorisationepic.domain.*</param>
+              </targetClasses>
+              <targetTests>
+                <param>com.priorisationepic.domain.*</param>
+              </targetTests>
+              <mutationThreshold>80</mutationThreshold>
+              <outputFormats>
+                <outputFormat>HTML</outputFormat>
+                <outputFormat>XML</outputFormat>
+              </outputFormats>
+              <timestampedReports>false</timestampedReports>
+            </configuration>
+            <executions>
+              <execution>
+                <id>mutation-coverage</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>mutationCoverage</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
