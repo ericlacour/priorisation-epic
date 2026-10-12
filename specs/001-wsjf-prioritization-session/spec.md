@@ -29,6 +29,7 @@
 - Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile. Même règle pour les écrans du tour en cours et de la révélation.
 - Q : comment indiquer qu'une fonctionnalité est « à revoir » ? → A: Marque posée par l'animateur, avec un motif facultatif, sans effet sur le classement, pour la reprendre lors d'un prochain tour. Les valeurs sorties de l'échelle sont signalées séparément « hors échelle » (calculé).
 - Q : un participant peut-il ne pas noter un critère lors d'un tour (il ne sait pas, ou ce n'est pas son domaine, par exemple le JS) ? → A: Oui. Un critère laissé vide vaut « sans avis ». Il est ignoré dans le minimum, le maximum, l'écart important et le préremplissage du consensus.
+- Q : faut-il une case « Je ne sais pas » pour distinguer un « sans avis » volontaire d'un critère pas encore rempli ? → A: Non. Le champ vide suffit, et la fonctionnalité est évaluée même si le participant n'a pas renseigné tous les critères : son vote est complet, sans avertissement.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -410,7 +411,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   message qui donne les valeurs autorisées (FR-027). Chaque critère est **facultatif** :
   un participant peut laisser vide un critère sur lequel il n'a pas d'avis (par exemple le
   JS, s'il n'est pas de son domaine). Un critère vide vaut « sans avis ». Une
-  fonctionnalité compte comme **notée** dès qu'au moins un de ses critères a une valeur.
+  fonctionnalité compte comme **notée** dès qu'au moins un de ses critères a une valeur ;
+  le vote est alors complet, sans avertissement, même si d'autres critères restent vides.
   Personne, y compris l'animateur, ne voit les valeurs des autres avant la révélation.
   Tous voient, pour chaque participant, combien de fonctionnalités du tour il a déjà
   notées.
