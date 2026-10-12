@@ -1,0 +1,365 @@
+openapi: 3.2.0
+info:
+  title: Priorisation Epic - REST API
+  version: 1.0.0
+  description: |
+    Design of the REST surface for feature 001-wsjf-prioritization-session, aligned with
+    planning-poker (AD-2): REST covers only entry (create, join, list), files (import, export,
+    template) and health. **Every live session action goes through the WebSocket**
+    described in asyncapi.yaml.
+
+    - Errors are `application/problem+json` (RFC 9457) with a French `detail`.
+    - Reads that return session content apply the same per-recipient masking as `sessionState`
+      (FR-019, FR-019a): without a valid token, the caller is treated as a non-facilitator
+      participant.
+    - Tokens never appear in URLs. REST calls that need one send `X-Participant-Token` and,
+      for facilitator-only actions, `X-Animation-Token`.
+
+    This file is the design; it is transcribed into `contract/openapi.yaml` (source of truth),
+    with JSON Schemas in `contract/schemas/` and examples in `contract/examples/`.
+  license:
+    name: Proprietary
+
+servers:
+  - url: /
+
+components:
+  securitySchemes:
+    participantToken:
+      type: apiKey
+      in: header
+      name: X-Participant-Token
+    animationToken:
+      type: apiKey
+      in: header
+      name: X-Animation-Token
+  parameters:
+    sessionId:
+      name: sessionId
+      in: path
+      required: true
+      description: 128 random bits, base64url without padding (22 characters).
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+  responses:
+    BadRequest:
+      description: Invalid request (French message)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    SessionNotFound:
+      description: Unknown session
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: Facilitator-only action, or session closed
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    PseudoTaken:
+      description: Pseudo already used in this session
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    PayloadTooLarge:
+      description: Request body above the limit (5 MB for imports, small elsewhere)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Too many session creations from the same address (rate limit, as in planning-poker)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      required: [title, status, detail]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string, description: French, actionable message }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+    Scale:
+      type: object
+      required: [type, max]
+      properties:
+        type: { type: string, enum: [CONTINUOUS, FIBONACCI] }
+        max: { type: integer }
+    MethodDefinition:
+      description: Same payload as `methodDefinition` in asyncapi.yaml (FR-017a)
+      $ref: './asyncapi.yaml#/components/schemas/methodDefinition'
+    SessionSummary:
+      type: object
+      required: [sessionId, name, facilitatorPseudo, createdAt, status, method, methodVersion]
+      properties:
+        sessionId: { type: string }
+        name: { type: string }
+        facilitatorPseudo: { type: string }
+        createdAt: { type: string, format: date-time }
+        status: { type: string, enum: [PREPARATION, IN_PROGRESS, CLOSED] }
+        method: { type: string, examples: [WSJF] }
+        methodVersion: { type: integer }
+    CreateSessionRequest:
+      type: object
+      required: [name, pseudo]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        pseudo: { type: string, minLength: 1, maxLength: 40 }
+        method:
+          type: string
+          default: WSJF
+          description: Key of a method from GET /api/methods; its latest version is used and frozen (FR-017d). Unknown key gives 400
+        scale: { $ref: '#/components/schemas/Scale' }
+    CreateSessionResponse:
+      type: object
+      required: [sessionId, participantToken, animationToken]
+      properties:
+        sessionId: { type: string }
+        participantToken: { type: string }
+        animationToken:
+          type: string
+          description: The front builds the private link `/s/{sessionId}/animer#{animationToken}`
+    JoinSessionRequest:
+      type: object
+      required: [pseudo]
+      properties:
+        pseudo: { type: string, minLength: 1, maxLength: 40 }
+        businessRole: { type: string, maxLength: 40 }
+    JoinSessionResponse:
+      type: object
+      required: [participantToken]
+      properties:
+        participantToken: { type: string }
+    FeatureRow:
+      type: object
+      required: [externalId, title]
+      properties:
+        externalId: { type: string }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        criteria:
+          type: object
+          description: Values by criterion key of the session's method (see asyncapi.yaml, criteria; FR-017b)
+          additionalProperties: { type: [integer, 'null'], minimum: 1 }
+          examples: [{ bv: 8, tc: 5, rrOe: 3, js: 4 }]
+    ImportPreview:
+      type: object
+      required: [previewId, validRows, rejectedRows, warnings]
+      properties:
+        previewId: { type: string, format: uuid }
+        validRows:
+          type: array
+          items: { $ref: '#/components/schemas/FeatureRow' }
+        rejectedRows:
+          type: array
+          items:
+            type: object
+            required: [line, reason]
+            properties:
+              line: { type: integer }
+              externalId: { type: [string, 'null'] }
+              reason: { type: string, description: French }
+        warnings:
+          type: array
+          items:
+            type: object
+            required: [line, message]
+            properties:
+              line: { type: integer }
+              message: { type: string, example: 'BV = 12 hors échelle : valeur ignorée' }
+    ImportResult:
+      type: object
+      required: [imported, rejected]
+      properties:
+        imported: { type: integer }
+        rejected: { type: integer }
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      summary: Health check used by Render (as in planning-poker)
+      responses:
+        '200':
+          description: Up
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthResponse' }
+
+  /api/sessions:
+    get:
+      operationId: listSessions
+      summary: List all sessions, newest first (FR-026)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SessionSummary' }
+    post:
+      operationId: createSession
+      summary: Create a session; the creator becomes facilitator (FR-001, FR-002)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateSessionRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreateSessionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+
+  /api/sessions/{sessionId}:
+    parameters: [{ $ref: '#/components/parameters/sessionId' }]
+    get:
+      operationId: getSession
+      summary: Read-only view for consultation without joining (FR-026)
+      description: |
+        Returns the same payload as the WebSocket `sessionState` (see asyncapi.yaml), filtered as for
+        a non-facilitator participant with no votes of its own. Used to browse past sessions and to
+        show the session name on the join screen.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: sessionState payload (contract/schemas/session-state.json)
+        '404': { $ref: '#/components/responses/SessionNotFound' }
+
+  /api/sessions/{sessionId}/participants:
+    parameters: [{ $ref: '#/components/parameters/sessionId' }]
+    post:
+      operationId: joinSession
+      summary: Join with a pseudo (FR-002, FR-003); returns the participant token used in `hello`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JoinSessionRequest' }
+      responses:
+        '201':
+          description: Joined
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JoinSessionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/SessionNotFound' }
+        '409': { $ref: '#/components/responses/PseudoTaken' }
+
+  /api/sessions/{sessionId}/imports:
+    parameters: [{ $ref: '#/components/parameters/sessionId' }]
+    post:
+      operationId: previewImport
+      summary: Parse a file and return a preview (FR-007, FR-008); nothing is written - facilitator
+      security: [{ participantToken: [], animationToken: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary, description: '.xlsx, .csv or .json; 5 MB max' }
+      responses:
+        '200':
+          description: Preview
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportPreview' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/SessionNotFound' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+
+  /api/sessions/{sessionId}/imports/{previewId}/confirm:
+    parameters:
+      - { $ref: '#/components/parameters/sessionId' }
+      - name: previewId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: confirmImport
+      summary: Import the valid rows in a single transaction, then broadcast sessionState - facilitator
+      security: [{ participantToken: [], animationToken: [] }]
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportResult' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/SessionNotFound' }
+
+  /api/methods:
+    get:
+      operationId: listMethods
+      summary: Methods offered at session creation, each in its latest version (FR-017c, FR-017d)
+      description: WSJF only in V1. Used by the creation form and its "method detail" panel.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items: { $ref: '#/components/schemas/MethodDefinition' }
+
+  /api/import-template.xlsx:
+    get:
+      operationId: getImportTemplate
+      summary: Download the blank Excel template (FR-007a)
+      description: Headers are generated from the method definition (FR-017b)
+      parameters:
+        - { name: method, in: query, required: false, schema: { type: string, default: WSJF } }
+        - { name: methodVersion, in: query, required: false, schema: { type: integer, default: 1 } }
+      responses:
+        '200':
+          description: Template
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+
+  /api/sessions/{sessionId}/exports/{format}:
+    parameters:
+      - { $ref: '#/components/parameters/sessionId' }
+      - name: format
+        in: path
+        required: true
+        schema: { type: string, enum: [csv, csv-votes, confluence-wiki, confluence-html, json] }
+    get:
+      operationId: exportSession
+      summary: Export the board or the whole session (FR-023, FR-024)
+      description: Same masking as the caller's view. Formats are described in file-formats.md.
+      security: [{}, { participantToken: [] }]
+      responses:
+        '200':
+          description: File
+          content:
+            text/csv: {}
+            text/plain: {}
+            text/html: {}
+            application/json: {}
+        '404': { $ref: '#/components/responses/SessionNotFound' }
