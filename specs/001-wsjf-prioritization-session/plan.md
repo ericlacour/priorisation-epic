@@ -83,7 +83,7 @@ Ce contrôle est fait par rapport à la constitution v2.2.0.
 
 | Principe / règle | Exigence | Comment le plan y répond | Statut |
 |------------------|----------|--------------------------|--------|
-| **I. Score transparent** | Formule visible ; contribution de chaque critère ; aucun facteur caché | `sessionState` porte `formula`, `tieBreakRule` et, pour chaque fonctionnalité, `score.explanation` avec les vraies valeurs. Le calcul n'existe qu'à un seul endroit, `domain`. Les exports rappellent la formule | ✅ |
+| **I. Score transparent** | Formule visible ; contribution de chaque critère ; aucun facteur caché | `sessionState` porte `methodDefinition` (critères, valeurs calculées et leurs définitions), `formula`, `tieBreakRule` et, pour chaque fonctionnalité, `score.explanation` avec les vraies valeurs. Le calcul n'existe qu'à un seul endroit, `domain`, une classe par méthode, et toute évolution d'une méthode crée une nouvelle version. Les exports rappellent la méthode et la formule | ✅ |
 | **II. Logique testée** | Calcul, tri, égalités, validation et cas limites testés ; domaine isolé ; CI bloquante | Architecture hexagonale, isolement vérifié par ArchUnit. Tests unitaires et jqwik. JaCoCo à 90 % sur `domain`. Exemples du contrat validés. CI obligatoire pour merger | ✅ |
 | **III. Travail en équipe** | Données partagées ; auteur et date ; pas d'écrasement silencieux ; pseudo en v1 | PostgreSQL. Table `change_log` dans la même transaction. Verrou par session, `@Version` et `error STALE_VERSION`. Pseudo et jetons, sans mot de passe ni compte | ✅ |
 | **IV. Web centré sur l'usage** | Parcours priorisés ; clavier et écran de portable ; erreurs actionnables | Parcours P1 à P5 livrables séparément. Maquettes des 11 écrans validées avant l'implémentation (contrat d'interface), avec des contrastes AA vérifiés. Contrôles d'accessibilité axe-core, comme dans PP. Codes d'erreur traduits en messages français qui disent quoi corriger | ✅ |
@@ -145,7 +145,7 @@ backend/                                   # Maven, Java 25, Spring Boot 4.1
 ├── pom.xml
 └── src/
     ├── main/java/com/priorisationepic/
-    │   ├── domain/                        # Java pur : WsjfMethod, Scale, Ranking, règles des tours et de visibilité
+    │   ├── domain/                        # Java pur : method/ (PrioritizationMethod, MethodDefinition, MethodRegistry, WsjfMethod), Scale, Ranking, règles des tours et de visibilité
     │   ├── application/                   # cas d'usage et ports (SessionRepository, Broadcaster, Clock), SessionLocks
     │   ├── adapter/in/rest/               # entrée, import et export, santé, limites (comme PP)
     │   ├── adapter/in/ws/                 # SessionSocketHandler, WebSocketBroadcaster, ClientMessages, ServerMessages
@@ -166,7 +166,7 @@ frontend/                                  # Angular 22
     ├── api/ config/ storage/ wake/ theme/ top-bar/   # même découpage que PP
     ├── home/                              # liste des sessions, création
     ├── session/                           # service WebSocket, rejoindre, état de session
-    ├── board/                             # tableau WSJF, détail du calcul, édition
+    ├── board/                             # tableau, détail du calcul, édition (colonnes issues de methodDefinition)
     ├── rounds/                            # vote masqué, révélation, consensus
     ├── import-export/
     └── rounds-history/                    # liste des tours révélés (consultation)

@@ -136,10 +136,11 @@ components:
         externalId: { type: string }
         title: { type: string }
         description: { type: [string, 'null'] }
-        bv: { type: [integer, 'null'] }
-        tc: { type: [integer, 'null'] }
-        rrOe: { type: [integer, 'null'] }
-        js: { type: [integer, 'null'] }
+        criteria:
+          type: object
+          description: Values by criterion key of the session's method (see asyncapi.yaml, criteria; FR-017b)
+          additionalProperties: { type: [integer, 'null'], minimum: 1 }
+          examples: [{ bv: 8, tc: 5, rrOe: 3, js: 4 }]
     ImportPreview:
       type: object
       required: [previewId, validRows, rejectedRows, warnings]
@@ -307,6 +308,10 @@ paths:
     get:
       operationId: getImportTemplate
       summary: Download the blank Excel template (FR-007a)
+      description: Headers are generated from the method definition (FR-017b)
+      parameters:
+        - { name: method, in: query, required: false, schema: { type: string, default: WSJF } }
+        - { name: methodVersion, in: query, required: false, schema: { type: integer, default: 1 } }
       responses:
         '200':
           description: Template

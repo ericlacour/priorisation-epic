@@ -109,6 +109,22 @@ planning-poker est indiquée, sous la forme `PP : …`.
 - **Décision** :
   - Le calcul vit dans le paquet `domain` : `PrioritizationMethod`, avec `WsjfMethod`
     comme seule implémentation.
+  - **Méthode paramétrable** (FR-017a, FR-017b, SC-009) : chaque méthode fournit une
+    `MethodDefinition` (critères, valeurs calculées, formule, règle de tri, textes d'aide)
+    et un calcul (`compute`, `explain`, `compare`). Un `MethodRegistry` retrouve la
+    méthode d'une session par (`method`, `methodVersion`). Tout le reste est générique
+    et ne connaît que des clés de critère :
+    - la base range les valeurs dans `feature_criterion_value` et `vote_criterion_value`
+      (une ligne par critère renseigné) ;
+    - le contrat transporte des objets `criteria` et `computed` indexés par clé, et
+      `sessionState.methodDefinition` ;
+    - le front construit colonnes, champs, aides et grilles de révélation à partir de
+      `methodDefinition` ;
+    - l'import, le modèle et les exports génèrent leurs colonnes à partir des `header`.
+  - Ajouter une méthode = une classe `XxxMethod` (définition et calcul), ses tests, et
+    son enregistrement dans `MethodRegistry`. Aucune migration, aucun schéma de contrat,
+    aucun composant front à modifier. Une méthode fictive à deux critères, déclarée
+    seulement dans les tests, le vérifie de bout en bout (SC-009).
   - Le CoD et le JS sont des entiers. Le WSJF est une fraction exacte. Le tri compare les
     fractions par produit croisé, donc sans arrondi.
   - L'affichage arrondit à 2 décimales (au plus proche, la moitié vers le haut, comme le
@@ -119,7 +135,12 @@ planning-poker est indiquée, sous la forme `PP : …`.
   - Le calcul est fait **uniquement côté serveur**. Le front affiche `score` et
     `explanation` tels qu'il les reçoit.
 - **Alternatives écartées** : `double` (erreurs d'arrondi aux égalités) ; un calcul côté
-  front (deux sources de vérité).
+  front (deux sources de vérité) ; une colonne par critère (`bv`, `tc`…) en base et dans
+  le contrat, qui obligerait à migrer la base, changer le contrat et reprendre chaque
+  écran pour toute nouvelle méthode ; une colonne JSONB, écartée au profit d'une table
+  de valeurs qui garde la contrainte `CHECK ≥ 1` et des requêtes simples ; des formules
+  saisies par l'utilisateur, hors périmètre (FR-017) et contraires au principe I si
+  elles ne sont pas testées.
 
 ## R6. Échelles (FR-009 à FR-011)
 

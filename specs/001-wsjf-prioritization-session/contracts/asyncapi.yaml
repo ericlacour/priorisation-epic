@@ -18,6 +18,10 @@ info:
       connection of the session, each one **filtered for its recipient** (FR-019, FR-019a,
       SC-004).
     - The contract only evolves by addition.
+    - The contract never lists the criteria of a method (FR-017a, FR-017b). Criteria and computed
+      values are maps keyed by the keys that `sessionState.methodDefinition` declares (for WSJF:
+      criteria `bv`, `tc`, `rrOe`, `js`; computed values `cod`, `wsjf`). Adding a method adds
+      no schema.
 
     This file is the design; it is transcribed into `contract/asyncapi.yaml` (source of truth)
     with payloads in `contract/schemas/` and examples in `contract/examples/`.
@@ -51,7 +55,8 @@ channels:
       `FEATURE_IN_OPEN_ROUND` (`openRound` on a feature already in an open round, or
       `updateFeature` changing criteria / `deleteFeature` on a feature in an open round),
       `ROUND_REVEALED`, `SCALE_IMPACT` (with `impactedValues`),
-      `UNKNOWN_PARTICIPANT`, `SESSION_NOT_STARTED` (`openRound` while in PREPARATION),
+      `UNKNOWN_PARTICIPANT`, `UNKNOWN_CRITERION` (a criterion key the session's method does
+      not declare), `SESSION_NOT_STARTED` (`openRound` while in PREPARATION),
       `ROUND_OPEN` (`changeStatus CLOSE` or a scale change in `updateSettings` while a
       round is open), `PARTICIPANT_OFFLINE`
       (`transferFacilitator` to a participant with no open connection).
@@ -120,13 +125,62 @@ components:
     error: { name: error, payload: { $ref: '#/components/schemas/error' } }
 
   schemas:
+    criterionKey:
+      type: string
+      pattern: '^[a-z][a-zA-Z0-9]{0,19}$'
+      description: A key declared in methodDefinition.criteria (WSJF - bv, tc, rrOe, js)
     criteria:
       type: object
+      description: |
+        Values by criterion key of the session's method (FR-017b). A missing key or null means
+        "not entered" ("no opinion" in a vote, FR-019). Unknown keys get `error UNKNOWN_CRITERION`.
+      propertyNames: { $ref: '#/components/schemas/criterionKey' }
+      additionalProperties: { type: [integer, 'null'], minimum: 1 }
+      examples: [{ bv: 8, tc: 5, rrOe: 3, js: 4 }]
+    exactValue:
+      type: object
+      description: Exact fraction (integers have denominator 1), plus its display per the definition
+      required: [numerator, denominator, display]
       properties:
-        bv: { type: [integer, 'null'], minimum: 1 }
-        tc: { type: [integer, 'null'], minimum: 1 }
-        rrOe: { type: [integer, 'null'], minimum: 1 }
-        js: { type: [integer, 'null'], minimum: 1 }
+        numerator: { type: integer }
+        denominator: { type: integer, minimum: 1 }
+        display: { type: string, examples: ['16', '4,00'] }
+    methodDefinition:
+      type: object
+      description: Single source of the method's fields, labels and help texts (FR-016a, FR-017a)
+      required: [key, version, name, criteria, computedValues, formula, tieBreakRule]
+      properties:
+        key: { type: string, examples: [WSJF] }
+        version: { type: integer, minimum: 1 }
+        name: { type: string, examples: [WSJF] }
+        criteria:
+          type: array
+          minItems: 1
+          description: Entered criteria, in display order
+          items:
+            type: object
+            required: [key, code, label, definition, header]
+            properties:
+              key: { $ref: '#/components/schemas/criterionKey' }
+              code: { type: string, examples: [BV] }
+              label: { type: string, examples: [Business Value] }
+              definition: { type: string, examples: ['Valeur apportée aux utilisateurs ou au business.'] }
+              header: { type: string, description: Column header for import and export, examples: [BV] }
+        computedValues:
+          type: array
+          description: Computed values, in display order
+          items:
+            type: object
+            required: [key, code, label, definition, header, display]
+            properties:
+              key: { type: string, examples: [wsjf] }
+              code: { type: string, examples: [WSJF] }
+              label: { type: string, examples: [Weighted Shortest Job First] }
+              definition: { type: string }
+              header: { type: string, examples: [WSJF] }
+              display: { type: string, enum: [INTEGER, DECIMAL_2] }
+        formula: { type: string, examples: ['CoD = BV + TC + RR/OE ; WSJF = CoD / JS'] }
+        tieBreakRule: { type: string }
     hello:
       type: object
       required: [type, participantToken]
@@ -140,29 +194,29 @@ components:
       properties:
         type: { const: heartbeat }
     addFeature:
-      allOf:
-        - $ref: '#/components/schemas/criteria'
-        - type: object
-          required: [type, externalId, title]
-          properties:
-            type: { const: addFeature }
-            externalId: { type: string, minLength: 1, maxLength: 50 }
-            title: { type: string, minLength: 1, maxLength: 200 }
-            description: { type: [string, 'null'], maxLength: 5000 }
+      type: object
+      required: [type, externalId, title]
+      properties:
+        type: { const: addFeature }
+        externalId: { type: string, minLength: 1, maxLength: 50 }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        criteria: { $ref: '#/components/schemas/criteria' }
     updateFeature:
-      allOf:
-        - $ref: '#/components/schemas/criteria'
-        - type: object
-          required: [type, featureId, version]
-          properties:
-            type: { const: updateFeature }
-            featureId: { type: string, format: uuid }
-            version: { type: integer }
-            externalId: { type: string, minLength: 1, maxLength: 50 }
-            title: { type: string, minLength: 1, maxLength: 200 }
-            description: { type: [string, 'null'], maxLength: 5000 }
-            markedForReview: { type: boolean, description: 'Facilitator reminder (FR-006a); allowed even while the feature is in an open round' }
-            reviewReason: { type: [string, 'null'], maxLength: 200 }
+      type: object
+      required: [type, featureId, version]
+      properties:
+        type: { const: updateFeature }
+        featureId: { type: string, format: uuid }
+        version: { type: integer }
+        externalId: { type: string, minLength: 1, maxLength: 50 }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        criteria:
+          description: Only the keys present are changed; null clears a value
+          $ref: '#/components/schemas/criteria'
+        markedForReview: { type: boolean, description: 'Facilitator reminder (FR-006a); allowed even while the feature is in an open round' }
+        reviewReason: { type: [string, 'null'], maxLength: 200 }
     deleteFeature:
       type: object
       required: [type, featureId, version]
@@ -204,14 +258,15 @@ components:
           items: { type: string, format: uuid }
         previousRoundId: { type: [string, 'null'], format: uuid }
     castVote:
-      allOf:
-        - $ref: '#/components/schemas/criteria'
-        - type: object
-          required: [type, roundId, featureId]
-          properties:
-            type: { const: castVote }
-            roundId: { type: string, format: uuid }
-            featureId: { type: string, format: uuid }
+      type: object
+      required: [type, roundId, featureId, criteria]
+      properties:
+        type: { const: castVote }
+        roundId: { type: string, format: uuid }
+        featureId: { type: string, format: uuid }
+        criteria:
+          description: The whole vote for this feature; a missing or null key means "no opinion" (FR-019)
+          $ref: '#/components/schemas/criteria'
     revealRound:
       type: object
       required: [type, roundId]
@@ -244,7 +299,8 @@ components:
           type: string
           enum: [INVALID_MESSAGE, FORBIDDEN, SESSION_CLOSED, STALE_VERSION, INVALID_VALUE,
                  DUPLICATE_EXTERNAL_ID, FEATURE_IN_OPEN_ROUND, ROUND_REVEALED, SCALE_IMPACT,
-                 UNKNOWN_PARTICIPANT, SESSION_NOT_STARTED, ROUND_OPEN, PARTICIPANT_OFFLINE]
+                 UNKNOWN_PARTICIPANT, SESSION_NOT_STARTED, ROUND_OPEN, PARTICIPANT_OFFLINE,
+                 UNKNOWN_CRITERION]
         featureId: { type: string, format: uuid }
         impactedValues:
           type: array
@@ -253,7 +309,7 @@ components:
             required: [externalId, criterion, value]
             properties:
               externalId: { type: string }
-              criterion: { type: string, enum: [bv, tc, rrOe, js] }
+              criterion: { $ref: '#/components/schemas/criterionKey' }
               value: { type: integer }
     score:
       type: object
@@ -263,32 +319,40 @@ components:
         complete: { type: boolean }
         outOfScale:
           type: array
-          items: { type: string, enum: [bv, tc, rrOe, js] }
-        cod: { type: [integer, 'null'] }
-        wsjfNumerator: { type: [integer, 'null'] }
-        wsjfDenominator: { type: [integer, 'null'] }
-        wsjfDisplay: { type: [string, 'null'], examples: ['4,00'] }
+          items: { $ref: '#/components/schemas/criterionKey' }
+        computed:
+          type: [object, 'null']
+          description: By key of methodDefinition.computedValues; null when not complete
+          additionalProperties: { $ref: '#/components/schemas/exactValue' }
+          examples:
+            - cod: { numerator: 16, denominator: 1, display: '16' }
+              wsjf: { numerator: 4, denominator: 1, display: '4,00' }
         explanation:
           type: [string, 'null']
           examples: ['CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00']
         rank: { type: [integer, 'null'] }
     feature:
-      allOf:
-        - $ref: '#/components/schemas/criteria'
-        - type: object
-          required: [id, externalId, title, version, votingInProgress, score]
-          properties:
-            id: { type: string, format: uuid }
-            externalId: { type: string }
-            title: { type: string }
-            description: { type: [string, 'null'] }
-            version: { type: integer }
-            markedForReview: { type: boolean }
-            reviewReason: { type: [string, 'null'] }
-            votingInProgress:
-              type: boolean
-              description: When true and the recipient is not the facilitator, criteria and score are null (FR-019a)
-            score: { $ref: '#/components/schemas/score' }
+      type: object
+      required: [id, externalId, title, version, votingInProgress, criteria, score]
+      properties:
+        id: { type: string, format: uuid }
+        externalId: { type: string }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        version: { type: integer }
+        markedForReview: { type: boolean }
+        reviewReason: { type: [string, 'null'] }
+        votingInProgress:
+          type: boolean
+          description: When true and the recipient is not the facilitator, criteria and score are null (FR-019a)
+        criteria:
+          oneOf:
+            - $ref: '#/components/schemas/criteria'
+            - type: 'null'
+        score:
+          oneOf:
+            - $ref: '#/components/schemas/score'
+            - type: 'null'
     round:
       type: object
       required: [id, number, status, featureIds, progress]
@@ -301,7 +365,7 @@ components:
           items: { type: string, format: uuid }
         progress:
           type: array
-          description: Always visible - number of features fully rated by each participant
+          description: Always visible - number of features rated (at least one criterion) by each participant
           items:
             type: object
             required: [participantId, completedCount]
@@ -323,13 +387,12 @@ components:
               votes:
                 type: array
                 items:
-                  allOf:
-                    - $ref: '#/components/schemas/criteria'
-                    - type: object
-                      required: [participantId, voted]
-                      properties:
-                        participantId: { type: string, format: uuid }
-                        voted: { type: boolean, description: 'True when at least one criterion is entered; a null criterion means "no opinion" (FR-019)' }
+                  type: object
+                  required: [participantId, voted, criteria]
+                  properties:
+                    criteria: { $ref: '#/components/schemas/criteria' }
+                    participantId: { type: string, format: uuid }
+                    voted: { type: boolean, description: 'True when at least one criterion is entered; a null criterion means "no opinion" (FR-019)' }
               min:
                 description: Over entered values only; null for a criterion nobody entered (FR-020)
                 $ref: '#/components/schemas/criteria'
@@ -339,24 +402,27 @@ components:
               largeSpread:
                 type: array
                 description: Criteria where max - min > 3 (FR-020)
-                items: { type: string, enum: [bv, tc, rrOe, js] }
+                items: { $ref: '#/components/schemas/criterionKey' }
               unanimous:
                 description: Value per criterion when everyone who entered a value for it entered the same one, else null (also null when nobody entered one); prefills consensus (FR-021)
                 $ref: '#/components/schemas/criteria'
     sessionState:
       type: object
-      required: [type, version, sessionId, name, status, method, methodVersion, formula,
-                 tieBreakRule, scale, me, participants, features, openRounds]
+      required: [type, version, sessionId, name, status, method, methodVersion, methodDefinition,
+                 formula, tieBreakRule, scale, me, participants, features, openRounds]
       properties:
         type: { const: sessionState }
         version: { type: integer, description: Increases on every accepted change }
         sessionId: { type: string }
         name: { type: string }
         status: { type: string, enum: [PREPARATION, IN_PROGRESS, CLOSED] }
-        method: { type: string, enum: [WSJF] }
+        method: { type: string, examples: [WSJF], description: 'Key of the session method (FR-017); WSJF only in V1' }
         methodVersion: { type: integer }
-        formula: { type: string, examples: ['CoD = BV + TC + RR/OE ; WSJF = CoD / JS'] }
-        tieBreakRule: { type: string }
+        methodDefinition:
+          description: The front builds columns, inputs, help and round grids from it (FR-017b)
+          $ref: '#/components/schemas/methodDefinition'
+        formula: { type: string, description: Same as methodDefinition.formula, examples: ['CoD = BV + TC + RR/OE ; WSJF = CoD / JS'] }
+        tieBreakRule: { type: string, description: Same as methodDefinition.tieBreakRule }
         scale:
           type: object
           required: [type, max, allowedValues]

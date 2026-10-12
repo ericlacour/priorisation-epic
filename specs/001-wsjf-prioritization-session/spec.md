@@ -29,6 +29,7 @@
 - Q : l'écran du tableau de l'animateur peut-il obliger à faire défiler la page ? → A: Non. Il tient dans une fenêtre de 1280 × 720 ; seule la liste des fonctionnalités défile. Même règle pour les écrans du tour en cours et de la révélation.
 - Q : comment indiquer qu'une fonctionnalité est « à revoir » ? → A: Marque posée par l'animateur, avec un motif facultatif, sans effet sur le classement, pour la reprendre lors d'un prochain tour. Les valeurs sorties de l'échelle sont signalées séparément « hors échelle » (calculé).
 - Q : un participant peut-il ne pas noter un critère lors d'un tour (il ne sait pas, ou ce n'est pas son domaine, par exemple le JS) ? → A: Oui. Un critère laissé vide vaut « sans avis ». Il est ignoré dans le minimum, le maximum, l'écart important et le préremplissage du consensus.
+- Q : si une nouvelle méthode de calcul arrive, avec d'autres champs que BV, TC, RR/OE, JS, CoD et WSJF, comment l'ajouter facilement ? → A: Chaque méthode est décrite par une définition unique : ses critères saisis, ses valeurs calculées, sa formule et son tri. Le tableau, la saisie, les votes, l'import, les exports et l'historique se construisent à partir de cette définition. Ajouter une méthode revient à écrire sa définition et son calcul, sans toucher au reste de l'application.
 - Q : faut-il une case « Je ne sais pas » pour distinguer un « sans avis » volontaire d'un critère pas encore rempli ? → A: Non. Le champ vide suffit, et la fonctionnalité est évaluée même si le participant n'a pas renseigné tous les critères : son vote est complet, sans avertissement.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -372,7 +373,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   l'enregistrement. « Annuler » abandonne la saisie. Si la fonctionnalité a été modifiée
   entre-temps, la version actuelle est affichée avant d'écraser quoi que ce soit (cas
   limite « Modifications simultanées »).
-- **FR-016a**: Partout où apparaissent les sigles BV, TC, RR/OE, JS, CoD et WSJF
+- **FR-016a**: Partout où apparaissent les sigles des critères et des valeurs calculées
+  (en WSJF : BV, TC, RR/OE, JS, CoD et WSJF)
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
   toucher. Un encadré « Comprendre le WSJF », dans le panneau latéral, regroupe toutes
@@ -387,11 +389,44 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - **JS · Job Size** : taille relative du travail nécessaire ;
   - **CoD · Cost of Delay** : coût du retard, BV + TC + RR/OE ;
   - **WSJF** : CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.
+
+  Ces sigles, noms et définitions viennent de la définition de la méthode (FR-017a) : une
+  autre méthode affiche les siens, et l'encadré prend son nom (« Comprendre le RICE »).
 - **FR-017**: La méthode de priorisation DOIT être identifiée explicitement pour chaque
-  session. En v1, seule la méthode WSJF existe, et sa formule et ses critères ne sont pas
-  modifiables par l'utilisateur. D'autres méthodes (RICE, MoSCoW…) pourront être ajoutées
-  dans une version ultérieure. La méthode choisie pour une session ne change pas quand une
-  autre méthode est ajoutée à l'outil.
+  session, avec sa version. En v1, seule la méthode WSJF (version 1) existe, et sa formule
+  et ses critères ne sont pas modifiables par l'utilisateur. D'autres méthodes (RICE,
+  MoSCoW…) pourront être ajoutées dans une version ultérieure, avec des critères et des
+  valeurs calculées différents de ceux du WSJF. La méthode d'une session et sa version ne
+  changent pas quand une autre méthode, ou une nouvelle version de la même méthode, est
+  ajoutée à l'outil : une session existante garde ses champs et ses scores.
+- **FR-017a**: Chaque méthode DOIT être décrite par une **définition de méthode** unique,
+  qui est la seule source de vérité sur ses champs. Elle contient :
+  - son identifiant, sa version et son nom (« WSJF ») ;
+  - ses **critères saisis**, dans l'ordre d'affichage : pour chacun, une clé technique, un
+    sigle, un nom complet, une définition et l'en-tête de colonne utilisé à l'import et à
+    l'export ;
+  - ses **valeurs calculées**, dans l'ordre d'affichage : pour chacune, une clé, un sigle,
+    un nom complet, une définition et un format d'affichage (entier, ou deux décimales) ;
+  - sa **formule**, sa **règle de tri et d'égalité**, et la condition pour qu'une
+    fonctionnalité soit calculable (en WSJF : les quatre critères renseignés et dans
+    l'échelle).
+
+  Pour le WSJF, les critères saisis sont BV, TC, RR/OE et JS, et les valeurs calculées
+  sont CoD (entier) et WSJF (deux décimales).
+- **FR-017b**: Tout ce qui dépend des champs de la méthode DOIT être construit à partir de
+  la définition de la méthode de la session, sans liste de critères écrite ailleurs :
+  - les colonnes du tableau, le panneau de détail et le détail du calcul (FR-014, FR-016) ;
+  - les champs de saisie directe et de vote, et leurs aides (FR-016a, FR-019) ;
+  - les règles des tours, appliquées à chaque critère : « sans avis », minimum et
+    maximum, écart important, préremplissage du consensus (FR-020, FR-021) ;
+  - le contrôle par l'échelle (FR-009 à FR-011) ;
+  - les en-têtes de l'import, le modèle vierge et les colonnes des exports (FR-007,
+    FR-023, FR-024) ;
+  - l'historique des modifications (FR-025).
+
+  Ajouter une méthode DOIT se limiter à écrire sa définition et son calcul, avec leurs
+  tests (SC-009). Un fichier JSON exporté avec une autre méthode que celle de la session
+  est refusé à l'import, avec un message qui nomme les deux méthodes.
 
 **Vote masqué et consensus**
 
@@ -474,20 +509,24 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 
 - **Session** : une séance de priorisation. Elle a un nom, un animateur (pseudo), un lien
   d'invitation, un lien d'animation privé, un
-  statut, une date de création, une méthode (WSJF) et une échelle (type : entiers continus
-  ou Fibonacci ; borne supérieure).
+  statut, une date de création, une méthode et sa version (WSJF version 1 en v1) et une
+  échelle (type : entiers continus ou Fibonacci ; borne supérieure).
   Elle contient des fonctionnalités et des participants.
 - **Participant** : une personne identifiée par un pseudo dans une session, avec un rôle
   « animateur » ou « participant ». Le rôle métier (Product Owner, Product Management,
   Architecte, Expert métier, Lead PM, Tech Lead) peut être indiqué à titre informatif.
+- **Méthode de priorisation** : la définition d'une méthode (FR-017a) : critères saisis,
+  valeurs calculées, formule et règle de tri. Elle fait partie de l'application et n'est
+  pas modifiable par l'utilisateur. En v1, seule la méthode WSJF existe.
 - **Fonctionnalité** : un élément à prioriser. Elle a un identifiant, un titre, une
-  description et les valeurs retenues pour BV, TC, RR/OE et JS. Le CoD, le WSJF et le
-  rang sont toujours calculés à partir de ces valeurs, jamais saisis.
+  description et une valeur retenue pour chaque critère de la méthode de la session (en
+  WSJF : BV, TC, RR/OE et JS). Les valeurs calculées (en WSJF : CoD et WSJF) et le rang
+  sont toujours calculés à partir de ces valeurs, jamais saisis.
 - **Tour de vote** : une évaluation masquée portant sur une ou plusieurs fonctionnalités
   choisies par l'animateur. Il a un numéro d'ordre, un statut (ouvert, révélé), la liste
   de ses fonctionnalités et des votes.
-- **Vote** : les valeurs BV, TC, RR/OE et JS saisies par un participant pour une
-  fonctionnalité dans un tour. Chaque valeur est facultative (« sans avis »).
+- **Vote** : les valeurs saisies par un participant pour les critères de la méthode (en
+  WSJF : BV, TC, RR/OE et JS), pour une fonctionnalité dans un tour. Chaque valeur est facultative (« sans avis »).
 - **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025),
   enregistrée mais non affichée en V1. Elle a un auteur (pseudo), une date, l'élément
   modifié, l'ancienne et la nouvelle valeur.
@@ -517,6 +556,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 - **SC-008**: Un export JSON réimporté dans une session vide redonne des données de
   priorisation (fonctionnalités, valeurs, échelle) et des scores identiques dans
   100 % des cas testés.
+- **SC-009**: Une méthode fictive, définie uniquement dans les tests avec d'autres critères
+  et d'autres valeurs calculées que le WSJF, fonctionne de bout en bout (saisie, vote,
+  révélation, consensus, tri, import, exports) sans modifier le code en dehors de sa
+  définition et de son calcul. Ce test automatique prouve qu'une nouvelle méthode
+  s'ajoute facilement.
 
 ## Assumptions
 
@@ -539,9 +583,12 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 - En plus des formats demandés (import Excel, export Confluence et CSV), l'import CSV et
   JSON et l'export JSON sont inclus pour respecter le principe VI de la constitution
   (Données portables).
-- « La méthode doit pouvoir être modifiable » signifie que d'autres méthodes pourront être
-  ajoutées plus tard. En v1, la méthode WSJF est figée et aucune configuration de formule
-  n'est proposée.
+- « La méthode doit pouvoir être modifiable » signifie que d'autres méthodes, avec leurs
+  propres champs, pourront être ajoutées plus tard par l'équipe de développement, en
+  écrivant leur définition et leur calcul (FR-017a, FR-017b, SC-009). En v1, la méthode
+  WSJF est figée, et l'utilisateur ne peut ni configurer une formule ni créer une méthode.
+- En v1, l'échelle est commune à tous les critères de la session. Une méthode future qui
+  aurait besoin d'une échelle propre à un critère l'ajoutera à sa définition.
 - Seul l'animateur modifie les valeurs retenues (saisie directe ou consensus). Les
   participants voient le tableau en direct et votent lors des tours masqués.
 - Toutes les sessions sont visibles par toute personne ayant accès à l'outil : la v1 ne
@@ -575,8 +622,10 @@ Chacun demandera sa propre spec, et, pour certains, un amendement de la constitu
   notification et reste dans le périmètre.
 - **Pondérations WSJF personnalisées** : la formule est fixe, CoD = BV + TC + RR/OE et
   WSJF = CoD / JS, sans poids par critère (FR-017).
-- **Autres méthodes de scoring** (RICE, MoSCoW…) : seule la méthode WSJF existe. Le
-  modèle permet d'en ajouter plus tard (FR-017).
+- **Autres méthodes de scoring** (RICE, MoSCoW…) : seule la méthode WSJF existe. La
+  conception permet d'en ajouter plus tard, avec d'autres champs, sans reprendre le reste
+  de l'application (FR-017a, FR-017b, SC-009). Le choix de la méthode à la création d'une
+  session viendra avec la deuxième méthode.
 - **Fonctionnalités avancées de SAFe** : pas de gestion des PI, des ART, des
   dépendances, de la capacité ou des objectifs de PI.
 - **Saisie sur téléphone** : sur un écran de téléphone (moins de 600 px de large), la

@@ -8,14 +8,22 @@ métier français est indiqué entre parenthèses.
 ## Vue d'ensemble
 
 ```text
+Session *───1 PrioritizationMethod (définie dans le code, non stockée)
 Session 1───* Participant
-Session 1───* Feature
+Session 1───* Feature 1───* FeatureCriterionValue
 Session 1───* VotingRound 1───* RoundFeature *───1 Feature
 VotingRound 1───* Vote *───1 Participant
                  Vote *───1 Feature
+                 Vote 1───* VoteCriterionValue
 Session 1───* ChangeLogEntry
 Session 1───* ImportPreview (temporaire)
 ```
+
+**Principe** (FR-017a, FR-017b) : aucune table, aucun schéma du contrat et aucun écran ne
+liste les critères du WSJF. Les valeurs sont rangées **par clé de critère**, et la liste
+des critères et des valeurs calculées vient toujours de la définition de la méthode de la
+session. Ajouter une méthode ne demande donc aucune migration de base ni aucun changement
+du contrat.
 
 ## Session (Session)
 
@@ -25,8 +33,8 @@ Session 1───* ImportPreview (temporaire)
 | animationTokenHash | texte | Empreinte SHA-256 du jeton d'animation. Le jeton lui-même n'est jamais stocké |
 | name | texte (1 à 120 car.) | Obligatoire |
 | status | enum `PREPARATION`, `IN_PROGRESS`, `CLOSED` | Vaut `PREPARATION` à la création |
-| method | enum `WSJF` | Fixée à la création (FR-017) |
-| methodVersion | entier | Vaut 1. Permet de faire évoluer une méthode sans casser les sessions existantes |
+| method | texte (≤ 20 car.) | Identifiant de la méthode, `WSJF` en V1. Fixé à la création (FR-017). Doit exister dans `MethodRegistry` |
+| methodVersion | entier | Vaut 1. Une nouvelle version d'une méthode s'ajoute à côté de l'ancienne : une session garde toujours sa version |
 | scaleType | enum `CONTINUOUS`, `FIBONACCI` | Vaut `CONTINUOUS` par défaut |
 | scaleMax | entier | En continu : de 2 à 100, 10 par défaut. En Fibonacci : une valeur de {2, 3, 5, 8, 13, 20, 40, 100}, 20 par défaut |
 | createdAt | horodatage | |
@@ -45,7 +53,7 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - Les fonctionnalités, les valeurs et l'échelle sont modifiables en `PREPARATION` comme en
   `IN_PROGRESS`. L'import est possible dans les deux statuts.
 - Une fonctionnalité qui est dans un tour `OPEN` ne peut pas voir ses valeurs retenues
-  (`bv`, `tc`, `rrOe`, `js`) modifiées, ni être supprimée, tant que le tour n'est pas
+  (ses critères) modifiées, ni être supprimée, tant que le tour n'est pas
   révélé : `error FEATURE_IN_OPEN_ROUND` (FR-018). Son titre et sa description restent
   modifiables.
 - Un tour de vote ne peut être ouvert qu'en `IN_PROGRESS`. En `PREPARATION`, `openRound`
@@ -54,6 +62,48 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 - Un changement d'échelle (`updateSettings` avec `scale`) est refusé tant qu'un tour est
   `OPEN` : `error ROUND_OPEN` (FR-011). Renommer la session reste possible.
 - En `IN_PROGRESS`, supprimer une fonctionnalité demande une confirmation.
+
+## PrioritizationMethod (Méthode de priorisation, définie dans le code)
+
+Une méthode n'est pas stockée en base : c'est du code du domaine, identifié par
+(`method`, `methodVersion`) et enregistré dans `MethodRegistry`. Elle expose une
+**définition** (`MethodDefinition`), envoyée telle quelle au front dans `sessionState`, et
+un **calcul**.
+
+| Élément | Contenu |
+|---------|---------|
+| key, version, name | `WSJF`, `1`, « WSJF » |
+| criteria | Liste ordonnée de `CriterionDefinition` : `key` (clé technique, en camelCase), `code` (sigle affiché), `label` (nom complet), `definition` (texte d'aide en français), `header` (en-tête de colonne à l'import et à l'export) |
+| computedValues | Liste ordonnée de `ComputedValueDefinition` : `key`, `code`, `label`, `definition`, `header`, `display` (`INTEGER` ou `DECIMAL_2`) |
+| formula | Texte affiché, par exemple « CoD = BV + TC + RR/OE ; WSJF = CoD / JS » |
+| tieBreakRule | Texte affiché de la règle de tri et d'égalité |
+| compute(criteria) | Calcule les valeurs calculées en **fractions exactes**, ou rien si la fonctionnalité n'est pas calculable |
+| explain(criteria) | Le détail du calcul avec les vraies valeurs (FR-016) |
+| compare(a, b) | L'ordre entre deux fonctionnalités calculables. L'application ajoute toujours, en dernier, `externalId` croissant sans tenir compte de la casse |
+
+**Définition du WSJF, version 1** :
+
+| Type | key | code | label | header | display |
+|------|-----|------|-------|--------|---------|
+| Critère | `bv` | BV | Business Value | `BV` | |
+| Critère | `tc` | TC | Time Criticality | `TC` | |
+| Critère | `rrOe` | RR/OE | Risk Reduction / Opportunity Enablement | `RR/OE` | |
+| Critère | `js` | JS | Job Size | `JS` | |
+| Valeur calculée | `cod` | CoD | Cost of Delay | `CoD` | `INTEGER` |
+| Valeur calculée | `wsjf` | WSJF | Weighted Shortest Job First | `WSJF` | `DECIMAL_2` |
+
+- Calculable si les quatre critères sont renseignés et dans l'échelle.
+- `cod` = bv + tc + rrOe ; `wsjf` = cod / js, en fraction exacte.
+- Tri : `wsjf` décroissant, puis `cod` décroissant.
+
+**Règles** :
+- Les clés de critère sont uniques dans une méthode et ne changent jamais pour une version
+  donnée. Changer un critère, un calcul ou un tri crée une **nouvelle version** de la
+  méthode (constitution I : le changement est documenté et visible).
+- Une clé de critère inconnue de la méthode de la session est refusée :
+  `error UNKNOWN_CRITERION`.
+- Les textes de la définition sont en français (constitution V). Ils sont la seule source
+  des sigles, noms et définitions affichés (FR-016a).
 
 ## Participant (Participant)
 
@@ -87,29 +137,34 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | externalId | texte (1 à 50 car.) | « Identifiant » métier. Unique par session sans tenir compte de la casse |
 | title | texte (1 à 200 car.) | Obligatoire |
 | description | texte (≤ 5 000 car.) | Facultative |
-| bv, tc, rrOe, js | entier, facultatif | Une fois renseigné, la valeur est ≥ 1. L'appartenance à l'échelle est vérifiée à l'écriture |
+| criteria | valeurs par clé de critère, dans `FeatureCriterionValue` | Voir ci-dessous |
 | markedForReview | booléen | Marque « à revoir » posée par l'animateur (FR-006a). Faux par défaut. Sans effet sur le score ni le tri |
 | reviewReason | texte (≤ 200 car.), facultatif | Motif de la marque « à revoir ». Vidé quand la marque est retirée |
 | deletedAt | horodatage, facultatif | Suppression douce, pour conserver l'historique |
 | version | entier | Verrouillage optimiste |
 
-**Valeurs calculées** (jamais stockées, calculées par le domaine) :
-- `complete` : vrai si les quatre critères sont renseignés **et** appartiennent à
-  l'échelle courante.
+**FeatureCriterionValue** : (`featureId`, `criterionKey`, `value`), clé primaire
+(`featureId`, `criterionKey`). `criterionKey` est une clé de critère de la méthode de la
+session. `value` est un entier ≥ 1, dont l'appartenance à l'échelle est vérifiée à
+l'écriture. Un critère non renseigné n'a pas de ligne.
+
+**Valeurs calculées** (jamais stockées, calculées par le domaine à partir de la méthode) :
+- `complete` : vrai si la méthode déclare la fonctionnalité calculable. En WSJF : les
+  quatre critères sont renseignés **et** appartiennent à l'échelle courante.
 - `outOfScale` : la liste des critères renseignés mais hors de l'échelle courante. Ils
   sont affichés « **hors échelle** » (FR-011). C'est un état calculé, distinct de la
   marque « à revoir » (`markedForReview`).
 - **Retrait automatique de la marque « à revoir »** : à la révélation d'un tour, la marque
   de chaque fonctionnalité du tour est retirée (FR-006a).
-- `cod` = bv + tc + rrOe, seulement si `complete`.
-- `wsjf` = cod / js, sous forme de fraction exacte, seulement si `complete`. Affiché avec
-  2 décimales.
+- `computed` : les valeurs calculées de la méthode, par clé, en fractions exactes,
+  seulement si `complete`. Chacune est affichée selon son `display`. En WSJF : `cod` =
+  bv + tc + rrOe, et `wsjf` = cod / js, affiché avec 2 décimales.
 - `rank` : la position après le tri décrit ci-dessous.
 
-**Tri** (FR-014) : les fonctionnalités complètes d'abord, par WSJF décroissant, puis par
-CoD décroissant, puis par `externalId` croissant sans tenir compte de la casse. Viennent
-ensuite les fonctionnalités incomplètes ou hors échelle, par `externalId` croissant. La
-marque « à revoir » ne change pas le tri.
+**Tri** (FR-014) : les fonctionnalités complètes d'abord, dans l'ordre de `compare` de la
+méthode (en WSJF : WSJF décroissant, puis CoD décroissant), puis par `externalId`
+croissant sans tenir compte de la casse. Viennent ensuite les fonctionnalités incomplètes
+ou hors échelle, par `externalId` croissant. La marque « à revoir » ne change pas le tri.
 
 ## VotingRound (Tour de vote)
 
@@ -138,8 +193,11 @@ font partie du tour (au moins une, FR-018).
 |-------|------|--------|
 | id | UUID | |
 | roundId, featureId, participantId | UUID | Unique sur (`roundId`, `featureId`, `participantId`) |
-| bv, tc, rrOe, js | entier, facultatif | Chaque valeur doit appartenir à l'échelle courante de la session. Vide = « sans avis » (FR-019) |
+| criteria | valeurs par clé de critère, dans `VoteCriterionValue` | Chaque valeur doit appartenir à l'échelle courante de la session. Critère absent = « sans avis » (FR-019) |
 | updatedAt | horodatage | |
+
+**VoteCriterionValue** : (`voteId`, `criterionKey`, `value`), clé primaire (`voteId`,
+`criterionKey`), mêmes règles que `FeatureCriterionValue`.
 
 **Règles de visibilité** (FR-019, FR-019a, SC-004), appliquées par le serveur à chaque
 `sessionState` envoyé, connexion par connexion, ainsi qu'aux réponses REST et aux exports :
@@ -147,11 +205,11 @@ font partie du tour (au moins une, FR-018).
   voient seulement, pour chaque participant, le nombre de fonctionnalités notées, c'est-à-dire
   ayant au moins un critère renseigné (FR-019).
 - Tant que le tour est `OPEN`, un participant non animateur voit les fonctionnalités du tour
-  sans `bv`, `tc`, `rrOe`, `js`, `cod`, `wsjf`, ni votes des tours précédents. Elles
+  sans critères, sans valeurs calculées, ni votes des tours précédents. Elles
   portent le marqueur `votingInProgress = true` et sont placées en fin de tableau.
   L'animateur, lui, voit les valeurs retenues.
 - Une fois le tour `REVEALED`, tout le monde voit tous les votes, ainsi que le minimum et le
-  maximum de chaque critère, calculés sur les seules valeurs saisies : un critère vide
+  maximum de chaque critère de la méthode, calculés sur les seules valeurs saisies : un critère vide
   (« sans avis ») est ignoré, et un critère sans aucune valeur a un minimum et un maximum
   vides. Le domaine calcule aussi, par critère, l'**écart important**
   (maximum moins minimum strictement supérieur à 3, FR-020) et la **valeur unanime**
@@ -174,7 +232,7 @@ font partie du tour (au moins une, FR-018).
 | entityType | enum `SESSION`, `FEATURE` | |
 | entityId | texte | `sessionId` ou identifiant de la fonctionnalité |
 | action | enum `VALUE_CHANGE`, `SCALE_CHANGE` | Seules opérations tracées (FR-025) |
-| field | texte, facultatif | `bv`, `tc`, `rrOe` ou `js` pour `VALUE_CHANGE` |
+| field | texte, facultatif | Clé du critère modifié pour `VALUE_CHANGE` (en WSJF : `bv`, `tc`, `rrOe` ou `js`) |
 | oldValue / newValue | JSON, facultatif | |
 
 Les entrées sont écrites dans la même transaction que la modification. Elles ne sont jamais
@@ -208,8 +266,9 @@ change vraiment.
 
 | Règle | Source | Où elle est appliquée |
 |-------|--------|-----------------------|
+| Clé de critère connue de la méthode de la session | FR-017b | Domaine (`MethodDefinition`), `error UNKNOWN_CRITERION` |
 | Critère ∈ valeurs de l'échelle (entier ≥ 1) | FR-009, FR-010 | Domaine (`Scale.accepts`), puis contrainte `CHECK ≥ 1` en base |
-| JS jamais nul | Spec, FR-010 | Garanti par la plus petite valeur de l'échelle, qui vaut 1 |
+| Diviseur jamais nul (JS en WSJF) | Spec, FR-010 | Garanti par la plus petite valeur de l'échelle, qui vaut 1 |
 | `externalId` unique par session | FR-006 | Domaine, puis index unique `lower(external_id)` |
 | Pseudo unique par session | FR-003 | Domaine, puis index unique `lower(pseudo)` |
 | Un seul animateur par session | FR-002a | Service, sous transaction |

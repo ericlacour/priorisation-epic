@@ -3,6 +3,21 @@
 Voir [research.md](../research.md), section R9 ; la spec, FR-007, FR-007a, FR-008, FR-023 et
 FR-024 ; la constitution, principe VI.
 
+## Colonnes issues de la méthode (FR-017a, FR-017b)
+
+Aucun format ne liste les critères en dur. Les colonnes de critères et de valeurs
+calculées sont **générées à partir de la définition de la méthode de la session**, dans
+l'ordre de la définition, avec leur `header` :
+
+| Méthode | Colonnes de critères `<critères>` | Colonnes calculées `<calculées>` |
+|---------|-----------------------------------|----------------------------------|
+| WSJF v1 | `BV;TC;RR/OE;JS` | `CoD;WSJF` |
+
+Dans la suite, les exemples sont donnés pour le WSJF. Pour une autre méthode, seules ces
+colonnes changent. Le nom de la méthode (`<méthode>`) apparaît dans la légende des
+exports et dans le JSON, ce qui permet de savoir avec quelle méthode un fichier a été
+produit.
+
 ## Versions des formats (constitution VI)
 
 Chaque format d'export porte un **numéro de version documenté** :
@@ -22,26 +37,29 @@ Chaque format d'export porte un **numéro de version documenté** :
 - L'import accepte toujours les versions précédentes. Il reconnaît la version d'un CSV à
   ses en-têtes, et celle d'un JSON à `formatVersion`, puis convertit les données.
 - Chaque changement de version est noté dans ce document.
+- Les colonnes `<critères>` et `<calculées>` dépendent de la méthode de la session, pas de
+  la version du format. Ajouter une méthode ne crée donc pas de nouvelle version de
+  format.
 
 ## Colonnes communes (Excel et CSV)
 
 Les en-têtes sont **imposés**. Ils sont comparés sans tenir compte de la casse ni des
-espaces aux extrémités, et l'ordre des colonnes est libre :
+espaces aux extrémités, et l'ordre des colonnes est libre. `Identifiant`, `Titre` et
+`Description` sont communs à toutes les méthodes. Viennent ensuite **une colonne par
+critère de la méthode de la session**, avec son `header` :
 
 | En-tête | Obligatoire | Contenu |
 |---------|-------------|---------|
 | `Identifiant` | oui | 1 à 50 caractères, unique dans la session |
 | `Titre` | oui | 1 à 200 caractères |
 | `Description` | non | 5 000 caractères au plus |
-| `BV` | non | Entier appartenant à l'échelle de la session |
-| `TC` | non | Idem |
-| `RR/OE` | non | Idem |
-| `JS` | non | Idem |
+| Un en-tête par critère (WSJF : `BV`, `TC`, `RR/OE`, `JS`) | non | Entier appartenant à l'échelle de la session |
 
 **Règles d'import** :
 - Si `Identifiant` ou `Titre` manque, **tout le fichier est refusé**. Le message liste les
   en-têtes attendus et propose le modèle.
-- Les colonnes inconnues sont ignorées et signalées dans l'aperçu.
+- Les colonnes inconnues sont ignorées et signalées dans l'aperçu. C'est le cas d'un
+  critère d'une autre méthode que celle de la session.
 - Une ligne entièrement vide est ignorée sans être signalée.
 - Une ligne est **rejetée**, avec son motif, si :
   - son identifiant est vide ;
@@ -55,9 +73,11 @@ espaces aux extrémités, et l'ordre des colonnes est libre :
 
 ## Modèle Excel (`GET /api/import-template.xlsx`)
 
-Le modèle contient une feuille « Fonctionnalités », la ligne d'en-têtes ci-dessus dans cet
-ordre, et une ligne d'exemple : `F-1 | Exemple de fonctionnalité | Description facultative |
-8 | 5 | 3 | 4`.
+Le modèle est **généré à partir de la définition de la méthode**. Il contient une feuille
+« Fonctionnalités », la ligne d'en-têtes ci-dessus dans cet ordre, et une ligne d'exemple.
+En WSJF : `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`.
+L'adresse accepte `?method=WSJF&methodVersion=1`, WSJF version 1 par défaut ; l'écran
+d'import d'une session demande le modèle de sa méthode.
 
 ## Excel (`.xlsx`), en import
 
@@ -72,12 +92,14 @@ Les formules sont lues par leur dernière valeur calculée.
   ligne d'en-tête.
 - Guillemets RFC 4180 pour les champs qui contiennent le séparateur, un guillemet ou un
   saut de ligne.
-- **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF;À revoir;Motif`.
+- **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;<critères>;<calculées>;À revoir;Motif`.
+  En WSJF : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF;À revoir;Motif`.
   - `À revoir` vaut `oui` ou reste vide (FR-006a), `Motif` contient le motif éventuel.
   - À l'import, `À revoir` et `Motif` sont ignorés.
-  - Le WSJF a 2 décimales avec une virgule (`4,00`).
-  - Une fonctionnalité incomplète a `Rang`, `CoD` et `WSJF` vides.
-- Un CSV exporté peut être réimporté : les colonnes `Rang`, `CoD` et `WSJF` sont alors
+  - Chaque valeur calculée suit son `display` : entier, ou 2 décimales avec une virgule
+    (WSJF `4,00`).
+  - Une fonctionnalité incomplète a `Rang` et les colonnes `<calculées>` vides.
+- Un CSV exporté peut être réimporté : les colonnes `Rang` et `<calculées>` sont alors
   ignorées, car elles sont toujours recalculées. Cet aller-retour, dans une session vide de
   même échelle, est testé (constitution VI).
 
@@ -86,7 +108,8 @@ Les formules sont lues par leur dernière valeur calculée.
 Ce format rend les évaluations exportables en CSV (constitution VI). Il suit les mêmes
 règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180.
 
-- **Colonnes** : `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`.
+- **Colonnes** : `Tour;Identifiant;Titre;Pseudo;A voté;<critères>`. En WSJF :
+  `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`.
 - **Une ligne** par tour, fonctionnalité et participant **inscrit dans la session au
   moment de la révélation du tour**, animateur compris (la même liste que celle qui sert à
   afficher « n'a pas voté »), triée par tour, puis par
@@ -100,7 +123,7 @@ règles d'encodage que le CSV tableau : UTF-8 avec BOM, `;`, guillemets RFC 4180
 
 Les deux sorties contiennent les mêmes colonnes et lignes que l'export CSV, dans l'ordre du
 tableau, avec un titre `Priorisation Fonctionnalités : <nom de session> (<JJ/MM/AAAA>)` et une ligne de
-légende qui rappelle la formule et la règle d'égalité (constitution, principe I).
+légende qui rappelle la méthode, sa formule et sa règle d'égalité (constitution, principe I).
 
 1. **`confluence-html`** : un fragment HTML `<table>`, sans styles externes, copié dans le
    presse-papiers par le bouton « Copier pour Confluence ». Il se colle tel quel dans
@@ -116,7 +139,9 @@ légende qui rappelle la formule et la règle d'égalité (constitution, princip
 ## JSON, en import et en export complet
 
 Le format est versionné. Un changement incompatible incrémente `formatVersion` et
-s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
+s'accompagne d'une conversion des anciens fichiers (constitution, principe VI). Les
+critères et les valeurs calculées sont des objets indexés par les clés de la méthode
+(`criteria`, `computed`), ce qui permet d'ajouter une méthode sans changer de version.
 
 ```json
 {
@@ -131,23 +156,29 @@ s'accompagne d'une conversion des anciens fichiers (constitution, principe VI).
   },
   "features": [
     { "externalId": "F-1", "title": "…", "description": "…",
-      "bv": 8, "tc": 5, "rrOe": 3, "js": 4,
+      "criteria": { "bv": 8, "tc": 5, "rrOe": 3, "js": 4 },
       "markedForReview": true, "reviewReason": "descriptif à compléter",
-      "computed": { "cod": 16, "wsjf": "4,00", "rank": 1 } }
+      "computed": { "cod": "16", "wsjf": "4,00" }, "rank": 1 }
   ],
   "rounds": [
     { "number": 1, "status": "REVEALED", "featureExternalIds": ["F-1"],
       "openedAt": "2026-10-11T13:40:00Z", "revealedAt": "2026-10-11T13:45:00Z",
       "votes": [ { "pseudo": "alice", "featureExternalId": "F-1",
-                   "bv": 8, "tc": 5, "rrOe": 3, "js": 5,
+                   "criteria": { "bv": 8, "tc": 5, "rrOe": 3, "js": 5 },
                    "updatedAt": "2026-10-11T13:42:00Z" } ] }
   ]
 }
 ```
 
 **Règles** :
-- `computed` est informatif. À l'import, il est **recalculé**, puis comparé à la valeur du
-  fichier : un écart produit un avertissement, et on garde le calcul.
+- `computed` et `rank` sont informatifs. À l'import, ils sont **recalculés**, puis
+  comparés aux valeurs du fichier : un écart produit un avertissement, et on garde le
+  calcul.
+- **Méthode** : un JSON dont `method` ou `methodVersion` diffère de la méthode de la
+  session est **refusé en entier**, avec le message « Ce fichier a été produit avec la
+  méthode <méthode du fichier> ; cette session utilise <méthode de la session> »
+  (FR-017b). Une clé de `criteria` inconnue de la méthode est ignorée, avec un
+  avertissement.
 - **Importer un JSON** (`POST /api/sessions/{id}/imports`) : seules les `features` sont
   importées. Si la session est en préparation et ne contient encore aucune
   fonctionnalité, l'échelle du fichier est appliquée : c'est l'aller-retour (US4,
