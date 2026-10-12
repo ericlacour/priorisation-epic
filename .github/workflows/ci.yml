@@ -74,7 +74,7 @@ jobs:
             -e PORT=9090 \
             -e DATABASE_URL=postgresql://ci:ci@localhost:5432/priorisation \
             priorisation-epic-api:ci
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             if curl -sf http://localhost:9090/api/health; then
               docker logs api 2>&1 | jq -se 'length > 0 and all(has("@timestamp"))' > /dev/null
               exit $?
