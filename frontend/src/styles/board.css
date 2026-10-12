@@ -1,0 +1,217 @@
+/* Tableau des fonctionnalités (écrans 4 et 4 quinquies) : une colonne par critère et valeur calculée de la méthode. */
+.board {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  align-content: start;
+}
+
+.board-actions {
+  margin: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.board table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.board th,
+.board td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.board th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.board th.num,
+.board td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.board tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Les titres longs sont tronqués : le titre complet est dans le panneau de détail (FR-014a). */
+.board td.title {
+  /* `max-width: 0` + `width: 100%` : la colonne prend la place restante et tronque avec des points de suspension. */
+  width: 100%;
+  min-width: 140px;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board td.title.editor-cell {
+  width: auto;
+  min-width: 200px;
+  max-width: none;
+  overflow: visible;
+}
+
+.board td.wsjf {
+  color: var(--primary-ink);
+  font-weight: 800;
+}
+
+.board tr.incomplete td {
+  color: var(--muted);
+}
+
+.board tr.masked td.cell-mask {
+  background: var(--masked);
+  color: var(--muted);
+  text-align: center;
+}
+
+.rank {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  font-weight: 700;
+}
+
+.rank.top {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+/* Identifiant : bouton qui ouvre le panneau de détail, présenté comme un lien. */
+.fid {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-ink);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.fid:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.legend {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Ligne d'édition de l'animateur. */
+.edit-row td {
+  background: var(--primary-soft);
+  vertical-align: top;
+}
+
+.edit-row .input {
+  width: 56px;
+  min-height: 36px;
+  padding: 4px 8px;
+  text-align: center;
+}
+
+.edit-row .input.wide {
+  width: 100%;
+  min-width: 180px;
+  text-align: left;
+}
+
+.editor-cell {
+  white-space: normal;
+}
+
+.editor-messages {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.editor-messages p {
+  margin: 0;
+  white-space: normal;
+}
+
+.actions-cell .actions {
+  flex-wrap: nowrap;
+}
+
+/* Téléphone : le tableau devient une liste de cartes en lecture seule. */
+.feature-cards {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fcard {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.fcard.masked {
+  background: var(--masked);
+}
+
+.fcard .row1 {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fcard .card-title {
+  min-width: 0;
+}
+
+.fcard .crit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.fcard .wsjf-big {
+  margin-left: auto;
+  color: var(--primary-ink);
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* « non calculé » et « hors échelle » : un état, pas un résultat. */
+.fcard .wsjf-big.wsjf-missing {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}

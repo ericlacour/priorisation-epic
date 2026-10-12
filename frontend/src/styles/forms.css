@@ -1,0 +1,251 @@
+/* Éléments communs repris des maquettes : cartes, encarts, pastilles, champs, textes d'aide. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card h2,
+.card h3 {
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 14px;
+}
+
+.strong {
+  font-weight: 600;
+}
+
+.help {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.narrow {
+  max-width: 520px;
+}
+
+/* Encarts : orange par défaut, `.info` neutre, `.success` vert, `.danger` rouge. */
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 14px;
+}
+
+.notice.info {
+  background: var(--info-soft);
+  color: var(--fg);
+}
+
+.notice.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.notice.success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* Pastilles : statut de session, « à revoir », « vote en cours », « hors échelle ». */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.prep {
+  background: var(--info-soft);
+}
+
+.badge.live {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge.closed {
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
+.badge.warn {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.badge.vote {
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+
+.badge.review {
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  border: 1px dashed var(--primary-ink);
+}
+
+/* Valeur hors échelle ou fonctionnalité marquée « à revoir ». */
+.review {
+  border-radius: 6px;
+  padding: 0 6px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.badge.review {
+  padding: 2px 10px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input,
+select.input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+textarea.input {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.input.error,
+.input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.err {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions.between {
+  justify-content: space-between;
+}
+
+.actions.end {
+  justify-content: flex-end;
+}
+
+/* Lien présenté comme un texte (ouvre un panneau, pas une page). */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link-button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Lien copiable : invitation et lien d'animation privé. */
+.linkbox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.linkbox code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  font-size: 14px;
+}
+
+.linkbox .err {
+  flex-basis: 100%;
+}
+
+.secret {
+  margin-top: 12px;
+  padding: 16px;
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  background: var(--primary-soft);
+}
+
+.secret h3 {
+  margin: 0 0 8px;
+}
+
+.secret p {
+  margin: 0 0 8px;
+}

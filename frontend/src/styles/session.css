@@ -1,0 +1,181 @@
+/* Écran d'une session rejointe (écrans 4 et 4 quinquies) : barre de session, tableau, panneau latéral. */
+.session-screen {
+  display: block;
+  padding: 16px 24px 24px;
+}
+
+.session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.session-title {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.session-sub {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.session-body {
+  display: grid;
+  gap: 12px;
+}
+
+.session-screen > .notice {
+  margin-bottom: 12px;
+}
+
+.layout-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 16px;
+  align-items: start;
+}
+
+.layout-board > * {
+  min-width: 0;
+}
+
+.side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.side .card {
+  padding: 14px 16px;
+}
+
+.plist {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.plist .role {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot.on {
+  background: var(--online);
+}
+
+.dot.off {
+  background: var(--offline);
+}
+
+@media (max-width: 900px) {
+  .layout-board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .session-screen {
+    padding: 12px 16px 24px;
+  }
+}
+
+/*
+ * Ordinateur (fenêtre d'au moins 1280 × 720, FR-014a) : la page ne défile pas. La barre de session, les actions, le
+ * tableau et le panneau latéral restent visibles ; seule la liste du tableau défile, avec son en-tête figé, et le
+ * panneau latéral défile séparément si besoin. 56 px : hauteur de la barre de l'application.
+ */
+@media (min-width: 901px) and (min-height: 600px) {
+  .session-screen {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 56px);
+    overflow: hidden;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .session-bar {
+    flex: none;
+    margin-bottom: 8px;
+  }
+
+  .session-screen > .notice {
+    flex: none;
+    margin-bottom: 8px;
+  }
+
+  .session-body {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .session-body > .notice,
+  .session-body > .actions {
+    margin: 0;
+  }
+
+  .layout-board {
+    min-height: 0;
+    height: 100%;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .board {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-content: stretch;
+  }
+
+  .board > .table-wrap {
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .board > .feature-cards {
+    overflow: auto;
+  }
+
+  .side {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .board th,
+  .board td {
+    padding: 7px 8px;
+  }
+
+  .board .rank {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+}

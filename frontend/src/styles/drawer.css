@@ -1,0 +1,135 @@
+/* Panneau latéral modal (détail d'une fonctionnalité, méthode de la session) : écrans 4 ter et 4 quater. */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(22 24 28 / 45%);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: min(460px, 100%);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.drawer:focus {
+  outline: none;
+}
+
+.drawer-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-title h2 {
+  margin: 2px 0 0;
+}
+
+.drawer-body {
+  min-height: 0;
+  padding: 4px 20px 16px;
+  overflow-y: auto;
+}
+
+.drawer-body h3 {
+  margin: 16px 0 8px;
+  font-size: 15px;
+}
+
+.drawer-foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.drawer-foot:empty {
+  display: none;
+}
+
+.description {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.review-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.crit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.crit-grid > div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.crit-grid b {
+  font-size: 20px;
+}
+
+.formula {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Contribution de chaque critère : sigle, barre proportionnelle, valeur. */
+.contrib {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.bar-track {
+  display: block;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--surface-muted);
+}
+
+.bar {
+  display: block;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--primary);
+}
+
+/* Téléphone : le panneau occupe tout l'écran. */
+@media (max-width: 600px) {
+  .drawer {
+    width: 100%;
+    border-left: 0;
+  }
+}

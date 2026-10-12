@@ -16,13 +16,15 @@ export const LOCAL_STORAGE = new InjectionToken<() => Storage | null>('LOCAL_STO
 });
 
 const PSEUDO_KEY = 'pe.pseudo';
+/** Clé de l'état de l'encadré d'aide « Comprendre le … » : `open` ou `closed`. */
+export const GLOSSARY_KEY = 'pe.glossary';
 /** Clé du thème choisi, lue aussi par `main.ts` avant le démarrage d'Angular. */
 export const THEME_KEY = 'pe.theme';
 const tokenKey = (sessionId: string) => `pe.token.${sessionId}`;
 const animationKey = (sessionId: string) => `pe.animation.${sessionId}`;
 
 /**
- * Jeton par session (`pe.token.{sessionId}`), jeton d'animation (`pe.animation.{sessionId}`), dernier pseudo (`pe.pseudo`) et thème choisi (`pe.theme`). Aucune
+ * Jeton par session (`pe.token.{sessionId}`), jeton d'animation (`pe.animation.{sessionId}`), dernier pseudo (`pe.pseudo`), état de l'encadré d'aide (`pe.glossary`) et thème choisi (`pe.theme`). Aucune
  * méthode ne lève. Quand le `localStorage` est indisponible ou refuse l'écriture, les valeurs sont gardées en mémoire
  * pour la durée de la page : le jeton obtenu en rejoignant reste ainsi utilisable par la connexion de session.
  */
@@ -37,6 +39,15 @@ export class BrowserStorage {
 
   savePseudo(pseudo: string): void {
     this.write(PSEUDO_KEY, pseudo);
+  }
+
+  /** Encadré d'aide de la méthode (`pe.glossary`) : ouvert par défaut. */
+  readGlossaryOpen(): boolean {
+    return this.read(GLOSSARY_KEY) !== 'closed';
+  }
+
+  saveGlossaryOpen(open: boolean): void {
+    this.write(GLOSSARY_KEY, open ? 'open' : 'closed');
   }
 
   /** Valeur brute de `pe.theme`, à interpréter par `parseTheme`. */

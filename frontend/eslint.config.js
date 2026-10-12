@@ -36,6 +36,16 @@ module.exports = defineConfig([
     },
   },
   {
+    // Une ligne de tableau se pose sur un <tr> : sélecteur d'attribut, comme le veut le HTML.
+    files: ['src/app/board/feature-editor.component.ts'],
+    rules: {
+      '@angular-eslint/component-selector': [
+        'error',
+        { type: 'attribute', prefix: 'app', style: 'camelCase' },
+      ],
+    },
+  },
+  {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility, prettier],
     rules: {},

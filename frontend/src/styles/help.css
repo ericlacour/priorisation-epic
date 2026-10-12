@@ -1,0 +1,95 @@
+/* Aide sur la méthode (FR-016a) : sigle avec sa définition, encadré « Comprendre le … ». */
+.term-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.term {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.term:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.term-tip {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+}
+
+/* Près du bord droit de la fenêtre, l'info-bulle s'aligne à droite du sigle. */
+.term-tip.term-tip-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.glossary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.glossary-head h3 {
+  margin: 0;
+}
+
+.glossary-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.glossary-toggle:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.glossary {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.glossary dt {
+  font-weight: 700;
+}
+
+.glossary dd {
+  margin: 0 0 4px;
+  color: var(--muted);
+}

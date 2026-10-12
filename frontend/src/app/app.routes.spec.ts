@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { provideLocationMocks } from '@angular/common/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, RouterOutlet, provideRouter } from '@angular/router';
+import { Router, RouterOutlet, provideRouter, withComponentInputBinding } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 
+import { FETCH } from './api/session-api';
+import { APP_CONFIG } from './config/app-config';
 import { routes } from './app.routes';
 
 @Component({ selector: 'app-host', imports: [RouterOutlet], template: '<router-outlet />' })
@@ -11,7 +13,16 @@ class Host {}
 
 describe('routes', () => {
   async function visit(url: string): Promise<HTMLElement> {
-    TestBed.configureTestingModule({ providers: [provideRouter(routes), provideLocationMocks()] });
+    // Même configuration que `app.config.ts` : les paramètres de l'URL alimentent les entrées des composants.
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes, withComponentInputBinding()),
+        provideLocationMocks(),
+        { provide: APP_CONFIG, useValue: { apiBaseUrl: 'https://api.example' } },
+        // Aucun appel réseau réel : l'écran « Rejoindre » vérifie la session au chargement.
+        { provide: FETCH, useValue: async () => new Response('{}', { status: 200 }) },
+      ],
+    });
     const fixture = TestBed.createComponent(Host);
     await TestBed.inject(Router).navigateByUrl(url);
     fixture.detectChanges();
@@ -24,9 +35,10 @@ describe('routes', () => {
     );
   });
 
-  it('/s/:sessionId shows the session entry', async () => {
+  it('/s/:sessionId asks a newcomer to join', async () => {
+    // Aucun jeton de participant n'est rangé dans ce navigateur : écran « Rejoindre ».
     expect((await visit('/s/k3Jx9QvT2mLpZ8wR4nYb7A')).querySelector('h1')?.textContent).toBe(
-      'Session',
+      'Rejoindre la session',
     );
   });
 

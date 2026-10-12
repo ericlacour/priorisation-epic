@@ -37,3 +37,31 @@
 .btn-secondary:hover {
   background: var(--surface-muted);
 }
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--primary-ink);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--surface);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 4px 10px;
+  font-size: 14px;
+}

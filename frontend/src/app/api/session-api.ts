@@ -6,10 +6,14 @@ import {
   CreateSessionResponse,
   JoinSessionRequest,
   JoinSessionResponse,
+  MethodDefinition,
+  SessionState,
   isSessionId,
   parseCreateSessionResponse,
   parseJoinSessionResponse,
+  parseMethodList,
   parseProblem,
+  parseSessionState,
 } from './contract';
 
 /** `fetch` du navigateur, remplaçable dans les tests. */
@@ -61,11 +65,26 @@ export class SessionApi {
     throw await errorOf(response);
   }
 
+  /** `GET /api/methods` : les méthodes proposées à la création, chacune dans sa dernière version. */
+  async listMethods(): Promise<MethodDefinition[]> {
+    const response = await this.send('/api/methods', 'GET');
+    if (response.status === 200) return parseOrNetwork(response, parseMethodList);
+    throw await errorOf(response);
+  }
+
   /** `GET /api/sessions/{sessionId}` : résout si la session existe, sinon `notFound` ou `network`. */
   async checkSession(sessionId: string): Promise<void> {
     assertWellFormedId(sessionId);
     const response = await this.send(sessionPath(sessionId), 'GET');
     if (response.status === 200) return;
+    throw await errorOf(response);
+  }
+
+  /** `GET /api/sessions/{sessionId}` : vue d'un participant sans vote, `me` vaut `null`. */
+  async getSession(sessionId: string): Promise<SessionState> {
+    assertWellFormedId(sessionId);
+    const response = await this.send(sessionPath(sessionId), 'GET');
+    if (response.status === 200) return parseOrNetwork(response, parseSessionState);
     throw await errorOf(response);
   }
 
