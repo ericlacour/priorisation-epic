@@ -13,8 +13,10 @@ import {
   SESSION_ID,
   computedScore,
   feature,
+  featureResult,
   maskedFeature,
   participantState,
+  round,
   sessionState,
 } from '../testing/fixtures';
 import { SessionEnd, SessionSocketService } from './session-socket.service';
@@ -168,7 +170,6 @@ describe('SessionScreenComponent', () => {
       ) as HTMLButtonElement[];
       expect(actions.map((b) => [b.textContent?.trim(), b.disabled, b.title])).toEqual([
         ['Exporter', true, 'Bientôt disponible'],
-        ['Tours révélés', true, 'Bientôt disponible'],
       ]);
     });
 
@@ -183,8 +184,14 @@ describe('SessionScreenComponent', () => {
 
     it('does not say « no round » once a feature is in a round', () => {
       const ui = mount();
-      ui.show(participantState({ features: [maskedFeature(), feature()] }));
-      expect(ui.root.querySelector('.notice.info')).toBeNull();
+      ui.show(
+        participantState({
+          features: [maskedFeature(), feature()],
+          openRounds: [round({ featureIds: [maskedFeature().id] })],
+        }),
+      );
+      expect(ui.text()).not.toContain('Aucun tour de vote en cours');
+      expect(ui.text()).toContain('Tour 1 en cours');
       expect(ui.text()).toContain('vote en cours');
     });
   });
@@ -374,5 +381,137 @@ describe('SessionScreenComponent', () => {
         expect(ui.ended).toEqual([end]);
       },
     );
+  });
+
+  describe('rounds (US2)', () => {
+    const inRound = () => round({ featureIds: [feature().id], number: 2 });
+
+    it('offers to start a session in preparation, and the dialog only once it runs', () => {
+      const ui = mount();
+      ui.show(sessionState({ status: 'PREPARATION' }));
+      expect(ui.text()).toContain('Démarrer la session');
+      expect(ui.text()).toContain('Démarrez la session pour ouvrir un tour de vote');
+      ui.show(sessionState({ status: 'IN_PROGRESS' }));
+      expect(ui.text()).not.toContain('Démarrer la session');
+      ui.click('app-session-status .btn-secondary');
+      expect(ui.root.querySelector('app-open-round-dialog')).not.toBeNull();
+      expect(ui.text()).toContain('Ouvrir un tour de vote');
+    });
+
+    it('shows no round action to a participant', () => {
+      const ui = mount();
+      ui.show(participantState());
+      expect(ui.root.querySelector('app-session-status')).toBeNull();
+      expect(ui.root.querySelector('app-open-round-dialog')).toBeNull();
+    });
+
+    it('shows the banner, the vote panel and the progress to a participant during a round', () => {
+      const ui = mount();
+      ui.show(
+        participantState({
+          features: [maskedFeature({ id: feature().id })],
+          openRounds: [inRound()],
+        }),
+      );
+      expect(ui.text()).toContain('Tour 2 en cours sur 1 fonctionnalité');
+      expect(ui.root.querySelector('app-vote-panel')).not.toBeNull();
+      expect(ui.root.querySelectorAll('.progress')).toHaveLength(2);
+      expect(ui.root.querySelector('app-round-banner button')).toBeNull();
+    });
+
+    it('lets the facilitator vote and reveal the round', () => {
+      const ui = mount();
+      ui.show(sessionState({ openRounds: [inRound()] }));
+      expect(ui.root.querySelector('app-vote-panel')).not.toBeNull();
+      expect(ui.root.querySelector('app-round-banner button')?.textContent).toContain(
+        'Révéler le tour 2',
+      );
+    });
+
+    it('does not offer to vote on a phone, but keeps the banner', () => {
+      phone.set(true);
+      const ui = mount();
+      ui.show(participantState({ openRounds: [inRound()] }));
+      expect(ui.root.querySelector('app-vote-panel')).toBeNull();
+      expect(ui.text()).toContain('Tour 2 en cours');
+    });
+
+    it('does not offer to vote in the read-only consultation (no « me »)', () => {
+      const ui = mount();
+      ui.show(sessionState({ me: null, openRounds: [inRound()] }));
+      expect(ui.root.querySelector('app-vote-panel')).toBeNull();
+    });
+
+    const revealedRound = (number: number, id: string) =>
+      round({
+        id,
+        number,
+        status: 'REVEALED',
+        results: [featureResult({ featureId: feature().id })],
+      });
+
+    it('shows the latest revealed round, which can be hidden until a newer one is revealed', () => {
+      const ui = mount();
+      const state = (rounds: ReturnType<typeof revealedRound>[]) =>
+        sessionState({ lastRevealedRounds: rounds });
+      ui.show(state([revealedRound(1, 'r1')]));
+      expect(ui.root.querySelectorAll('app-reveal-results')).toHaveLength(1);
+      expect(ui.text()).toContain('Tour 1 révélé');
+      ui.click('app-reveal-results .round-banner button');
+      expect(ui.root.querySelector('app-reveal-results')).toBeNull();
+      ui.show(state([revealedRound(2, 'r2'), revealedRound(1, 'r1')]));
+      expect(ui.text()).toContain('Tour 2 révélé');
+    });
+
+    it('lists every revealed round, most recent first, with « Tours révélés »', () => {
+      const ui = mount();
+      ui.show(
+        sessionState({ lastRevealedRounds: [revealedRound(2, 'r2'), revealedRound(1, 'r1')] }),
+      );
+      const toggle = Array.from(ui.root.querySelectorAll('.session-body > .actions button')).find(
+        (b) => b.textContent?.trim() === 'Tours révélés',
+      ) as HTMLElement;
+      toggle.click();
+      ui.fixture.detectChanges();
+      const banners = Array.from(ui.root.querySelectorAll('app-reveal-results .round-banner')).map(
+        (b) => b.textContent?.trim().slice(0, 13),
+      );
+      expect(banners).toEqual(['Tour 2 révélé', 'Tour 1 révélé']);
+      expect(ui.root.querySelector('app-reveal-results .round-banner button')).toBeNull();
+    });
+
+    it('hides the « Tours révélés » button while none has been revealed', () => {
+      const ui = mount();
+      ui.show(sessionState());
+      expect(ui.text()).not.toContain('Tours révélés');
+    });
+
+    it('lets the facilitator hand the role over from the participant list', () => {
+      const ui = mount();
+      ui.show(sessionState());
+      expect(ui.root.querySelector('app-participants button')).not.toBeNull();
+      ui.show(participantState());
+      expect(ui.root.querySelector('app-participants button')).toBeNull();
+    });
+
+    it('tells the new facilitator that the role was handed over', () => {
+      const ui = mount();
+      ui.show(sessionState());
+      expect(ui.text()).not.toContain('Vous êtes maintenant l’animateur'.replace('’', "'"));
+      socket.messages.next({ type: 'facilitatorHandover', animationToken: 't' });
+      ui.fixture.detectChanges();
+      expect(ui.text()).toContain("Vous êtes maintenant l'animateur");
+    });
+
+    it('hides the round dialog while a description is open above it, keeping the choice', () => {
+      const ui = mount();
+      ui.show(sessionState({ status: 'IN_PROGRESS' }));
+      ui.click('app-session-status .btn-secondary');
+      ui.click('app-open-round-dialog tbody button.fid');
+      expect(ui.root.querySelector('app-feature-detail-panel')).not.toBeNull();
+      expect(
+        ui.root.querySelector('app-open-round-dialog app-drawer')?.classList.contains('suspended'),
+      ).toBe(true);
+    });
   });
 });

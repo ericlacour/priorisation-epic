@@ -73,6 +73,9 @@ import { FeatureEditorComponent } from './feature-editor.component';
             @if (masked(feature)) {
               <span class="badge vote">{{ messages.voting }}</span>
             } @else {
+              @if (feature.votingInProgress) {
+                <span class="badge vote">{{ messages.voting }}</span>
+              }
               <div class="crit">
                 @for (criterion of definition().criteria; track criterion.key) {
                   <span>
@@ -155,7 +158,7 @@ import { FeatureEditorComponent } from './feature-editor.component';
                       >
                     }
                     {{ feature.title }}
-                    @if (masked(feature)) {
+                    @if (masked(feature) || feature.votingInProgress) {
                       <span class="badge vote">{{ messages.voting }}</span>
                     }
                   </td>
@@ -194,7 +197,8 @@ import { FeatureEditorComponent } from './feature-editor.component';
                       <button
                         type="button"
                         class="btn btn-ghost btn-sm"
-                        [disabled]="editingId() !== null || adding()"
+                        [disabled]="editingId() !== null || adding() || !!feature.votingInProgress"
+                        [attr.title]="feature.votingInProgress ? roundMessages.lockedEdit : null"
                         [attr.aria-label]="messages.editFeature(feature.externalId)"
                         (click)="editingId.set(feature.id)"
                       >
@@ -227,6 +231,7 @@ export class BoardComponent {
   protected readonly screen = inject(ScreenSizeService);
   protected readonly messages = MESSAGES.board;
   protected readonly sessionMessages = MESSAGES.session;
+  protected readonly roundMessages = MESSAGES.rounds.vote;
 
   readonly state = input.required<SessionState>();
   /** Vrai pour l'animateur sur ordinateur : colonne « Modifier », ajout, suppression. */

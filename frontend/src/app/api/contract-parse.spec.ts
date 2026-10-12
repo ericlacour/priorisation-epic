@@ -1,21 +1,33 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ServerMessage,
   addFeatureMessage,
+  castVoteMessage,
   deleteFeatureMessage,
+  isHandover,
+  openRoundMessage,
   parseMethodDefinition,
   parseMethodList,
   parseServerMessage,
   parseSessionState,
+  revealRoundMessage,
+  startSessionMessage,
+  transferFacilitatorMessage,
   updateFeatureMessage,
 } from './contract';
 import {
+  FACILITATOR_ID,
+  PARTICIPANT_ID,
   REACH_EFFORT,
+  ROUND_ID,
   WSJF,
   feature,
+  featureResult,
   incompleteFeature,
   maskedFeature,
   participantState,
+  round,
   sessionState,
 } from '../testing/fixtures';
 
@@ -211,6 +223,101 @@ describe('intentions', () => {
       type: 'deleteFeature',
       featureId: 'id',
       version: 2,
+    });
+  });
+});
+
+describe('rounds in sessionState', () => {
+  const open = round({
+    myVotes: { [feature().id]: { bv: 8, tc: null } },
+    progress: [{ participantId: FACILITATOR_ID, completedCount: 1 }],
+  });
+  const revealed = round({
+    status: 'REVEALED',
+    previousRoundId: ROUND_ID,
+    results: [
+      featureResult({
+        votes: [{ participantId: FACILITATOR_ID, criteria: { bv: 8, tc: 5, rrOe: 3, js: null } }],
+        nonVoters: [PARTICIPANT_ID],
+        min: { bv: 8, tc: 5, rrOe: 3, js: null },
+        max: { bv: 8, tc: 5, rrOe: 3, js: null },
+        largeSpread: ['bv'],
+        unanimous: { bv: 8, tc: 5, rrOe: 3, js: null },
+      }),
+    ],
+  });
+
+  it('reads open and revealed rounds as they come', () => {
+    const state = sessionState({ openRounds: [open], lastRevealedRounds: [revealed] });
+    expect(parseSessionState(clone(state))).toEqual(state);
+  });
+
+  it('reads a state without rounds as having none', () => {
+    const json = clone(sessionState());
+    delete json['openRounds'];
+    delete json['lastRevealedRounds'];
+    const state = parseSessionState(json);
+    expect(state.openRounds).toEqual([]);
+    expect(state.lastRevealedRounds).toEqual([]);
+  });
+
+  const broken = (change: (rounds: Doc[]) => void): unknown => {
+    const json = clone(sessionState({ openRounds: [open], lastRevealedRounds: [revealed] }));
+    change([at(json, 'openRounds', 0), at(json, 'lastRevealedRounds', 0)]);
+    return json;
+  };
+
+  it.each([
+    ['an unknown status', (r: Doc[]) => (r[0]['status'] = 'DONE')],
+    ['a round number that is not an integer', (r: Doc[]) => (r[0]['number'] = '1')],
+    ['feature ids that are not texts', (r: Doc[]) => (r[0]['featureIds'] = [1])],
+    ['progress without a count', (r: Doc[]) => (r[0]['progress'] = [{ participantId: 'x' }])],
+    ['votes that are not an object', (r: Doc[]) => (r[0]['myVotes'] = [])],
+    ['results that are not a list', (r: Doc[]) => (r[1]['results'] = {})],
+    [
+      'a result without its spread list',
+      (r: Doc[]) => delete at(r[1], 'results', 0)['largeSpread'],
+    ],
+    [
+      'a revealed vote without its participant',
+      (r: Doc[]) => delete at(r[1], 'results', 0, 'votes', 0)['participantId'],
+    ],
+  ])('refuses %s', (_, change) => {
+    expect(() => parseSessionState(broken(change))).toThrow();
+  });
+});
+
+describe('facilitatorHandover and round intents', () => {
+  it('reads the handover with its token', () => {
+    expect(parseServerMessage({ type: 'facilitatorHandover', animationToken: 'tok' })).toEqual({
+      type: 'facilitatorHandover',
+      animationToken: 'tok',
+    });
+    expect(parseServerMessage({ type: 'facilitatorHandover' })).toBeNull();
+    expect(isHandover({ type: 'facilitatorHandover', animationToken: 't' } as ServerMessage)).toBe(
+      true,
+    );
+    expect(isHandover({ type: 'tick' })).toBe(false);
+  });
+
+  it('builds the intents of the contract', () => {
+    expect(startSessionMessage()).toEqual({ type: 'changeStatus', action: 'START' });
+    expect(openRoundMessage(['a', 'b'])).toEqual({ type: 'openRound', featureIds: ['a', 'b'] });
+    expect(openRoundMessage(['a'], 'r1')).toEqual({
+      type: 'openRound',
+      featureIds: ['a'],
+      previousRoundId: 'r1',
+    });
+    expect(castVoteMessage('r', 'f', { bv: 3, js: null })).toEqual({
+      type: 'castVote',
+      roundId: 'r',
+      featureId: 'f',
+      criteria: { bv: 3, js: null },
+    });
+    expect(revealRoundMessage('r')).toEqual({ type: 'revealRound', roundId: 'r' });
+    expect(transferFacilitatorMessage('p')).toEqual({
+      type: 'transferFacilitator',
+      participantId: 'p',
     });
   });
 });

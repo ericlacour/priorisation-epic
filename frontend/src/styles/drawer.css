@@ -133,3 +133,8 @@
     border-left: 0;
   }
 }
+
+/* Panneau recouvert par un autre : il reste monté (sa saisie est gardée) mais n'est plus visible. */
+app-drawer.suspended {
+  display: none;
+}

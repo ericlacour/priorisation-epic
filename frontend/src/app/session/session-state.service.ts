@@ -8,8 +8,15 @@ import {
   SessionState,
   UpdateFeatureChanges,
   addFeatureMessage,
+  CriteriaValues,
+  castVoteMessage,
   deleteFeatureMessage,
+  isHandover,
   isSessionState,
+  openRoundMessage,
+  revealRoundMessage,
+  startSessionMessage,
+  transferFacilitatorMessage,
   updateFeatureMessage,
 } from '../api/contract';
 import { SessionSocketService } from './session-socket.service';
@@ -36,6 +43,17 @@ function showsChanges(feature: Feature, changes: UpdateFeatureChanges): boolean 
     ([key, value]) => (feature.criteria?.[key] ?? null) === value,
   );
 }
+
+/** Les seules valeurs renseignées : un critère nul ou absent vaut « sans avis ». */
+const entered = (values: CriteriaValues): Record<string, number> =>
+  Object.fromEntries(
+    Object.entries(values).filter((entry): entry is [string, number] => entry[1] !== null),
+  );
+
+const sameValues = (a: Record<string, number>, b: Record<string, number>): boolean => {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((key) => a[key] === b[key]);
+};
 
 /** Délai au-delà duquel une intention sans réponse du serveur est déclarée sans confirmation. */
 export const INTENT_TIMEOUT_MS = 10_000;
@@ -69,12 +87,15 @@ export class SessionStateService {
   private readonly socket = inject(SessionSocketService);
   private readonly stateSignal = signal<SessionState | null>(null);
   private readonly errorSignal = signal<ErrorMessage | null>(null);
+  private readonly handoverSignal = signal(false);
   private pending: Pending[] = [];
 
   /** Dernier état reçu, `null` avant le premier. */
   readonly state = this.stateSignal.asReadonly();
   /** Dernière erreur du serveur qu'aucune intention en attente n'attendait (par exemple `FORBIDDEN`). */
   readonly unexpectedError = this.errorSignal.asReadonly();
+  /** Vrai quand ce poste vient de recevoir le rôle d'animateur (son nouveau lien est déjà rangé). */
+  readonly handedOver = this.handoverSignal.asReadonly();
   readonly connection = this.socket.connection;
   readonly end = this.socket.end;
   readonly isFacilitator = computed(() => this.stateSignal()?.me?.role === 'FACILITATOR');
@@ -82,6 +103,7 @@ export class SessionStateService {
   constructor() {
     const subscription = this.socket.messages.subscribe((message) => {
       if (isSessionState(message)) this.receiveState(message);
+      else if (isHandover(message)) this.handoverSignal.set(true);
       else if (message.type === 'error') this.receiveError(message as ErrorMessage);
     });
     inject(DestroyRef).onDestroy(() => {
@@ -134,6 +156,44 @@ export class SessionStateService {
       deleteFeatureMessage(featureId, version),
       featureId,
       (state) => !state.features.some((f) => f.id === featureId),
+    );
+  }
+
+  /** Démarre la session (animateur) : confirmé quand elle est « en cours ». */
+  startSession(): Promise<IntentResult> {
+    return this.submit(startSessionMessage(), undefined, (state) => state.status === 'IN_PROGRESS');
+  }
+
+  /** Ouvre un tour sur ces fonctionnalités : confirmé par un tour ouvert sur exactement cette sélection. */
+  openRound(featureIds: readonly string[], previousRoundId?: string): Promise<IntentResult> {
+    const wanted = [...featureIds].sort().join();
+    return this.submit(openRoundMessage(featureIds, previousRoundId), undefined, (state) =>
+      state.openRounds.some((r) => [...r.featureIds].sort().join() === wanted),
+    );
+  }
+
+  /** Enregistre ma saisie sur une fonctionnalité du tour : confirmée quand `myVotes` la reprend. */
+  castVote(roundId: string, featureId: string, criteria: CriteriaValues): Promise<IntentResult> {
+    const wanted = entered(criteria);
+    return this.submit(castVoteMessage(roundId, featureId, criteria), featureId, (state) => {
+      const round = state.openRounds.find((r) => r.id === roundId);
+      return !!round && sameValues(entered(round.myVotes[featureId] ?? {}), wanted);
+    });
+  }
+
+  /** Révèle un tour : confirmé quand il figure parmi les tours révélés. */
+  revealRound(roundId: string): Promise<IntentResult> {
+    return this.submit(revealRoundMessage(roundId), undefined, (state) =>
+      state.lastRevealedRounds.some((r) => r.id === roundId),
+    );
+  }
+
+  /** Transmet le rôle d'animateur : confirmé quand ce poste n'est plus l'animateur. */
+  transferFacilitator(participantId: string): Promise<IntentResult> {
+    return this.submit(
+      transferFacilitatorMessage(participantId),
+      undefined,
+      (state) => state.me?.role !== 'FACILITATOR',
     );
   }
 

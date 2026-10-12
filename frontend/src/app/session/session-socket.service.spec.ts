@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerMessage } from '../api/contract';
 import { APP_CONFIG } from '../config/app-config';
 import { BrowserStorage, LOCAL_STORAGE } from '../storage/browser-storage';
+import { participantState, sessionState } from '../testing/fixtures';
 import {
   HEARTBEAT_INTERVAL_MS,
   RECONNECT_DELAYS_MS,
@@ -105,6 +106,43 @@ describe('SessionSocketService', () => {
     service.connect(ID);
     sockets[0].open();
     expect(sockets[0].sent).toEqual([{ type: 'hello', participantToken: 'tok' }]);
+  });
+
+  it('stores the new animation token of a handover before publishing the message', () => {
+    setup({ [`pe.token.${ID}`]: 'tok', [`pe.animation.${ID}`]: 'old' });
+    service.connect(ID);
+    sockets[0].open();
+    sockets[0].receive({ type: 'facilitatorHandover', animationToken: 'fresh' });
+    expect(store.get(`pe.animation.${ID}`)).toBe('fresh');
+    expect(received).toEqual([{ type: 'facilitatorHandover', animationToken: 'fresh' }]);
+    // une reconnexion présente le nouveau jeton
+    sockets[0].closeFromServer(1006);
+    vi.advanceTimersByTime(0);
+    sockets[1].open();
+    expect(sockets[1].sent[0]).toEqual({
+      type: 'hello',
+      participantToken: 'tok',
+      animationToken: 'fresh',
+    });
+  });
+
+  it('forgets the animation token once the state shows this seat is a plain participant', () => {
+    setup({ [`pe.token.${ID}`]: 'tok', [`pe.animation.${ID}`]: 'old' });
+    service.connect(ID);
+    sockets[0].open();
+    sockets[0].receive(sessionState());
+    expect(store.get(`pe.animation.${ID}`)).toBe('old');
+    sockets[0].receive(participantState());
+    expect(store.has(`pe.animation.${ID}`)).toBe(false);
+    expect(store.get(`pe.token.${ID}`)).toBe('tok');
+  });
+
+  it('ignores a handover without a token', () => {
+    setup({ [`pe.token.${ID}`]: 'tok' });
+    service.connect(ID);
+    sockets[0].open();
+    sockets[0].receive({ type: 'facilitatorHandover' });
+    expect(store.has(`pe.animation.${ID}`)).toBe(false);
   });
 
   it('sends a heartbeat every 5 s', () => {

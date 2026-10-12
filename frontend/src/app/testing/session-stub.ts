@@ -10,6 +10,11 @@ export function sessionStub(features: readonly Feature[] = []) {
     addFeature: vi.fn(async (): Promise<IntentResult> => ok),
     updateFeature: vi.fn(async (): Promise<IntentResult> => ok),
     deleteFeature: vi.fn(async (): Promise<IntentResult> => ok),
+    startSession: vi.fn(async (): Promise<IntentResult> => ok),
+    openRound: vi.fn(async (): Promise<IntentResult> => ok),
+    castVote: vi.fn(async (): Promise<IntentResult> => ok),
+    revealRound: vi.fn(async (): Promise<IntentResult> => ok),
+    transferFacilitator: vi.fn(async (): Promise<IntentResult> => ok),
     feature: vi.fn((id: string): Feature | null => features.find((f) => f.id === id) ?? null),
   };
 }

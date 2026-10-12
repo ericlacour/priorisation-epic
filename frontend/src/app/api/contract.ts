@@ -161,7 +161,47 @@ export interface SessionMe {
   readonly role: ParticipantRole;
 }
 
-/** `session-state.json`, filtré pour son destinataire. Les tours viennent avec la User Story 2. */
+export type RoundStatus = 'OPEN' | 'REVEALED';
+
+/** Nombre de fonctionnalités du tour qu'un participant a notées (au moins un critère renseigné, FR-019). */
+export interface RoundProgress {
+  readonly participantId: string;
+  readonly completedCount: number;
+}
+
+/** Un vote révélé : une valeur par clé de critère, `null` ou absente pour « sans avis ». */
+export interface RevealedVote {
+  readonly participantId: string;
+  readonly criteria: CriteriaValues;
+}
+
+/** Résultats d'une fonctionnalité d'un tour révélé (FR-020, FR-021), calculés par le serveur. */
+export interface FeatureResult {
+  readonly featureId: string;
+  readonly votes: readonly RevealedVote[];
+  readonly nonVoters: readonly string[];
+  readonly min: CriteriaValues;
+  readonly max: CriteriaValues;
+  readonly largeSpread: readonly string[];
+  readonly unanimous: CriteriaValues;
+}
+
+/**
+ * Un tour de vote. Tant qu'il est `OPEN`, `myVotes` ne porte que les votes du destinataire et `results` vaut `null`
+ * (FR-019, SC-004) ; révélé, `myVotes` est vide et `results` porte tout.
+ */
+export interface Round {
+  readonly id: string;
+  readonly number: number;
+  readonly status: RoundStatus;
+  readonly previousRoundId: string | null;
+  readonly featureIds: readonly string[];
+  readonly progress: readonly RoundProgress[];
+  readonly myVotes: Readonly<Record<string, CriteriaValues>>;
+  readonly results: readonly FeatureResult[] | null;
+}
+
+/** `session-state.json`, filtré pour son destinataire. */
 export interface SessionState {
   readonly type: 'sessionState';
   readonly version: number;
@@ -177,10 +217,28 @@ export interface SessionState {
   readonly me: SessionMe | null;
   readonly participants: readonly Participant[];
   readonly features: readonly Feature[];
+  /** Les tours en cours, du plus ancien au plus récent. */
+  readonly openRounds: readonly Round[];
+  /** Les tours révélés, du plus récent au plus ancien. */
+  readonly lastRevealedRounds: readonly Round[];
 }
 
-/** Messages du serveur reconnus : `tick`, `error`, `sessionState` ; les autres restent bruts. */
-export type ServerMessage = TickMessage | ErrorMessage | SessionState | { readonly type: string };
+/** Envoyé au seul bénéficiaire d'une transmission du rôle d'animateur (FR-002a) : son nouveau jeton, SECRET. */
+export interface FacilitatorHandoverMessage {
+  readonly type: 'facilitatorHandover';
+  readonly animationToken: string;
+}
+
+/** Messages du serveur reconnus : `tick`, `error`, `sessionState`, `facilitatorHandover` ; les autres restent bruts. */
+export type ServerMessage =
+  | TickMessage
+  | ErrorMessage
+  | SessionState
+  | FacilitatorHandoverMessage
+  | { readonly type: string };
+
+export const isHandover = (message: ServerMessage): message is FacilitatorHandoverMessage =>
+  message.type === 'facilitatorHandover';
 
 export const isSessionState = (message: ServerMessage): message is SessionState =>
   message.type === 'sessionState';
@@ -213,6 +271,35 @@ export interface DeleteFeatureMessage {
   readonly type: 'deleteFeature';
   readonly featureId: string;
   readonly version: number;
+}
+
+/** Intentions de session, de tour et de rôle (asyncapi.yaml). */
+export interface ChangeStatusMessage {
+  readonly type: 'changeStatus';
+  readonly action: 'START';
+}
+
+export interface OpenRoundMessage {
+  readonly type: 'openRound';
+  readonly featureIds: readonly string[];
+  readonly previousRoundId?: string;
+}
+
+export interface CastVoteMessage {
+  readonly type: 'castVote';
+  readonly roundId: string;
+  readonly featureId: string;
+  readonly criteria: CriteriaValues;
+}
+
+export interface RevealRoundMessage {
+  readonly type: 'revealRound';
+  readonly roundId: string;
+}
+
+export interface TransferFacilitatorMessage {
+  readonly type: 'transferFacilitator';
+  readonly participantId: string;
 }
 
 /** Codes de fermeture du serveur (asyncapi.yaml, `x-close-codes`). */
@@ -259,6 +346,36 @@ export function deleteFeatureMessage(featureId: string, version: number): Delete
   return { type: 'deleteFeature', featureId, version };
 }
 
+export const startSessionMessage = (): ChangeStatusMessage => ({
+  type: 'changeStatus',
+  action: 'START',
+});
+
+export function openRoundMessage(
+  featureIds: readonly string[],
+  previousRoundId?: string,
+): OpenRoundMessage {
+  return previousRoundId
+    ? { type: 'openRound', featureIds, previousRoundId }
+    : { type: 'openRound', featureIds };
+}
+
+export const castVoteMessage = (
+  roundId: string,
+  featureId: string,
+  criteria: CriteriaValues,
+): CastVoteMessage => ({ type: 'castVote', roundId, featureId, criteria });
+
+export const revealRoundMessage = (roundId: string): RevealRoundMessage => ({
+  type: 'revealRound',
+  roundId,
+});
+
+export const transferFacilitatorMessage = (participantId: string): TransferFacilitatorMessage => ({
+  type: 'transferFacilitator',
+  participantId,
+});
+
 /** Lit un message du serveur : `null` s'il n'est pas un objet JSON avec un `type` textuel. */
 export function parseServerMessage(json: unknown): ServerMessage | null {
   if (!isObject(json) || typeof json['type'] !== 'string') return null;
@@ -276,6 +393,11 @@ export function parseServerMessage(json: unknown): ServerMessage | null {
     } catch {
       return null;
     }
+  }
+  if (json['type'] === 'facilitatorHandover') {
+    return isText(json['animationToken'])
+      ? { type: 'facilitatorHandover', animationToken: json['animationToken'] }
+      : null;
   }
   return { type: json['type'] };
 }
@@ -491,6 +613,60 @@ function parseMe(json: unknown): SessionMe | null {
   };
 }
 
+/** Les tours sont facultatifs dans le contrat : absents, il n'y en a aucun. */
+const parseRounds = (value: unknown, what: string): Round[] =>
+  value === undefined ? [] : asArray(value, what).map(parseRound);
+
+const asTextArray = (value: unknown, what: string): string[] =>
+  asArray(value, what).map((v) => asText(v, what));
+
+function parseFeatureResult(json: unknown): FeatureResult {
+  const o = asObject(json, 'round.result');
+  return {
+    featureId: asText(o['featureId'], 'round.result.featureId'),
+    votes: asArray(o['votes'], 'round.result.votes').map((v) => {
+      const vote = asObject(v, 'round.result.vote');
+      return {
+        participantId: asText(vote['participantId'], 'round.result.vote.participantId'),
+        criteria: parseCriteria(vote['criteria']),
+      };
+    }),
+    nonVoters: asTextArray(o['nonVoters'], 'round.result.nonVoters'),
+    min: parseCriteria(o['min']),
+    max: parseCriteria(o['max']),
+    largeSpread: asTextArray(o['largeSpread'], 'round.result.largeSpread'),
+    unanimous: parseCriteria(o['unanimous']),
+  };
+}
+
+function parseRound(json: unknown): Round {
+  const o = asObject(json, 'round');
+  const status = o['status'];
+  if (status !== 'OPEN' && status !== 'REVEALED') fail('round.status');
+  const results = o['results'];
+  return {
+    id: asText(o['id'], 'round.id'),
+    number: asInt(o['number'], 'round.number'),
+    status: status as RoundStatus,
+    previousRoundId: asNullableText(o['previousRoundId'], 'round.previousRoundId'),
+    featureIds: asTextArray(o['featureIds'], 'round.featureIds'),
+    progress: asArray(o['progress'], 'round.progress').map((p) => {
+      const progress = asObject(p, 'round.progress');
+      return {
+        participantId: asText(progress['participantId'], 'round.progress.participantId'),
+        completedCount: asInt(progress['completedCount'], 'round.progress.completedCount'),
+      };
+    }),
+    myVotes: Object.fromEntries(
+      Object.entries(asObject(o['myVotes'], 'round.myVotes')).map(([id, v]) => [
+        id,
+        parseCriteria(v),
+      ]),
+    ),
+    results: results === null ? null : asArray(results, 'round.results').map(parseFeatureResult),
+  };
+}
+
 /** Lit un `sessionState` (WebSocket ou `GET /api/sessions/{id}`), ou lève une erreur s'il ne respecte pas le contrat. */
 export function parseSessionState(json: unknown): SessionState {
   const o = asObject(json, 'session-state');
@@ -514,5 +690,7 @@ export function parseSessionState(json: unknown): SessionState {
     me: parseMe(o['me']),
     participants: asArray(o['participants'], 'session-state.participants').map(parseParticipant),
     features: asArray(o['features'], 'session-state.features').map(parseFeature),
+    openRounds: parseRounds(o['openRounds'], 'session-state.openRounds'),
+    lastRevealedRounds: parseRounds(o['lastRevealedRounds'], 'session-state.lastRevealedRounds'),
   };
 }

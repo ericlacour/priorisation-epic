@@ -1,4 +1,13 @@
-import { Feature, MethodDefinition, Participant, Score, SessionState } from '../api/contract';
+import {
+  CriteriaValues,
+  Feature,
+  FeatureResult,
+  MethodDefinition,
+  Participant,
+  Round,
+  Score,
+  SessionState,
+} from '../api/contract';
 
 /** Données de test partagées, calquées sur `contract/examples/`. Aucune n'est utilisée en production. */
 
@@ -97,6 +106,8 @@ export const REACH_EFFORT: MethodDefinition = {
 
 export const FACILITATOR_ID = 'a1b2c3d4-0001-4000-8000-000000000001';
 export const PARTICIPANT_ID = 'a1b2c3d4-0002-4000-8000-000000000002';
+export const BOB_ID = 'a1b2c3d4-0003-4000-8000-000000000003';
+export const ROUND_ID = 'b0c1d2e3-f4a5-4b6c-8d7e-9f0a1b2c3d4e';
 
 /** Un score calculé : `computed` est déjà formaté par le serveur. */
 export function computedScore(
@@ -190,6 +201,47 @@ export const PARTICIPANT: Participant = {
   online: true,
 };
 
+export const BOB: Participant = {
+  participantId: BOB_ID,
+  pseudo: 'bob',
+  role: 'PARTICIPANT',
+  businessRole: null,
+  online: true,
+};
+
+/** Un tour de vote ; par défaut ouvert sur la fonctionnalité de `feature()`, sans aucun vote. */
+export function round(overrides: Partial<Round> = {}): Round {
+  return {
+    id: ROUND_ID,
+    number: 1,
+    status: 'OPEN',
+    previousRoundId: null,
+    featureIds: [feature().id],
+    progress: [
+      { participantId: FACILITATOR_ID, completedCount: 0 },
+      { participantId: PARTICIPANT_ID, completedCount: 0 },
+    ],
+    myVotes: {},
+    results: null,
+    ...overrides,
+  };
+}
+
+/** Les résultats d'une fonctionnalité d'un tour révélé, avec les valeurs utiles aux tests. */
+export function featureResult(overrides: Partial<FeatureResult> = {}): FeatureResult {
+  const empty: CriteriaValues = { bv: null, tc: null, rrOe: null, js: null };
+  return {
+    featureId: feature().id,
+    votes: [],
+    nonVoters: [],
+    min: empty,
+    max: empty,
+    largeSpread: [],
+    unanimous: empty,
+    ...overrides,
+  };
+}
+
 export function sessionState(overrides: Partial<SessionState> = {}): SessionState {
   const definition = overrides.methodDefinition ?? WSJF;
   return {
@@ -207,6 +259,8 @@ export function sessionState(overrides: Partial<SessionState> = {}): SessionStat
     me: { participantId: FACILITATOR_ID, pseudo: 'eric', role: 'FACILITATOR' },
     participants: [FACILITATOR, PARTICIPANT],
     features: [feature()],
+    openRounds: [],
+    lastRevealedRounds: [],
     ...overrides,
   };
 }

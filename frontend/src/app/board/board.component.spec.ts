@@ -313,3 +313,35 @@ describe('BoardComponent', () => {
     });
   });
 });
+
+describe('BoardComponent during a round, for the facilitator', () => {
+  it('shows the values and the « vote en cours » mark, but locks the edition of the row', () => {
+    const inVote = feature({ votingInProgress: true });
+    const ui = mount(sessionState({ features: [inVote] }), { editable: true });
+    const [row] = ui.rows();
+    expect(ui.cells(row)[2]).toContain('vote en cours');
+    expect(ui.cells(row)[3]).toBe('8');
+    const edit = row.querySelector('button.btn-ghost') as HTMLButtonElement;
+    expect(edit.disabled).toBe(true);
+    expect(edit.parentElement?.innerHTML).toContain(
+      'Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs',
+    );
+  });
+
+  it('keeps the other rows editable', () => {
+    const ui = mount(
+      sessionState({ features: [feature({ votingInProgress: true }), incompleteFeature()] }),
+      { editable: true },
+    );
+    const buttons = ui.rows().map((r) => r.querySelector('button.btn-ghost') as HTMLButtonElement);
+    expect(buttons.map((b) => b.disabled)).toEqual([true, false]);
+  });
+
+  it('marks the card of a feature in vote on a phone, values kept', () => {
+    const ui = mount(sessionState({ features: [feature({ votingInProgress: true })] }), {
+      phone: true,
+    });
+    expect(ui.root.querySelector('.fcard')?.textContent).toContain('vote en cours');
+    expect(ui.root.querySelector('.fcard .crit')).not.toBeNull();
+  });
+});

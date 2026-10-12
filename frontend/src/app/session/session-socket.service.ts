@@ -6,6 +6,8 @@ import {
   CLOSE_UNKNOWN_TOKEN,
   ServerMessage,
   heartbeatMessage,
+  isHandover,
+  isSessionState,
   helloMessage,
   parseServerMessage,
 } from '../api/contract';
@@ -185,6 +187,14 @@ export class SessionSocketService {
     }
     const message = parseServerMessage(json);
     if (!message) return;
+    // Le nouveau jeton d'animation est rangé avant tout : une reconnexion le présentera (FR-002a).
+    if (isHandover(message) && this.sessionId !== null) {
+      this.storage.saveAnimationToken(this.sessionId, message.animationToken);
+    }
+    // Plus animateur (rôle transmis) ou lien périmé : le jeton rangé ne sert plus à rien.
+    if (isSessionState(message) && message.me?.role === 'PARTICIPANT' && this.sessionId !== null) {
+      this.storage.removeAnimationToken(this.sessionId);
+    }
     if (this.connectionSignal() !== 'open') {
       this.connectionSignal.set('open');
       this.attempts = 0;

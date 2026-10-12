@@ -4,7 +4,15 @@ import { Subject } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ErrorMessage, ServerMessage, SessionState } from '../api/contract';
-import { feature, participantState, sessionState } from '../testing/fixtures';
+import {
+  FACILITATOR,
+  PARTICIPANT,
+  ROUND_ID,
+  feature,
+  participantState,
+  round,
+  sessionState,
+} from '../testing/fixtures';
 import { INTENT_TIMEOUT_MS, SessionStateService } from './session-state.service';
 import { SessionSocketService } from './session-socket.service';
 
@@ -259,6 +267,104 @@ describe('SessionStateService', () => {
       expect(socket.sent[0]).toEqual({ type: 'deleteFeature', featureId: f.id, version: 0 });
       push(sessionState({ features: [] }));
       await expect(result).resolves.toEqual({ ok: true });
+    });
+  });
+
+  describe('session and round intentions', () => {
+    const f = feature();
+
+    it('starts the session, confirmed once it is in progress', async () => {
+      push(sessionState({ status: 'PREPARATION' }));
+      const result = service.startSession();
+      expect(socket.sent[0]).toEqual({ type: 'changeStatus', action: 'START' });
+      push(sessionState({ status: 'PREPARATION', version: 2 }));
+      push(sessionState({ status: 'IN_PROGRESS', version: 3 }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('opens a round, confirmed by a round on exactly that selection', async () => {
+      push(sessionState());
+      const result = service.openRound(['b', 'a'], 'prev');
+      expect(socket.sent[0]).toEqual({
+        type: 'openRound',
+        featureIds: ['b', 'a'],
+        previousRoundId: 'prev',
+      });
+      push(sessionState({ openRounds: [round({ featureIds: ['a'] })] }));
+      push(sessionState({ openRounds: [round({ featureIds: ['a', 'b'] })] }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('refuses an opening with the code of the server', async () => {
+      const result = service.openRound([f.id]);
+      socket.messages.next(error('SESSION_NOT_STARTED'));
+      await expect(result).resolves.toMatchObject({ ok: false, code: 'SESSION_NOT_STARTED' });
+    });
+
+    it('casts a vote, confirmed when myVotes holds the entered values (empty means no opinion)', async () => {
+      push(sessionState({ openRounds: [round()] }));
+      const result = service.castVote(ROUND_ID, f.id, { bv: 8, tc: null });
+      expect(socket.sent[0]).toEqual({
+        type: 'castVote',
+        roundId: ROUND_ID,
+        featureId: f.id,
+        criteria: { bv: 8, tc: null },
+      });
+      push(sessionState({ openRounds: [round({ myVotes: { [f.id]: { bv: 3 } } })] }));
+      push(sessionState({ openRounds: [round({ myVotes: { [f.id]: { bv: 8 } } })] }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('confirms the clearing of a vote when nothing is kept for the feature', async () => {
+      push(sessionState({ openRounds: [round({ myVotes: { [f.id]: { bv: 8 } } })] }));
+      const result = service.castVote(ROUND_ID, f.id, {});
+      push(sessionState({ openRounds: [round()] }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('does not confirm a vote on a round that is no longer open', async () => {
+      push(sessionState({ openRounds: [round()] }));
+      const result = service.castVote(ROUND_ID, f.id, { bv: 8 });
+      push(sessionState({ openRounds: [], lastRevealedRounds: [round({ status: 'REVEALED' })] }));
+      vi.advanceTimersByTime(INTENT_TIMEOUT_MS);
+      await expect(result).resolves.toEqual({ ok: false, code: 'TIMEOUT' });
+    });
+
+    it('reveals a round, confirmed when it is among the revealed rounds', async () => {
+      push(sessionState({ openRounds: [round()] }));
+      const result = service.revealRound(ROUND_ID);
+      expect(socket.sent[0]).toEqual({ type: 'revealRound', roundId: ROUND_ID });
+      push(sessionState({ openRounds: [round()], version: 2 }));
+      push(sessionState({ lastRevealedRounds: [round({ status: 'REVEALED' })] }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('transfers the role, confirmed when this seat is no longer the facilitator', async () => {
+      push(sessionState({ participants: [FACILITATOR, PARTICIPANT] }));
+      const result = service.transferFacilitator(PARTICIPANT.participantId);
+      expect(socket.sent[0]).toEqual({
+        type: 'transferFacilitator',
+        participantId: PARTICIPANT.participantId,
+      });
+      let settled = false;
+      void result.then(() => (settled = true));
+      push(sessionState({ version: 2 }));
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      push(participantState({ version: 3 }));
+      await expect(result).resolves.toEqual({ ok: true });
+    });
+
+    it('reports PARTICIPANT_OFFLINE for a transfer to a participant who is not connected', async () => {
+      const result = service.transferFacilitator('x');
+      socket.messages.next(error('PARTICIPANT_OFFLINE'));
+      await expect(result).resolves.toMatchObject({ ok: false, code: 'PARTICIPANT_OFFLINE' });
+    });
+
+    it('notes that this seat received the facilitator role', () => {
+      expect(service.handedOver()).toBe(false);
+      socket.messages.next({ type: 'facilitatorHandover', animationToken: 'tok' });
+      expect(service.handedOver()).toBe(true);
     });
   });
 

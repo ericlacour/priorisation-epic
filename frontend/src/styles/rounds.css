@@ -1,0 +1,187 @@
+/* Tours de vote (écrans 4 bis, 5 et 6) : ouverture, vote, révélation et consensus. */
+.main-col {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  align-content: start;
+}
+
+.round-actions {
+  display: grid;
+  gap: 4px;
+}
+
+.round-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vote-panel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.vote-panel h2,
+.reveal-card h2 {
+  margin: 0;
+}
+
+.vote-feature {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.vote-feature.done {
+  background: var(--surface-muted);
+}
+
+.vote-head {
+  justify-content: space-between;
+}
+
+.vote-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.vote-inputs label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.vote-errors p {
+  margin: 0;
+}
+
+.reveal-results {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.reveal-list {
+  display: grid;
+  gap: 12px;
+}
+
+.reveal-card {
+  display: grid;
+  gap: 12px;
+}
+
+.reveal-head {
+  justify-content: space-between;
+}
+
+.reveal-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.reveal-grid th,
+.reveal-grid td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.reveal-grid th {
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.reveal-grid .noopinion,
+.reveal-grid .novote td {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.reveal-grid .minmax td {
+  font-weight: 600;
+}
+
+.consensus {
+  align-items: center;
+}
+
+.consensus label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.consensus-input {
+  width: 64px;
+  min-height: 36px;
+}
+
+.reveal-actions {
+  flex: none;
+}
+
+.plist .progress {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plist .progress + .role {
+  margin-left: 8px;
+}
+
+.plist li {
+  flex-wrap: wrap;
+}
+
+/* Fenêtre d'ouverture d'un tour : tableau des fonctionnalités à cocher. */
+.pick {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.pick th,
+.pick td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.pick th {
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pick .pick-check {
+  width: 44px;
+}
+
+.pick tr.sel {
+  background: var(--surface-muted);
+}
+
+.pick tr.locked td {
+  color: var(--muted);
+}
+
+.round-foot {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.transfer-wrap {
+  display: inline-flex;
+}

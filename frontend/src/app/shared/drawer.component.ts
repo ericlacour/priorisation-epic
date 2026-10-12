@@ -23,7 +23,7 @@ const FOCUSABLE =
 @Component({
   selector: 'app-drawer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown)': 'onKeydown($event)' },
+  host: { '(document:keydown)': 'onKeydown($event)', '[class.suspended]': 'suspended()' },
   template: `
     <div class="drawer-backdrop" (click)="closed.emit()" aria-hidden="true"></div>
     <aside
@@ -61,6 +61,8 @@ export class DrawerComponent implements OnInit, OnDestroy {
   /** `id` du titre du panneau (`aria-labelledby`). */
   readonly labelledBy = input.required<string>();
   readonly closed = output<void>();
+  /** Masqué et sourd au clavier tant qu'un autre panneau est ouvert par-dessus (la saisie est conservée). */
+  readonly suspended = input(false);
 
   ngOnInit(): void {
     this.previous = this.document.activeElement as HTMLElement | null;
@@ -74,6 +76,7 @@ export class DrawerComponent implements OnInit, OnDestroy {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
+    if (this.suspended()) return;
     if (event.key === 'Escape') {
       event.preventDefault();
       this.closed.emit();

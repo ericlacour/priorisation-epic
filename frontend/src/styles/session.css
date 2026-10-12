@@ -131,8 +131,13 @@
   .session-body {
     flex: 1;
     min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 8px;
+  }
+
+  .session-body > * {
+    flex: none;
   }
 
   .session-body > .notice,
@@ -140,12 +145,47 @@
     margin: 0;
   }
 
-  .layout-board {
+  .session-body > .layout-board {
+    flex: 1 1 0;
     min-height: 0;
-    height: 100%;
     grid-template-columns: minmax(0, 1fr) 250px;
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
+  }
+
+  /* Colonne principale : le tour (vote ou résultats) et le tableau se partagent la hauteur, chacun défile. */
+  .main-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .main-col > * {
+    flex: none;
+  }
+
+  .main-col > .board {
+    flex: 1 1 0;
+    min-height: 140px;
+  }
+
+  .main-col > .vote-panel {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 55%;
+    overflow-y: auto;
+  }
+
+  .main-col > .reveal-results {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 62%;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .reveal-results > .reveal-list {
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .board {

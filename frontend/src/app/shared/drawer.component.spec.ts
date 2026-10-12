@@ -9,7 +9,7 @@ import { DrawerComponent } from './drawer.component';
   template: `
     <button id="opener" type="button">ouvrir</button>
     @if (open()) {
-      <app-drawer labelledBy="t" (closed)="onClosed()">
+      <app-drawer labelledBy="t" [suspended]="suspended()" (closed)="onClosed()">
         <h2 drawer-head id="t">Titre</h2>
         <input id="field" />
         <button id="last" type="button" drawer-foot>Dernier</button>
@@ -19,6 +19,7 @@ import { DrawerComponent } from './drawer.component';
 })
 class Host {
   open = signal(true);
+  suspended = signal(false);
   closed = 0;
   onClosed(): void {
     this.closed++;
@@ -144,6 +145,17 @@ describe('DrawerComponent', () => {
     host.open.set(false);
     fixture.detectChanges();
     expect(document.activeElement).toBe(opener);
+    root.remove();
+  });
+
+  it('ignores the keyboard and hides while suspended', async () => {
+    const { host, root, fixture } = await mount();
+    const drawer = root.querySelector('app-drawer') as HTMLElement;
+    host.suspended.set(true);
+    fixture.detectChanges();
+    expect(drawer.classList.contains('suspended')).toBe(true);
+    press('Escape');
+    expect(host.closed).toBe(0);
     root.remove();
   });
 });
