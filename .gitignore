@@ -1,0 +1,21 @@
+# Java / Maven
+target/
+
+# Node
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+.angular/
+
+# Environnement local : jamais de secret dans le dépôt
+.env
+.env.*
+!.env.example
+
+# Éditeurs
+.idea/
+*.iml
+.vscode/
+.DS_Store

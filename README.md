@@ -3,6 +3,38 @@
 Application web pour prioriser les fonctionnalités d'une équipe avec la méthode WSJF.
 La spécification se trouve dans [`specs/001-wsjf-prioritization-session/`](specs/001-wsjf-prioritization-session/).
 
+## Organisation du dépôt
+
+| Dossier | Contenu |
+|---------|---------|
+| `contract/` | Contrat d'échange front / webservice : OpenAPI, AsyncAPI, schémas JSON et exemples. Scripts `npm run validate` et `npm test` |
+| `backend/` | Webservice Java 25 / Spring Boot 4.1, en architecture hexagonale (`domain`, `application`, `adapter`, `config`), Maven (`./mvnw verify`) |
+| `frontend/` | Front Angular 22 (`npm start`, `npm test`, `npm run lint`, `npm run e2e`) |
+| `deploy/` | Blueprint et mode d'emploi du déploiement |
+| `.github/` | CI et outillage de sécurité |
+| `specs/` | Spécification, plan et tâches de la feature 001 |
+
+Prérequis : JDK 25 (Temurin) et Node.js ≥ 24.15.
+
+### Vérifications avant un push
+
+```bash
+(cd backend && ./mvnw -B verify)                 # Spotless, Error Prone, tests, JaCoCo
+(cd frontend && npm ci && npm run lint && npm run format:check && npm test)
+(cd contract && npm ci && npm run format:check && npm run validate && npm test)
+```
+
+`./mvnw spotless:apply` reformate le Java. Une dérogation Error Prone se fait au cas par cas avec
+`@SuppressWarnings("NomDeLaVérification")` et un commentaire qui explique pourquoi.
+
+### Sessions Claude Code dans le cloud
+
+Le hook `SessionStart` ([`.claude/settings.json`](.claude/settings.json),
+[`.claude/hooks/session-start.sh`](.claude/hooks/session-start.sh)) prépare la session : il installe
+Temurin 25 et Node 24 s'ils manquent, lance `./mvnw dependency:go-offline` dans `backend/` et
+`npm ci` dans `frontend/` et `contract/` (les dossiers absents sont ignorés). Il ne tourne que dans
+le cloud (`CLAUDE_CODE_REMOTE=true`) et reste exécutable à la main.
+
 ## Sécurité du dépôt
 
 Le dépôt applique l'outillage de sécurité exigé par la constitution
