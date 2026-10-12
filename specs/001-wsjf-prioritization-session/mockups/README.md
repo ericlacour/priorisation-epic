@@ -33,7 +33,7 @@ système) reprend celle de planning-poker.
 | `primary` | `#E2001A` | `#FF6B76` | Boutons principaux, rang 1, onglet actif |
 | `primary-ink` | `#C8001A` | `#FF808A` | Texte rouge (WSJF, liens) |
 | `fg` | `#2F3338` | `#ECEDEF` | Texte principal (anthracite, pas de noir) |
-| `muted` | `#6B7079` | `#A3A8B0` | Texte secondaire |
+| `muted` | `#5F646C` | `#A3A8B0` | Texte secondaire |
 | `bg` / `surface` | `#F7F5F3` / `#FFFFFF` | `#16181C` / `#1F2227` | Fonds |
 | `success` / `warning` / `danger` | `#16754F` / `#8A560C` / `#A11423` | `#42C58E` / `#E3A94B` / `#FF8A80` | États |
 
@@ -43,7 +43,9 @@ Les contrastes vérifiés sont tous au moins AA :
 |-------------|-----------|
 | Blanc sur `#E2001A` | 4,9:1 |
 | `#2F3338` sur blanc | 12,7:1 |
-| `#6B7079` sur blanc | 5,0:1 |
+| `#5F646C` sur blanc | 6,0:1 |
+| `#5F646C` sur le gris des en-têtes de tableau `#F0EDEA` | 5,1:1 |
+| `#5F646C` sur les rayures sombres des valeurs masquées `#E7E3DE` | 4,7:1 |
 | `#FF6B76` sur `#16181C` | 6,1:1 |
 
 ## Écrans
@@ -63,3 +65,7 @@ Les contrastes vérifiés sont tous au moins AA :
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |
 | 8 | Réglage de l'échelle | FR-009 à FR-011 |
 | 9 | Exports et tours révélés | FR-022 à FR-024 |
+
+**Historique** : le gris secondaire était `#6B7079` (5,0:1 sur blanc). Il n'atteignait que 4,3:1 sur le gris des
+en-têtes de tableau (`#F0EDEA`), sous le seuil AA de 4,5:1, ce que le contrôle axe-core a détecté dans l'e2e. Il est
+passé à `#5F646C`, qui passe sur tous les fonds de la charte.
