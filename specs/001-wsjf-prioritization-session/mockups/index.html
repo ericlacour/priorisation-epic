@@ -429,6 +429,7 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
   <button type="button" data-screen="s4">4. Tableau (animateur)</button>
   <button type="button" data-screen="s4b">4 bis. Ouvrir un tour</button>
   <button type="button" data-screen="s4c">4 ter. Descriptif</button>
+  <button type="button" data-screen="s4d">4 quater. Méthode</button>
   <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
@@ -441,7 +442,7 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 <div class="frame" id="frame">
 
 <!-- ======================= 1. ACCUEIL ======================= -->
-<section class="screen" id="s1" data-note="US5, FR-001, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1.">
+<section class="screen" id="s1" data-note="US5, FR-001, FR-017d, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1. La méthode est choisie à la création (WSJF seule en V1, choisie par défaut) puis figée ; « Voir le détail » ouvre le panneau de la méthode (FR-017c).">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">Priorisation Fonctionnalités</div><div class="sub">Sessions de priorisation d'équipe</div></div>
@@ -453,6 +454,11 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
         <h2>Créer une session</h2>
         <div class="field"><label for="n1">Nom de la session</label><input id="n1" class="input" value="PI 27 – Epics plateforme"></div>
         <div class="field"><label for="p1">Votre pseudo</label><input id="p1" class="input" value="eric"><span class="help">Vous serez l'animateur de la session.</span></div>
+        <div class="field">
+          <label for="m1">Méthode de priorisation</label>
+          <select id="m1" class="input" aria-describedby="m1-help"><option selected>WSJF (version 1) : CoD = BV + TC + RR/OE ; WSJF = CoD / JS</option></select>
+          <span class="help" id="m1-help">Seule méthode disponible pour l'instant. Elle ne pourra plus être changée après la création. <a href="#" data-go="s4d">Voir le détail de la méthode</a></span>
+        </div>
         <button class="btn primary" type="button" data-go="s2">Créer la session</button>
       </div>
     </div>
@@ -460,18 +466,18 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
       <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Sessions</h2><span class="muted small">Les plus récentes d'abord</span></div>
       <div class="table-wrap desktop-only">
         <table>
-          <thead><tr><th>Nom</th><th>Animateur</th><th>Créée le</th><th>Statut</th><th></th></tr></thead>
+          <thead><tr><th>Nom</th><th>Animateur</th><th>Créée le</th><th>Méthode</th><th>Statut</th><th></th></tr></thead>
           <tbody>
-            <tr><td>PI 27 – Epics plateforme</td><td>eric</td><td>11/10/2026</td><td><span class="badge live">En cours</span></td><td><button class="btn sm" type="button" data-go="s3">Rejoindre</button></td></tr>
-            <tr><td>Roadmap paiement T1</td><td>sophie</td><td>08/10/2026</td><td><span class="badge prep">En préparation</span></td><td><button class="btn sm" type="button">Rejoindre</button></td></tr>
-            <tr><td>PI 26 – Epics plateforme</td><td>eric</td><td>02/07/2026</td><td><span class="badge closed">Clôturée</span></td><td><button class="btn sm" type="button">Consulter</button></td></tr>
+            <tr><td>PI 27 – Epics plateforme</td><td>eric</td><td>11/10/2026</td><td>WSJF</td><td><span class="badge live">En cours</span></td><td><button class="btn sm" type="button" data-go="s3">Rejoindre</button></td></tr>
+            <tr><td>Roadmap paiement T1</td><td>sophie</td><td>08/10/2026</td><td>WSJF</td><td><span class="badge prep">En préparation</span></td><td><button class="btn sm" type="button">Rejoindre</button></td></tr>
+            <tr><td>PI 26 – Epics plateforme</td><td>eric</td><td>02/07/2026</td><td>WSJF</td><td><span class="badge closed">Clôturée</span></td><td><button class="btn sm" type="button">Consulter</button></td></tr>
           </tbody>
         </table>
       </div>
       <div class="feature-cards">
-        <div class="fcard"><div class="row1"><b>PI 27 – Epics plateforme</b><span class="badge live" style="margin-left:auto">En cours</span></div><div class="crit">eric · 11/10/2026</div><button class="btn sm" type="button" data-go="s3">Rejoindre</button></div>
-        <div class="fcard"><div class="row1"><b>Roadmap paiement T1</b><span class="badge prep" style="margin-left:auto">En préparation</span></div><div class="crit">sophie · 08/10/2026</div></div>
-        <div class="fcard"><div class="row1"><b>PI 26 – Epics plateforme</b><span class="badge closed" style="margin-left:auto">Clôturée</span></div><div class="crit">eric · 02/07/2026</div></div>
+        <div class="fcard"><div class="row1"><b>PI 27 – Epics plateforme</b><span class="badge live" style="margin-left:auto">En cours</span></div><div class="crit">eric · 11/10/2026 · WSJF</div><button class="btn sm" type="button" data-go="s3">Rejoindre</button></div>
+        <div class="fcard"><div class="row1"><b>Roadmap paiement T1</b><span class="badge prep" style="margin-left:auto">En préparation</span></div><div class="crit">sophie · 08/10/2026 · WSJF</div></div>
+        <div class="fcard"><div class="row1"><b>PI 26 – Epics plateforme</b><span class="badge closed" style="margin-left:auto">Clôturée</span></div><div class="crit">eric · 02/07/2026 · WSJF</div></div>
       </div>
     </div>
   </div>
@@ -599,6 +605,7 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
             <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
             <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
           </dl>
+          <a href="#" class="small" data-go="s4d">Voir la méthode complète</a>
         </details>
       </aside>
     </div>
@@ -715,12 +722,62 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
           <span>RR/OE</span><span class="bar" style="width:37%"></span><span>3</span>
           <span>JS</span><span class="bar" style="width:50%;background:var(--muted)"></span><span>4</span>
         </div>
-        <p class="help">Méthode WSJF (v1), échelle entiers 1 à 10.</p>
+        <p class="help"><a href="#" data-go="s4d">Méthode WSJF (v1)</a>, échelle entiers 1 à 10.</p>
       </div>
       <div class="drawer-foot no-phone">
         <div class="view-only"><button class="btn" type="button" data-edit="on">Modifier le titre et le descriptif</button></div>
         <div class="edit-only actions" style="justify-content:flex-end"><button class="btn" type="button" data-edit="off">Annuler</button><button class="btn primary" type="button" data-edit="save">Enregistrer</button></div>
         <div class="notice success saved-msg" style="margin-top:10px;display:none"><span class="ico">✓</span><span>Modification enregistrée et visible par tous les participants.</span></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================= 4 quater. MÉTHODE DE LA SESSION ======================= -->
+<section class="screen" id="s4d" data-note="FR-017a, FR-017c. Lecture seule, pour tous les membres, téléphone compris. Ouvert depuis « Voir la méthode complète » (encadré d'aide), depuis le détail du calcul d'une fonctionnalité et depuis le formulaire de création. Tout le contenu vient de la définition de la méthode : une autre méthode afficherait ses propres critères et valeurs calculées. Se ferme par la croix, la touche Échap ou un clic à côté.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="drawer-stage">
+    <div class="page drawer-under" aria-hidden="true">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num">BV</th><th class="num">TC</th><th class="num">RR/OE</th><th class="num">JS</th><th class="num">CoD</th><th class="num">WSJF</th></tr></thead>
+          <tbody>
+            <tr><td><span class="rank">1</span></td><td>F-1</td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td></tr>
+            <tr><td><span class="rank">2</span></td><td>F-4</td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="drawer-backdrop"></div>
+    <aside class="drawer" role="dialog" aria-labelledby="me-t" aria-modal="true">
+      <div class="drawer-head">
+        <div style="flex:1"><span class="muted small">Méthode de la session</span><h2 id="me-t" style="margin:2px 0 0">WSJF <span class="badge">version 1</span></h2></div>
+        <button class="btn sm" type="button" aria-label="Fermer" data-go="s4">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="notice info" role="note"><span class="ico">i</span><span>La méthode est choisie à la création de la session et ne peut plus être modifiée. Les scores de cette session sont toujours calculés avec cette version.</span></div>
+        <h3>Formule</h3>
+        <div class="formula">CoD = BV + TC + RR/OE ; WSJF = CoD / JS</div>
+        <h3>Critères saisis</h3>
+        <dl class="glossary">
+          <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business. <span class="muted small">Colonne d'import et d'export : BV.</span></dd>
+          <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité. <span class="muted small">Colonne d'import et d'export : TC.</span></dd>
+          <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité. <span class="muted small">Colonne d'import et d'export : RR/OE.</span></dd>
+          <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire. <span class="muted small">Colonne d'import et d'export : JS.</span></dd>
+        </dl>
+        <p class="help">Chaque critère est un nombre entier de l'échelle de la session : entiers de 1 à 10.</p>
+        <h3>Valeurs calculées</h3>
+        <dl class="glossary">
+          <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE. <span class="muted small">Affichage : entier.</span></dd>
+          <dt>WSJF · Weighted Shortest Job First</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire. <span class="muted small">Affichage : 2 décimales.</span></dd>
+        </dl>
+        <h3>Tri et égalités</h3>
+        <p class="small" style="margin-top:0">WSJF décroissant, puis CoD décroissant, puis identifiant par ordre alphabétique. Les fonctionnalités incomplètes ou hors échelle sont en fin de tableau.</p>
       </div>
     </aside>
   </div>
@@ -811,6 +868,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
             <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
             <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
           </dl>
+          <a href="#" class="small" data-go="s4d">Voir la méthode complète</a>
         </details>
       </aside>
     </div>

@@ -52,6 +52,7 @@ ouvert.
 | # | Parcours | Étapes | Résultat attendu |
 |---|----------|--------|------------------|
 | V1 | US1 : saisie directe | Créer une session « Démo » avec le pseudo « anim ». Ajouter F-1 (8, 5, 3, 4) et F-2 (2, 2, 2, 3) | F-1 : CoD 16, WSJF 4,00, rang 1. F-2 : WSJF 2,00. Le détail affiche « CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00 » |
+| V1a | US1 : méthode | Sur l'accueil, ouvrir « Voir le détail de la méthode », puis créer la session. Dans la session, ouvrir « Voir la méthode complète » depuis l'encadré d'aide, sur ordinateur puis sur téléphone | Le choix propose WSJF (version 1) seule, choisie par défaut. Le panneau affiche la formule, les 4 critères, CoD et WSJF, la règle de tri et l'échelle, en lecture seule, sans aucune action de modification. La liste des sessions affiche « WSJF » |
 | V2 | US1 : recalcul | Passer le JS de F-1 à 10 | F-1 passe à 1,60 et F-2 passe en tête, sans rechargement |
 | V3 | US1 : validation | Saisir JS = 0, puis 11, puis 2,5 | Les trois saisies sont refusées avec « … entier entre 1 et 10 » |
 | V4 | US2 : rejoindre | Ouvrir le lien d'invitation dans deux autres navigateurs (« alice », « bob ») | Ils apparaissent en ligne chez tous |

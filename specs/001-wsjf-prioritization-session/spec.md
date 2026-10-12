@@ -30,6 +30,7 @@
 - Q : comment indiquer qu'une fonctionnalité est « à revoir » ? → A: Marque posée par l'animateur, avec un motif facultatif, sans effet sur le classement, pour la reprendre lors d'un prochain tour. Les valeurs sorties de l'échelle sont signalées séparément « hors échelle » (calculé).
 - Q : un participant peut-il ne pas noter un critère lors d'un tour (il ne sait pas, ou ce n'est pas son domaine, par exemple le JS) ? → A: Oui. Un critère laissé vide vaut « sans avis ». Il est ignoré dans le minimum, le maximum, l'écart important et le préremplissage du consensus.
 - Q : si une nouvelle méthode de calcul arrive, avec d'autres champs que BV, TC, RR/OE, JS, CoD et WSJF, comment l'ajouter facilement ? → A: Chaque méthode est décrite par une définition unique : ses critères saisis, ses valeurs calculées, sa formule et son tri. Le tableau, la saisie, les votes, l'import, les exports et l'historique se construisent à partir de cette définition. Ajouter une méthode revient à écrire sa définition et son calcul, sans toucher au reste de l'application.
+- Q : peut-on créer ou modifier une méthode et ses champs depuis un écran ? → A: Pas en V1. Chaque membre peut consulter la méthode de la session en lecture seule, et l'animateur choisit la méthode à la création parmi celles disponibles (WSJF seule en V1). Un écran de méthodes configurables par modèle est noté comme évolution future.
 - Q : faut-il une case « Je ne sais pas » pour distinguer un « sans avis » volontaire d'un critère pas encore rempli ? → A: Non. Le champ vide suffit, et la fonctionnalité est évaluée même si le participant n'a pas renseigné tous les critères : son vote est complet, sans avertissement.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -257,7 +258,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 **Sessions et participants**
 
 - **FR-001**: Le système DOIT permettre à toute personne, après saisie d'un pseudo, de créer
-  une session nommée dont elle devient l'animateur.
+  une session nommée dont elle devient l'animateur. Le formulaire de création propose la
+  **méthode de priorisation** (FR-017d).
 - **FR-002**: À la création, le système DOIT fournir deux liens distincts :
   - un **lien d'invitation**, à partager : toute personne qui l'ouvre et saisit un pseudo
     devient participant ;
@@ -427,6 +429,21 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   Ajouter une méthode DOIT se limiter à écrire sa définition et son calcul, avec leurs
   tests (SC-009). Un fichier JSON exporté avec une autre méthode que celle de la session
   est refusé à l'import, avec un message qui nomme les deux méthodes.
+- **FR-017c**: Tout membre de la session, y compris sur téléphone, DOIT pouvoir consulter
+  en **lecture seule** la méthode de la session dans un panneau « Méthode de la
+  session » : nom et version, formule, critères saisis (sigle, nom complet, définition,
+  colonne d'import et d'export), valeurs calculées (sigle, nom complet, définition,
+  affichage), règle de tri et d'égalité, et échelle de la session. Le panneau s'ouvre
+  depuis l'encadré d'aide (« Voir la méthode complète »), depuis le détail du calcul d'une
+  fonctionnalité et depuis le formulaire de création. Il rappelle que la méthode est
+  fixée à la création et ne peut pas être modifiée. Son contenu vient uniquement de la
+  définition de la méthode (FR-017a).
+- **FR-017d**: À la création d'une session, l'animateur DOIT choisir la méthode dans la
+  liste des méthodes disponibles, chacune dans sa dernière version, avec sa formule en une
+  ligne et un lien vers son détail (FR-017c). La méthode WSJF est choisie par défaut. En
+  V1, c'est la seule de la liste : le choix est affiché mais ne propose qu'elle. La
+  méthode et sa version sont ensuite **figées** pour la session (FR-017). La liste des
+  sessions (FR-026) affiche la méthode de chaque session.
 
 **Vote masqué et consensus**
 
@@ -624,8 +641,18 @@ Chacun demandera sa propre spec, et, pour certains, un amendement de la constitu
   WSJF = CoD / JS, sans poids par critère (FR-017).
 - **Autres méthodes de scoring** (RICE, MoSCoW…) : seule la méthode WSJF existe. La
   conception permet d'en ajouter plus tard, avec d'autres champs, sans reprendre le reste
-  de l'application (FR-017a, FR-017b, SC-009). Le choix de la méthode à la création d'une
-  session viendra avec la deuxième méthode.
+  de l'application (FR-017a, FR-017b, SC-009). Elles apparaîtront alors d'elles-mêmes
+  dans le choix de la méthode à la création (FR-017d).
+- **Création ou modification de méthodes depuis un écran** : en V1, une méthode est
+  ajoutée par l'équipe de développement (définition et calcul testés). Évolution future
+  envisagée : des **méthodes configurables par modèle**. Un administrateur remplirait un
+  formulaire à partir d'un modèle de calcul déjà codé et testé (par exemple « somme de
+  critères ÷ un critère », comme le WSJF, avec des poids possibles) : nom, critères
+  (sigle, nom, définition), poids, valeurs calculées. Pas de formule libre, pour que
+  chaque calcul reste testé (constitution I et II). Chaque modification créerait une
+  nouvelle version, sans changer les sessions existantes (FR-017). Prérequis :
+  l'authentification et un rôle d'administrateur, sans lesquels n'importe qui pourrait
+  modifier une méthode utilisée par toutes les équipes.
 - **Fonctionnalités avancées de SAFe** : pas de gestion des PI, des ART, des
   dépendances, de la capacité ou des objectifs de PI.
 - **Saisie sur téléphone** : sur un écran de téléphone (moins de 600 px de large), la

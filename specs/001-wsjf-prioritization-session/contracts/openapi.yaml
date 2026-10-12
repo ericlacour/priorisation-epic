@@ -93,21 +93,30 @@ components:
       properties:
         type: { type: string, enum: [CONTINUOUS, FIBONACCI] }
         max: { type: integer }
+    MethodDefinition:
+      description: Same payload as `methodDefinition` in asyncapi.yaml (FR-017a)
+      $ref: './asyncapi.yaml#/components/schemas/methodDefinition'
     SessionSummary:
       type: object
-      required: [sessionId, name, facilitatorPseudo, createdAt, status]
+      required: [sessionId, name, facilitatorPseudo, createdAt, status, method, methodVersion]
       properties:
         sessionId: { type: string }
         name: { type: string }
         facilitatorPseudo: { type: string }
         createdAt: { type: string, format: date-time }
         status: { type: string, enum: [PREPARATION, IN_PROGRESS, CLOSED] }
+        method: { type: string, examples: [WSJF] }
+        methodVersion: { type: integer }
     CreateSessionRequest:
       type: object
       required: [name, pseudo]
       properties:
         name: { type: string, minLength: 1, maxLength: 120 }
         pseudo: { type: string, minLength: 1, maxLength: 40 }
+        method:
+          type: string
+          default: WSJF
+          description: Key of a method from GET /api/methods; its latest version is used and frozen (FR-017d). Unknown key gives 400
         scale: { $ref: '#/components/schemas/Scale' }
     CreateSessionResponse:
       type: object
@@ -303,6 +312,21 @@ paths:
               schema: { $ref: '#/components/schemas/ImportResult' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/SessionNotFound' }
+
+  /api/methods:
+    get:
+      operationId: listMethods
+      summary: Methods offered at session creation, each in its latest version (FR-017c, FR-017d)
+      description: WSJF only in V1. Used by the creation form and its "method detail" panel.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items: { $ref: '#/components/schemas/MethodDefinition' }
 
   /api/import-template.xlsx:
     get:

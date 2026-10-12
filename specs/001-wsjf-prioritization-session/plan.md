@@ -86,7 +86,7 @@ Ce contrôle est fait par rapport à la constitution v2.2.0.
 | **I. Score transparent** | Formule visible ; contribution de chaque critère ; aucun facteur caché | `sessionState` porte `methodDefinition` (critères, valeurs calculées et leurs définitions), `formula`, `tieBreakRule` et, pour chaque fonctionnalité, `score.explanation` avec les vraies valeurs. Le calcul n'existe qu'à un seul endroit, `domain`, une classe par méthode, et toute évolution d'une méthode crée une nouvelle version. Les exports rappellent la méthode et la formule | ✅ |
 | **II. Logique testée** | Calcul, tri, égalités, validation et cas limites testés ; domaine isolé ; CI bloquante | Architecture hexagonale, isolement vérifié par ArchUnit. Tests unitaires et jqwik. JaCoCo à 90 % sur `domain`. Exemples du contrat validés. CI obligatoire pour merger | ✅ |
 | **III. Travail en équipe** | Données partagées ; auteur et date ; pas d'écrasement silencieux ; pseudo en v1 | PostgreSQL. Table `change_log` dans la même transaction. Verrou par session, `@Version` et `error STALE_VERSION`. Pseudo et jetons, sans mot de passe ni compte | ✅ |
-| **IV. Web centré sur l'usage** | Parcours priorisés ; clavier et écran de portable ; erreurs actionnables | Parcours P1 à P5 livrables séparément. Maquettes des 11 écrans validées avant l'implémentation (contrat d'interface), avec des contrastes AA vérifiés. Contrôles d'accessibilité axe-core, comme dans PP. Codes d'erreur traduits en messages français qui disent quoi corriger | ✅ |
+| **IV. Web centré sur l'usage** | Parcours priorisés ; clavier et écran de portable ; erreurs actionnables | Parcours P1 à P5 livrables séparément. Maquettes des 12 écrans validées avant l'implémentation (contrat d'interface), avec des contrastes AA vérifiés. Contrôles d'accessibilité axe-core, comme dans PP. Codes d'erreur traduits en messages français qui disent quoi corriger | ✅ |
 | **V. Produit en français** | Interface et documents en français ; formats FR ; convention fixée ; textes centralisés | Locale `fr-FR`. **Convention : code et contrat en anglais** (comme PP, autorisé par le principe V depuis la v2.1.0), sigles métier conservés. Catalogue `messages.fr.ts`. Spec, plan et tâches en français | ✅ |
 | **VI. Données portables** | Export CSV et JSON ; JSON recalculable ; import validé ; aller-retour testé ; formats versionnés | CSV, JSON (`formatVersion: 1`), import xlsx, csv et json avec aperçu. Test d'aller-retour SC-008. Formats dans `contracts/file-formats.md` | ✅ |
 | **Architecture** | Domaine indépendant | `domain` sans dépendance, `application` limitée aux ports (ArchUnit) | ✅ |
@@ -122,7 +122,7 @@ specs/001-wsjf-prioritization-session/
 │   ├── openapi.yaml     # REST : entrée, fichiers, santé
 │   ├── asyncapi.yaml    # WebSocket : intentions et sessionState filtré
 │   └── file-formats.md  # Excel, CSV, Confluence, JSON
-├── mockups/             # Contrat d'interface : 11 écrans cliquables (index.html) et charte (README.md)
+├── mockups/             # Contrat d'interface : 12 écrans cliquables (index.html) et charte (README.md)
 ├── checklists/
 │   └── requirements.md
 └── tasks.md             # Phase 2 (/speckit-tasks)

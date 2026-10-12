@@ -1,6 +1,6 @@
 # Maquettes : session de priorisation WSJF
 
-Maquettes cliquables des 11 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
+Maquettes cliquables des 12 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
 La barre du haut permet de basculer entre ordinateur et téléphone, et entre thème clair et
 thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 
@@ -19,6 +19,7 @@ l'application.
 | Tableau, tour en cours, révélation | Tiennent dans 1280 × 720 sans défilement de la page ; seules les listes défilent, en-têtes et actions restent visibles (FR-014a) |
 | À revoir / hors échelle | « À revoir » : marque posée par l'animateur avec un motif, sans effet sur le classement, retirée à la révélation (FR-006a). « Hors échelle » : état calculé quand une valeur sort de l'échelle (FR-011) |
 | Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |
+| Méthode | Choisie à la création (WSJF seule en V1, par défaut), puis figée. Consultable en lecture seule par tous dans le panneau « Méthode de la session ». Pas d'édition de méthode à l'écran en V1 (FR-017c, FR-017d) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
 ## Charte
@@ -49,12 +50,13 @@ Les contrastes vérifiés sont tous au moins AA :
 
 | # | Écran | Exigences illustrées |
 |---|-------|----------------------|
-| 1 | Accueil : sessions, créer une session | FR-001, FR-026 |
+| 1 | Accueil : sessions, créer une session avec le choix de la méthode | FR-001, FR-017d, FR-026 |
 | 2 | Session créée : lien d'invitation et lien d'animation privé | FR-002 |
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
 | 4 | Tableau, vue animateur, session en préparation | US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |
 | 4 bis | Ouvrir un tour : choix des fonctionnalités | FR-018 |
 | 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
+| 4 quater | Méthode de la session, en lecture seule | FR-017a, FR-017c |
 | 5 | Tour en cours, vue participant | US2, FR-019, FR-019a, SC-004 |
 | 6 | Révélation et consensus | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |

@@ -33,8 +33,8 @@ du contrat.
 | animationTokenHash | texte | Empreinte SHA-256 du jeton d'animation. Le jeton lui-même n'est jamais stocké |
 | name | texte (1 à 120 car.) | Obligatoire |
 | status | enum `PREPARATION`, `IN_PROGRESS`, `CLOSED` | Vaut `PREPARATION` à la création |
-| method | texte (≤ 20 car.) | Identifiant de la méthode, `WSJF` en V1. Fixé à la création (FR-017). Doit exister dans `MethodRegistry` |
-| methodVersion | entier | Vaut 1. Une nouvelle version d'une méthode s'ajoute à côté de l'ancienne : une session garde toujours sa version |
+| method | texte (≤ 20 car.) | Identifiant de la méthode, choisi à la création parmi les méthodes de `MethodRegistry`, `WSJF` par défaut (FR-017d). Figé ensuite (FR-017) |
+| methodVersion | entier | La dernière version de la méthode au moment de la création (1 en V1). Une nouvelle version d'une méthode s'ajoute à côté de l'ancienne : une session garde toujours sa version |
 | scaleType | enum `CONTINUOUS`, `FIBONACCI` | Vaut `CONTINUOUS` par défaut |
 | scaleMax | entier | En continu : de 2 à 100, 10 par défaut. En Fibonacci : une valeur de {2, 3, 5, 8, 13, 20, 40, 100}, 20 par défaut |
 | createdAt | horodatage | |
@@ -103,7 +103,11 @@ un **calcul**.
 - Une clé de critère inconnue de la méthode de la session est refusée :
   `error UNKNOWN_CRITERION`.
 - Les textes de la définition sont en français (constitution V). Ils sont la seule source
-  des sigles, noms et définitions affichés (FR-016a).
+  des sigles, noms et définitions affichés (FR-016a), et du panneau « Méthode de la
+  session » (FR-017c).
+- `MethodRegistry` liste les méthodes disponibles à la création, chacune dans sa dernière
+  version (`GET /api/methods`, FR-017d). Les anciennes versions restent connues pour les
+  sessions qui les utilisent, mais ne sont plus proposées.
 
 ## Participant (Participant)
 
