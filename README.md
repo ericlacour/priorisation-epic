@@ -13,24 +13,30 @@ Le dépôt applique l'outillage de sécurité exigé par la constitution
 | **Dependabot** | [`.github/dependabot.yml`](.github/dependabot.yml) | Une fois par mois, 7 jours après la sortie d'une version, pour `frontend/`, `contract/` (npm), `backend/` (Maven et Docker) et les GitHub Actions |
 | **CodeQL** | [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) | Sur chaque PR, sur `main` et chaque lundi, pour Java, JavaScript/TypeScript et les workflows GitHub Actions |
 | **Gitleaks** | [`.github/workflows/gitleaks.yml`](.github/workflows/gitleaks.yml), [`.gitleaks.toml`](.gitleaks.toml), [`.gitleaksignore`](.gitleaksignore) | Sur chaque PR et sur `main` |
+| **Secret scanning et push protection** | Réglage GitHub | À chaque push : GitHub refuse un push qui contient un secret reconnu |
+| **Dependency Review** | [`.github/workflows/dependency-review.yml`](.github/workflows/dependency-review.yml) | Sur chaque PR : bloque l'ajout d'une dépendance avec une vulnérabilité haute ou critique |
+| **actionlint** | [`.github/workflows/actionlint.yml`](.github/workflows/actionlint.yml) | Sur chaque PR et sur `main` : vérifie les workflows GitHub Actions |
 
 Tant que `backend/`, `frontend/` et `contract/` n'existent pas, CodeQL n'analyse que les
 workflows, et Dependabot ne suit que les GitHub Actions.
 
 ### Réglages GitHub à activer à la main
 
-Dans *Settings* du dépôt :
+Dans *Settings* du dépôt, menu **Advanced Security** (anciennement *Code security*) :
 
-1. **Code security → Dependabot** : activer *Dependabot alerts* et *Dependabot security
-   updates*.
-2. **Code security → Code scanning** : laisser *CodeQL analysis* en configuration
-   avancée (le workflow `codeql.yml`). Si la configuration par défaut est activée, la
-   désactiver, sinon les deux entrent en conflit.
-3. **Branches → règle de protection de `main`** :
+1. **Dependabot** : activer *Dependabot alerts* et *Dependabot security updates*.
+2. **Code scanning** : laisser *CodeQL analysis* en configuration avancée (le workflow
+   `codeql.yml`). Si la configuration par défaut est activée, la désactiver, sinon les
+   deux entrent en conflit.
+3. **Secret Protection** (ou *Secret scanning*) : l'activer, puis activer **Push
+   protection**. En cas de faux positif, GitHub propose de débloquer le push avec une
+   raison ; un vrai secret, lui, se révoque.
+4. **Branches → règle de protection de `main`** :
    - exiger une pull request avec au moins une relecture ;
    - exiger que les contrôles passent avant le merge : `Analyze (actions)`,
-     `Analyze (java-kotlin)`, `Analyze (javascript-typescript)` et `Gitleaks`, puis les
-     jobs de CI (`ci.yml`) quand ils existeront ;
+     `Analyze (java-kotlin)`, `Analyze (javascript-typescript)`, `Gitleaks`,
+     `Dependency Review` et `actionlint`, puis les jobs de CI (`ci.yml`) quand ils
+     existeront ;
    - exiger que la branche soit à jour avec `main`.
 
 ### Règles

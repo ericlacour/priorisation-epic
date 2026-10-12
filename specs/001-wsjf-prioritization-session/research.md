@@ -313,8 +313,18 @@ planning-poker est indiquée, sous la forme `PP : …`.
   - tests WebSocket de bout en bout, comme dans PP ;
   - Testcontainers avec PostgreSQL 17, en plus de PP, puisqu'il y a une base ;
   - ArchUnit ; JaCoCo avec un seuil de 90 % de lignes sur `domain`.
-- **Front** : Vitest avec jsdom, et des scripts `node --test` pour la configuration et la
-  CSP, comme dans PP.
+  - **tests de mutation PIT** sur `domain`, avec un seuil de 80 % de mutants tués : ils
+    vérifient que les tests détectent vraiment une erreur dans le calcul, le tri et les
+    règles des tours. Lancés chaque semaine et sur les PR qui touchent `domain`, car ils
+    sont plus lents.
+- **Qualité statique du back** : Spotless (google-java-format) et **Error Prone**, qui
+  détecte à la compilation des bugs courants (comparaisons douteuses, valeurs de retour
+  ignorées, `equals` incohérents…). Ils remplacent, sans serveur, une partie de ce
+  qu'apporterait Sonar, écarté pour la V1.
+- **Front** : Vitest avec jsdom et un **seuil de couverture** (80 % des lignes, 70 % des
+  branches), ESLint (`angular-eslint`, avec les règles d'accessibilité des templates) et
+  Prettier, et des scripts `node --test` pour la configuration et la CSP, comme dans
+  PP.
 - **Bout en bout** :
   - Playwright sur **Chromium, Firefox et WebKit** (Firefox en plus de PP, pour couvrir
     les « navigateurs récents du marché » du principe IV), avec des tests e2e contre un
@@ -346,8 +356,20 @@ planning-poker est indiquée, sous la forme `PP : …`.
   semaine. **C'est un ajout par rapport à PP**, imposé par la constitution.
 - **Gitleaks** (`.github/workflows/gitleaks.yml` et `.gitleaks.toml`) : sur chaque PR et
   sur `main`. **Également un ajout par rapport à PP.**
-- **Protection de `main`** : CI, CodeQL et Gitleaks sont des contrôles obligatoires avant
-  de merger.
+- **Dependency Review** (`.github/workflows/dependency-review.yml`) : sur chaque PR,
+  bloque l'ajout d'une dépendance avec une vulnérabilité haute ou critique, avant le
+  merge, là où Dependabot ne la signale qu'après.
+- **actionlint** (`.github/workflows/actionlint.yml`) : vérifie les workflows GitHub
+  Actions sur chaque PR.
+- **Secret scanning et push protection** (réglage GitHub, gratuit pour un dépôt public) :
+  GitHub refuse un push qui contient un secret reconnu, avant même Gitleaks.
+- **Hook de démarrage des sessions Claude Code** (`.claude/settings.json`) : il prépare
+  Java, Node et les dépendances, pour que chaque session d'implémentation lance les
+  contrôles avant de pousser.
+- **Écarté pour la V1** : Sonar (choix du projet), CODEOWNERS et commitlint (une seule
+  personne relit).
+- **Protection de `main`** : CI, CodeQL, Gitleaks, Dependency Review et actionlint sont des
+  contrôles obligatoires avant de merger.
 
 ## R16. Observabilité
 

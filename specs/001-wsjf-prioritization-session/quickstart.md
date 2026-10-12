@@ -30,20 +30,23 @@ cd frontend && npm ci && npm start          # http://localhost:4200
 ## Lancer les contrôles qualité (identiques à la CI)
 
 ```bash
-cd contract && npm ci && npm run validate && npm test   # contrat OpenAPI, AsyncAPI, schémas, exemples et règles de masquage
-cd backend  && ./mvnw -B verify                          # unitaires, jqwik, ArchUnit, WebSocket, Testcontainers, JaCoCo ≥ 90 % sur domain
+cd contract && npm ci && npm run format:check && npm run validate && npm test   # format, contrat OpenAPI, AsyncAPI, schémas, exemples et règles de masquage
+cd backend  && ./mvnw -B verify                          # Spotless, Error Prone, unitaires, jqwik, ArchUnit, WebSocket, Testcontainers, JaCoCo ≥ 90 % sur domain
+cd backend  && ./mvnw -B -Pmutation verify               # tests de mutation PIT sur domain (≥ 80 % de mutants tués), plus lent
 cd backend  && docker build -t priorisation-epic-api:ci . \
   && docker run --rm -d --name api --read-only --tmpfs /tmp -u 54321:0 \
        -e PORT=9090 -e DATABASE_URL=… -p 9090:9090 priorisation-epic-api:ci \
   && curl -sf localhost:9090/api/health                  # image compatible OpenShift
-cd frontend && npm test && npm run e2e                   # Vitest, e2e Playwright contre un faux socket (avec axe-core)
+cd frontend && npm run lint && npm run format:check     # ESLint (angular-eslint) et Prettier
+cd frontend && npm test && npm run e2e                   # Vitest avec seuils de couverture, e2e Playwright contre un faux socket (avec axe-core)
 cd frontend && npm run e2e:journeys                      # parcours V1 à V14 contre le vrai webservice
 bash deploy/render-deploy.test.sh                        # script de déploiement Render
 ```
 
 **Résultat attendu** : tout passe au vert. `./mvnw verify` échoue si `domain` dépend
 d'autre chose que du JDK, ou si `application` dépend d'un adaptateur (règles ArchUnit).
-Il échoue aussi si la couverture de `domain` passe sous 90 %. `npm run validate` échoue
+Il échoue aussi si la couverture de `domain` passe sous 90 %, si un fichier Java n'est pas
+formaté (`./mvnw spotless:apply` le corrige) ou si Error Prone détecte une erreur. `npm run validate` échoue
 si un exemple de `sessionState` montre un vote d'un autre participant pendant un tour
 ouvert.
 

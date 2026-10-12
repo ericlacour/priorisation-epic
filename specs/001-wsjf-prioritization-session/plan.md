@@ -43,8 +43,10 @@ Le détail des choix est dans [research.md](./research.md).
 
 **Testing**:
 - Back : JUnit 5, AssertJ, jqwik, `spring-boot-starter-webmvc-test`, tests WebSocket,
-  Testcontainers (PostgreSQL), ArchUnit, JaCoCo.
-- Front : Vitest avec jsdom, et des scripts `node --test`.
+  Testcontainers (PostgreSQL), ArchUnit, JaCoCo, tests de mutation PIT sur `domain`.
+  Qualité statique : Spotless (formatage) et Error Prone (bugs détectés à la compilation).
+- Front : Vitest avec jsdom et un seuil de couverture, ESLint (angular-eslint), Prettier, et
+  des scripts `node --test`.
 - Bout en bout : Playwright sur Chromium, Firefox et WebKit (`e2e/` et `e2e-journeys/`), avec
   `@axe-core/playwright` pour l'accessibilité.
 - Contrat : `npm run validate` et `npm test`.
