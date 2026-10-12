@@ -353,6 +353,18 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   panneau de vote et le tableau défilent chacun de leur côté, et à l'écran de
   **révélation et consensus**, où seule la liste des fonctionnalités révélées défile et
   où la barre d'actions (« Relancer un tour sur la sélection ») reste visible.
+- **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
+  le tableau complet, comme l'animateur : rang, identifiant, titre, critères, valeurs
+  calculées, badges « à revoir » et « hors échelle », légende avec la formule, mis à jour
+  en direct (FR-015). Il voit aussi la liste des participants en ligne, le lien
+  d'invitation, l'aide sur les sigles (FR-016a) et la méthode (FR-017c). Il peut ouvrir le
+  panneau de détail en lecture seule (FR-016b), consulter les tours révélés (FR-022) et
+  exporter (FR-023, FR-024). Il ne voit **aucune action d'animation** : ni « Modifier »,
+  ni ajout, import, échelle, ouverture de tour, démarrage ou clôture, ni édition du titre
+  et du descriptif. Un bandeau indique qu'aucun tour n'est en cours. Pendant un tour, les
+  fonctionnalités du tour sont masquées (FR-019a). Après une révélation, il voit les
+  résultats du tour (FR-020), sans les champs de consensus, réservés à l'animateur
+  (FR-021).
 - **FR-015**: Toute modification de BV, TC, RR/OE ou JS DOIT mettre à jour le CoD, le WSJF
   et le tri, sans rechargement et pour tous les membres connectés à la session. Le
   recalcul et le retri ont lieu quand l'animateur **valide la ligne** (« Enregistrer »),

@@ -1,6 +1,6 @@
 # Maquettes : session de priorisation WSJF
 
-Maquettes cliquables des 12 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
+Maquettes cliquables des 13 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
 La barre du haut permet de basculer entre ordinateur et téléphone, et entre thème clair et
 thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 
@@ -57,6 +57,7 @@ Les contrastes vérifiés sont tous au moins AA :
 | 4 bis | Ouvrir un tour : choix des fonctionnalités | FR-018 |
 | 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
 | 4 quater | Méthode de la session, en lecture seule | FR-017a, FR-017c |
+| 4 quinquies | Tableau, vue participant, sans tour en cours | FR-014a, FR-014b, FR-015 |
 | 5 | Tour en cours, vue participant | US2, FR-019, FR-019a, SC-004 |
 | 6 | Révélation et consensus | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |

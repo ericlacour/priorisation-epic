@@ -430,6 +430,7 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
   <button type="button" data-screen="s4b">4 bis. Ouvrir un tour</button>
   <button type="button" data-screen="s4c">4 ter. Descriptif</button>
   <button type="button" data-screen="s4d">4 quater. Méthode</button>
+  <button type="button" data-screen="s4e">4 quinquies. Tableau (participant)</button>
   <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
@@ -594,6 +595,82 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
           <h3>Inviter</h3>
           <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
           <button class="btn ghost sm no-phone" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
+        </div>
+        <details class="card glossary-box" open>
+          <summary><h3>Comprendre le WSJF</h3></summary>
+          <dl class="glossary">
+            <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
+            <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
+            <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité.</dd>
+            <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire.</dd>
+            <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
+            <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
+          </dl>
+          <a href="#" class="small" data-go="s4d">Voir la méthode complète</a>
+        </details>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 4 quinquies. TABLEAU PARTICIPANT HORS TOUR ======================= -->
+<section class="screen fit" id="s4e" data-note="Vue d'un participant (alice) quand aucun tour n'est ouvert. Tout le tableau est visible et se met à jour en direct (FR-015) : valeurs, CoD, WSJF, rang, badges « à revoir » et « hors échelle ». Aucune action d'animation : pas de « Modifier », « + Fonctionnalité », « Importer », « Échelle », « Ouvrir un tour » ni « Démarrer la session ». Le participant peut lire le descriptif (clic sur l'identifiant, en lecture seule), consulter la méthode, les tours révélés et exporter (FR-016b, FR-017c, FR-022 à FR-024). Tient dans 1280 × 720 sans défilement de la page (FR-014a).">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Animée par eric · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge live">En cours</span>
+  </header>
+  <div class="page">
+    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
+    <div class="notice info" role="note"><span class="ico">i</span><span>Aucun tour de vote en cours. Le tableau se met à jour en direct quand l'animateur modifie une valeur.</span></div>
+    <div class="actions">
+      <button class="btn" type="button" data-go="s9">Exporter</button>
+      <button class="btn" type="button" data-go="s9">Tours révélés</button>
+    </div>
+    <div class="layout-board">
+      <div style="display:grid;gap:12px">
+        <div class="table-wrap desktop-only">
+          <table aria-label="Tableau WSJF">
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th></tr></thead>
+            <tbody>
+              <tr><td><span class="rank">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td></tr>
+              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+              <tr><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title">Notifications de livraison</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num wsjf">2,00</td></tr>
+              <tr><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title">Réservation de créneau de livraison</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">7</td><td class="num">12</td><td class="num wsjf">1,71</td></tr>
+              <tr><td><span class="rank">5</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title"><span class="badge review" title="À revoir : descriptif à compléter">à revoir</span> Avis clients sur les produits</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num wsjf">1,67</td></tr>
+              <tr><td><span class="rank">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a></td><td class="title">Tableau de bord des ventes</td><td class="num">5</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">8</td><td class="num wsjf">1,60</td></tr>
+              <tr><td><span class="rank">7</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a></td><td class="title">Comparateur de produits</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">5</td><td class="num">7</td><td class="num wsjf">1,40</td></tr>
+              <tr><td><span class="rank">8</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a></td><td class="title">Alertes de baisse de prix</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">6</td><td class="num">7</td><td class="num wsjf">1,17</td></tr>
+              <tr><td><span class="rank">9</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a></td><td class="title">Partage de liste de courses</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">5</td><td class="num wsjf">1,00</td></tr>
+              <tr><td><span class="rank">10</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a></td><td class="title">Mode hors connexion</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">9</td><td class="num">7</td><td class="num wsjf">0,78</td></tr>
+              <tr><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Valeur hors échelle (1 à 10)">13</span></td><td class="num">—</td><td class="num"><span class="badge warn">hors échelle</span></td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
+            </tbody>
+          </table>
+          <div class="legend">Cliquez sur un identifiant pour lire son descriptif. CoD = BV + TC + RR/OE ; WSJF = CoD / JS ; à égalité, CoD le plus élevé puis identifiant. Fonctionnalités incomplètes ou hors échelle en fin de liste.</div>
+        </div>
+        <div class="feature-cards">
+          <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span><span>CoD 16</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">2</span><b>F-4 · Export comptable</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span><span>CoD 13</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">3</span><b>F-2 · Notifications</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span><span>CoD 6</span></div></div>
+          <div class="fcard"><div class="row1"><span class="rank">4</span><b>F-5 · Recherche</b><span class="badge warn" style="margin-left:auto">hors échelle</span></div><div class="crit"><span>BV 7</span><span>TC 2</span><span>RR/OE 4</span><span>JS <span class="review">13</span></span></div></div>
+          <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div><div class="crit"><span>BV 6</span><span>TC —</span><span>RR/OE —</span><span>JS —</span></div></div>
+          <p class="help">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</p>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="card">
+          <h3>Participants (3)</h3>
+          <ul class="plist">
+            <li><span class="dot on"></span>eric<span class="role">animateur</span></li>
+            <li><span class="dot on"></span>alice (vous)<span class="role">PO</span></li>
+            <li><span class="dot off"></span>bob<span class="role">hors ligne</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Inviter</h3>
+          <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
         </div>
         <details class="card glossary-box" open>
           <summary><h3>Comprendre le WSJF</h3></summary>
