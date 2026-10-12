@@ -1,0 +1,124 @@
+asyncapi: 3.1.0
+info:
+  title: Priorisation Epic - session WebSocket
+  version: 1.0.0
+  description: |
+    The **only** channel for live session actions, aligned with planning-poker (AD-2): raw
+    WebSocket carrying JSON text frames, no STOMP, no SockJS. Every message is an object whose
+    `type` property names it. Operations are written from the webservice's point of view: it
+    **receives** the client's intents and **sends** its own messages.
+
+    - An intent already satisfied changes nothing and raises no error.
+    - A forbidden intent changes nothing and gets `error` back.
+    - Intents that write a feature carry the feature `version` they read; a mismatch changes
+      nothing and gets `error STALE_VERSION` (constitution III: no silent overwrite).
+    - The contract never lists the criteria of a method (FR-017a, FR-017b): criteria and computed
+      values are maps keyed by the keys that `sessionState.methodDefinition` declares.
+    - The contract only evolves by addition. The messages of the user journeys are added to this
+      file with their schemas, task by task.
+  license:
+    name: Proprietary
+
+defaultContentType: application/json
+
+servers:
+  local:
+    host: localhost:8080
+    protocol: ws
+    description: Local development. Deployed URLs come from `apiBaseUrl` in the front's `/config.json`.
+
+channels:
+  session:
+    address: /ws/sessions/{sessionId}
+    title: Session channel
+    description: |
+      Handshake:
+      1. the client opens `/ws/sessions/{sessionId}`; tokens are **never** in the URL;
+      2. its first message must be `hello`, within 5 s (otherwise close `1008`);
+      3. the server checks the session (close `4404` if unknown), then the participant token
+         (close `4401` if unknown), then the optional animation token (if present and invalid,
+         the connection is accepted as a plain participant and gets `error FORBIDDEN`);
+      4. then it sends `sessionState`.
+
+      Liveness: protocol ping every 5 s, close after 15 s without pong nor message; server `tick`
+      every 5 s; client `heartbeat` every 5 s; the client declares the connection lost after 12 s
+      of silence and reconnects immediately, then after 1, 2, 4, 8 s, then every 10 s. On `4401`
+      or `4404` it does not reconnect. Incoming messages are limited to 16 KB (close `1009`).
+    parameters:
+      sessionId:
+        description: 128 random bits, base64url without padding (22 characters).
+    messages:
+      hello:
+        $ref: '#/components/messages/hello'
+      heartbeat:
+        $ref: '#/components/messages/heartbeat'
+      tick:
+        $ref: '#/components/messages/tick'
+      error:
+        $ref: '#/components/messages/error'
+    x-close-codes:
+      - code: 4401
+        reason: Unknown participant token. The client shows the Join screen.
+      - code: 4404
+        reason: Unknown session. The client shows the "session not found" screen.
+      - code: 1008
+        reason: First message is not a valid hello, or hello did not arrive within 5 s.
+      - code: 1009
+        reason: Incoming message larger than the limit (16 KB). The client reconnects.
+
+operations:
+  receiveHello:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Open the conversation with the participant token (and the animation token for the facilitator).
+    messages:
+      - $ref: '#/channels/session/messages/hello'
+  receiveHeartbeat:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Client sign of life, every 5 s.
+    messages:
+      - $ref: '#/channels/session/messages/heartbeat'
+  sendTick:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: Server sign of life, every 5 s.
+    messages:
+      - $ref: '#/channels/session/messages/tick'
+  sendError:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: An intent was refused or a message was invalid.
+    messages:
+      - $ref: '#/channels/session/messages/error'
+
+components:
+  messages:
+    hello:
+      name: hello
+      title: hello
+      summary: Open the conversation with the participant token (and the animation token for the facilitator).
+      payload:
+        $ref: './schemas/hello.json'
+    heartbeat:
+      name: heartbeat
+      title: heartbeat
+      summary: Client sign of life, every 5 s.
+      payload:
+        $ref: './schemas/heartbeat.json'
+    tick:
+      name: tick
+      title: tick
+      summary: Server sign of life, every 5 s.
+      payload:
+        $ref: './schemas/tick.json'
+    error:
+      name: error
+      title: error
+      summary: An intent was refused or a message was invalid.
+      payload:
+        $ref: './schemas/error.json'

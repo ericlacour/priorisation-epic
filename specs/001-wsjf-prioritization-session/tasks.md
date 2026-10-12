@@ -78,7 +78,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Contrat
 
-- [ ] T007 Écrire le validateur `contract/scripts/validate.mjs` et ses tests `contract/scripts/validate.test.mjs`, sur le modèle de PP : `contract/scripts/`. Ce qu'il vérifie :
+- [X] T007 Écrire le validateur `contract/scripts/validate.mjs` et ses tests `contract/scripts/validate.test.mjs`, sur le modèle de PP : `contract/scripts/`. Ce qu'il vérifie :
   - `openapi.yaml` est valide selon OpenAPI 3.2 (Redocly) ;
   - `asyncapi.yaml` est valide selon AsyncAPI 3.1 ;
   - tous les `$ref` sont résolus ;
@@ -86,12 +86,12 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - chaque exemple est valide contre son schéma.
 
   Prévoir un point d'extension pour les règles métier sur `sessionState` (ajoutées en T070)
-- [ ] T008 Créer `contract/openapi.yaml` et `contract/asyncapi.yaml` à partir de `specs/001-wsjf-prioritization-session/contracts/openapi.yaml` et `asyncapi.yaml`. Déplacer chaque charge utile dans `contract/schemas/<nom-kebab>.json` (JSON Schema 2020-12, `$id` égal au nom du fichier), référencée par `$ref`. Dans cette tâche, créer seulement les schémas communs : `problem.json`, `hello.json`, `heartbeat.json`, `tick.json`, `error.json`, `health-response.json`, `criteria.json`, `scale.json`
-- [ ] T009 [P] Ajouter les exemples des schémas de T008 dans `contract/examples/<schéma>/<cas>.json`, dont `examples/error/stale-version.json` et `examples/hello/with-animation-token.json`. Rédiger `contract/README.md` sur le modèle de PP : `contract/README.md`
+- [X] T008 Créer `contract/openapi.yaml` et `contract/asyncapi.yaml` à partir de `specs/001-wsjf-prioritization-session/contracts/openapi.yaml` et `asyncapi.yaml`. Déplacer chaque charge utile dans `contract/schemas/<nom-kebab>.json` (JSON Schema 2020-12, `$id` égal au nom du fichier), référencée par `$ref`. Dans cette tâche, créer seulement les schémas communs : `problem.json`, `hello.json`, `heartbeat.json`, `tick.json`, `error.json`, `health-response.json`, `criteria.json`, `scale.json`
+- [X] T009 [P] Ajouter les exemples des schémas de T008 dans `contract/examples/<schéma>/<cas>.json`, dont `examples/error/stale-version.json` et `examples/hello/with-animation-token.json`. Rédiger `contract/README.md` sur le modèle de PP : `contract/README.md`
 
 ### CI et outillage de sécurité (constitution)
 
-- [ ] T010 Créer `.github/workflows/ci.yml`, sur le modèle de PP : `.github/workflows/ci.yml`.
+- [X] T010 Créer `.github/workflows/ci.yml`, sur le modèle de PP : `.github/workflows/ci.yml`.
   - Déclencheurs : `push` sur `main` et `pull_request`.
   - `permissions: contents: read` et `concurrency`.
   - Jobs :
@@ -116,28 +116,28 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Image et configuration
 
-- [ ] T015 Créer `backend/Dockerfile` sur le modèle de PP : `backend/Dockerfile` :
+- [X] T015 Créer `backend/Dockerfile` sur le modèle de PP : `backend/Dockerfile` :
   - build en `eclipse-temurin:25-jdk-noble`, exécution en `eclipse-temurin:25-jre-noble` ;
   - utilisateur UID 10001 dans le groupe 0, `chgrp -R 0 /app && chmod -R g=u /app` ;
   - `ENTRYPOINT java -Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75 -jar /app/app.jar`.
 
   Ajouter au job `backend` de `.github/workflows/ci.yml` l'étape de PP « L'image démarre sous un UID arbitraire, en lecture seule hors /tmp, avec des journaux JSON », avec un service PostgreSQL 17 dans le job et `DATABASE_URL`
-- [ ] T016 Créer `backend/src/main/resources/application.properties` :
+- [X] T016 Créer `backend/src/main/resources/application.properties` :
   - port `${PORT:8080}` ;
   - journaux JSON structurés avec `@timestamp` ;
   - `spring.jpa.open-in-view=false` ;
   - Flyway activé ;
   - pool Hikari limité à 5 connexions, avec validation des connexions avant usage.
-- [ ] T017 Implémenter `backend/src/main/java/com/priorisationepic/config/DatabaseUrlConfig.java`. Il convertit `DATABASE_URL`, au format `postgresql://user:pass@host[:port]/db?sslmode=require` (celui de Neon), en `spring.datasource.url` JDBC, `username` et `password`, en conservant `sslmode`. Sinon, il laisse `SPRING_DATASOURCE_*` s'appliquer. Ajouter le test `backend/src/test/java/com/priorisationepic/config/DatabaseUrlConfigTest.java`
-- [ ] T018 [P] Implémenter `config/AllowedOrigins.java` et `config/WebConfig.java` dans `backend/src/main/java/com/priorisationepic/` : CORS restreint à `ALLOWED_ORIGINS`, aucune origine par défaut. Ajouter les tests `config/AllowedOriginsTest.java`, `config/CorsTest.java` et `config/NoOriginByDefaultTest.java` dans `backend/src/test/java/com/priorisationepic/`. Sur le modèle de PP : `config/`
-- [ ] T019 [P] Implémenter `config/JacksonConfig.java` et un test de journalisation JSON `backend/src/test/java/com/priorisationepic/JsonLoggingTest.java`, sur le modèle de PP
-- [ ] T020 [P] Implémenter `adapter/in/rest/HealthController.java` (`GET /api/health` qui renvoie `{"status":"UP"}`) et son test `adapter/in/rest/HealthControllerTest.java`, dans `backend/src/main/java/com/priorisationepic/` et `backend/src/test/java/com/priorisationepic/`
-- [ ] T021 [P] Implémenter les garde-fous HTTP de PP dans `backend/src/main/java/com/priorisationepic/adapter/in/rest/` : `RequestBodyLimitFilter.java` (limite par défaut ; 5 Mo pour `/api/sessions/*/imports`), `CreationRateLimiter.java` (créations de sessions par adresse) et `ClientAddress.java`. Ajouter leurs tests dans `backend/src/test/java/com/priorisationepic/adapter/in/rest/`
-- [ ] T022 Implémenter `adapter/in/rest/RestErrorHandler.java` : Problem Details RFC 9457 avec un `detail` en français, lu dans `backend/src/main/resources/messages.properties`, le catalogue unique des messages d'erreur du back (FR-027)
+- [X] T017 Implémenter `backend/src/main/java/com/priorisationepic/config/DatabaseUrlConfig.java`. Il convertit `DATABASE_URL`, au format `postgresql://user:pass@host[:port]/db?sslmode=require` (celui de Neon), en `spring.datasource.url` JDBC, `username` et `password`, en conservant `sslmode`. Sinon, il laisse `SPRING_DATASOURCE_*` s'appliquer. Ajouter le test `backend/src/test/java/com/priorisationepic/config/DatabaseUrlConfigTest.java`
+- [X] T018 [P] Implémenter `config/AllowedOrigins.java` et `config/WebConfig.java` dans `backend/src/main/java/com/priorisationepic/` : CORS restreint à `ALLOWED_ORIGINS`, aucune origine par défaut. Ajouter les tests `config/AllowedOriginsTest.java`, `config/CorsTest.java` et `config/NoOriginByDefaultTest.java` dans `backend/src/test/java/com/priorisationepic/`. Sur le modèle de PP : `config/`
+- [X] T019 [P] Implémenter `config/JacksonConfig.java` et un test de journalisation JSON `backend/src/test/java/com/priorisationepic/JsonLoggingTest.java`, sur le modèle de PP
+- [X] T020 [P] Implémenter `adapter/in/rest/HealthController.java` (`GET /api/health` qui renvoie `{"status":"UP"}`) et son test `adapter/in/rest/HealthControllerTest.java`, dans `backend/src/main/java/com/priorisationepic/` et `backend/src/test/java/com/priorisationepic/`
+- [X] T021 [P] Implémenter les garde-fous HTTP de PP dans `backend/src/main/java/com/priorisationepic/adapter/in/rest/` : `RequestBodyLimitFilter.java` (limite par défaut ; 5 Mo pour `/api/sessions/*/imports`), `CreationRateLimiter.java` (créations de sessions par adresse) et `ClientAddress.java`. Ajouter leurs tests dans `backend/src/test/java/com/priorisationepic/adapter/in/rest/`
+- [X] T022 Implémenter `adapter/in/rest/RestErrorHandler.java` : Problem Details RFC 9457 avec un `detail` en français, lu dans `backend/src/main/resources/messages.properties`, le catalogue unique des messages d'erreur du back (FR-027)
 
 ### Base de données
 
-- [ ] T023 Écrire la migration `backend/src/main/resources/db/migration/V1__init.sql`, conforme à `data-model.md` :
+- [X] T023 Écrire la migration `backend/src/main/resources/db/migration/V1__init.sql`, conforme à `data-model.md` :
   - `session` : `session_id` varchar(22) en clé primaire, `animation_token_hash`, `name` (1 à 120 caractères), `status` CHECK IN ('PREPARATION','IN_PROGRESS','CLOSED'), `method` varchar(20) not null (pas de CHECK sur la liste des méthodes, validée par `MethodRegistry`), `method_version` int, `scale_type` CHECK IN ('CONTINUOUS','FIBONACCI'), `scale_max` int, `created_at`, `created_by_pseudo`, `version`.
   - `participant` : `id` uuid, `session_id`, `pseudo` (1 à 40 caractères), `role` CHECK IN ('FACILITATOR','PARTICIPANT'), `business_role`, `participant_token_hash`, `joined_at`, `last_seen_at`, avec un index unique sur `(session_id, lower(pseudo))`.
   - `feature` : `id`, `session_id`, `external_id` (1 à 50 caractères), `title` (1 à 200 caractères), `description` (5 000 caractères au plus), **sans colonne de critère**, `marked_for_review` boolean not null default false, `review_reason` (200 caractères au plus), `deleted_at`, `version`, avec un index unique sur `(session_id, lower(external_id))` limité à `deleted_at IS NULL`.
@@ -148,43 +148,43 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `vote_criterion_value` : `vote_id`, `criterion_key` varchar(20), `value` int not null CHECK ≥ 1, clé primaire `(vote_id, criterion_key)`.
   - `change_log` : `id`, `session_id`, `at`, `author_pseudo`, `entity_type` CHECK IN ('SESSION','FEATURE'), `entity_id`, `action` CHECK IN ('VALUE_CHANGE','SCALE_CHANGE'), `field`, `old_value` jsonb, `new_value` jsonb.
   - `import_preview` : `id`, `session_id`, `source_type`, `valid_rows` jsonb, `rejected_rows` jsonb, `warnings` jsonb, `expires_at`.
-- [ ] T024 Créer la base de test `backend/src/test/java/com/priorisationepic/PostgresTestBase.java` (Testcontainers `postgres:17`, conteneur partagé, `@DynamicPropertySource`) et un test qui vérifie que les migrations Flyway s'appliquent, dans `backend/src/test/java/com/priorisationepic/adapter/out/persistence/MigrationTest.java`
+- [X] T024 Créer la base de test `backend/src/test/java/com/priorisationepic/PostgresTestBase.java` (Testcontainers `postgres:17`, conteneur partagé, `@DynamicPropertySource`) et un test qui vérifie que les migrations Flyway s'appliquent, dans `backend/src/test/java/com/priorisationepic/adapter/out/persistence/MigrationTest.java`
 
 ### Architecture et noyau du domaine
 
-- [ ] T025 Écrire `backend/src/test/java/com/priorisationepic/ArchitectureTest.java` (ArchUnit), sur le modèle de PP : `ArchitectureTest.java`, avec sa fixture `archfixture/domain/PollutedDomainClass.java`. Règles vérifiées :
+- [X] T025 Écrire `backend/src/test/java/com/priorisationepic/ArchitectureTest.java` (ArchUnit), sur le modèle de PP : `ArchitectureTest.java`, avec sa fixture `archfixture/domain/PollutedDomainClass.java`. Règles vérifiées :
   - `domain` ne dépend que du JDK ;
   - `application` ne dépend que de `domain` ;
   - les adaptateurs ne dépendent pas les uns des autres ;
   - `config` peut tout voir.
-- [ ] T026 [P] Implémenter les objets valeur du domaine dans `backend/src/main/java/com/priorisationepic/domain/` :
+- [X] T026 [P] Implémenter les objets valeur du domaine dans `backend/src/main/java/com/priorisationepic/domain/` :
   - `SessionId` : 128 bits aléatoires, base64url sans remplissage, 22 caractères ;
   - `Pseudo` : 1 à 40 caractères après suppression des espaces aux extrémités, comparaison insensible à la casse ;
   - `IdGenerator` : générateur injectable.
 
   Ajouter les tests `SessionIdTest.java`, `PseudoTest.java` et `IdGeneratorTest.java` dans `backend/src/test/java/com/priorisationepic/domain/`. Sur le modèle de PP : `domain/PseudoTest.java`, `domain/IdGeneratorTest.java`
-- [ ] T027 [P] Implémenter `domain/Tokens.java` dans `backend/src/main/java/com/priorisationepic/` : génération d'un jeton aléatoire de 256 bits en base64url, et empreinte SHA-256 comparée en temps constant. Ajouter le test `domain/TokensTest.java` dans `backend/src/test/java/com/priorisationepic/`
-- [ ] T028 Définir les ports de `application` dans `backend/src/main/java/com/priorisationepic/application/` :
+- [X] T027 [P] Implémenter `domain/Tokens.java` dans `backend/src/main/java/com/priorisationepic/` : génération d'un jeton aléatoire de 256 bits en base64url, et empreinte SHA-256 comparée en temps constant. Ajouter le test `domain/TokensTest.java` dans `backend/src/test/java/com/priorisationepic/`
+- [X] T028 Définir les ports de `application` dans `backend/src/main/java/com/priorisationepic/application/` :
   - `SessionRepository`, `FeatureRepository`, `ParticipantRepository`, `RoundRepository`, `ChangeLogRepository` ;
   - `Broadcaster`, qui envoie un `sessionState` à chaque connexion d'une session ;
   - `ClockPort`.
 
   Ajouter `SessionLocks.java` (verrou par `sessionId`) et son test `SessionLocksTest.java` dans `backend/src/test/java/com/priorisationepic/application/`. Sur le modèle de PP : `application/SessionLocksTest.java`, `RecordingBroadcaster.java`, `MutableClock.java`
-- [ ] T029 Implémenter `application/ChangeLogWriter.java` : il écrit une entrée, dans la même transaction, **uniquement** pour une modification de valeur retenue (`VALUE_CHANGE`, champ = clé du critère de la méthode, par exemple `bv`, et seulement si la valeur change) et pour un changement d'échelle (`SCALE_CHANGE`). Chaque entrée contient l'auteur, la date, le type d'entité (`SESSION` ou `FEATURE`), l'identifiant, l'action, le champ, l'ancienne et la nouvelle valeur en JSON (FR-025, constitution III). Rien d'autre n'est tracé. Ajouter son implémentation JPA dans `adapter/out/persistence/ChangeLogJpaRepository.java`
+- [X] T029 Implémenter `application/ChangeLogWriter.java` : il écrit une entrée, dans la même transaction, **uniquement** pour une modification de valeur retenue (`VALUE_CHANGE`, champ = clé du critère de la méthode, par exemple `bv`, et seulement si la valeur change) et pour un changement d'échelle (`SCALE_CHANGE`). Chaque entrée contient l'auteur, la date, le type d'entité (`SESSION` ou `FEATURE`), l'identifiant, l'action, le champ, l'ancienne et la nouvelle valeur en JSON (FR-025, constitution III). Rien d'autre n'est tracé. Ajouter son implémentation JPA dans `adapter/out/persistence/ChangeLogJpaRepository.java`
 
 ### Plomberie WebSocket
 
-- [ ] T030 Implémenter `config/WebSocketConfig.java`, sur le modèle de PP : `config/WebSocketConfig.java`. WebSocket brut sur `/ws/sessions/{sessionId}`, origines limitées à `ALLOWED_ORIGINS`, messages entrants de 16 Ko au plus, et `OptionalServerContainerFactoryBean`
-- [ ] T031 Implémenter dans `backend/src/main/java/com/priorisationepic/adapter/in/ws/` :
+- [X] T030 Implémenter `config/WebSocketConfig.java`, sur le modèle de PP : `config/WebSocketConfig.java`. WebSocket brut sur `/ws/sessions/{sessionId}`, origines limitées à `ALLOWED_ORIGINS`, messages entrants de 16 Ko au plus, et `OptionalServerContainerFactoryBean`
+- [X] T031 Implémenter dans `backend/src/main/java/com/priorisationepic/adapter/in/ws/` :
   - `SessionSocketHandler.java` : poignée de main `hello` dans les 5 s, sinon fermeture `1008` ; fermeture `4404` si la session est inconnue ; fermeture `4401` si le jeton de participant est inconnu ; jeton d'animation facultatif ;
   - `WsConnection.java` ;
   - `ClientMessages.java` : désérialisation par `type`, avec `error INVALID_MESSAGE` pour un `type` inconnu ou un schéma invalide ;
   - `ServerMessages.java`.
 
   Sur le modèle de PP : `adapter/in/ws/`
-- [ ] T032 Implémenter le maintien de connexion : ping WebSocket toutes les 5 s, fermeture après 15 s sans pong ni message, `tick` toutes les 5 s, `heartbeat` accepté. Le code va dans `adapter/in/ws/` et `adapter/in/scheduling/`. Ajouter les tests `LivenessTest.java`, `HelloTimeoutTest.java` et `WsConnectionTest.java` dans `backend/src/test/java/com/priorisationepic/adapter/in/ws/`, sur le modèle de PP
-- [ ] T033 Implémenter `adapter/in/ws/WebSocketBroadcaster.java`, qui réalise le port `Broadcaster`. Après chaque intention acceptée, il calcule **un `sessionState` par connexion**, filtré pour son destinataire. Ajouter le test `WebSocketBroadcasterTest.java` dans `backend/src/test/java/com/priorisationepic/adapter/in/ws/`
-- [ ] T034 [P] Créer le service WebSocket du front `frontend/src/app/session/session-socket.service.ts`, sur le modèle de PP : `frontend/src/app/session/session.service.ts` :
+- [X] T032 Implémenter le maintien de connexion : ping WebSocket toutes les 5 s, fermeture après 15 s sans pong ni message, `tick` toutes les 5 s, `heartbeat` accepté. Le code va dans `adapter/in/ws/` et `adapter/in/scheduling/`. Ajouter les tests `LivenessTest.java`, `HelloTimeoutTest.java` et `WsConnectionTest.java` dans `backend/src/test/java/com/priorisationepic/adapter/in/ws/`, sur le modèle de PP
+- [X] T033 Implémenter `adapter/in/ws/WebSocketBroadcaster.java`, qui réalise le port `Broadcaster`. Après chaque intention acceptée, il calcule **un `sessionState` par connexion**, filtré pour son destinataire. Ajouter le test `WebSocketBroadcasterTest.java` dans `backend/src/test/java/com/priorisationepic/adapter/in/ws/`
+- [X] T034 [P] Créer le service WebSocket du front `frontend/src/app/session/session-socket.service.ts`, sur le modèle de PP : `frontend/src/app/session/session.service.ts` :
   - fabrique `WebSocket` injectable ;
   - `hello` envoyé à l'ouverture ;
   - `heartbeat` toutes les 5 s ;
@@ -193,7 +193,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - pas de reconnexion après les codes `4401` ou `4404`.
 
   Ajouter le test `frontend/src/app/session/session-socket.service.spec.ts`
-- [ ] T035 [P] Reprendre de PP la configuration du front, en l'adaptant au projet :
+- [X] T035 [P] Reprendre de PP la configuration du front, en l'adaptant au projet :
   - `frontend/scripts/write-config.mjs` (`config.json` construit à partir de `API_BASE_URL`) ;
   - `frontend/scripts/inject-csp.mjs` (CSP `connect-src 'self' https://<api> wss://<api>`) ;
   - `frontend/scripts/serve-dist.mjs` ;
@@ -201,7 +201,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `frontend/src/app/api/` ;
   - `frontend/src/app/storage/` (clés `pe.token.{sessionId}` et `pe.animation.{sessionId}`) ;
   - les tests `node --test` de `frontend/scripts/`.
-- [ ] T036 [P] Reprendre de PP la coquille de l'interface, avec le nom de l'application **« Priorisation Fonctionnalités »** (titre de la page d'accueil, balise `<title>` et pastille « PF », textes dans `messages.fr.ts`) : `frontend/src/app/top-bar/`, `theme/`, `wake/` (écran « réveil du service » pendant que l'hébergeur sort de veille) et `app.routes.ts`. Routes : `/`, `/s/:sessionId`, `/s/:sessionId/animer`
+- [X] T036 [P] Reprendre de PP la coquille de l'interface, avec le nom de l'application **« Priorisation Fonctionnalités »** (titre de la page d'accueil, balise `<title>` et pastille « PF », textes dans `messages.fr.ts`) : `frontend/src/app/top-bar/`, `theme/`, `wake/` (écran « réveil du service » pendant que l'hébergeur sort de veille) et `app.routes.ts`. Routes : `/`, `/s/:sessionId`, `/s/:sessionId/animer`
 
 **Checkpoint** : la CI est verte, avec Dependabot, CodeQL et Gitleaks actifs et une image qui démarre. Un client peut ouvrir un WebSocket et faire `hello`. Les parcours peuvent commencer.
 

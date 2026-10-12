@@ -1,0 +1,11 @@
+{
+  "type": "error",
+  "code": "SCALE_IMPACT",
+  "impactedValues": [
+    {
+      "externalId": "FEAT-12",
+      "criterion": "bv",
+      "value": 21
+    }
+  ]
+}

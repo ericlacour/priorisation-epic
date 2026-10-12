@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hello.json",
+  "title": "hello (client → server)",
+  "description": "Must be the first message, within 5 s of opening. The server checks the session first (close 4404), then the participant token (close 4401), then the optional animation token (invalid: accepted as a plain participant, error FORBIDDEN). A hello that breaks this schema is closed with 1008. Tokens are never in the URL.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "participantToken"],
+  "properties": {
+    "type": {
+      "const": "hello"
+    },
+    "participantToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "animationToken": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  }
+}

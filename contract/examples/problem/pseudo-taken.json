@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Pseudo déjà utilisé",
+  "status": 409,
+  "detail": "Ce pseudo est déjà utilisé dans cette session."
+}

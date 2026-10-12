@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Content Too Large",
+  "status": 413,
+  "detail": "La requête dépasse la taille autorisée."
+}

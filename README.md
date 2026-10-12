@@ -27,6 +27,27 @@ Prérequis : JDK 25 (Temurin) et Node.js ≥ 24.15.
 `./mvnw spotless:apply` reformate le Java. Une dérogation Error Prone se fait au cas par cas avec
 `@SuppressWarnings("NomDeLaVérification")` et un commentaire qui explique pourquoi.
 
+### Base de données et configuration du webservice
+
+| Variable | Rôle |
+|----------|------|
+| `PORT` | Port HTTP (8080 par défaut) |
+| `DATABASE_URL` | Base PostgreSQL 17 au format `postgresql://utilisateur:motdepasse@hôte[:port]/base?sslmode=require` (celui de Neon). `DatabaseUrlConfig` la convertit en URL JDBC ; sans elle, `SPRING_DATASOURCE_*` s'applique |
+| `ALLOWED_ORIGINS` | Origines `http(s)://hôte[:port]` du front, séparées par des virgules, pour CORS et le WebSocket. Aucune par défaut ; un joker `*` ou un chemin empêche le démarrage |
+
+Le schéma est créé par les migrations Flyway (`backend/src/main/resources/db/migration/`).
+Les tests qui démarrent l'application utilisent PostgreSQL 17 par Testcontainers (Docker
+requis). Sans Docker, `TEST_DATABASE_URL` (même format que `DATABASE_URL`) désigne une base
+PostgreSQL jetable : `TEST_DATABASE_URL=postgresql://postgres@localhost:5433/pe ./mvnw verify`.
+
+### Intégration continue
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) lance, sur `main` et sur chaque PR :
+`contract` (format, validation, tests), `backend` (`./mvnw verify` avec un service
+PostgreSQL 17, puis l'image Docker, démarrée sous un UID arbitraire en lecture seule hors
+`/tmp`, avec des journaux JSON), `frontend` (lint, format, tests avec seuils de couverture,
+builds, e2e Playwright sur Chromium, Firefox et WebKit) et `journeys` (vide jusqu'à T048).
+
 ### Sessions Claude Code dans le cloud
 
 Le hook `SessionStart` ([`.claude/settings.json`](.claude/settings.json),
