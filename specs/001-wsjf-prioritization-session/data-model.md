@@ -63,7 +63,7 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
 | sessionId | texte (22 car.) | Clé étrangère vers Session |
 | pseudo | texte (1 à 40 car., espaces retirés aux extrémités) | Unique par session sans tenir compte de la casse (FR-003) |
 | role | enum `FACILITATOR`, `PARTICIPANT` | Exactement un `FACILITATOR` par session |
-| businessRole | texte, facultatif | Rôle métier indicatif (PO, PM, Architecte…) |
+| businessRole | texte, facultatif | Rôle métier indicatif : Product Owner, Product Management, Architecte, Expert métier, Lead PM, Tech Lead |
 | participantTokenHash | texte | Empreinte du jeton de reprise envoyé dans le message WebSocket `hello` |
 | joinedAt / lastSeenAt | horodatages | `lastSeenAt` est mis à jour à chaque `heartbeat` (au plus une fois toutes les 30 s en base) et à la fermeture de la dernière connexion du participant. L'absence de 10 minutes se compte depuis cette fermeture |
 

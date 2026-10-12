@@ -463,8 +463,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   ou Fibonacci ; borne supérieure).
   Elle contient des fonctionnalités et des participants.
 - **Participant** : une personne identifiée par un pseudo dans une session, avec un rôle
-  « animateur » ou « participant ». Le rôle métier (PO, PM, Architecte) peut être indiqué
-  à titre informatif.
+  « animateur » ou « participant ». Le rôle métier (Product Owner, Product Management,
+  Architecte, Expert métier, Lead PM, Tech Lead) peut être indiqué à titre informatif.
 - **Fonctionnalité** : un élément à prioriser. Elle a un identifiant, un titre, une
   description et les valeurs retenues pour BV, TC, RR/OE et JS. Le CoD, le WSJF et le
   rang sont toujours calculés à partir de ces valeurs, jamais saisis.
