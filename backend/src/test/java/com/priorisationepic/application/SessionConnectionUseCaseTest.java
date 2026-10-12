@@ -2,16 +2,18 @@ package com.priorisationepic.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.priorisationepic.domain.ParticipantIdentity;
+import com.priorisationepic.domain.Participant;
 import com.priorisationepic.domain.Pseudo;
 import com.priorisationepic.domain.Role;
+import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
+import com.priorisationepic.domain.Tokens;
+import com.priorisationepic.domain.method.MethodRegistry;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SessionConnectionUseCaseTest {
@@ -22,41 +24,40 @@ class SessionConnectionUseCaseTest {
 
   private final MutableClock clock = new MutableClock(Instant.parse("2026-10-12T08:00:00Z"));
   private final RecordingBroadcaster broadcaster = new RecordingBroadcaster();
-  private final Map<UUID, Instant> lastSeen = new HashMap<>();
-  private int lastSeenWrites;
-
-  private final SessionRepository sessions =
-      new SessionRepository() {
-        @Override
-        public boolean exists(SessionId id) {
-          return id.equals(SESSION);
-        }
-
-        @Override
-        public boolean animationTokenMatches(SessionId id, String token) {
-          return token.equals("animation");
-        }
-      };
-
-  private final ParticipantRepository participants =
-      new ParticipantRepository() {
-        @Override
-        public Optional<ParticipantIdentity> findByToken(SessionId id, String token) {
-          return token.equals("alice-token") && id.equals(SESSION)
-              ? Optional.of(new ParticipantIdentity(ALICE, Pseudo.of("Alice"), Role.FACILITATOR))
-              : Optional.empty();
-        }
-
-        @Override
-        public void updateLastSeen(UUID id, Instant at) {
-          lastSeen.put(id, at);
-          lastSeenWrites++;
-        }
-      };
+  private final InMemorySessionRepository sessions = new InMemorySessionRepository();
+  private final InMemoryParticipantRepository participants = new InMemoryParticipantRepository();
+  private final Map<UUID, Instant> lastSeen = participants.lastSeen;
 
   private final SessionConnectionUseCase useCase =
       new SessionConnectionUseCase(
           sessions, participants, broadcaster, new SessionLocks(), clock::instant);
+
+  @BeforeEach
+  void seed() {
+    sessions.insert(
+        Session.create(
+            MethodRegistry.standard(),
+            SESSION,
+            "Atelier",
+            null,
+            Tokens.hash("animation"),
+            Pseudo.of("Alice"),
+            clock.instant()));
+    // Alice est FACILITATOR en base : le rôle seul ne donne aucun droit sans jeton d'animation.
+    participants.insert(
+        new Participant(
+            ALICE,
+            SESSION,
+            Pseudo.of("Alice"),
+            Role.FACILITATOR,
+            null,
+            Tokens.hash("alice-token"),
+            clock.instant(),
+            clock.instant(),
+            0));
+    participants.lastSeenWrites = 0;
+    lastSeen.clear();
+  }
 
   @Test
   void anUnknownOrMalformedSessionIsNotFound() {
@@ -136,31 +137,31 @@ class SessionConnectionUseCaseTest {
 
   @Test
   void disconnectingAnUnknownConnectionDoesNothing() {
-    int before = lastSeenWrites;
+    int before = participants.lastSeenWrites;
     useCase.disconnect(SESSION, ALICE, "ghost");
-    assertThat(lastSeenWrites).isEqualTo(before);
+    assertThat(participants.lastSeenWrites).isEqualTo(before);
   }
 
   @Test
   void touchWritesLastSeenAtMostEvery30Seconds() {
     useCase.connect(RAW, "alice-token", null, "c1");
-    int afterConnect = lastSeenWrites;
+    int afterConnect = participants.lastSeenWrites;
 
     clock.advance(Duration.ofSeconds(10));
     useCase.touch(ALICE);
     clock.advance(Duration.ofSeconds(10));
     useCase.touch(ALICE);
-    assertThat(lastSeenWrites).isEqualTo(afterConnect);
+    assertThat(participants.lastSeenWrites).isEqualTo(afterConnect);
 
     clock.advance(Duration.ofSeconds(10));
     useCase.touch(ALICE);
-    assertThat(lastSeenWrites).isEqualTo(afterConnect + 1);
+    assertThat(participants.lastSeenWrites).isEqualTo(afterConnect + 1);
     assertThat(lastSeen.get(ALICE)).isEqualTo(clock.instant());
   }
 
   @Test
   void touchWritesStraightAwayForAParticipantNotSeenYet() {
     useCase.touch(ALICE);
-    assertThat(lastSeenWrites).isEqualTo(1);
+    assertThat(participants.lastSeenWrites).isEqualTo(1);
   }
 }

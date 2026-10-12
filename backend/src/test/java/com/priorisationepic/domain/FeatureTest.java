@@ -5,9 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.priorisationepic.domain.method.Criteria;
 import com.priorisationepic.domain.method.InvalidValueException;
+import com.priorisationepic.domain.method.UnknownCriterionException;
 import com.priorisationepic.domain.method.WsjfMethod;
 import com.priorisationepic.domain.scale.Scale;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -150,5 +153,33 @@ class FeatureTest {
     Feature f = feature();
     assertThat(f.withVersion(7).version()).isEqualTo(7);
     assertThat(f.withVersion(7).id()).isEqualTo(f.id());
+  }
+
+  @Test
+  void appliesCriteriaChangesAndClearsWithNull() {
+    Feature f = feature().withCriteriaChanges(java.util.Map.of("bv", 8, "tc", 5), SCALE);
+    assertThat(f.criteria().value("bv").getAsInt()).isEqualTo(8);
+    Map<String, Integer> clear = new HashMap<>();
+    clear.put("bv", null);
+    Feature cleared = f.withCriteriaChanges(clear, SCALE);
+    assertThat(cleared.criteria().value("bv")).isEmpty();
+    assertThat(cleared.criteria().value("tc").getAsInt()).isEqualTo(5);
+  }
+
+  @Test
+  void onlyChangedValuesAreCheckedAgainstTheScale() {
+    Feature outOfScale =
+        feature().withCriteriaChanges(java.util.Map.of("js", 13), Scale.continuous(20));
+    Feature f = outOfScale.withCriteriaChanges(java.util.Map.of("bv", 3), SCALE);
+    assertThat(f.criteria().value("js").getAsInt()).isEqualTo(13);
+    assertThat(f.criteria().value("bv").getAsInt()).isEqualTo(3);
+  }
+
+  @Test
+  void rejectsUnknownCriterionAndOutOfScaleValue() {
+    assertThatThrownBy(() -> feature().withCriteriaChanges(java.util.Map.of("zz", 1), SCALE))
+        .isInstanceOf(UnknownCriterionException.class);
+    assertThatThrownBy(() -> feature().withCriteriaChanges(java.util.Map.of("bv", 99), SCALE))
+        .isInstanceOf(InvalidValueException.class);
   }
 }

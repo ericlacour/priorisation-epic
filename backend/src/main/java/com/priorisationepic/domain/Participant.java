@@ -36,6 +36,22 @@ public record Participant(
     return new Participant(id, sessionId, pseudo, role, null, tokenHash, now, now, 0);
   }
 
+  public static final int MAX_BUSINESS_ROLE = 40;
+
+  /**
+   * Rôle métier normalisé : espaces retirés, {@code null} s'il est vide ; 40 caractères au plus.
+   */
+  public static String businessRoleOf(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return null;
+    }
+    String role = raw.strip();
+    if (role.codePointCount(0, role.length()) > MAX_BUSINESS_ROLE) {
+      throw new InvalidParticipantException("Rôle métier trop long (40 caractères au plus)");
+    }
+    return role;
+  }
+
   public boolean isFacilitator() {
     return role == Role.FACILITATOR;
   }

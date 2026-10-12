@@ -174,10 +174,10 @@ public class WebSocketBroadcaster implements Broadcaster, ConnectionMaintenance,
   }
 
   @Override
-  public void sendError(String connectionId, ErrorCode code) {
+  public void sendError(String connectionId, ErrorCode code, UUID featureId) {
     WsConnection connection = connections.get(connectionId);
     if (connection != null && connection.attachment() != null) {
-      connection.enqueue(toText(ServerMessages.ErrorMessage.of(code)));
+      connection.enqueue(toText(ServerMessages.ErrorMessage.of(code, featureId)));
     }
   }
 

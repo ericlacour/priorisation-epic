@@ -7,6 +7,7 @@ import com.priorisationepic.domain.method.Score;
 import com.priorisationepic.domain.scale.Scale;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -82,6 +83,36 @@ public record Feature(
         title,
         description,
         newCriteria,
+        markedForReview,
+        reviewReason,
+        deletedAt,
+        version);
+  }
+
+  /**
+   * Applique des changements de valeurs : une valeur nulle efface le critère. Seules les valeurs
+   * changées sont contrôlées contre l'échelle ({@code INVALID_VALUE}) : une valeur déjà hors
+   * échelle (après un changement d'échelle, FR-011) reste telle quelle jusqu'à ce qu'on la corrige,
+   * sans empêcher de corriger les autres une à une. Clé inconnue de la méthode : {@code
+   * UnknownCriterionException}.
+   */
+  public Feature withCriteriaChanges(Map<String, Integer> changes, Scale scale) {
+    Criteria updated = criteria;
+    for (Map.Entry<String, Integer> change : changes.entrySet()) {
+      Integer value = change.getValue();
+      if (value != null && !scale.accepts(value)) {
+        throw new InvalidValueException(
+            "La valeur de " + change.getKey() + " est hors de l'échelle (1 à " + scale.max() + ")");
+      }
+      updated = updated.with(change.getKey(), value);
+    }
+    return new Feature(
+        id,
+        sessionId,
+        externalId,
+        title,
+        description,
+        updated,
         markedForReview,
         reviewReason,
         deletedAt,

@@ -50,7 +50,7 @@ public final class RecordingBroadcaster implements Broadcaster {
   }
 
   @Override
-  public void sendError(String connectionId, ErrorCode code) {
-    errors.add(connectionId + ":" + code);
+  public void sendError(String connectionId, ErrorCode code, UUID featureId) {
+    errors.add(connectionId + ":" + code + (featureId == null ? "" : ":" + featureId));
   }
 }

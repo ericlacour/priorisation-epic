@@ -26,5 +26,12 @@ public interface Broadcaster {
   void publishTo(String connectionId);
 
   /** Envoie {@code error} à une seule connexion. */
-  void sendError(String connectionId, ErrorCode code);
+  default void sendError(String connectionId, ErrorCode code) {
+    sendError(connectionId, code, null);
+  }
+
+  /**
+   * Envoie {@code error} à une seule connexion, avec la fonctionnalité visée si elle est connue.
+   */
+  void sendError(String connectionId, ErrorCode code, UUID featureId);
 }
