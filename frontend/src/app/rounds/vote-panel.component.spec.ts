@@ -167,4 +167,24 @@ describe('VotePanelComponent', () => {
     const ui = mount(sessionState({ features: [feature(), other] }));
     expect(ui.root.querySelectorAll('.vote-feature')).toHaveLength(1);
   });
+
+  it('keeps what is typed after a vote was sent, whatever the server confirms meanwhile', async () => {
+    let release!: () => void;
+    stub.castVote.mockReturnValueOnce(
+      new Promise((resolve) => (release = () => resolve({ ok: true }))),
+    );
+    const ui = mount();
+    ui.type('BV', '8');
+    const sending = ui.commit('BV');
+    ui.type('TC', '5');
+    release();
+    await sending;
+    ui.fixture.componentRef.setInput(
+      'round',
+      round({ myVotes: { [feature().id]: { bv: 8, tc: null, rrOe: null, js: null } } }),
+    );
+    ui.fixture.detectChanges();
+    expect(ui.input('TC').value).toBe('5');
+    expect(ui.input('BV').value).toBe('8');
+  });
 });

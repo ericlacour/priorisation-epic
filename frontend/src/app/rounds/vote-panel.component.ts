@@ -106,6 +106,8 @@ export class VotePanelComponent {
 
   private readonly drafts = signal<Drafts>({});
   private readonly dirty = signal<ReadonlySet<string>>(new Set());
+  /** Nombre de frappes par fonctionnalité : une confirmation ne vaut que si rien n'a été tapé depuis l'envoi. */
+  private readonly edits = new Map<string, number>();
   private readonly problems = signal<Readonly<Record<string, Problems>>>({});
 
   constructor() {
@@ -148,6 +150,7 @@ export class VotePanelComponent {
   }
 
   protected edit(featureId: string, key: string, raw: string): void {
+    this.edits.set(featureId, (this.edits.get(featureId) ?? 0) + 1);
     this.dirty.update((set) => new Set(set).add(featureId));
     this.drafts.update((drafts) => ({
       ...drafts,
@@ -170,22 +173,23 @@ export class VotePanelComponent {
     }
     this.problems.update((p) => ({ ...p, [featureId]: { messages, keys } }));
     if (messages.length > 0) return;
+    const sentAt = this.edits.get(featureId) ?? 0;
     const result = await this.session.castVote(
       this.round().id,
       featureId,
       criteria as CriteriaValues,
     );
-    if (result.ok) {
+    if (!result.ok) {
+      this.problems.update((p) => ({
+        ...p,
+        [featureId]: { messages: [MESSAGES.errors[result.code]], keys: [] },
+      }));
+    } else if ((this.edits.get(featureId) ?? 0) === sentAt) {
       this.dirty.update((set) => {
         const next = new Set(set);
         next.delete(featureId);
         return next;
       });
-    } else {
-      this.problems.update((p) => ({
-        ...p,
-        [featureId]: { messages: [MESSAGES.errors[result.code]], keys: [] },
-      }));
     }
   }
 }

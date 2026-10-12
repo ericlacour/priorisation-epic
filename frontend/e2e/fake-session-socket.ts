@@ -51,6 +51,12 @@ export function feature(
 
 export class FakeSession {
   readonly intents: Json[] = [];
+  /** Tours servis tels quels (le faux serveur n'en calcule aucun) : les intentions de tour sont seulement notées. */
+  status = 'IN_PROGRESS';
+  openRounds: Json[] = [];
+  lastRevealedRounds: Json[] = [];
+  /** Fonctionnalités en vote : masquées (critères et score nuls) pour un participant, visibles de l'animateur. */
+  voting = new Set<string>();
   private readonly sockets = new Map<WebSocketRoute, boolean>();
   private version = 1;
 
@@ -99,6 +105,13 @@ export class FakeSession {
         this.intents.push(message);
         this.features = this.features.filter((f) => f.id !== message['featureId']);
         this.broadcast();
+        break;
+      case 'changeStatus':
+      case 'openRound':
+      case 'castVote':
+      case 'revealRound':
+      case 'transferFacilitator':
+        this.intents.push(message);
         break;
       default:
         break;
@@ -154,7 +167,7 @@ export class FakeSession {
       version: this.version,
       sessionId: SESSION_ID,
       name: 'PI 27 – Epics plateforme',
-      status: 'IN_PROGRESS',
+      status: this.status,
       method: WSJF.key,
       methodVersion: WSJF.version,
       methodDefinition: WSJF,
@@ -167,7 +180,9 @@ export class FakeSession {
       },
       me: { participantId: me.participantId, pseudo: me.pseudo, role: me.role },
       participants: [FACILITATOR, PARTICIPANT],
-      features: this.ranked().map((f) => this.view(f)),
+      features: this.arranged(facilitator).map((f) => this.view(f, facilitator)),
+      openRounds: this.openRounds,
+      lastRevealedRounds: this.lastRevealedRounds,
     };
   }
 
@@ -195,7 +210,32 @@ export class FakeSession {
     return { complete, outOfScale: [...outOfScale], cod, wsjf: complete ? cod / c['js']! : 0 };
   }
 
-  private view(f: FakeFeature): Json {
+  /** Pour un participant, les fonctionnalités en vote passent en fin de tableau (FR-019a). */
+  private arranged(facilitator: boolean): FakeFeature[] {
+    const all = this.ranked();
+    if (facilitator) return all;
+    return [
+      ...all.filter((f) => !this.voting.has(f.id)),
+      ...all.filter((f) => this.voting.has(f.id)),
+    ];
+  }
+
+  private view(f: FakeFeature, facilitator: boolean): Json {
+    const inVote = this.voting.has(f.id);
+    if (inVote && !facilitator) {
+      return {
+        id: f.id,
+        externalId: f.externalId,
+        title: f.title,
+        description: f.description,
+        version: f.version,
+        markedForReview: f.markedForReview,
+        reviewReason: f.reviewReason,
+        votingInProgress: true,
+        criteria: null,
+        score: null,
+      };
+    }
     const score = this.score(f);
     const rank = score.complete
       ? this.ranked()
@@ -210,6 +250,7 @@ export class FakeSession {
       version: f.version,
       markedForReview: f.markedForReview,
       reviewReason: f.reviewReason,
+      ...(inVote ? { votingInProgress: true } : {}),
       criteria: f.criteria,
       score: {
         complete: score.complete,

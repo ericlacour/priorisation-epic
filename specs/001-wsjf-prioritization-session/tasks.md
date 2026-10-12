@@ -386,7 +386,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - l'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b).
 - [x] T081 [P] [US2] Front, bouton « Démarrer la session » pour l'animateur dans `frontend/src/app/session/session-status.component.ts`. Tant que la session est en préparation, l'action « Ouvrir un tour » est désactivée, avec l'explication « Démarrez la session pour ouvrir un tour de vote »
 - [x] T082 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
-- [ ] T083 [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004) Vérifier aussi, dans une fenêtre de 1280 × 720 avec un tour de 10 fonctionnalités, que les écrans du tour en cours et de la révélation ne font pas défiler la page (FR-014a).
+- [x] T083 [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004) Vérifier aussi, dans une fenêtre de 1280 × 720 avec un tour de 10 fonctionnalités, que les écrans du tour en cours et de la révélation ne font pas défiler la page (FR-014a).
 
 **Checkpoint** : US1 et US2 fonctionnent indépendamment.
 

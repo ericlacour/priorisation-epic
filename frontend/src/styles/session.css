@@ -177,13 +177,18 @@
   }
 
   .main-col > .reveal-results {
-    flex: 0 1 auto;
+    flex: 2 1 0;
     min-height: 0;
-    max-height: 62%;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reveal-results > * {
+    flex: none;
   }
 
   .reveal-results > .reveal-list {
+    flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
   }

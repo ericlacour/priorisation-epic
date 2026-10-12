@@ -271,8 +271,16 @@ export class RevealResultsComponent {
     this.problems.update((p) => ({ ...p, [card.feature.id]: messages }));
     this.problemKeys.update((p) => ({ ...p, [card.feature.id]: keys }));
     if (messages.length > 0 || Object.keys(criteria).length === 0) return;
-    this.busy.update((s) => new Set(s).add(card.feature.id));
     const current = this.session.feature(card.feature.id) ?? card.feature;
+    // Une valeur déjà retenue n'est pas renvoyée : le serveur ne diffuserait rien et rien ne la confirmerait.
+    for (const key of Object.keys(criteria)) {
+      if ((current.criteria?.[key] ?? null) === criteria[key]) delete criteria[key];
+    }
+    if (Object.keys(criteria).length === 0) {
+      this.saved.update((s) => new Set(s).add(card.feature.id));
+      return;
+    }
+    this.busy.update((s) => new Set(s).add(card.feature.id));
     const result = await this.session.updateFeature(current.id, current.version, {
       criteria: criteria as CriteriaValues,
     });

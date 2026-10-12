@@ -148,20 +148,13 @@ describe('RevealResultsComponent', () => {
 
   it('saves the retained values with the current version of the feature in one intent', async () => {
     const ui = mount({ canEdit: true });
-    ui.type('TC', '5');
+    ui.type('TC', '9');
+    ui.type('BV', '6');
     await ui.click(ui.root.querySelector('.consensus .btn-primary') as HTMLElement);
     expect(stub.updateFeature).toHaveBeenCalledWith(F1.id, F1.version, {
-      criteria: { bv: 8, tc: 5, rrOe: 3, js: 4 },
+      criteria: { bv: 6, tc: 9 },
     });
     expect(ui.text()).toContain('Valeurs retenues enregistrées.');
-  });
-
-  it('leaves out the empty fields so that they change nothing', async () => {
-    const ui = mount({ canEdit: true });
-    await ui.click(ui.root.querySelector('.consensus .btn-primary') as HTMLElement);
-    expect(stub.updateFeature).toHaveBeenCalledWith(F1.id, F1.version, {
-      criteria: { bv: 8, rrOe: 3, js: 4 },
-    });
   });
 
   it('refuses a value outside the scale and sends nothing', async () => {
@@ -195,6 +188,7 @@ describe('RevealResultsComponent', () => {
   it('shows the refusal of the server', async () => {
     stub.updateFeature.mockResolvedValueOnce({ ok: false, code: 'FEATURE_IN_OPEN_ROUND' });
     const ui = mount({ canEdit: true });
+    ui.type('TC', '9');
     await ui.click(ui.root.querySelector('.consensus .btn-primary') as HTMLElement);
     expect(ui.root.querySelector('[role="alert"]')?.textContent).toContain('en cours de vote');
   });
@@ -238,5 +232,23 @@ describe('RevealResultsComponent', () => {
   it('skips the results of a feature that no longer exists', () => {
     const ui = mount({ state: sessionState({ features: [] }) });
     expect(ui.root.querySelectorAll('.reveal-card')).toHaveLength(0);
+  });
+
+  it('does not resend values that are already the retained ones', async () => {
+    const ui = mount({ canEdit: true });
+    ui.type('BV', '8');
+    ui.type('TC', '5');
+    ui.type('RR/OE', '3');
+    ui.type('JS', '4');
+    await ui.click(ui.root.querySelector('.consensus .btn-primary') as HTMLElement);
+    expect(stub.updateFeature).not.toHaveBeenCalled();
+    expect(ui.text()).toContain('Valeurs retenues enregistrées.');
+  });
+
+  it('sends only the values that differ from the retained ones', async () => {
+    const ui = mount({ canEdit: true });
+    ui.type('TC', '9');
+    await ui.click(ui.root.querySelector('.consensus .btn-primary') as HTMLElement);
+    expect(stub.updateFeature).toHaveBeenCalledWith(F1.id, F1.version, { criteria: { tc: 9 } });
   });
 });

@@ -1,46 +1,12 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+
+import { addFeature, createSession, ids, wsjfOf } from './helpers';
 
 /**
  * US1 contre le vrai webservice (quickstart V1, V1a, V2, V3, V14, V16) : création d'une session, saisie directe
  * des valeurs, recalcul, validation, concurrence entre deux onglets d'animateur et propagation vers un second
  * navigateur. Aucune donnée n'est préparée en base : tout passe par l'interface.
  */
-
-const WSJF_COLUMN = 8;
-
-async function createSession(page: Page, name: string, pseudo: string): Promise<string> {
-  await page.goto('/');
-  await page.getByLabel('Nom de la session').fill(name);
-  await page.getByLabel('Votre pseudo').fill(pseudo);
-  await page.getByRole('button', { name: 'Créer la session' }).click();
-  await expect(page.getByText('Votre session est prête')).toBeVisible();
-  const invitation = (await page.locator('app-link-box code').first().textContent())!.trim();
-  await page.getByRole('button', { name: 'Aller à la session' }).click();
-  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
-  return invitation;
-}
-
-async function addFeature(
-  page: Page,
-  id: string,
-  title: string,
-  values: readonly [string, string, string, string],
-): Promise<void> {
-  await page.getByRole('button', { name: '+ Fonctionnalité' }).click();
-  await page.getByLabel('Identifiant de la fonctionnalité').fill(id);
-  await page.getByLabel('Titre', { exact: true }).fill(title);
-  for (const [i, label] of ['BV', 'TC', 'RR/OE', 'JS'].entries()) {
-    await page.getByLabel(label, { exact: true }).fill(values[i]);
-  }
-  await page.getByRole('button', { name: 'Enregistrer' }).click();
-  await expect(page.locator('tr.edit-row')).toHaveCount(0);
-}
-
-const ids = async (page: Page) =>
-  (await page.locator('tbody tr .fid').allTextContents()).map((id) => id.trim());
-
-const wsjfOf = (page: Page, row: number) =>
-  page.locator('tbody tr').nth(row).locator('td').nth(WSJF_COLUMN);
 
 test('V1a : le choix de méthode propose WSJF par défaut et son détail', async ({ page }) => {
   await page.goto('/');
