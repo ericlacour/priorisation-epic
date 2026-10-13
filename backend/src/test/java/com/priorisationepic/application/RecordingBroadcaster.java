@@ -16,6 +16,7 @@ public final class RecordingBroadcaster implements Broadcaster {
   public final List<SessionId> published = new ArrayList<>();
   public final List<String> publishedTo = new ArrayList<>();
   public final List<String> errors = new ArrayList<>();
+  public final List<UUID> errorFeatures = new ArrayList<>();
   public boolean refuseAttach;
 
   @Override
@@ -52,5 +53,11 @@ public final class RecordingBroadcaster implements Broadcaster {
   @Override
   public void sendError(String connectionId, ErrorCode code) {
     errors.add(connectionId + ":" + code);
+  }
+
+  @Override
+  public void sendError(String connectionId, ErrorCode code, UUID featureId) {
+    errorFeatures.add(featureId);
+    sendError(connectionId, code);
   }
 }

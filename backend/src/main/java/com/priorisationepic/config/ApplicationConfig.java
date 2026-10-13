@@ -4,17 +4,27 @@ import com.priorisationepic.application.Broadcaster;
 import com.priorisationepic.application.ChangeLogRepository;
 import com.priorisationepic.application.ChangeLogWriter;
 import com.priorisationepic.application.ClockPort;
+import com.priorisationepic.application.CreateSessionUseCase;
+import com.priorisationepic.application.FeatureRepository;
+import com.priorisationepic.application.FeatureUseCase;
+import com.priorisationepic.application.JoinSessionUseCase;
 import com.priorisationepic.application.ParticipantRepository;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.SessionLocks;
 import com.priorisationepic.application.SessionRepository;
-import com.priorisationepic.application.SessionStateProvider;
+import com.priorisationepic.application.SessionStateAssembler;
+import com.priorisationepic.application.Transactions;
 import com.priorisationepic.domain.IdGenerator;
+import com.priorisationepic.domain.method.MethodRegistry;
 import java.security.SecureRandom;
 import java.time.Clock;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /** Assemblage des cas d'usage et de leurs ports. */
 @Configuration
@@ -51,13 +61,82 @@ public class ApplicationConfig {
     return new SessionConnectionUseCase(sessions, participants, broadcaster, locks, clock);
   }
 
+  @Bean
+  public Transactions transactions(TransactionTemplate template) {
+    return new Transactions() {
+      @Override
+      public <T> T run(Supplier<T> action) {
+        return template.execute(status -> action.get());
+      }
+    };
+  }
+
+  @Bean
+  public MethodRegistry methodRegistry() {
+    return MethodRegistry.standard();
+  }
+
+  @Bean
+  public CreateSessionUseCase createSessionUseCase(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      MethodRegistry methods,
+      IdGenerator ids,
+      ClockPort clock,
+      Transactions transactions) {
+    return new CreateSessionUseCase(sessions, participants, methods, ids, clock, transactions);
+  }
+
+  @Bean
+  public JoinSessionUseCase joinSessionUseCase(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      IdGenerator ids,
+      ClockPort clock,
+      Transactions transactions,
+      @Value("${priorisation-epic.absence-timeout:10m}") Duration absenceTimeout) {
+    return new JoinSessionUseCase(
+        sessions, participants, broadcaster, locks, ids, clock, transactions, absenceTimeout);
+  }
+
+  @Bean
+  public FeatureUseCase featureUseCase(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      FeatureRepository features,
+      ChangeLogWriter changeLog,
+      MethodRegistry methods,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      IdGenerator ids,
+      ClockPort clock,
+      Transactions transactions) {
+    return new FeatureUseCase(
+        sessions,
+        participants,
+        features,
+        changeLog,
+        methods,
+        broadcaster,
+        locks,
+        ids,
+        clock,
+        transactions);
+  }
+
   /**
-   * Tant que le parcours de préparation n'a pas défini le {@code sessionState}, aucun état n'est
-   * envoyé après {@code hello}. Remplacé par le fournisseur du parcours de session.
+   * Le diffuseur a besoin de l'assembleur, qui a besoin de la présence des connexions que le
+   * diffuseur connaît : la présence est résolue à la première utilisation.
    */
   @Bean
-  @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-  public SessionStateProvider noSessionStateYet() {
-    return (sessionId, participantId, facilitator) -> Optional.empty();
+  public SessionStateAssembler sessionStateAssembler(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      FeatureRepository features,
+      MethodRegistry methods,
+      @Lazy Broadcaster presence) {
+    return new SessionStateAssembler(sessions, participants, features, methods, presence);
   }
 }

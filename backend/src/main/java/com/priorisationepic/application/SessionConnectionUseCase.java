@@ -11,9 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Ouverture, activité et fermeture d'une connexion WebSocket à une session. Les droits d'animateur
- * ne viennent que d'un jeton d'animation valide présenté dans {@code hello} : le pseudo seul ne
- * suffit jamais.
+ * Ouverture, activité et fermeture d'une connexion WebSocket à une session. La présence (FR-005)
+ * est diffusée quand un participant passe en ligne (première connexion) ou hors ligne (dernière
+ * connexion fermée). Les droits d'animateur ne viennent que d'un jeton d'animation valide présenté
+ * dans {@code hello} : le pseudo seul ne suffit jamais.
  */
 public class SessionConnectionUseCase {
 
@@ -72,13 +73,19 @@ public class SessionConnectionUseCase {
                   animationToken != null
                       && sessions.animationTokenMatches(sessionId, animationToken);
               boolean rejected = animationToken != null && !facilitator;
+              boolean alreadyOnline = broadcaster.hasConnection(sessionId, participant.id());
               if (!broadcaster.attach(connectionId, sessionId, participant.id(), facilitator)) {
                 return new ConnectResult.ConnectionClosed();
               }
               Instant now = clock.now();
               participants.updateLastSeen(participant.id(), now);
               lastSeenWritten.put(participant.id(), now);
-              broadcaster.publishTo(connectionId);
+              if (alreadyOnline) {
+                broadcaster.publishTo(connectionId);
+              } else {
+                // Le participant passe en ligne (FR-005) : tout le monde l'apprend, lui compris.
+                broadcaster.publish(sessionId);
+              }
               if (rejected) {
                 broadcaster.sendError(connectionId, ErrorCode.FORBIDDEN);
               }
@@ -107,6 +114,8 @@ public class SessionConnectionUseCase {
                 Instant now = clock.now();
                 participants.updateLastSeen(participantId, now);
                 lastSeenWritten.remove(participantId);
+                // Dernière connexion fermée : le participant passe hors ligne (FR-005).
+                broadcaster.publish(sessionId);
               }
               return true;
             });

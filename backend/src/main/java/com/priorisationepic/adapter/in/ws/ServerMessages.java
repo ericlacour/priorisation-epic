@@ -1,6 +1,8 @@
 package com.priorisationepic.adapter.in.ws;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.priorisationepic.application.ErrorCode;
+import java.util.UUID;
 
 /**
  * Messages serveur → client du canal de session (asyncapi.yaml), d'après {@code tick.json} et
@@ -16,10 +18,15 @@ final class ServerMessages {
   }
 
   /** {@code error.json} */
-  record ErrorMessage(String type, String code) {
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  record ErrorMessage(String type, String code, UUID featureId) {
 
     static ErrorMessage of(ErrorCode code) {
-      return new ErrorMessage("error", code.name());
+      return new ErrorMessage("error", code.name(), null);
+    }
+
+    static ErrorMessage of(ErrorCode code, UUID featureId) {
+      return new ErrorMessage("error", code.name(), featureId);
     }
   }
 }

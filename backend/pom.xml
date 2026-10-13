@@ -21,6 +21,9 @@
     <java.version>25</java.version>
     <archunit.version>1.5.1</archunit.version>
     <jqwik.version>1.10.2</jqwik.version>
+    <pitest.version>1.25.9</pitest.version>
+    <pitest-junit5.version>1.2.3</pitest-junit5.version>
+    <json-schema-validator.version>3.0.6</json-schema-validator.version>
     <poi.version>5.5.1</poi.version>
     <commons-csv.version>1.14.1</commons-csv.version>
     <errorprone.version>2.50.0</errorprone.version>
@@ -85,6 +88,12 @@
       <groupId>net.jqwik</groupId>
       <artifactId>jqwik</artifactId>
       <version>${jqwik.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${json-schema-validator.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -207,4 +216,63 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <!-- Tests de mutation sur le domaine (constitution II, research R14) : ./mvnw -B -Pmutation verify
+         échoue sous 80 % de mutants tués. Un mutant survivant sur le calcul, le tri ou les règles
+         des tours se corrige par un test, jamais par une exclusion. -->
+    <profile>
+      <id>mutation</id>
+      <build>
+        <plugins>
+          <!-- Le domaine est en Java pur : seuls ses tests tournent, sans base ni Docker. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>com/priorisationepic/domain/**/*Test.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>${pitest.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>${pitest-junit5.version}</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <targetClasses>
+                <param>com.priorisationepic.domain.*</param>
+              </targetClasses>
+              <targetTests>
+                <param>com.priorisationepic.domain.*</param>
+                <param>com.priorisationepic.testmethod.*</param>
+              </targetTests>
+              <mutationThreshold>80</mutationThreshold>
+              <outputFormats>
+                <outputFormat>HTML</outputFormat>
+                <outputFormat>XML</outputFormat>
+              </outputFormats>
+              <timestampedReports>false</timestampedReports>
+              <threads>2</threads>
+            </configuration>
+            <executions>
+              <execution>
+                <id>mutation-coverage</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>mutationCoverage</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
