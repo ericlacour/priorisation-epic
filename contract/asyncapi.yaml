@@ -8,7 +8,10 @@ info:
     `type` property names it. Operations are written from the webservice's point of view: it
     **receives** the client's intents and **sends** its own messages.
 
-    - An intent already satisfied changes nothing and raises no error.
+    - An intent already satisfied changes nothing and raises no error; `sessionState` is still
+      sent, unchanged, so the sender knows its intent was handled.
+    - An intent the webservice fails to process (unexpected failure) changes nothing and gets
+      `error INVALID_MESSAGE` back, so the client stops waiting.
     - A forbidden intent changes nothing and gets `error` back.
     - Intents that write a feature carry the feature `version` they read; a mismatch changes
       nothing and gets `error STALE_VERSION` (constitution III: no silent overwrite).
@@ -56,6 +59,14 @@ channels:
         $ref: '#/components/messages/tick'
       error:
         $ref: '#/components/messages/error'
+      addFeature:
+        $ref: '#/components/messages/addFeature'
+      updateFeature:
+        $ref: '#/components/messages/updateFeature'
+      deleteFeature:
+        $ref: '#/components/messages/deleteFeature'
+      sessionState:
+        $ref: '#/components/messages/sessionState'
     x-close-codes:
       - code: 4401
         reason: Unknown participant token. The client shows the Join screen.
@@ -81,6 +92,34 @@ operations:
     summary: Client sign of life, every 5 s.
     messages:
       - $ref: '#/channels/session/messages/heartbeat'
+  receiveAddFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Add a feature (FR-006), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/addFeature'
+  receiveUpdateFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Edit a feature and its retained values (FR-006, FR-015), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/updateFeature'
+  receiveDeleteFeature:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Soft-delete a feature, facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/deleteFeature'
+  sendSessionState:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: Full state, filtered for each recipient.
+    messages:
+      - $ref: '#/channels/session/messages/sessionState'
   sendTick:
     action: send
     channel:
@@ -122,3 +161,27 @@ components:
       summary: An intent was refused or a message was invalid.
       payload:
         $ref: './schemas/error.json'
+    addFeature:
+      name: addFeature
+      title: addFeature
+      summary: Add a feature (FR-006), facilitator only.
+      payload:
+        $ref: './schemas/add-feature.json'
+    updateFeature:
+      name: updateFeature
+      title: updateFeature
+      summary: Edit a feature and its retained values (FR-006, FR-015), facilitator only.
+      payload:
+        $ref: './schemas/update-feature.json'
+    deleteFeature:
+      name: deleteFeature
+      title: deleteFeature
+      summary: Soft-delete a feature, facilitator only.
+      payload:
+        $ref: './schemas/delete-feature.json'
+    sessionState:
+      name: sessionState
+      title: sessionState
+      summary: Full state, filtered for each recipient (FR-019, FR-019a, SC-004).
+      payload:
+        $ref: './schemas/session-state.json'

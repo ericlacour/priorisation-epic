@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "method-definition.json",
+  "title": "Method definition",
+  "description": "Single source of a method's fields, labels and help texts (FR-016a, FR-017a). The front builds columns, inputs and help from it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["key", "version", "name", "criteria", "computedValues", "formula", "tieBreakRule"],
+  "properties": {
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Entered criteria, in display order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "code", "label", "definition", "header"],
+        "properties": {
+          "key": {
+            "$ref": "criterion-key.json"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Help text, in French (FR-016a)."
+          },
+          "header": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Column header for import and export."
+          }
+        }
+      }
+    },
+    "computedValues": {
+      "type": "array",
+      "description": "Computed values, in display order.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "code", "label", "definition", "header", "display"],
+        "properties": {
+          "key": {
+            "$ref": "criterion-key.json"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "header": {
+            "type": "string",
+            "minLength": 1
+          },
+          "display": {
+            "type": "string",
+            "enum": ["INTEGER", "DECIMAL_2"]
+          }
+        }
+      }
+    },
+    "formula": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tieBreakRule": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

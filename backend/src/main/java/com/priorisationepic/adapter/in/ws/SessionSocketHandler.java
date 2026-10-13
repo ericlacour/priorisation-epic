@@ -1,10 +1,16 @@
 package com.priorisationepic.adapter.in.ws;
 
+import com.priorisationepic.adapter.in.ws.ClientMessages.AddFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ClientMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.DeleteFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
 import com.priorisationepic.application.ConnectResult;
 import com.priorisationepic.application.ErrorCode;
+import com.priorisationepic.application.FeatureUseCase;
+import com.priorisationepic.application.IntentRejectedException;
+import com.priorisationepic.application.Patch;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import java.io.IOException;
 import java.net.URI;
@@ -55,6 +61,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
 
   private final JsonMapper jsonMapper;
   private final SessionConnectionUseCase connections;
+  private final FeatureUseCase featureIntents;
   private final WebSocketBroadcaster broadcaster;
   private final Duration helloTimeout;
   private final ScheduledExecutorService timer =
@@ -65,10 +72,12 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   public SessionSocketHandler(
       JsonMapper jsonMapper,
       SessionConnectionUseCase connections,
+      FeatureUseCase featureIntents,
       WebSocketBroadcaster broadcaster,
       @Value("${priorisation-epic.hello-timeout:5s}") Duration helloTimeout) {
     this.jsonMapper = jsonMapper;
     this.connections = connections;
+    this.featureIntents = featureIntents;
     this.broadcaster = broadcaster;
     this.helloTimeout = helloTimeout;
   }
@@ -115,7 +124,70 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       case HeartbeatMessage heartbeat -> {
         // Signe de vie du client : rien d'autre que l'activité.
       }
+      case AddFeatureMessage add ->
+          intent(
+              session,
+              (at) ->
+                  featureIntents.add(
+                      at.sessionId(),
+                      at.participantId(),
+                      at.facilitator(),
+                      new FeatureUseCase.Add(
+                          add.externalId(), add.title(), add.description(), add.criteria())));
+      case UpdateFeatureMessage update ->
+          intent(
+              session,
+              (at) ->
+                  featureIntents.update(
+                      at.sessionId(),
+                      at.participantId(),
+                      at.facilitator(),
+                      new FeatureUseCase.Update(
+                          update.featureId(),
+                          update.version(),
+                          patch(update, "externalId", update.externalId()),
+                          patch(update, "title", update.title()),
+                          patch(update, "description", update.description()),
+                          update.criteria(),
+                          patch(update, "markedForReview", update.markedForReview()),
+                          patch(update, "reviewReason", update.reviewReason()))));
+      case DeleteFeatureMessage delete ->
+          intent(
+              session,
+              (at) ->
+                  featureIntents.delete(
+                      at.sessionId(),
+                      at.participantId(),
+                      at.facilitator(),
+                      new FeatureUseCase.Delete(delete.featureId(), delete.version())));
       default -> broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
+    }
+  }
+
+  private static <T> Patch<T> patch(UpdateFeatureMessage message, String field, T value) {
+    return message.present().contains(field) ? Patch.of(value) : Patch.absent();
+  }
+
+  /**
+   * Exécute l'intention d'une connexion rattachée. Un refus ne change rien : la connexion reçoit
+   * {@code error}. Une panne inattendue est journalisée sans détail identifiant, la connexion reste
+   * ouverte et reçoit {@code error INVALID_MESSAGE} : le client cesse d'attendre une réponse qui ne
+   * viendra pas.
+   */
+  private void intent(
+      WebSocketSession session, java.util.function.Consumer<WsConnection.Attachment> action) {
+    WsConnection.Attachment attachment = broadcaster.attachmentOf(session.getId());
+    if (attachment == null) {
+      broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
+      return;
+    }
+    try {
+      action.accept(attachment);
+    } catch (IntentRejectedException e) {
+      broadcaster.sendError(session.getId(), e.code(), e.featureId());
+    } catch (RuntimeException e) {
+      LOG.error("Intent failed on connection {}", session.getId(), e);
+      broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }
 

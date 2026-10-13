@@ -1,0 +1,9 @@
+{
+  "name": "Atelier Q4",
+  "pseudo": "Éric",
+  "method": "WSJF",
+  "scale": {
+    "type": "CONTINUOUS",
+    "max": 10
+  }
+}

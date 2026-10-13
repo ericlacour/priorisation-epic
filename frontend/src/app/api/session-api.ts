@@ -11,6 +11,7 @@ import {
   parseJoinSessionResponse,
   parseProblem,
 } from './contract';
+import { MethodDefinition, parseMethodList } from './session-state';
 
 /** `fetch` du navigateur, remplaçable dans les tests. */
 export const FETCH = new InjectionToken<typeof fetch>('FETCH', {
@@ -53,6 +54,20 @@ const KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
 export class SessionApi {
   private readonly baseUrl = inject(APP_CONFIG).apiBaseUrl;
   private readonly fetchFn = inject(FETCH);
+
+  /** `GET /api/methods` : les méthodes proposées à la création, chacune dans sa dernière version. */
+  async listMethods(): Promise<MethodDefinition[]> {
+    const response = await this.send('/api/methods', 'GET');
+    if (response.status !== 200) throw await errorOf(response);
+    let methods: MethodDefinition[] | null = null;
+    try {
+      methods = parseMethodList(await response.json());
+    } catch {
+      // Corps illisible : traité comme une réponse inattendue.
+    }
+    if (!methods) throw new SessionApiError('network');
+    return methods;
+  }
 
   /** `POST /api/sessions` */
   async createSession(request: CreateSessionRequest): Promise<CreateSessionResponse> {

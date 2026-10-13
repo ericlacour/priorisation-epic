@@ -122,9 +122,61 @@ jobs:
           path: frontend/test-results/
           retention-days: 7
 
-  # Parcours complets contre le vrai webservice : vide jusqu'à T048.
+  # Parcours complets (quickstart V1 à V16) : vrai webservice, vraie base PostgreSQL 17, front construit.
   journeys:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: priorisation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d priorisation"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
-      - run: echo "Les parcours sont ajoutés avec T048."
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Webservice (jar)
+        working-directory: backend
+        run: ./mvnw -B -DskipTests package
+      - name: Front
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build:e2e
+        env:
+          API_BASE_URL: http://127.0.0.1:4310
+      - name: Navigateurs
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium firefox webkit
+      # Playwright démarre le webservice (port 4310) et le front (port 4300).
+      - name: Parcours
+        working-directory: frontend
+        run: npm run e2e:journeys
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/priorisation
+      - name: Traces des parcours en échec
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: journeys-test-results
+          path: frontend/test-results/
+          retention-days: 7

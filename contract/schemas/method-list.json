@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "method-list.json",
+  "title": "Method list",
+  "description": "GET /api/methods: the methods offered at session creation, each in its latest version (FR-017c, FR-017d). WSJF only in V1.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "$ref": "method-definition.json"
+  }
+}

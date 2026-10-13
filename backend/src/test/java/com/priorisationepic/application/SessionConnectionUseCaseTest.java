@@ -36,6 +36,21 @@ class SessionConnectionUseCaseTest {
         public boolean animationTokenMatches(SessionId id, String token) {
           return token.equals("animation");
         }
+
+        @Override
+        public void insert(com.priorisationepic.domain.Session session, String hash) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<com.priorisationepic.domain.Session> find(SessionId id) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void incrementVersion(SessionId id) {
+          throw new UnsupportedOperationException();
+        }
       };
 
   private final ParticipantRepository participants =
@@ -51,6 +66,32 @@ class SessionConnectionUseCaseTest {
         public void updateLastSeen(UUID id, Instant at) {
           lastSeen.put(id, at);
           lastSeenWrites++;
+        }
+
+        @Override
+        public void insert(com.priorisationepic.domain.Participant participant) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<com.priorisationepic.domain.Participant> findByPseudo(
+            SessionId id, Pseudo pseudo) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Optional<com.priorisationepic.domain.Participant> findById(UUID id) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public java.util.List<com.priorisationepic.domain.Participant> list(SessionId id) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void replaceToken(UUID id, String hash, Instant at) {
+          throw new UnsupportedOperationException();
         }
       };
 
@@ -77,15 +118,26 @@ class SessionConnectionUseCaseTest {
   }
 
   @Test
-  void aValidTokenAttachesAndSendsTheStateToThatConnectionOnly() {
+  void theFirstConnectionOfAParticipantTellsEveryoneThatTheyAreOnline() {
     ConnectResult result = useCase.connect(RAW, "alice-token", null, "c1");
 
     assertThat(result).isEqualTo(new ConnectResult.Connected(ALICE, false, false));
     assertThat(broadcaster.attached.get("c1").facilitator()).isFalse();
-    assertThat(broadcaster.publishedTo).containsExactly("c1");
-    assertThat(broadcaster.published).isEmpty();
+    assertThat(broadcaster.published).containsExactly(SESSION);
+    assertThat(broadcaster.publishedTo).isEmpty();
     assertThat(broadcaster.errors).isEmpty();
     assertThat(lastSeen.get(ALICE)).isEqualTo(clock.instant());
+  }
+
+  @Test
+  void anotherConnectionOfTheSameParticipantOnlyReceivesItsOwnState() {
+    useCase.connect(RAW, "alice-token", null, "c1");
+    broadcaster.published.clear();
+
+    useCase.connect(RAW, "alice-token", null, "c2");
+
+    assertThat(broadcaster.publishedTo).containsExactly("c2");
+    assertThat(broadcaster.published).isEmpty();
   }
 
   @Test
@@ -119,6 +171,7 @@ class SessionConnectionUseCaseTest {
     assertThat(useCase.connect(RAW, "alice-token", null, "c1"))
         .isInstanceOf(ConnectResult.ConnectionClosed.class);
     assertThat(broadcaster.publishedTo).isEmpty();
+    assertThat(broadcaster.published).isEmpty();
   }
 
   @Test
@@ -127,11 +180,16 @@ class SessionConnectionUseCaseTest {
     useCase.connect(RAW, "alice-token", null, "c2");
     clock.advance(Duration.ofMinutes(5));
 
+    broadcaster.published.clear();
+
     useCase.disconnect(SESSION, ALICE, "c1");
     assertThat(lastSeen.get(ALICE)).isNotEqualTo(clock.instant());
+    assertThat(broadcaster.published).isEmpty();
 
     useCase.disconnect(SESSION, ALICE, "c2");
     assertThat(lastSeen.get(ALICE)).isEqualTo(clock.instant());
+    // Hors ligne : les autres connexions de la session l'apprennent (FR-005).
+    assertThat(broadcaster.published).containsExactly(SESSION);
   }
 
   @Test

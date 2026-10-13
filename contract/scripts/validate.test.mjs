@@ -39,7 +39,7 @@ const hasError = (errors, ...parts) => errors.some((e) => parts.every((p) => e.i
 test('le contrat livré est valide', async () => {
   const { errors, stats } = await validateContract(source);
   assert.deepEqual(errors, []);
-  assert.ok(stats.schemas >= 8);
+  assert.ok(stats.schemas >= 20);
   assert.ok(stats.examples > 0);
 });
 
@@ -189,7 +189,7 @@ test('une opération OpenAPI 3.2 additionalOperations hors surface est refusée'
 
 test('la sonde de santé est obligatoire', async () => {
   const dir = copyContract();
-  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/methods:');
+  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/import-template.xlsx:');
   const { errors } = await validateContract(dir);
   assert.ok(hasError(errors, 'surface REST', 'GET /api/health'), errors.join('\n'));
 });
@@ -244,6 +244,7 @@ test("le point d'extension sessionState applique les règles métier aux exemple
     type: 'object',
   };
   writeFileSync(join(dir, 'schemas/session-state.json'), JSON.stringify(stateSchema));
+  rmSync(join(dir, 'examples/session-state'), { recursive: true, force: true });
   mkdirSync(join(dir, 'examples/session-state'));
   writeFileSync(join(dir, 'examples/session-state/a.json'), JSON.stringify({ broken: true }));
   SESSION_STATE_RULES.push((state, fail) => {
@@ -255,4 +256,37 @@ test("le point d'extension sessionState applique les règles métier aux exemple
   } finally {
     SESSION_STATE_RULES.pop();
   }
+});
+
+test('un schéma qui nomme un critère du WSJF en propriété est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'schemas/feature.json', (s) => {
+    s.properties.bv = { type: 'integer' };
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, 'schemas/feature.json', 'bv', 'WSJF'), errors.join('\n'));
+});
+
+test('un schéma qui nomme un critère du WSJF en valeur est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'schemas/score.json', (s) => {
+    s.properties.outOfScale.items = { enum: ['rrOe', 'js'] };
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, 'schemas/score.json', 'rrOe', 'WSJF'), errors.join('\n'));
+});
+
+test('un exemple peut nommer les critères du WSJF', async () => {
+  const { errors } = await validateContract(source);
+  assert.equal(errors.filter((e) => e.includes('WSJF') && e.includes('examples/')).length, 0);
+});
+
+test('un exemple de session sans définition de méthode est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/session-state/participant-view.json', (s) => delete s.methodDefinition);
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/session-state/participant-view.json', 'methodDefinition'),
+    errors.join('\n'),
+  );
 });

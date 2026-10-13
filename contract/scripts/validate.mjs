@@ -50,6 +50,8 @@ const MESSAGE_ACTIONS = {
 };
 const REQUIRED_MESSAGES = ['hello', 'heartbeat', 'tick', 'error'];
 const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace', 'query'];
+// Clés propres au WSJF : aucun schéma ne les nomme (FR-017a, FR-017b), seuls les exemples le font.
+const WSJF_NAMES = ['bv', 'tc', 'rrOe', 'js', 'cod', 'wsjf'];
 const SCHEMA_REF = /^\.\/schemas\/([a-z0-9-]+)\.json$/;
 
 export async function validateContract(root) {
@@ -88,6 +90,8 @@ export async function validateContract(root) {
       errors.push(`schemas/${name}.json : ne compile pas : ${e.message}`);
     }
   }
+
+  errors.push(...checkNoMethodSpecificNames(root, schemaNames, rel));
 
   // Couverture : toute charge utile référencée par un document a un dossier d'exemples.
   const payloads = new Set([
@@ -206,6 +210,40 @@ function checkSurface(openapi, asyncapi) {
       errors.push(
         `asyncapi.yaml : ${name} doit avoir exactement une opération ${action} (trouvé : ${actions[name]?.join(', ') ?? 'aucune'})`,
       );
+    }
+  }
+  return errors;
+}
+
+// Un schéma ne nomme jamais un critère du WSJF, ni en clé ni en valeur (enum, const, pattern...).
+// Les champs `title`, `description` et `examples` sont du texte libre et ne comptent pas.
+function checkNoMethodSpecificNames(root, schemaNames, rel) {
+  const errors = [];
+  const walk = (node, path, file) => {
+    if (Array.isArray(node)) return node.forEach((n, i) => walk(n, `${path}/${i}`, file));
+    if (typeof node === 'string') {
+      if (WSJF_NAMES.includes(node))
+        errors.push(
+          `${file} : ${path} nomme le critère ${node} du WSJF (le contrat n'en liste aucun)`,
+        );
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    for (const [key, value] of Object.entries(node)) {
+      if (['title', 'description', 'examples'].includes(key)) continue;
+      if (WSJF_NAMES.includes(key))
+        errors.push(
+          `${file} : ${path}/${key} nomme le critère ${key} du WSJF (le contrat n'en liste aucun)`,
+        );
+      walk(value, `${path}/${key}`, file);
+    }
+  };
+  for (const name of schemaNames) {
+    const path = join(root, 'schemas', `${name}.json`);
+    try {
+      walk(JSON.parse(readFileSync(path, 'utf8')), '', rel(path));
+    } catch {
+      // Illisible : déjà signalé.
     }
   }
   return errors;

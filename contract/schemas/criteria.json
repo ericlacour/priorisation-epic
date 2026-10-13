@@ -5,8 +5,7 @@
   "description": "Values by criterion key of the session's method (FR-017b). A missing key or null means \"not entered\". Unknown keys get error UNKNOWN_CRITERION. The contract never lists the criteria of a method: methodDefinition does.",
   "type": "object",
   "propertyNames": {
-    "type": "string",
-    "pattern": "^[a-z][a-zA-Z0-9]{0,19}$"
+    "$ref": "criterion-key.json"
   },
   "additionalProperties": {
     "type": ["integer", "null"],

@@ -34,9 +34,13 @@ public record Pseudo(String value) {
     return Normalizer.normalize(raw, Normalizer.Form.NFC).strip();
   }
 
-  /** Clé d'unicité dans une session : insensible à la casse, indépendante de la langue. */
+  /**
+   * Clé d'unicité dans une session : insensible à la casse et aux formes de compatibilité (lettres
+   * pleine chasse…), indépendante de la langue. La base l'impose telle quelle (colonne {@code
+   * pseudo_key}) : son repliement de casse n'entre pas en jeu.
+   */
   public String uniquenessKey() {
-    return value.toLowerCase(Locale.ROOT);
+    return Normalizer.normalize(value, Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
   }
 
   /** Jamais le pseudo lui-même : il ne doit pas finir dans un journal. */

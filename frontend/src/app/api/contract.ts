@@ -1,13 +1,16 @@
+import { SessionState, parseSessionState } from './session-state';
+
 /**
- * Types du contrat (`specs/001-wsjf-prioritization-session/contracts/`) écrits à la main, et lecture stricte des
- * réponses : aucun champ hors contrat ne circule. Seuls la création, l'entrée dans une session et les messages de
- * liaison du WebSocket (`hello`, `heartbeat`, `tick`, `error`) sont décrits ici ; le reste vient avec les parcours.
+ * Types du contrat (`contract/`) écrits à la main, et lecture stricte des réponses : aucun champ hors contrat ne
+ * circule. Ce fichier décrit la création, l'entrée dans une session et les messages du WebSocket ; l'état de session
+ * est dans `session-state.ts`. Les messages des tours de vote arrivent avec leur parcours.
  */
 
 /** `CreateSessionRequest` (openapi.yaml). */
 export interface CreateSessionRequest {
   readonly name: string;
   readonly pseudo: string;
+  /** Clé d'une méthode de `GET /api/methods` ; absente : WSJF. */
   readonly method?: string;
 }
 
@@ -73,10 +76,44 @@ export interface TickMessage {
 export interface ErrorMessage {
   readonly type: 'error';
   readonly code: ErrorCode;
+  /** La fonctionnalité concernée (`STALE_VERSION`). */
+  readonly featureId?: string;
 }
 
-/** Messages du serveur reconnus par la couche de liaison ; les autres (`sessionState`…) restent bruts. */
-export type ServerMessage = TickMessage | ErrorMessage | { readonly type: string };
+/** Valeurs saisies par clé de critère ; `null` efface la valeur. */
+export type CriteriaChanges = Readonly<Record<string, number | null>>;
+
+/** `addFeature` (animateur). */
+export interface AddFeatureMessage {
+  readonly type: 'addFeature';
+  readonly externalId: string;
+  readonly title: string;
+  readonly description?: string | null;
+  readonly criteria?: CriteriaChanges;
+}
+
+/** `updateFeature` (animateur) : seuls les champs présents changent ; `version` est celle lue. */
+export interface UpdateFeatureMessage {
+  readonly type: 'updateFeature';
+  readonly featureId: string;
+  readonly version: number;
+  readonly externalId?: string;
+  readonly title?: string;
+  readonly description?: string | null;
+  readonly criteria?: CriteriaChanges;
+  readonly markedForReview?: boolean;
+  readonly reviewReason?: string | null;
+}
+
+/** `deleteFeature` (animateur). */
+export interface DeleteFeatureMessage {
+  readonly type: 'deleteFeature';
+  readonly featureId: string;
+  readonly version: number;
+}
+
+/** Messages du serveur reconnus ; un type inconnu est conservé brut. */
+export type ServerMessage = TickMessage | ErrorMessage | SessionState | { readonly type: string };
 
 /** Codes de fermeture du serveur (asyncapi.yaml, `x-close-codes`). */
 export const CLOSE_UNKNOWN_TOKEN = 4401;
@@ -106,16 +143,27 @@ export function heartbeatMessage(): HeartbeatMessage {
   return { type: 'heartbeat' };
 }
 
-/** Lit un message du serveur : `null` s'il n'est pas un objet JSON avec un `type` textuel. */
+/** Lit un message du serveur : `null` s'il n'est pas un objet JSON avec un `type` textuel, ou s'il est hors contrat. */
 export function parseServerMessage(json: unknown): ServerMessage | null {
   if (!isObject(json) || typeof json['type'] !== 'string') return null;
   if (json['type'] === 'error') {
     const code = json['code'];
-    return ERROR_CODES.includes(code as ErrorCode)
-      ? { type: 'error', code: code as ErrorCode }
-      : null;
+    if (!ERROR_CODES.includes(code as ErrorCode)) return null;
+    const featureId = json['featureId'];
+    return typeof featureId === 'string'
+      ? { type: 'error', code: code as ErrorCode, featureId }
+      : { type: 'error', code: code as ErrorCode };
   }
+  if (json['type'] === 'sessionState') return parseSessionState(json);
   return { type: json['type'] };
+}
+
+export function isSessionState(message: ServerMessage): message is SessionState {
+  return message.type === 'sessionState';
+}
+
+export function isErrorMessage(message: ServerMessage): message is ErrorMessage {
+  return message.type === 'error';
 }
 
 /** Lit une réponse de création, ou lève une erreur si elle ne respecte pas le contrat. */

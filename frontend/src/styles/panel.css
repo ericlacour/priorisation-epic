@@ -1,0 +1,105 @@
+/* Panneau latéral modal (descriptif d'une fonctionnalité, méthode de la session). */
+.panel-backdrop {
+  position: fixed;
+  padding: 0;
+  border: 0;
+  cursor: default;
+  inset: 0;
+  z-index: 20;
+  background: rgb(0 0 0 / 40%);
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  width: min(520px, 100%);
+  padding: 24px 20px;
+  overflow: auto;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.panel-head {
+  margin-bottom: 12px;
+  padding-right: 44px;
+}
+
+.panel-head h2 {
+  margin: 2px 0 0;
+}
+
+.panel h3 {
+  margin: 16px 0 6px;
+}
+
+.panel .description {
+  white-space: pre-wrap;
+}
+
+.panel .values {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel .values li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel .explanation,
+.panel .formula {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Sur téléphone, le panneau occupe tout l'écran. */
+@media (max-width: 599px) {
+  .panel {
+    width: 100%;
+  }
+}

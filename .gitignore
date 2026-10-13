@@ -19,3 +19,6 @@ playwright-report/
 *.iml
 .vscode/
 .DS_Store
+
+# Paquets Python téléchargés en local
+*.whl

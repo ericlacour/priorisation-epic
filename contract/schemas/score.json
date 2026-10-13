@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "score.json",
+  "title": "Score",
+  "description": "Computed by the domain only, never entered (constitution I). computed is keyed by methodDefinition.computedValues and is null when the feature is not complete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["complete", "outOfScale", "computed", "explanation", "rank"],
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "outOfScale": {
+      "type": "array",
+      "items": {
+        "$ref": "criterion-key.json"
+      }
+    },
+    "computed": {
+      "type": ["object", "null"],
+      "additionalProperties": {
+        "$ref": "exact-value.json"
+      }
+    },
+    "explanation": {
+      "type": ["string", "null"],
+      "description": "The calculation with the real values (FR-016)."
+    },
+    "rank": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    }
+  }
+}

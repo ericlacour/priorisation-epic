@@ -1,7 +1,12 @@
 package com.priorisationepic.adapter.in.rest;
 
+import com.priorisationepic.application.PseudoTakenException;
+import com.priorisationepic.application.SessionNotFoundException;
+import com.priorisationepic.domain.InvalidPseudoException;
+import com.priorisationepic.domain.method.UnknownMethodException;
 import java.net.URI;
 import java.util.Locale;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +52,57 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
     return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
         .header(HttpHeaders.RETRY_AFTER, Long.toString(e.retryAfterSeconds()))
         .body(problem);
+  }
+
+  @ExceptionHandler(SessionNotFoundException.class)
+  ProblemDetail sessionNotFound(Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.NOT_FOUND, "error.session-not-found", locale);
+    problem.setTitle(messages.getMessage("title.session-not-found", null, locale));
+    return problem;
+  }
+
+  @ExceptionHandler(PseudoTakenException.class)
+  ProblemDetail pseudoTaken(Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.CONFLICT, "error.pseudo-taken", locale);
+    problem.setTitle(messages.getMessage("title.pseudo-taken", null, locale));
+    return problem;
+  }
+
+  /** Un pseudo invalide arrivé jusqu'au cas d'usage (la couche REST le contrôle avant). */
+  @ExceptionHandler(InvalidPseudoException.class)
+  ProblemDetail invalidPseudo(Locale locale) {
+    return invalidRequest(
+        new InvalidRequestException(
+            "error.invalid-pseudo",
+            new InvalidRequestException.FieldError("pseudo", "error.invalid-pseudo")),
+        locale);
+  }
+
+  @ExceptionHandler(UnknownMethodException.class)
+  ProblemDetail unknownMethod(Locale locale) {
+    return invalidRequest(
+        new InvalidRequestException(
+            "error.invalid-request",
+            new InvalidRequestException.FieldError("method", "error.unknown-method")),
+        locale);
+  }
+
+  @ExceptionHandler(InvalidRequestException.class)
+  ProblemDetail invalidRequest(InvalidRequestException e, Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.BAD_REQUEST, e.detailKey(), locale);
+    problem.setTitle(messages.getMessage("title.invalid-request", null, locale));
+    problem.setProperty(
+        "errors",
+        e.errors().stream()
+            .map(
+                error ->
+                    Map.of(
+                        "field",
+                        error.field(),
+                        "message",
+                        messages.getMessage(error.messageKey(), null, locale)))
+            .toList());
+    return problem;
   }
 
   @ExceptionHandler(MalformedRequestException.class)

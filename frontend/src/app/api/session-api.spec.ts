@@ -93,4 +93,24 @@ describe('SessionApi', () => {
       'network',
     );
   });
+
+  it('lists the methods', async () => {
+    const { WSJF } = await import('../testing/fixtures');
+    const fetchFn = json(200, [JSON.parse(JSON.stringify(WSJF))]);
+    const methods = await apiWith(fetchFn).listMethods();
+    expect(methods).toEqual([WSJF]);
+    expect((fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe(
+      'https://api.example/api/methods',
+    );
+  });
+
+  it('refuses a method list that breaks the contract or an error status', async () => {
+    expect(await kindOf(apiWith(json(200, [{ key: 'x' }])).listMethods())).toBe('network');
+    expect(await kindOf(apiWith(json(200, [])).listMethods())).toBe('network');
+    expect(await kindOf(apiWith(json(500, {})).listMethods())).toBe('network');
+    const unreadable = vi.fn(
+      async () => new Response('nope', { status: 200 }),
+    ) as unknown as typeof fetch;
+    expect(await kindOf(apiWith(unreadable).listMethods())).toBe('network');
+  });
 });

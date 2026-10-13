@@ -75,6 +75,8 @@ export class SessionSocketService {
   private socket: WebSocket | null = null;
   /** Tentatives faites depuis la dernière connexion établie : choisit l'attente de la suivante. */
   private attempts = 0;
+  /** Vrai dès qu'une intention est partie sur la connexion en cours (le `hello` et le battement ne comptent pas). */
+  private intentSent = false;
   private heartbeat: ReturnType<typeof setInterval> | undefined;
   private silence: ReturnType<typeof setTimeout> | undefined;
   private retry: ReturnType<typeof setTimeout> | undefined;
@@ -116,7 +118,16 @@ export class SessionSocketService {
     const socket = this.socket;
     if (!socket || socket.readyState !== OPEN || this.connectionSignal() !== 'open') return false;
     socket.send(JSON.stringify(message));
+    this.intentSent = true;
     return true;
+  }
+
+  /**
+   * Vrai si une intention a été envoyée sur la connexion en cours. Avant cela, un `error` ne peut répondre qu'au
+   * `hello` (jeton d'animation refusé).
+   */
+  hasSentIntent(): boolean {
+    return this.intentSent;
   }
 
   /** Une tentative : relit les jetons, ouvre un socket et rejoue `hello` à son ouverture. */
@@ -132,6 +143,7 @@ export class SessionSocketService {
     const animationToken = this.storage.readAnimationToken(sessionId);
     const socket = this.openSocket(sessionSocketUrl(this.config.apiBaseUrl, sessionId));
     this.socket = socket;
+    this.intentSent = false;
     this.armSilence();
     socket.onopen = () => {
       if (this.socket !== socket) return;
