@@ -1,0 +1,344 @@
+/*
+ * Tableau de priorisation (US1). La page tient dans la fenêtre : seule la liste défile, avec un en-tête figé
+ * (FR-014a). Sur téléphone, des cartes en lecture seule remplacent le tableau.
+ */
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Tout ce qui suit la barre du haut et le bandeau occupe le reste de la hauteur et défile au besoin. */
+app-root > :not(app-top-bar):not(.read-only-banner) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+app-root > app-session-entry {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.board-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px 16px;
+  overflow: hidden;
+}
+
+.board-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.board-head h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.board-head p {
+  margin: 0;
+}
+
+.board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.layout-board {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  min-height: 0;
+}
+
+.board-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.board-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.board-table th,
+.board-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.board-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-muted);
+}
+
+.board-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.board-table td.title {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-table tr.incomplete td {
+  color: var(--muted);
+}
+
+.board-table td.wsjf {
+  color: var(--primary-ink);
+  font-weight: 700;
+}
+
+.board-table .edit-row {
+  background: var(--primary-soft);
+}
+
+.num-input {
+  width: 64px;
+  text-align: right;
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--info-soft);
+  font-weight: 700;
+}
+
+tr:first-child > td > .rank {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.fid {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.review {
+  color: var(--warning);
+}
+
+.legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.side {
+  min-height: 0;
+  overflow: auto;
+}
+
+.side .card:first-child {
+  margin-top: 0;
+}
+
+.plist {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--offline);
+}
+
+.dot.on {
+  background: var(--online);
+}
+
+.plist .role {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Aides sur les sigles. */
+.term {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.term-tip {
+  position: absolute;
+  z-index: 5;
+  max-width: 280px;
+  margin-top: 28px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+app-criterion-term {
+  position: relative;
+}
+
+.glossary-box {
+  padding: 0;
+}
+
+.glossary-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.glossary-toggle h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.side h2 {
+  font-size: 16px;
+}
+
+.glossary-box #glossary-body {
+  padding: 0 16px 12px;
+}
+
+.glossary dt {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.glossary dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Cartes (téléphone, lecture seule). */
+.feature-cards {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+}
+
+.fcard {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.fcard .row1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fcard .wsjf-big {
+  margin-left: auto;
+  color: var(--primary-ink);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.fcard .crit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 899px) {
+  .layout-board {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: auto;
+  }
+
+  .side {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 599px) {
+  app-root > app-session-entry,
+  .board-page {
+    overflow: auto;
+  }
+
+  .layout-board {
+    overflow: visible;
+  }
+}
+
+/* Sur le fond rosé de la ligne d'édition, le gris « muted » n'atteint pas le contraste AA. */
+.board-table .edit-row .muted {
+  color: var(--fg);
+}

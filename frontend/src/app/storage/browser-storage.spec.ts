@@ -121,3 +121,21 @@ describe('BrowserStorage', () => {
     expect(() => storage.removeToken('id')).not.toThrow();
   });
 });
+
+describe('BrowserStorage: glossary state', () => {
+  it('is open until it has been folded, and remembers the choice', () => {
+    const backing = memoryStorage();
+    const storage = storageWith(() => backing);
+    expect(storage.readGlossaryOpen()).toBe(true);
+    storage.saveGlossaryOpen(false);
+    expect(storage.readGlossaryOpen()).toBe(false);
+    storage.saveGlossaryOpen(true);
+    expect(storage.readGlossaryOpen()).toBe(true);
+  });
+
+  it('works without localStorage', () => {
+    const storage = storageWith(() => null);
+    storage.saveGlossaryOpen(false);
+    expect(storage.readGlossaryOpen()).toBe(false);
+  });
+});

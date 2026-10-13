@@ -1,0 +1,112 @@
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { describe, expect, it, vi } from 'vitest';
+
+import { SESSION_ID, state } from '../testing/fixtures';
+import { fakeFetch, memoryStorage, pageProviders, reply, settle } from '../testing/helpers';
+import { SessionEntryComponent } from './session-entry.component';
+import { SessionRoomService } from './session-room.service';
+import { SessionSocketService } from './session-socket.service';
+
+/** Salle simulée : l'entrée ne sait que l'ouvrir et lire sa fin. */
+class FakeRoom {
+  readonly open = vi.fn();
+  readonly end = signal<'notFound' | 'unknownToken' | null>(null);
+  readonly state = signal(state());
+  readonly refusal = signal(null);
+  readonly connection = signal('open');
+  readonly canAnimate = signal(false);
+  clearRefusal = vi.fn();
+}
+
+describe('SessionEntryComponent', () => {
+  async function render(options: { token?: boolean; routes?: Parameters<typeof fakeFetch>[0] }) {
+    const http = fakeFetch(options.routes ?? {});
+    const storage = memoryStorage();
+    if (options.token) storage.data.set(`pe.token.${SESSION_ID}`, 'tok');
+    const room = new FakeRoom();
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), ...pageProviders(http.fn, storage.provider)],
+    });
+    TestBed.overrideComponent(SessionEntryComponent, {
+      set: {
+        providers: [
+          { provide: SessionRoomService, useValue: room },
+          { provide: SessionSocketService, useValue: {} },
+        ],
+      },
+    });
+    const fixture = TestBed.createComponent(SessionEntryComponent);
+    fixture.componentRef.setInput('sessionId', SESSION_ID);
+    fixture.detectChanges();
+    await settle(fixture);
+    return { fixture, room, http, element: fixture.nativeElement as HTMLElement };
+  }
+
+  it('opens the connection straight away when a participant token is stored', async () => {
+    const { room, element, http } = await render({ token: true });
+
+    expect(room.open).toHaveBeenCalledWith(SESSION_ID);
+    expect(http.calls).toHaveLength(0);
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('shows the join screen when the session exists and no token is stored', async () => {
+    const { room, element, http } = await render({
+      routes: { [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, {}) },
+    });
+
+    expect(http.calls[0].key).toBe(`GET /api/sessions/${SESSION_ID}`);
+    expect(room.open).not.toHaveBeenCalled();
+    expect(element.querySelector('app-join')).not.toBeNull();
+  });
+
+  it('shows « Session introuvable » for an unknown session, with a way home', async () => {
+    const { element } = await render({
+      routes: {
+        [`GET /api/sessions/${SESSION_ID}`]: () =>
+          reply(404, { title: 't', status: 404, detail: 'd' }),
+      },
+    });
+
+    expect(element.querySelector('h1')?.textContent).toBe('Session introuvable');
+    expect(element.querySelector('a')?.textContent).toContain('accueil');
+  });
+
+  it('tells the user when the service does not answer, and retries', async () => {
+    let attempts = 0;
+    const { fixture, element } = await render({
+      routes: {
+        [`GET /api/sessions/${SESSION_ID}`]: () =>
+          ++attempts === 1 ? reply(500, {}) : reply(200, {}),
+      },
+    });
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain(
+      'Le service ne répond pas',
+    );
+
+    element.querySelector<HTMLButtonElement>('button')!.click();
+    await settle(fixture);
+
+    expect(element.querySelector('app-join')).not.toBeNull();
+  });
+
+  it('goes back to the join screen when the token is no longer known (4401)', async () => {
+    const { fixture, room, element } = await render({ token: true });
+
+    room.end.set('unknownToken');
+    await settle(fixture);
+
+    expect(element.querySelector('app-join')).not.toBeNull();
+  });
+
+  it('shows « Session introuvable » when the session disappears (4404)', async () => {
+    const { fixture, room, element } = await render({ token: true });
+
+    room.end.set('notFound');
+    await settle(fixture);
+
+    expect(element.querySelector('h1')?.textContent).toBe('Session introuvable');
+  });
+});

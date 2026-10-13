@@ -67,3 +67,24 @@ describe('contract', () => {
     expect(isSessionId('court')).toBe(false);
   });
 });
+
+describe('contract: sessionState and error with a feature', () => {
+  it('reads a sessionState as a server message', async () => {
+    const { state } = await import('../testing/fixtures');
+    const message = parseServerMessage(JSON.parse(JSON.stringify(state())));
+    expect(message?.type).toBe('sessionState');
+    expect(parseServerMessage({ ...JSON.parse(JSON.stringify(state())), version: 'x' })).toBeNull();
+  });
+
+  it('reads the feature of a stale version error', () => {
+    expect(parseServerMessage({ type: 'error', code: 'STALE_VERSION', featureId: 'f1' })).toEqual({
+      type: 'error',
+      code: 'STALE_VERSION',
+      featureId: 'f1',
+    });
+    expect(parseServerMessage({ type: 'error', code: 'STALE_VERSION', featureId: 7 })).toEqual({
+      type: 'error',
+      code: 'STALE_VERSION',
+    });
+  });
+});

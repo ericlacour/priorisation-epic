@@ -8,7 +8,7 @@ import { ThemeMenuComponent } from './theme-menu.component';
   selector: 'app-top-bar',
   imports: [ThemeMenuComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'top-bar' },
+  host: { class: 'top-bar', role: 'banner' },
   template: `
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">{{ messages.badge }}</span>
