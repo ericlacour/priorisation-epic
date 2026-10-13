@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -62,6 +63,34 @@ public class SessionStateAssembler implements SessionStateProvider {
   }
 
   /**
+   * La partie commune (session, fonctionnalités, scores, participants) est lue et calculée une
+   * seule fois ; seul {@code me} change d'un destinataire à l'autre.
+   */
+  @Override
+  public Map<Recipient, Object> statesFor(SessionId sessionId, Set<Recipient> recipients) {
+    Map<Recipient, Object> states = new LinkedHashMap<>();
+    if (recipients.isEmpty()) {
+      return states;
+    }
+    Optional<Shared> found = shared(sessionId);
+    if (found.isEmpty()) {
+      return states;
+    }
+    Shared shared = found.get();
+    Map<UUID, Participant> byId = new LinkedHashMap<>();
+    for (Participant participant : shared.participants()) {
+      byId.put(participant.id(), participant);
+    }
+    for (Recipient recipient : recipients) {
+      Participant me = byId.get(recipient.participantId());
+      if (me != null) {
+        states.put(recipient, view(shared, me, recipient.facilitator()));
+      }
+    }
+    return states;
+  }
+
+  /**
    * Vue de consultation sans jeton : celle d'un participant ordinaire qui n'a rien voté ({@code me}
    * est absent).
    */
@@ -69,8 +98,21 @@ public class SessionStateAssembler implements SessionStateProvider {
     return build(sessionId, null, false);
   }
 
+  /** Ce que tous les destinataires partagent. */
+  private record Shared(
+      SessionId sessionId,
+      Session session,
+      MethodDefinition definition,
+      List<FeatureView> features,
+      List<Participant> participants,
+      List<ParticipantView> participantViews) {}
+
   private Optional<SessionStateView> build(
       SessionId sessionId, Participant me, boolean facilitator) {
+    return shared(sessionId).map(shared -> view(shared, me, facilitator));
+  }
+
+  private Optional<Shared> shared(SessionId sessionId) {
     Optional<Session> found = sessions.find(sessionId);
     if (found.isEmpty()) {
       return Optional.empty();
@@ -92,8 +134,9 @@ public class SessionStateAssembler implements SessionStateProvider {
                         ranked.item(), scores.get(ranked.item().id()), ranked.rank(), definition))
             .toList();
 
+    List<Participant> all = participants.list(sessionId);
     List<ParticipantView> participantViews =
-        participants.list(sessionId).stream()
+        all.stream()
             .map(
                 p ->
                     new ParticipantView(
@@ -105,31 +148,35 @@ public class SessionStateAssembler implements SessionStateProvider {
             .toList();
 
     return Optional.of(
-        new SessionStateView(
-            SessionStateView.TYPE,
-            session.version(),
-            sessionId.value(),
-            session.name(),
-            session.status().name(),
-            session.method(),
-            session.methodVersion(),
-            definition,
-            definition.formula(),
-            definition.tieBreakRule(),
-            new ScaleView(
-                session.scale().type().name(),
-                session.scale().max(),
-                session.scale().allowedValues()),
-            me == null
-                ? null
-                : new MeView(
-                    me.id(),
-                    me.pseudo().value(),
-                    // Les droits sont ceux de la connexion (jeton d'animation), pas le rôle en
-                    // base.
-                    (facilitator ? Role.FACILITATOR : Role.PARTICIPANT).name()),
-            participantViews,
-            featureViews));
+        new Shared(sessionId, session, definition, featureViews, all, participantViews));
+  }
+
+  private static SessionStateView view(Shared shared, Participant me, boolean facilitator) {
+    Session session = shared.session();
+    MethodDefinition definition = shared.definition();
+    return new SessionStateView(
+        SessionStateView.TYPE,
+        session.version(),
+        shared.sessionId().value(),
+        session.name(),
+        session.status().name(),
+        session.method(),
+        session.methodVersion(),
+        definition,
+        definition.formula(),
+        definition.tieBreakRule(),
+        new ScaleView(
+            session.scale().type().name(), session.scale().max(), session.scale().allowedValues()),
+        me == null
+            ? null
+            : new MeView(
+                me.id(),
+                me.pseudo().value(),
+                // Les droits sont ceux de la connexion (jeton d'animation), pas le rôle en
+                // base.
+                (facilitator ? Role.FACILITATOR : Role.PARTICIPANT).name()),
+        shared.participantViews(),
+        shared.features());
   }
 
   private static FeatureView featureView(

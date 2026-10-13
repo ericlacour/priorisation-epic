@@ -15,6 +15,8 @@ import { SidePanelComponent } from '../shared/side-panel.component';
 
 /** Texte modifié par l'animateur dans le panneau : un seul envoi pour les deux champs. */
 export interface TextEdit {
+  /** Version de la fonctionnalité quand l'édition a commencé : jamais d'écrasement silencieux (constitution III). */
+  readonly baseVersion: number;
   readonly title: string;
   readonly description: string | null;
 }
@@ -207,6 +209,8 @@ export class FeatureDetailPanelComponent {
   protected readonly savedMessage = signal(false);
   /** Version de la fonctionnalité au moment de l'envoi : un changement de version confirme l'enregistrement. */
   private sentVersion: number | null = null;
+  /** La fonctionnalité au début de l'édition : version envoyée et texte de départ. */
+  private base: Feature | null = null;
 
   protected readonly rankLabel = computed(() => {
     const rank = this.feature().score?.rank;
@@ -245,6 +249,7 @@ export class FeatureDetailPanelComponent {
   }
 
   protected startEdit(): void {
+    this.base = this.feature();
     this.draftTitle.set(this.feature().title);
     this.draftDescription.set(this.feature().description ?? '');
     this.editError.set(null);
@@ -280,8 +285,15 @@ export class FeatureDetailPanelComponent {
       return;
     }
     this.editError.set(null);
+    const base = this.base ?? this.feature();
+    const text = description.trim() === '' ? null : description;
+    if (title === base.title && text === (base.description ?? null)) {
+      // Rien n'a changé : aucun envoi, le serveur n'aurait rien à confirmer.
+      this.cancelEdit();
+      return;
+    }
     this.sentVersion = this.feature().version;
-    this.textSaved.emit({ title, description: description.trim() === '' ? null : description });
+    this.textSaved.emit({ baseVersion: base.version, title, description: text });
   }
 
   protected mark(): void {

@@ -5,10 +5,12 @@ import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.ConnectionMaintenance;
 import com.priorisationepic.application.ErrorCode;
 import com.priorisationepic.application.SessionStateProvider;
+import com.priorisationepic.application.SessionStateProvider.Recipient;
 import com.priorisationepic.domain.SessionId;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -152,16 +154,25 @@ public class WebSocketBroadcaster implements Broadcaster, ConnectionMaintenance,
     if (targets == null) {
       return;
     }
-    // Un état par participant et par niveau de droits, partagé entre ses connexions identiques.
-    Map<String, Optional<TextMessage>> cache = new HashMap<>();
+    // La session est lue une seule fois pour tous ; un état par participant et par niveau de
+    // droits, partagé entre ses connexions identiques.
+    Map<WsConnection, Recipient> recipients = new HashMap<>();
     for (WsConnection connection : targets) {
       WsConnection.Attachment attachment = connection.attachment();
-      if (attachment == null) {
-        continue;
+      if (attachment != null) {
+        recipients.put(
+            connection, new Recipient(attachment.participantId(), attachment.facilitator()));
       }
-      String key = attachment.participantId() + (attachment.facilitator() ? ":f" : ":p");
-      cache.computeIfAbsent(key, k -> stateText(attachment)).ifPresent(connection::enqueue);
     }
+    Map<Recipient, Object> built = states.statesFor(sessionId, new HashSet<>(recipients.values()));
+    Map<Recipient, TextMessage> texts = new HashMap<>();
+    recipients.forEach(
+        (connection, recipient) -> {
+          Object state = built.get(recipient);
+          if (state != null) {
+            connection.enqueue(texts.computeIfAbsent(recipient, r -> toText(state)));
+          }
+        });
   }
 
   @Override

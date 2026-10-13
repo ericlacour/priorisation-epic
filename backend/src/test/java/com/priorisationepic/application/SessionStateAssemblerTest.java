@@ -170,4 +170,28 @@ class SessionStateAssemblerTest {
 
     assertThat(assembler.stateFor(session, zoe.id(), true)).isEmpty();
   }
+
+  @Test
+  void statesForSeveralRecipientsMatchTheStateOfEachAndSkipThoseOutsideTheSession() {
+    feature("F-1", Map.of("bv", 8, "tc", 5, "rrOe", 3, "js", 4));
+    SessionStateProvider.Recipient aliceAnimating = new SessionStateProvider.Recipient(alice, true);
+    SessionStateProvider.Recipient aliceViewing = new SessionStateProvider.Recipient(alice, false);
+    SessionStateProvider.Recipient bobViewing = new SessionStateProvider.Recipient(bob, false);
+    SessionStateProvider.Recipient stranger =
+        new SessionStateProvider.Recipient(UUID.randomUUID(), false);
+
+    Map<SessionStateProvider.Recipient, Object> states =
+        assembler.statesFor(
+            session, java.util.Set.of(aliceAnimating, aliceViewing, bobViewing, stranger));
+
+    assertThat(states).doesNotContainKey(stranger);
+    assertThat(states.get(aliceAnimating))
+        .isEqualTo(assembler.stateFor(session, alice, true).orElseThrow());
+    assertThat(states.get(aliceViewing))
+        .isEqualTo(assembler.stateFor(session, alice, false).orElseThrow());
+    assertThat(states.get(bobViewing))
+        .isEqualTo(assembler.stateFor(session, bob, false).orElseThrow());
+    assertThat(assembler.statesFor(new SessionId("A".repeat(22)), java.util.Set.of(bobViewing)))
+        .isEmpty();
+  }
 }

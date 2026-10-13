@@ -92,7 +92,7 @@ export function parseCriterionInput(text: string, scale: SessionScale): number |
     <td class="actions-cell">
       @if (confirming()) {
         <span class="confirm" role="alert">{{ confirmText() }}</span>
-        <button type="button" class="btn btn-danger btn-sm" (click)="removed.emit()">
+        <button type="button" class="btn btn-danger btn-sm" (click)="remove()">
           {{ messages.confirmRemoveYes }}
         </button>
         <button type="button" class="btn btn-secondary btn-sm" (click)="confirming.set(false)">
@@ -123,7 +123,8 @@ export class FeatureEditorComponent implements OnInit {
   readonly scale = input.required<SessionScale>();
   readonly saved = output<FeatureEdit>();
   readonly cancelled = output<void>();
-  readonly removed = output<void>();
+  /** Suppression confirmée, avec la version du début de l'édition (jamais de suppression silencieuse). */
+  readonly removed = output<number>();
 
   /** La fonctionnalité telle qu'elle était au début de l'édition : ce qui change se compare à elle, pas à l'état en direct. */
   private base: Feature | null = null;
@@ -180,6 +181,10 @@ export class FeatureEditorComponent implements OnInit {
 
   protected setValue(key: string, text: string): void {
     this.values.update((values) => ({ ...values, [key]: text }));
+  }
+
+  protected remove(): void {
+    if (this.base) this.removed.emit(this.base.version);
   }
 
   protected save(): void {

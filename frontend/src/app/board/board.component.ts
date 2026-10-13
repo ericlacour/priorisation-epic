@@ -203,7 +203,7 @@ const NEW_ROW = 'new';
                         [scale]="state.scale"
                         (saved)="saveRow(feature, $event)"
                         (cancelled)="stopEditing()"
-                        (removed)="remove(feature)"
+                        (removed)="remove(feature, $event)"
                       ></tr>
                     } @else {
                       <tr [class.incomplete]="!feature.score?.complete">
@@ -374,7 +374,7 @@ export class BoardComponent {
   /** Ce que la ligne en édition attend du serveur, pour la refermer à la confirmation. */
   private awaiting:
     | { id: string; version: number }
-    | { id: 'new'; externalId: string }
+    | { id: 'new'; externalId: string; known: ReadonlySet<string> }
     | { id: string; removed: true }
     | null = null;
 
@@ -437,9 +437,11 @@ export class BoardComponent {
       const state = this.state();
       const waiting = this.awaiting;
       if (!state || !waiting) return;
+      // Pour un ajout, seule une fonctionnalité absente à l'envoi le confirme : celle qui porte déjà l'identifiant
+      // (refus DUPLICATE_EXTERNAL_ID) ne referme pas la ligne.
       const feature = state.features.find((candidate) =>
         'externalId' in waiting
-          ? candidate.externalId === waiting.externalId
+          ? candidate.externalId === waiting.externalId && !waiting.known.has(candidate.id)
           : candidate.id === waiting.id,
       );
       const confirmed =
@@ -453,12 +455,20 @@ export class BoardComponent {
         this.stopEditing();
       }
     });
-    // Une fonctionnalité supprimée par un autre poste ferme son panneau de détail.
+    // Une fonctionnalité supprimée par un autre poste ferme son panneau de détail et sa ligne en édition.
     effect(() => {
-      const id = this.selectedId();
       const state = this.state();
-      if (id !== null && state && !state.features.some((feature) => feature.id === id)) {
+      if (!state) return;
+      const exists = (id: string) => state.features.some((feature) => feature.id === id);
+      const id = this.selectedId();
+      if (id !== null && !exists(id)) {
         this.selectedId.set(null);
+      }
+      const edited = this.editing();
+      if (edited !== null && edited !== NEW_ROW && !exists(edited)) {
+        // Le refus éventuel (STALE_VERSION) s'affiche alors en message simple : il n'y a plus de conflit à résoudre.
+        this.pending.set(null);
+        this.stopEditing();
       }
     });
   }
@@ -585,7 +595,10 @@ export class BoardComponent {
       title: edit.title ?? '',
       ...(Object.keys(edit.criteria).length > 0 ? { criteria: edit.criteria } : {}),
     });
-    if (sent) this.awaiting = { id: 'new', externalId: edit.externalId ?? '' };
+    if (sent) {
+      const known = new Set((this.state()?.features ?? []).map((feature) => feature.id));
+      this.awaiting = { id: 'new', externalId: edit.externalId ?? '', known };
+    }
   }
 
   protected saveRow(feature: Feature, edit: FeatureEdit): void {
@@ -601,9 +614,10 @@ export class BoardComponent {
     if (sent) this.awaiting = { id: feature.id, version };
   }
 
-  protected remove(feature: Feature): void {
+  /** `version` est celle du début de l'édition : une ligne modifiée entre-temps n'est pas supprimée en silence. */
+  protected remove(feature: Feature, version: number): void {
     this.pending.set(null);
-    const sent = this.room.deleteFeature({ featureId: feature.id, version: feature.version });
+    const sent = this.room.deleteFeature({ featureId: feature.id, version });
     if (sent) this.awaiting = { id: feature.id, removed: true };
   }
 
@@ -633,7 +647,8 @@ export class BoardComponent {
   protected saveText(feature: Feature, edit: TextEdit): void {
     const payload = { title: edit.title, description: edit.description };
     this.pending.set({ kind: 'detail', featureId: feature.id, payload });
-    this.room.updateFeature({ featureId: feature.id, version: feature.version, ...payload });
+    // Version du début de l'édition : une modification d'un autre poste entre-temps donne STALE_VERSION.
+    this.room.updateFeature({ featureId: feature.id, version: edit.baseVersion, ...payload });
   }
 
   protected overwriteText(feature: Feature): void {

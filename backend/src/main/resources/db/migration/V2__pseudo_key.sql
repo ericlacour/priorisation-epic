@@ -1,13 +1,16 @@
 -- L'unicité des pseudos ne dépend plus du repliement de casse de la base (collation) : l'application calcule la
 -- clé (Pseudo.uniquenessKey : NFKC puis minuscules, indépendant de la langue) et la base ne fait que l'imposer.
-ALTER TABLE participant ADD COLUMN pseudo_key varchar(200);
-UPDATE participant SET pseudo_key = lower(pseudo);
+-- Même calcul que l'application (NFKC puis minuscules), pour les lignes existantes comme pour le filet ci-dessous :
+-- sinon un pseudo déjà enregistré en lettres pleine chasse ne serait jamais retrouvé. Type text : NFKC peut
+-- allonger fortement un pseudo de 40 caractères (U+FDFA en donne 18), aucune longueur fixe ne tient.
+ALTER TABLE participant ADD COLUMN pseudo_key text;
+UPDATE participant SET pseudo_key = lower(normalize(pseudo, NFKC));
 
 -- Filet pour les insertions qui ne fournissent pas la clé (outils, jeux de données) : l'application, elle, la fournit toujours.
 CREATE FUNCTION participant_default_pseudo_key() RETURNS trigger AS $$
 BEGIN
     IF NEW.pseudo_key IS NULL THEN
-        NEW.pseudo_key := lower(NEW.pseudo);
+        NEW.pseudo_key := lower(normalize(NEW.pseudo, NFKC));
     END IF;
     RETURN NEW;
 END;

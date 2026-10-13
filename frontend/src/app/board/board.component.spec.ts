@@ -359,6 +359,50 @@ describe('BoardComponent', () => {
     expect(element.querySelector('.edit-row')).toBeNull();
   });
 
+  it('deletes with the version read when the edit began, not the live one', () => {
+    const { fixture, room, element } = render();
+    button(element, 'Modifier')!.click();
+    fixture.detectChanges();
+    room.state.set(state({ features: [{ ...F1, version: 3 }, F2] }));
+    fixture.detectChanges();
+
+    button(element, 'Supprimer')!.click();
+    fixture.detectChanges();
+    button(element, 'Confirmer la suppression')!.click();
+
+    expect(room.deleteFeature).toHaveBeenCalledWith({ featureId: 'f1', version: 2 });
+  });
+
+  it('leaves edit mode when the edited feature is deleted elsewhere', () => {
+    const { fixture, room, element } = render();
+    button(element, 'Modifier')!.click();
+    fixture.detectChanges();
+
+    room.state.set(state({ features: [F2] }));
+    fixture.detectChanges();
+
+    expect(element.querySelector('.edit-row')).toBeNull();
+    expect(button(element, 'Modifier')!.disabled).toBe(false);
+    expect(button(element, '+ Fonctionnalité')!.disabled).toBe(false);
+  });
+
+  it('keeps the new line open after DUPLICATE_EXTERNAL_ID, even when an unrelated state arrives', () => {
+    const { fixture, room, element } = render();
+    button(element, '+ Fonctionnalité')!.click();
+    fixture.detectChanges();
+    fill(element, 'Identifiant', 'F-1');
+    fill(element, 'Titre', 'Doublon');
+    button(element, 'Enregistrer')!.click();
+    room.refusal.set({ code: 'DUPLICATE_EXTERNAL_ID' });
+    fixture.detectChanges();
+
+    // Un participant se connecte : nouvel état, où F-1 est l'ancienne fonctionnalité.
+    room.state.set(state({ features: [F1, F2] }));
+    fixture.detectChanges();
+
+    expect(element.querySelector('.edit-row')).not.toBeNull();
+  });
+
   it('shows the refusal of an intent in French', () => {
     const { fixture, room, element } = render();
     room.refusal.set({ code: 'DUPLICATE_EXTERNAL_ID' });

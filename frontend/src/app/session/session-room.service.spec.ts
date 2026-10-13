@@ -12,12 +12,17 @@ import { SessionSocketService } from './session-socket.service';
 describe('SessionRoomService', () => {
   function setup(connected = true) {
     const messages = new Subject<ServerMessage>();
+    let sent = false;
     const socket = {
       messages: messages.asObservable(),
       connection: signal('open'),
       end: signal(null),
       connect: vi.fn(),
-      send: vi.fn<(message: object) => boolean>(() => connected),
+      send: vi.fn<(message: object) => boolean>(() => {
+        sent ||= connected;
+        return connected;
+      }),
+      hasSentIntent: () => sent,
     };
     const storage = memoryStorage();
     TestBed.configureTestingModule({
@@ -104,6 +109,18 @@ describe('SessionRoomService', () => {
 
     messages.next({ type: 'error', code: 'FORBIDDEN' } as ServerMessage);
 
+    expect(room.refusal()).toEqual({ code: 'FORBIDDEN' });
+  });
+
+  it('keeps a FORBIDDEN that answers an intent apart from hello, even after an unrelated state', () => {
+    const { room, messages, storage } = setup();
+    storage.data.set(`pe.animation.${SESSION_ID}`, 'token');
+    room.addFeature({ externalId: 'F-1', title: 'T' });
+
+    messages.next(state());
+    messages.next({ type: 'error', code: 'FORBIDDEN' } as ServerMessage);
+
+    expect(storage.data.get(`pe.animation.${SESSION_ID}`)).toBe('token');
     expect(room.refusal()).toEqual({ code: 'FORBIDDEN' });
   });
 

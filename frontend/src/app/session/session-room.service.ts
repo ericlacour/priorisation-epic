@@ -31,8 +31,6 @@ export class SessionRoomService {
   private readonly stateSignal = signal<SessionState | null>(null);
   private readonly refusalSignal = signal<IntentRefusal | null>(null);
   private sessionId: string | null = null;
-  /** Vrai entre l'envoi d'une intention et la réponse du serveur : distingue un refus d'intention d'un refus du `hello`. */
-  private awaiting = false;
 
   readonly state = this.stateSignal.asReadonly();
   readonly refusal = this.refusalSignal.asReadonly();
@@ -44,7 +42,6 @@ export class SessionRoomService {
   constructor() {
     const subscription = this.socket.messages.subscribe((message) => {
       if (isSessionState(message)) {
-        this.awaiting = false;
         this.stateSignal.set(message);
       } else if (isErrorMessage(message)) {
         this.receiveError(message.code, message.featureId);
@@ -78,20 +75,19 @@ export class SessionRoomService {
 
   private send(message: object): boolean {
     this.refusalSignal.set(null);
-    this.awaiting = true;
     if (this.socket.send(message)) return true;
-    this.awaiting = false;
     this.refusalSignal.set({ code: 'NOT_CONNECTED' });
     return false;
   }
 
   private receiveError(code: ErrorCode, featureId?: string): void {
-    if (!this.awaiting && code === 'FORBIDDEN') {
-      // Refus du `hello` : le jeton d'animation rangé n'est pas valide. La connexion reste celle d'un participant.
+    if (code === 'FORBIDDEN' && !this.socket.hasSentIntent()) {
+      // Aucune intention n'est partie sur cette connexion : c'est le refus du `hello`, le jeton d'animation rangé
+      // n'est pas valide. La connexion reste celle d'un participant. Un `sessionState` reçu entre-temps (présence
+      // d'un autre participant) ne change rien à ce classement.
       if (this.sessionId !== null) this.storage.removeAnimationToken(this.sessionId);
       return;
     }
-    this.awaiting = false;
     this.refusalSignal.set(featureId === undefined ? { code } : { code, featureId });
   }
 }

@@ -143,7 +143,34 @@ describe('FeatureDetailPanelComponent', () => {
     type('#detail-description-input', 'Sans ressaisie.');
     button('Enregistrer')!.click();
 
-    expect(saved).toEqual([{ title: 'Paiement express', description: 'Sans ressaisie.' }]);
+    expect(saved).toEqual([
+      { baseVersion: F1.version, title: 'Paiement express', description: 'Sans ressaisie.' },
+    ]);
+  });
+
+  it('sends the version from the start of the edit, not the one received meanwhile', () => {
+    const { fixture, saved, button, type } = render({ animate: true });
+    button('Modifier le titre et le descriptif')!.click();
+    fixture.detectChanges();
+    fixture.componentRef.setInput('feature', { ...F1, title: 'Titre d’un autre', version: 9 });
+    fixture.detectChanges();
+    type('#detail-title-input', 'Ma version');
+
+    button('Enregistrer')!.click();
+
+    expect(saved[0].baseVersion).toBe(F1.version);
+  });
+
+  it('closes the edit without sending anything when nothing changed', () => {
+    const { fixture, element, saved, button } = render({ animate: true });
+    button('Modifier le titre et le descriptif')!.click();
+    fixture.detectChanges();
+
+    button('Enregistrer')!.click();
+    fixture.detectChanges();
+
+    expect(saved).toEqual([]);
+    expect(element.querySelector('#detail-title-input')).toBeNull();
   });
 
   it('sends a blank description as « no description »', () => {

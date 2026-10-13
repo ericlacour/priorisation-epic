@@ -381,6 +381,31 @@ class FeatureIntentsTest extends PostgresTestBase {
     expectNothing(bob);
   }
 
+  @Test
+  void anIntentAlreadySatisfiedStillAnswersWithTheUnchangedState() throws Exception {
+    alice.send(add("F-1", "Paiement", null));
+    JsonNode added = feature(state(alice), "F-1");
+    state(bob);
+
+    alice.send(update(added, "\"title\":\"Paiement\""));
+
+    JsonNode unchanged = feature(state(alice), "F-1");
+    assertThat(unchanged.get("version").asInt()).isEqualTo(added.get("version").asInt());
+  }
+
+  @Test
+  void anUnexpectedFailureGetsInvalidMessageSoTheClientStopsWaiting() throws Exception {
+    // Panne de la base pendant l'intention : la table est momentanément introuvable.
+    jdbc.execute("alter table feature rename to feature_unavailable");
+    try {
+      alice.send(add("F-1", "Paiement", null));
+      assertThat(error(alice).get("code").asString()).isEqualTo("INVALID_MESSAGE");
+    } finally {
+      jdbc.execute("alter table feature_unavailable rename to feature");
+    }
+    expectNothing(bob);
+  }
+
   // --- Présence -------------------------------------------------------------------------------
 
   @Test

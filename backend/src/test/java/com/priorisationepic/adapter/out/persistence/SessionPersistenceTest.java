@@ -158,6 +158,29 @@ class SessionPersistenceTest extends PostgresTestBase {
   }
 
   @Test
+  void theDatabaseFallbackComputesTheSameKeyAsTheApplication() {
+    // Insertion sans clé (outil, jeu de données) : le déclencheur la calcule comme
+    // Pseudo.uniquenessKey.
+    jdbc.update(
+        "insert into participant (id, session_id, pseudo, role, participant_token_hash, joined_at,"
+            + " last_seen_at) values (?, ?, ?, 'PARTICIPANT', 'h', now(), now())",
+        UUID.randomUUID(),
+        ID.value(),
+        "ＡＬＩＣＥ");
+
+    assertThat(participants.findByPseudo(ID, Pseudo.of("alice"))).isPresent();
+  }
+
+  @Test
+  void aPseudoWhoseNormalFormIsLongIsStoredWithoutOverflow() {
+    String pseudo = "\uFDFA".repeat(Pseudo.MAX_CODE_POINTS);
+
+    participants.insert(participant(pseudo, Role.PARTICIPANT, "t1"));
+
+    assertThat(participants.findByPseudo(ID, Pseudo.of(pseudo))).isPresent();
+  }
+
+  @Test
   void participantsAreListedInArrivalOrder() {
     Participant alice = participant("Alice", Role.FACILITATOR, "a");
     Participant bob =

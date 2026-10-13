@@ -125,6 +125,9 @@ public class FeatureUseCase {
           }
           after = review(after, command);
           if (after.equals(before)) {
+            // Rien ne change : pas de nouvelle version, mais l'état est renvoyé pour que le client
+            // sache que sa demande a été traitée (sinon il attendrait une réponse sans fin).
+            broadcaster.publish(sessionId);
             return null;
           }
           if (!after.externalId().equals(before.externalId())

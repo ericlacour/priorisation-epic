@@ -426,7 +426,7 @@ class FeatureUseCaseTest {
   }
 
   @Test
-  void anIntentAlreadySatisfiedChangesNothingAndRaisesNoError() {
+  void anIntentAlreadySatisfiedChangesNothingRaisesNoErrorAndStillAnswersWithTheState() {
     Feature existing = addFull("F-1");
     int version = sessionVersion();
     broadcaster.published.clear();
@@ -435,7 +435,8 @@ class FeatureUseCaseTest {
 
     assertThat(stored("F-1")).isEqualTo(existing);
     assertThat(sessionVersion()).isEqualTo(version);
-    assertThat(broadcaster.published).isEmpty();
+    // L'état inchangé est renvoyé : le client sait que sa demande a été traitée.
+    assertThat(broadcaster.published).containsExactly(session);
     assertThat(store.changeLog).isEmpty();
   }
 

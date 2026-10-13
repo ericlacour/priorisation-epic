@@ -170,8 +170,9 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
 
   /**
    * Exécute l'intention d'une connexion rattachée. Un refus ne change rien : la connexion reçoit
-   * {@code error}. Une panne inattendue est journalisée sans détail identifiant et la connexion
-   * reste ouverte.
+   * {@code error}. Une panne inattendue est journalisée sans détail identifiant, la connexion reste
+   * ouverte et reçoit {@code error INVALID_MESSAGE} : le client cesse d'attendre une réponse qui ne
+   * viendra pas.
    */
   private void intent(
       WebSocketSession session, java.util.function.Consumer<WsConnection.Attachment> action) {
@@ -186,6 +187,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       broadcaster.sendError(session.getId(), e.code(), e.featureId());
     } catch (RuntimeException e) {
       LOG.error("Intent failed on connection {}", session.getId(), e);
+      broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }
 

@@ -8,7 +8,10 @@ info:
     `type` property names it. Operations are written from the webservice's point of view: it
     **receives** the client's intents and **sends** its own messages.
 
-    - An intent already satisfied changes nothing and raises no error.
+    - An intent already satisfied changes nothing and raises no error; `sessionState` is still
+      sent, unchanged, so the sender knows its intent was handled.
+    - An intent the webservice fails to process (unexpected failure) changes nothing and gets
+      `error INVALID_MESSAGE` back, so the client stops waiting.
     - A forbidden intent changes nothing and gets `error` back.
     - Intents that write a feature carry the feature `version` they read; a mismatch changes
       nothing and gets `error STALE_VERSION` (constitution III: no silent overwrite).
