@@ -13,6 +13,7 @@ import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.scale.Scale;
 import com.priorisationepic.domain.scale.ScaleType;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,9 +32,14 @@ public class SessionController {
   private final CreateSessionUseCase create;
   private final SessionStateAssembler states;
   private final CreationRateLimiter limiter;
+  private final String proxySecret;
 
   public SessionController(
-      CreateSessionUseCase create, SessionStateAssembler states, CreationRateLimiter limiter) {
+      CreateSessionUseCase create,
+      SessionStateAssembler states,
+      CreationRateLimiter limiter,
+      @Value("${priorisation-epic.proxy-secret:}") String proxySecret) {
+    this.proxySecret = proxySecret;
     this.create = create;
     this.states = states;
     this.limiter = limiter;
@@ -44,7 +50,7 @@ public class SessionController {
   ResponseEntity<CreateSessionResponse> createSession(
       @RequestBody CreateSessionRequest request, HttpServletRequest http) {
     CreateSessionUseCase.Command command = command(request);
-    CreationRateLimiter.Slot slot = limiter.acquire(ClientAddress.of(http));
+    CreationRateLimiter.Slot slot = limiter.acquire(ClientAddress.of(http, proxySecret));
     try {
       CreateSessionUseCase.Created created = create.create(command);
       return ResponseEntity.status(HttpStatus.CREATED)

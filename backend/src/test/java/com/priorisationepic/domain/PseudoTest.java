@@ -54,4 +54,12 @@ class PseudoTest {
   void neverShowsThePseudoInToString() {
     assertThat(Pseudo.of("Alice").toString()).doesNotContain("Alice").contains("5");
   }
+
+  @Test
+  void theKeyFoldsCompatibilityFormsAndCaseWithoutDependingOnTheLocale() {
+    assertThat(Pseudo.of("ＡＬＩＣＥ").uniquenessKey()).isEqualTo(Pseudo.of("alice").uniquenessKey());
+    assertThat(Pseudo.of("ÉRIC").uniquenessKey()).isEqualTo(Pseudo.of("éric").uniquenessKey());
+    assertThat(Pseudo.of("Éric").uniquenessKey())
+        .isEqualTo(Pseudo.of(Normalizer.normalize("Éric", Normalizer.Form.NFD)).uniquenessKey());
+  }
 }

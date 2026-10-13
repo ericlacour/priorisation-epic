@@ -1,12 +1,14 @@
 package com.priorisationepic.adapter.in.rest;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Seule lecture de l'IP cliente (décision du 2026-10-04) : {@code CF-Connecting-IP} s'il est
- * présent, puisque Cloudflare l'écrit en écrasant toute valeur venue du client ; sinon la
+ * présent <b>et</b> que la requête porte le secret partagé avec Cloudflare ; sinon la
  * <b>dernière</b> entrée de {@code X-Forwarded-For}, ajoutée par le dernier mandataire (Render) ;
  * sinon l'adresse de la connexion. L'entrée la plus à gauche de {@code X-Forwarded-For} n'est
  * jamais utilisée : le client peut l'écrire à sa guise.
@@ -20,9 +22,16 @@ final class ClientAddress {
 
   private ClientAddress() {}
 
-  static String of(HttpServletRequest request) {
+  static final String PROXY_SECRET_HEADER = "X-Proxy-Secret";
+
+  /**
+   * @param proxySecret secret partagé avec Cloudflare (règle de transformation qui ajoute {@code
+   *     X-Proxy-Secret}) ; vide : {@code CF-Connecting-IP} est ignoré, car l'API est joignable sans
+   *     passer par Cloudflare et le client pourrait l'écrire à sa guise
+   */
+  static String of(HttpServletRequest request, String proxySecret) {
     String cloudflare = request.getHeader(CF_CONNECTING_IP);
-    if (cloudflare != null && !cloudflare.isBlank()) {
+    if (cloudflare != null && !cloudflare.isBlank() && fromCloudflare(request, proxySecret)) {
       return cloudflare.strip();
     }
     String forwarded = lastForwardedFor(request);
@@ -30,6 +39,16 @@ final class ClientAddress {
       return forwarded;
     }
     return request.getRemoteAddr();
+  }
+
+  private static boolean fromCloudflare(HttpServletRequest request, String proxySecret) {
+    String presented = request.getHeader(PROXY_SECRET_HEADER);
+    return proxySecret != null
+        && !proxySecret.isBlank()
+        && presented != null
+        && MessageDigest.isEqual(
+            presented.getBytes(StandardCharsets.UTF_8),
+            proxySecret.getBytes(StandardCharsets.UTF_8));
   }
 
   /**

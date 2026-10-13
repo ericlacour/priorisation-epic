@@ -11,6 +11,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 class ClientAddressTest {
 
+  private static final String SECRET = "s3cret";
+
   private static MockHttpServletRequest request() {
     MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/sessions");
     request.setRemoteAddr("10.0.0.9");
@@ -19,22 +21,23 @@ class ClientAddressTest {
 
   @Test
   void withoutProxyHeaderItIsTheConnectionAddress() {
-    assertThat(ClientAddress.of(request())).isEqualTo("10.0.0.9");
+    assertThat(ClientAddress.of(request(), SECRET)).isEqualTo("10.0.0.9");
   }
 
   @Test
   void cloudflareHeaderWinsOverEverything() {
     MockHttpServletRequest request = request();
     request.addHeader("CF-Connecting-IP", " 203.0.113.7 ");
+    request.addHeader("X-Proxy-Secret", SECRET);
     request.addHeader("X-Forwarded-For", "198.51.100.1, 198.51.100.2");
-    assertThat(ClientAddress.of(request)).isEqualTo("203.0.113.7");
+    assertThat(ClientAddress.of(request, SECRET)).isEqualTo("203.0.113.7");
   }
 
   @Test
   void otherwiseItIsTheLastForwardedForEntry() {
     MockHttpServletRequest request = request();
     request.addHeader("X-Forwarded-For", "198.51.100.1, 198.51.100.2");
-    assertThat(ClientAddress.of(request)).isEqualTo("198.51.100.2");
+    assertThat(ClientAddress.of(request, SECRET)).isEqualTo("198.51.100.2");
   }
 
   @Test
@@ -44,9 +47,9 @@ class ClientAddressTest {
     first.addHeader("X-Forwarded-For", "1.1.1.1, 203.0.113.7");
     MockHttpServletRequest second = request();
     second.addHeader("X-Forwarded-For", "2.2.2.2, 3.3.3.3, 203.0.113.7");
-    assertThat(ClientAddress.of(first))
+    assertThat(ClientAddress.of(first, SECRET))
         .isEqualTo("203.0.113.7")
-        .isEqualTo(ClientAddress.of(second));
+        .isEqualTo(ClientAddress.of(second, SECRET));
   }
 
   @Test
@@ -54,7 +57,7 @@ class ClientAddressTest {
     MockHttpServletRequest request = request();
     request.addHeader("X-Forwarded-For", "1.1.1.1");
     request.addHeader("X-Forwarded-For", "203.0.113.7 , ");
-    assertThat(ClientAddress.of(request)).isEqualTo("203.0.113.7");
+    assertThat(ClientAddress.of(request, SECRET)).isEqualTo("203.0.113.7");
   }
 
   @Test
@@ -62,6 +65,22 @@ class ClientAddressTest {
     MockHttpServletRequest request = request();
     request.addHeader("CF-Connecting-IP", "  ");
     request.addHeader("X-Forwarded-For", " , ");
-    assertThat(ClientAddress.of(request)).isEqualTo("10.0.0.9");
+    assertThat(ClientAddress.of(request, SECRET)).isEqualTo("10.0.0.9");
+  }
+
+  @Test
+  void aForgedCloudflareHeaderIsIgnoredWithoutTheSharedSecret() {
+    for (String secret : new String[] {null, "", "  ", SECRET}) {
+      MockHttpServletRequest request = request();
+      request.addHeader("CF-Connecting-IP", "6.6.6.6");
+      request.addHeader("X-Proxy-Secret", "wrong");
+      request.addHeader("X-Forwarded-For", "1.1.1.1, 203.0.113.7");
+      assertThat(ClientAddress.of(request, secret))
+          .as("secret %s", secret)
+          .isEqualTo("203.0.113.7");
+    }
+    MockHttpServletRequest noSecretHeader = request();
+    noSecretHeader.addHeader("CF-Connecting-IP", "6.6.6.6");
+    assertThat(ClientAddress.of(noSecretHeader, SECRET)).isEqualTo("10.0.0.9");
   }
 }

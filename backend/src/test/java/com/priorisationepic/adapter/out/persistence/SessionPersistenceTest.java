@@ -144,6 +144,20 @@ class SessionPersistenceTest extends PostgresTestBase {
   }
 
   @Test
+  void theApplicationKeyDecidesUniquenessNotTheDatabaseCaseFolding() {
+    participants.insert(participant("Alice", Role.PARTICIPANT, "t1"));
+
+    // Lettres pleine chasse : le lower() de la base ne les replie pas, la clé de l'application oui.
+    assertThatThrownBy(() -> participants.insert(participant("ＡＬＩＣＥ", Role.PARTICIPANT, "t2")))
+        .isInstanceOf(PseudoTakenException.class);
+    assertThat(participants.findByPseudo(ID, Pseudo.of("ＡＬＩＣＥ"))).isPresent();
+    assertThat(
+            jdbc.queryForObject(
+                "select pseudo_key from participant where pseudo = 'Alice'", String.class))
+        .isEqualTo("alice");
+  }
+
+  @Test
   void participantsAreListedInArrivalOrder() {
     Participant alice = participant("Alice", Role.FACILITATOR, "a");
     Participant bob =

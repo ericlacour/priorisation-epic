@@ -76,11 +76,12 @@ class JdbcParticipantRepository implements ParticipantRepository {
       jdbc.sql(
               "insert into participant ("
                   + COLUMNS
-                  + ") values (:id, :session, :pseudo, :role,"
-                  + " :businessRole, :hash, :joinedAt, :lastSeenAt)")
+                  + ", pseudo_key) values (:id, :session, :pseudo, :role,"
+                  + " :businessRole, :hash, :joinedAt, :lastSeenAt, :pseudoKey)")
           .param("id", participant.id())
           .param("session", participant.sessionId().value())
           .param("pseudo", participant.pseudo().value())
+          .param("pseudoKey", participant.pseudo().uniquenessKey())
           .param("role", participant.role().name())
           .param("businessRole", participant.businessRole())
           .param("hash", participant.tokenHash())
@@ -88,7 +89,7 @@ class JdbcParticipantRepository implements ParticipantRepository {
           .param("lastSeenAt", Timestamp.from(participant.lastSeenAt()))
           .update();
     } catch (DuplicateKeyException e) {
-      // Index unique (session, lower(pseudo)) : un autre processus a pris le pseudo.
+      // Index unique (session, pseudo_key) : un autre processus a pris le pseudo.
       throw new PseudoTakenException();
     }
   }
@@ -99,9 +100,9 @@ class JdbcParticipantRepository implements ParticipantRepository {
             "select "
                 + COLUMNS
                 + " from participant"
-                + " where session_id = :session and lower(pseudo) = lower(:pseudo)")
+                + " where session_id = :session and pseudo_key = :pseudoKey")
         .param("session", sessionId.value())
-        .param("pseudo", pseudo.value())
+        .param("pseudoKey", pseudo.uniquenessKey())
         .query(PARTICIPANT)
         .optional();
   }

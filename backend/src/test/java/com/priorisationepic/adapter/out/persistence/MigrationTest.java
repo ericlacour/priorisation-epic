@@ -27,12 +27,12 @@ class MigrationTest extends PostgresTestBase {
   }
 
   @Test
-  void flywayAppliedV1() {
+  void flywayAppliedEveryMigration() {
     String version =
         jdbc.queryForObject(
             "select version from flyway_schema_history where success order by installed_rank desc limit 1",
             String.class);
-    assertThat(version).isEqualTo("1");
+    assertThat(version).isEqualTo("2");
   }
 
   @Test
