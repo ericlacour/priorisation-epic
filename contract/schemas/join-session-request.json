@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "join-session-request.json",
+  "title": "joinSession request",
+  "description": "POST /api/sessions/{sessionId}/participants (FR-003).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pseudo"],
+  "properties": {
+    "pseudo": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "businessRole": {
+      "type": "string",
+      "maxLength": 40
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "create-session-request.json",
+  "title": "createSession request",
+  "description": "POST /api/sessions. method is a key from GET /api/methods; its latest version is used and frozen (FR-017d). An unknown key gets 400.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "pseudo"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "pseudo": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "default": "WSJF"
+    },
+    "scale": {
+      "$ref": "scale.json"
+    }
+  }
+}

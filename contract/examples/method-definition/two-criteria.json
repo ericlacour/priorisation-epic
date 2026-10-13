@@ -1,0 +1,33 @@
+{
+  "key": "REACH",
+  "version": 1,
+  "name": "Reach / Effort",
+  "criteria": [
+    {
+      "key": "reach",
+      "code": "Reach",
+      "label": "Reach",
+      "definition": "Nombre de personnes touchées.",
+      "header": "Reach"
+    },
+    {
+      "key": "effort",
+      "code": "Effort",
+      "label": "Effort",
+      "definition": "Effort nécessaire.",
+      "header": "Effort"
+    }
+  ],
+  "computedValues": [
+    {
+      "key": "ratio",
+      "code": "Ratio",
+      "label": "Reach / Effort",
+      "definition": "Reach divisé par Effort.",
+      "header": "Ratio",
+      "display": "DECIMAL_2"
+    }
+  ],
+  "formula": "Ratio = Reach / Effort",
+  "tieBreakRule": "Ratio décroissant, puis identifiant croissant."
+}

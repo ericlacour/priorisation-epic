@@ -18,7 +18,7 @@ Les documents de conception de la feature (`specs/001-wsjf-prioritization-sessio
 
 ## Schémas communs
 
-`problem`, `hello`, `heartbeat`, `tick`, `error`, `health-response`, `criteria` et `scale`. Le contrat ne liste jamais les critères d'une méthode (FR-017a, FR-017b) : `criteria` est une table de valeurs indexée par les clés que `methodDefinition` déclare.
+`problem`, `hello`, `heartbeat`, `tick`, `error`, `health-response`, `criteria`, `criterion-key`, `scale`, `exact-value`, `method-definition`, `score` et `feature`. Le contrat ne liste jamais les critères d'une méthode (FR-017a, FR-017b) : `criteria` est une table de valeurs indexée par les clés que `methodDefinition` déclare.
 
 ## Valider le contrat
 
@@ -48,3 +48,9 @@ Les règles métier sur `sessionState` qu'un JSON Schema ne sait pas exprimer se
 2. Ajouter au moins un exemple dans `examples/<nom-en-kebab>/`.
 3. Référencer le schéma dans `asyncapi.yaml` ou `openapi.yaml`.
 4. `npm run validate && npm test`.
+
+## Parcours déjà décrits
+
+- **Prioriser en saisie directe (US1)** : `POST /api/sessions`, `GET /api/sessions/{sessionId}`, `POST /api/sessions/{sessionId}/participants` et `GET /api/methods` (schémas `create-session-*`, `join-session-*`, `method-list`, `session-summary`) ; messages WebSocket `addFeature`, `updateFeature`, `deleteFeature` et `sessionState` (schémas `add-feature`, `update-feature`, `delete-feature`, `session-state`).
+- `sessionState.me.role` vaut `FACILITATOR` quand la connexion détient les droits d'animateur (jeton d'animation valide), `PARTICIPANT` sinon.
+- Aucun schéma ne nomme un critère d'une méthode : `validate.mjs` le vérifie (`bv`, `tc`, `rrOe`, `js`, `cod`, `wsjf` n'apparaissent que dans les exemples).

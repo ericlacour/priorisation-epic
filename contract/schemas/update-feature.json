@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "update-feature.json",
+  "title": "updateFeature (client → server)",
+  "description": "Facilitator only (FR-006, FR-015). Carries the feature version it read; a mismatch gets error STALE_VERSION (constitution III). Only the keys present in criteria are changed; null clears a value. markedForReview is allowed even while the feature is in an open round (FR-006a).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId", "version"],
+  "properties": {
+    "type": {
+      "const": "updateFeature"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "externalId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 5000
+    },
+    "criteria": {
+      "$ref": "criteria.json"
+    },
+    "markedForReview": {
+      "type": "boolean"
+    },
+    "reviewReason": {
+      "type": ["string", "null"],
+      "maxLength": 200
+    }
+  }
+}

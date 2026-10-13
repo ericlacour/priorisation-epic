@@ -1,0 +1,149 @@
+{
+  "type": "sessionState",
+  "version": 4,
+  "sessionId": "Zk3pQ9vL2mXc7RtB1nYw4A",
+  "name": "Atelier Q4",
+  "status": "PREPARATION",
+  "method": "WSJF",
+  "methodVersion": 1,
+  "methodDefinition": {
+    "key": "WSJF",
+    "version": 1,
+    "name": "WSJF",
+    "criteria": [
+      {
+        "key": "bv",
+        "code": "BV",
+        "label": "Business Value",
+        "definition": "Valeur apportée aux utilisateurs ou au business.",
+        "header": "BV"
+      },
+      {
+        "key": "tc",
+        "code": "TC",
+        "label": "Time Criticality",
+        "definition": "Importance de réaliser rapidement la fonctionnalité.",
+        "header": "TC"
+      },
+      {
+        "key": "rrOe",
+        "code": "RR/OE",
+        "label": "Risk Reduction / Opportunity Enablement",
+        "definition": "Capacité à réduire un risque ou à permettre une opportunité.",
+        "header": "RR/OE"
+      },
+      {
+        "key": "js",
+        "code": "JS",
+        "label": "Job Size",
+        "definition": "Taille relative du travail nécessaire.",
+        "header": "JS"
+      }
+    ],
+    "computedValues": [
+      {
+        "key": "cod",
+        "code": "CoD",
+        "label": "Cost of Delay",
+        "definition": "Coût du retard : BV + TC + RR/OE.",
+        "header": "CoD",
+        "display": "INTEGER"
+      },
+      {
+        "key": "wsjf",
+        "code": "WSJF",
+        "label": "Weighted Shortest Job First",
+        "definition": "CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.",
+        "header": "WSJF",
+        "display": "DECIMAL_2"
+      }
+    ],
+    "formula": "CoD = BV + TC + RR/OE ; WSJF = CoD / JS",
+    "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant (sans tenir compte de la casse). Les fonctionnalités incomplètes ou hors échelle viennent en fin de tableau, par identifiant croissant."
+  },
+  "formula": "CoD = BV + TC + RR/OE ; WSJF = CoD / JS",
+  "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant (sans tenir compte de la casse). Les fonctionnalités incomplètes ou hors échelle viennent en fin de tableau, par identifiant croissant.",
+  "scale": {
+    "type": "CONTINUOUS",
+    "max": 10,
+    "allowedValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  },
+  "me": {
+    "participantId": "2e5f6071-8b9c-4dae-9f10-2b3c4d5e6f70",
+    "pseudo": "Camille",
+    "role": "PARTICIPANT"
+  },
+  "participants": [
+    {
+      "participantId": "1d4e5f60-7a8b-4c9d-8e0f-1a2b3c4d5e6f",
+      "pseudo": "Éric",
+      "role": "FACILITATOR",
+      "businessRole": null,
+      "online": true
+    },
+    {
+      "participantId": "2e5f6071-8b9c-4dae-9f10-2b3c4d5e6f70",
+      "pseudo": "Camille",
+      "role": "PARTICIPANT",
+      "businessRole": "Product Owner",
+      "online": true
+    }
+  ],
+  "features": [
+    {
+      "id": "6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f",
+      "externalId": "F-1",
+      "title": "Paiement en un clic",
+      "description": "Permettre le paiement sans ressaisir la carte.",
+      "version": 2,
+      "markedForReview": false,
+      "reviewReason": null,
+      "votingInProgress": false,
+      "criteria": {
+        "bv": 8,
+        "tc": 5,
+        "rrOe": 3,
+        "js": 4
+      },
+      "score": {
+        "complete": true,
+        "outOfScale": [],
+        "computed": {
+          "cod": {
+            "numerator": 16,
+            "denominator": 1,
+            "display": "16"
+          },
+          "wsjf": {
+            "numerator": 4,
+            "denominator": 1,
+            "display": "4,00"
+          }
+        },
+        "explanation": "CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00",
+        "rank": 1
+      }
+    },
+    {
+      "id": "7a2d3e4f-5c6b-4d8e-9fa0-1b2c3d4e5f60",
+      "externalId": "F-2",
+      "title": "Export comptable",
+      "description": null,
+      "version": 0,
+      "markedForReview": true,
+      "reviewReason": "Valeurs à confirmer avec la finance.",
+      "votingInProgress": false,
+      "criteria": {
+        "bv": 3,
+        "tc": null
+      },
+      "score": {
+        "complete": false,
+        "outOfScale": [],
+        "computed": null,
+        "explanation": null,
+        "rank": 2
+      }
+    }
+  ]
+}

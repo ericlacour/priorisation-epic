@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "session-state.json",
+  "title": "sessionState (server → client)",
+  "description": "Full state, filtered for its recipient (FR-019, FR-019a, SC-004). Also the payload of GET /api/sessions/{sessionId}, seen as a non-facilitator with no token: me is then null. The front builds columns, inputs and help from methodDefinition (FR-017b). Rounds are added by addition in the voting journey.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "version",
+    "sessionId",
+    "name",
+    "status",
+    "method",
+    "methodVersion",
+    "methodDefinition",
+    "formula",
+    "tieBreakRule",
+    "scale",
+    "me",
+    "participants",
+    "features"
+  ],
+  "properties": {
+    "type": {
+      "const": "sessionState"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Increases on every accepted change."
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PREPARATION", "IN_PROGRESS", "CLOSED"]
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "methodVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "methodDefinition": {
+      "$ref": "method-definition.json"
+    },
+    "formula": {
+      "type": "string",
+      "description": "Same as methodDefinition.formula."
+    },
+    "tieBreakRule": {
+      "type": "string",
+      "description": "Same as methodDefinition.tieBreakRule."
+    },
+    "scale": {
+      "allOf": [
+        {
+          "$ref": "scale.json"
+        },
+        {
+          "required": ["allowedValues"]
+        }
+      ]
+    },
+    "me": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["participantId", "pseudo", "role"],
+          "properties": {
+            "participantId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "pseudo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "role": {
+              "type": "string",
+              "enum": ["FACILITATOR", "PARTICIPANT"]
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The recipient. role is FACILITATOR when this connection holds the animation rights (valid animation token in hello), PARTICIPANT otherwise; participants[].role is the stored role. null in the read-only REST view."
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["participantId", "pseudo", "role", "businessRole", "online"],
+        "properties": {
+          "participantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pseudo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "role": {
+            "type": "string",
+            "enum": ["FACILITATOR", "PARTICIPANT"]
+          },
+          "businessRole": {
+            "type": ["string", "null"]
+          },
+          "online": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "description": "Sorted per FR-014.",
+      "items": {
+        "$ref": "feature.json"
+      }
+    }
+  }
+}

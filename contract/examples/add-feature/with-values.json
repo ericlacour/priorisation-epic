@@ -1,0 +1,11 @@
+{
+  "type": "addFeature",
+  "externalId": "F-1",
+  "title": "Paiement en un clic",
+  "criteria": {
+    "bv": 8,
+    "tc": 5,
+    "rrOe": 3,
+    "js": 4
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "exact-value.json",
+  "title": "Exact value",
+  "description": "Exact fraction (integers have denominator 1) and its display text, formatted per the display rule of methodDefinition (French decimal comma).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["numerator", "denominator", "display"],
+  "properties": {
+    "numerator": {
+      "type": "integer"
+    },
+    "denominator": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "display": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
