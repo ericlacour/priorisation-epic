@@ -15,8 +15,8 @@ import { MESSAGES } from '../i18n/messages.fr';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { AnimationLinkComponent } from '../session/animation-link.component';
 import { SessionRoomService } from '../session/session-room.service';
+import { CopyButtonComponent } from '../shared/copy-button.component';
 import { CriterionTermComponent } from '../shared/criterion-term.component';
-import { LinkBoxComponent } from '../shared/link-box.component';
 import { MethodGlossaryComponent } from '../shared/method-glossary.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
 import {
@@ -44,22 +44,28 @@ const NEW_ROW = 'new';
  * Tableau de priorisation (US1) : les fonctionnalités dans l'ordre reçu du serveur, avec une colonne par critère puis
  * par valeur calculée de `methodDefinition` (aucune colonne écrite en dur, FR-017b). Il ne calcule et ne trie rien.
  * L'animateur ajoute, modifie et supprime ; un participant voit le même tableau sans aucune action d'animation
- * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé (FR-014a).
+ * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé, titres en entier
+ * (FR-014a). Participants à la demande (FR-005) ; liens d'invitation et d'animation copiés sans être affichés.
  * Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
 @Component({
   selector: 'app-board',
   imports: [
     AnimationLinkComponent,
+    CopyButtonComponent,
     CriterionTermComponent,
     FeatureDetailPanelComponent,
     FeatureEditorComponent,
-    LinkBoxComponent,
     MethodGlossaryComponent,
     MethodPanelComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'board-page', role: 'main' },
+  host: {
+    class: 'board-page',
+    role: 'main',
+    '(document:click)': 'closeParticipantsOutside($event)',
+    '(document:keydown.escape)': 'showParticipants.set(false)',
+  },
   template: `
     @if (state(); as state) {
       <div class="board-head">
@@ -67,7 +73,55 @@ const NEW_ROW = 'new';
           <h1>{{ state.name }}</h1>
           <p class="muted small">{{ infoLine() }}</p>
         </div>
-        <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
+        <div class="board-tools">
+          <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
+          <div class="participants-menu">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              aria-controls="participants-list"
+              [attr.aria-expanded]="showParticipants()"
+              (click)="showParticipants.set(!showParticipants())"
+            >
+              {{ participantsTitle() }} {{ showParticipants() ? '▴' : '▾' }}
+            </button>
+            @if (showParticipants()) {
+              <div
+                id="participants-list"
+                class="participants-pop"
+                role="region"
+                [attr.aria-label]="messages.participantsList"
+              >
+                <ul class="plist">
+                  @for (participant of state.participants; track participant.participantId) {
+                    <li>
+                      <span
+                        class="dot"
+                        [class.on]="participant.online"
+                        [class.off]="!participant.online"
+                      ></span>
+                      {{ participant.pseudo }}
+                      @if (participant.participantId === state.me?.participantId) {
+                        {{ messages.youSuffix }}
+                      }
+                      <span class="role">{{ roleOf(participant) }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+          @if (canAnimate()) {
+            <app-copy-button
+              [label]="messages.copyInvite"
+              [hint]="messages.copyInviteHint"
+              [text]="inviteUrl()"
+            />
+            @if (!screen.isPhone()) {
+              <app-animation-link [sessionId]="state.sessionId" />
+            }
+          }
+        </div>
       </div>
 
       @if (room.connection() === 'lost') {
@@ -289,39 +343,10 @@ const NEW_ROW = 'new';
                 </tbody>
               </table>
             </div>
-            <p class="legend">
-              {{ state.formula }} · {{ state.tieBreakRule }} {{ messages.legend }}
-            </p>
           }
         </div>
 
         <aside class="side">
-          <div class="card">
-            <h2>{{ participantsTitle() }}</h2>
-            <ul class="plist">
-              @for (participant of state.participants; track participant.participantId) {
-                <li>
-                  <span
-                    class="dot"
-                    [class.on]="participant.online"
-                    [class.off]="!participant.online"
-                  ></span>
-                  {{ participant.pseudo }}
-                  @if (participant.participantId === state.me?.participantId) {
-                    {{ messages.youSuffix }}
-                  }
-                  <span class="role">{{ roleOf(participant) }}</span>
-                </li>
-              }
-            </ul>
-          </div>
-          <div class="card">
-            <h2>{{ messages.invite }}</h2>
-            <app-link-box [url]="inviteUrl()" />
-            @if (canAnimate() && !screen.isPhone()) {
-              <app-animation-link [sessionId]="state.sessionId" />
-            }
-          </div>
           <app-method-glossary
             [definition]="state.methodDefinition"
             (methodRequested)="showMethod.set(true)"
@@ -369,6 +394,8 @@ export class BoardComponent {
   protected readonly editing = signal<string | null>(null);
   protected readonly selectedId = signal<string | null>(null);
   protected readonly showMethod = signal(false);
+  /** La liste des participants ne s'affiche qu'à la demande (FR-005). */
+  protected readonly showParticipants = signal(false);
   private readonly frozenOrder = signal<readonly string[] | null>(null);
   private readonly pending = signal<PendingUpdate | null>(null);
   /** Ce que la ligne en édition attend du serveur, pour la refermer à la confirmation. */
@@ -497,6 +524,13 @@ export class BoardComponent {
 
   protected participantsTitle(): string {
     return format(this.messages.participants, { count: this.state()?.participants.length ?? 0 });
+  }
+
+  /** Un clic hors du menu des participants le referme. */
+  protected closeParticipantsOutside(event: Event): void {
+    const target = event.target;
+    if (target instanceof Element && target.closest('.participants-menu')) return;
+    this.showParticipants.set(false);
   }
 
   protected roleOf(participant: { role: string; online: boolean }): string {

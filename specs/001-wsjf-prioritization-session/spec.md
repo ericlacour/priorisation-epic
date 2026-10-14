@@ -285,7 +285,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     d'échelle restent possibles ;
   - **clôturée** : lecture seule, sauf la réouverture par l'animateur.
 - **FR-005**: Le système DOIT afficher, pour tous les membres, la liste des participants
-  présents dans la session.
+  présents dans la session. Elle s'ouvre à la demande, par un bouton « Participants (n) »
+  en haut à droite du tableau (retour d'usage du 2026-10-14).
 
 **Fonctionnalités**
 
@@ -347,17 +348,22 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   **tableau de l'animateur** DOIT tenir dans la fenêtre **sans défilement de la page** :
   la barre de session, les actions, le tableau et le panneau latéral restent visibles en
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
-  défile**, avec un en-tête de colonnes figé. Les titres trop longs sont tronqués (le titre
-  complet est lisible dans le panneau de détail, FR-016b). Le panneau latéral défile
+  défile**, avec un en-tête de colonnes figé. Les titres s'affichent **en entier**, sur
+  plusieurs lignes si besoin (retour d'usage du 2026-10-14). Quand l'animateur modifie une
+  ligne, la ligne d'édition tient dans la largeur du tableau : aucun défilement n'est
+  nécessaire pour saisir, enregistrer ou annuler. Le panneau latéral défile
   séparément si besoin. La même règle s'applique à l'écran du **tour en cours**, où le
   panneau de vote et le tableau défilent chacun de leur côté, et à l'écran de
   **révélation et consensus**, où seule la liste des fonctionnalités révélées défile et
   où la barre d'actions (« Relancer un tour sur la sélection ») reste visible.
 - **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
   le tableau complet, comme l'animateur : rang, identifiant, titre, critères, valeurs
-  calculées, badges « à revoir » et « hors échelle », légende avec la formule, mis à jour
-  en direct (FR-015). Il voit aussi la liste des participants en ligne, le lien
-  d'invitation, l'aide sur les sigles (FR-016a) et la méthode (FR-017c). Il peut ouvrir le
+  calculées, badges « à revoir » et « hors échelle », mis à jour en direct (FR-015). Il voit
+  aussi la liste des participants en ligne (à la demande, FR-005), l'aide sur les sigles
+  (FR-016a) et la méthode (FR-017c), qui donne la formule et la règle d'égalité. Le lien
+  d'invitation n'est copiable que par l'animateur, par le bouton « Copier Session » en haut
+  à droite ; son lien d'animation privé l'est par « Copier Session Anim ». Aucun des deux
+  liens n'est affiché à l'écran (retour d'usage du 2026-10-14). Il peut ouvrir le
   panneau de détail en lecture seule (FR-016b), consulter les tours révélés (FR-022) et
   exporter (FR-023, FR-024). Il ne voit **aucune action d'animation** : ni « Modifier »,
   ni ajout, import, échelle, ouverture de tour, démarrage ou clôture, ni édition du titre

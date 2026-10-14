@@ -168,12 +168,18 @@ describe('BoardComponent', () => {
     expect(badge.getAttribute('title')).toBe('À revoir : Descriptif à compléter');
   });
 
-  it('shows the formula and the tie-break rule as a legend (constitution I) and the glossary', () => {
+  it('shows the glossary, which leads to the formula (constitution I), and no legend under the table', () => {
     const { element } = render();
-    expect(element.querySelector('.legend')?.textContent).toContain(
-      'CoD = BV + TC + RR/OE ; WSJF = CoD / JS',
-    );
     expect(element.querySelector('app-method-glossary h2')?.textContent).toBe('Comprendre le WSJF');
+    expect(element.textContent).not.toContain('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
+  });
+
+  it('shows the full title, without truncation', () => {
+    const title = 'Un titre très long '.repeat(8).trim();
+    const { element } = render({
+      state: state({ features: [feature({ id: 'f-long', externalId: 'F-9', title })] }),
+    });
+    expect(element.querySelector('td.title')?.textContent?.trim()).toBe(title);
   });
 
   it('defines the acronyms of the headers on keyboard focus', () => {
@@ -197,15 +203,23 @@ describe('BoardComponent', () => {
     expect(element.textContent).toContain('Aucun tour de vote en cours');
     expect(button(element, 'Exporter')?.disabled).toBe(true);
     expect(button(element, 'Tours révélés')?.disabled).toBe(true);
-    expect(button(element, "Afficher mon lien d'animation")).toBeUndefined();
+    expect(button(element, 'Copier Session')).toBeUndefined();
+    expect(element.querySelector('app-animation-link')).toBeNull();
     expect(element.querySelector('.board-head p')?.textContent).toBe(
       'Vous : Éric · Animée par Éric · Échelle 1 à 10',
     );
   });
 
-  it('shows the participants with their presence', () => {
-    const { element } = render();
-    expect(element.querySelector('.side h2')?.textContent).toBe('Participants (2)');
+  it('shows the participants with their presence on demand (FR-005)', () => {
+    const { fixture, element } = render();
+    const toggle = button(element, 'Participants (2)')!;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('.plist')).toBeNull();
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
     const items = [...element.querySelectorAll('.plist li')];
     expect(items[0].textContent?.replace(/\s+/g, ' ')).toContain('Éric (vous)');
     expect(items[0].textContent).toContain('animateur');
@@ -214,12 +228,26 @@ describe('BoardComponent', () => {
     expect(items[1].querySelector('.dot.off')).not.toBeNull();
   });
 
-  it('shows the invitation link and, for the facilitator only, the animation link action', () => {
-    const facilitator = render();
-    expect(facilitator.element.querySelector('app-link-box code')?.textContent).toContain(
-      '/s/k3Jx9QvT2mLpZ8wR4nYb7A',
-    );
-    expect(button(facilitator.element, "Afficher mon lien d'animation")).toBeDefined();
+  it('closes the participants list on Escape and on a click elsewhere', () => {
+    const { fixture, element } = render();
+    button(element, 'Participants (2)')!.click();
+    fixture.detectChanges();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(element.querySelector('.plist')).toBeNull();
+
+    button(element, 'Participants (2)')!.click();
+    fixture.detectChanges();
+    element.querySelector<HTMLElement>('table')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('.plist')).toBeNull();
+  });
+
+  it('gives the facilitator « Copier Session » and « Copier Session Anim », without showing the links', () => {
+    const { element } = render();
+    expect(button(element, 'Copier Session')).toBeDefined();
+    expect(element.querySelector('app-animation-link')).not.toBeNull();
+    expect(element.textContent).not.toContain('/s/k3Jx9QvT2mLpZ8wR4nYb7A');
   });
 
   it('says the connection is lost and is silent otherwise', () => {

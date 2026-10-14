@@ -20,47 +20,28 @@ describe('AnimationLinkComponent', () => {
     return { fixture, element, clipboard };
   }
 
-  it('offers « Afficher mon lien d’animation » and shows nothing else at first', () => {
+  it('offers « Copier Session Anim » without showing the private link', () => {
     const { element } = render('secret');
-    expect(element.querySelector('button')?.textContent?.trim()).toBe(
-      "Afficher mon lien d'animation",
-    );
-    expect(element.querySelector('code')).toBeNull();
+    expect(element.querySelector('button')?.textContent?.trim()).toBe('Copier Session Anim');
+    expect(element.textContent).not.toContain('secret');
   });
 
-  it('rebuilds the private link from the stored token, with a warning, and copies it', async () => {
-    const { fixture, element, clipboard } = render('secret');
+  it('copies the private link rebuilt from the stored token', async () => {
+    const { element, clipboard } = render('secret');
 
     element.querySelector<HTMLButtonElement>('button')!.click();
-    fixture.detectChanges();
-
-    expect(element.querySelector('code')?.textContent).toBe(
-      `${location.origin}/s/${SESSION_ID}/animer#secret`,
-    );
-    expect(element.textContent).toContain('À garder pour vous.');
-    element.querySelector<HTMLButtonElement>('.linkbox button')!.click();
     await Promise.resolve();
+
     expect(clipboard).toHaveBeenCalledWith(`${location.origin}/s/${SESSION_ID}/animer#secret`);
   });
 
-  it('hides the link again', () => {
-    const { fixture, element } = render('secret');
-    element.querySelector<HTMLButtonElement>('button')!.click();
-    fixture.detectChanges();
-
-    element.querySelector<HTMLButtonElement>('.secret > button')!.click();
-    fixture.detectChanges();
-
-    expect(element.querySelector('code')).toBeNull();
-  });
-
   it('says so when this browser has no animation token', () => {
-    const { fixture, element } = render(null);
+    const { fixture, element, clipboard } = render(null);
 
     element.querySelector<HTMLButtonElement>('button')!.click();
     fixture.detectChanges();
 
     expect(element.querySelector('[role="alert"]')?.textContent).toContain("jeton d'animation");
-    expect(element.querySelector('code')).toBeNull();
+    expect(clipboard).not.toHaveBeenCalled();
   });
 });

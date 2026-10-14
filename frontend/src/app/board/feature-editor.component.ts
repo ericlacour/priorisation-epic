@@ -1,8 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnInit,
+  afterNextRender,
   computed,
+  inject,
   input,
   output,
   signal,
@@ -86,31 +89,33 @@ export function parseCriterionInput(text: string, scale: SessionScale): number |
         />
       </td>
     }
-    <td class="num" [attr.colspan]="definition().computedValues.length">
+    <td class="recalc" [attr.colspan]="definition().computedValues.length">
       <span class="muted small">{{ messages.recalculated }}</span>
     </td>
     <td class="actions-cell">
-      @if (confirming()) {
-        <span class="confirm" role="alert">{{ confirmText() }}</span>
-        <button type="button" class="btn btn-danger btn-sm" (click)="remove()">
-          {{ messages.confirmRemoveYes }}
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="confirming.set(false)">
-          {{ messages.cancel }}
-        </button>
-      } @else {
-        <button type="button" class="btn btn-primary btn-sm" (click)="save()">
-          {{ messages.save }}
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="cancelled.emit()">
-          {{ messages.cancel }}
-        </button>
-        @if (feature()) {
-          <button type="button" class="btn btn-secondary btn-sm" (click)="confirming.set(true)">
-            {{ messages.remove }}
+      <div class="row-actions">
+        @if (confirming()) {
+          <span class="confirm" role="alert">{{ confirmText() }}</span>
+          <button type="button" class="btn btn-danger btn-sm" (click)="remove()">
+            {{ messages.confirmRemoveYes }}
           </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="confirming.set(false)">
+            {{ messages.cancel }}
+          </button>
+        } @else {
+          <button type="button" class="btn btn-primary btn-sm" (click)="save()">
+            {{ messages.save }}
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="cancelled.emit()">
+            {{ messages.cancel }}
+          </button>
+          @if (feature()) {
+            <button type="button" class="btn btn-secondary btn-sm" (click)="confirming.set(true)">
+              {{ messages.remove }}
+            </button>
+          }
         }
-      }
+      </div>
     </td>
   `,
 })
@@ -125,6 +130,15 @@ export class FeatureEditorComponent implements OnInit {
   readonly cancelled = output<void>();
   /** Suppression confirmée, avec la version du début de l'édition (jamais de suppression silencieuse). */
   readonly removed = output<number>();
+
+  constructor() {
+    // La ligne s'ouvre en entier dans la liste, sans défilement à faire, et le curseur est dans le premier champ.
+    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    afterNextRender(() => {
+      host.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+      host.querySelector('input')?.focus({ preventScroll: true });
+    });
+  }
 
   /** La fonctionnalité telle qu'elle était au début de l'édition : ce qui change se compare à elle, pas à l'état en direct. */
   private base: Feature | null = null;
