@@ -52,6 +52,44 @@ describe('CopyButtonComponent', () => {
     expect(element.querySelector('code')?.textContent).toBe('https://exemple.test/s/1');
   });
 
+  it('closes the message with its ×, with Escape and with a click elsewhere', async () => {
+    const refuse = vi.fn(async () => Promise.reject(new Error('denied')));
+    const { fixture, element, button } = render('https://exemple.test/s/1', refuse);
+    const fail = async () => {
+      button.click();
+      await new Promise((resolve) => setTimeout(resolve));
+      fixture.detectChanges();
+      expect(element.querySelector('[role="alert"]')).not.toBeNull();
+    };
+
+    await fail();
+    element.querySelector<HTMLButtonElement>('button[aria-label="Fermer"]')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+
+    await fail();
+    element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+
+    await fail();
+    document.body.click();
+    fixture.detectChanges();
+    expect(element.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('stops its « Copié » timer when destroyed', async () => {
+    vi.useFakeTimers();
+    const { fixture, button } = render('https://exemple.test/s/1');
+    button.click();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(vi.getTimerCount()).toBe(1);
+
+    fixture.destroy();
+
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('says the link is unavailable when there is nothing to copy', () => {
     const { fixture, element, button, clipboard } = render(null);
 

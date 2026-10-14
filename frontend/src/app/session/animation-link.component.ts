@@ -29,7 +29,7 @@ export class AnimationLinkComponent {
 
   readonly sessionId = input.required<string>();
 
-  /** Lu à chaque rendu : le jeton peut être rangé après l'ouverture de la page. */
+  /** Le jeton est rangé avant l'ouverture du tableau (à la création, ou par le lien d'animation). */
   protected url(): string | null {
     const token = this.storage.readAnimationToken(this.sessionId());
     return token ? `${this.document.location.origin}/s/${this.sessionId()}/animer#${token}` : null;

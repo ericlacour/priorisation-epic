@@ -18,6 +18,7 @@ import { SessionRoomService } from '../session/session-room.service';
 import { CopyButtonComponent } from '../shared/copy-button.component';
 import { CriterionTermComponent } from '../shared/criterion-term.component';
 import { MethodGlossaryComponent } from '../shared/method-glossary.component';
+import { MethodInfoComponent } from '../shared/method-info.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
 import {
   FeatureDetailPanelComponent,
@@ -25,6 +26,7 @@ import {
   TextEdit,
 } from './feature-detail-panel.component';
 import { FeatureEdit, FeatureEditorComponent } from './feature-editor.component';
+import { ParticipantsMenuComponent } from './participants-menu.component';
 
 /** Ce que le dernier envoi voulait faire, pour proposer « Remplacer par les miennes » après un conflit. */
 interface PendingUpdate {
@@ -57,15 +59,12 @@ const NEW_ROW = 'new';
     FeatureDetailPanelComponent,
     FeatureEditorComponent,
     MethodGlossaryComponent,
+    MethodInfoComponent,
     MethodPanelComponent,
+    ParticipantsMenuComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    class: 'board-page',
-    role: 'main',
-    '(document:click)': 'closeParticipantsOutside($event)',
-    '(document:keydown.escape)': 'showParticipants.set(false)',
-  },
+  host: { class: 'board-page', role: 'main' },
   template: `
     @if (state(); as state) {
       <div class="board-head">
@@ -75,42 +74,10 @@ const NEW_ROW = 'new';
         </div>
         <div class="board-tools">
           <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
-          <div class="participants-menu">
-            <button
-              type="button"
-              class="btn btn-secondary btn-sm"
-              aria-controls="participants-list"
-              [attr.aria-expanded]="showParticipants()"
-              (click)="showParticipants.set(!showParticipants())"
-            >
-              {{ participantsTitle() }} {{ showParticipants() ? '▴' : '▾' }}
-            </button>
-            @if (showParticipants()) {
-              <div
-                id="participants-list"
-                class="participants-pop"
-                role="region"
-                [attr.aria-label]="messages.participantsList"
-              >
-                <ul class="plist">
-                  @for (participant of state.participants; track participant.participantId) {
-                    <li>
-                      <span
-                        class="dot"
-                        [class.on]="participant.online"
-                        [class.off]="!participant.online"
-                      ></span>
-                      {{ participant.pseudo }}
-                      @if (participant.participantId === state.me?.participantId) {
-                        {{ messages.youSuffix }}
-                      }
-                      <span class="role">{{ roleOf(participant) }}</span>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-          </div>
+          <app-participants-menu
+            [participants]="state.participants"
+            [meId]="state.me?.participantId ?? null"
+          />
           @if (canAnimate()) {
             <app-copy-button
               [label]="messages.copyInvite"
@@ -224,13 +191,23 @@ const NEW_ROW = 'new';
                         />
                       </th>
                     }
-                    @for (computed of state.methodDefinition.computedValues; track computed.key) {
+                    @for (
+                      computed of state.methodDefinition.computedValues;
+                      track computed.key;
+                      let last = $last
+                    ) {
                       <th class="num">
                         <app-criterion-term
                           [code]="computed.code"
                           [label]="computed.label"
                           [definition]="computed.definition"
                         />
+                        @if (last) {
+                          <app-method-info
+                            [formula]="state.formula"
+                            [tieBreakRule]="state.tieBreakRule"
+                          />
+                        }
                       </th>
                     }
                     @if (canAnimate()) {
@@ -394,8 +371,6 @@ export class BoardComponent {
   protected readonly editing = signal<string | null>(null);
   protected readonly selectedId = signal<string | null>(null);
   protected readonly showMethod = signal(false);
-  /** La liste des participants ne s'affiche qu'à la demande (FR-005). */
-  protected readonly showParticipants = signal(false);
   private readonly frozenOrder = signal<readonly string[] | null>(null);
   private readonly pending = signal<PendingUpdate | null>(null);
   /** Ce que la ligne en édition attend du serveur, pour la refermer à la confirmation. */
@@ -520,25 +495,6 @@ export class BoardComponent {
     return this.canAnimate()
       ? format(this.messages.facilitatorLine, { facilitator, me, max: state.scale.max })
       : format(this.messages.participantLine, { facilitator, me, max: state.scale.max });
-  }
-
-  protected participantsTitle(): string {
-    return format(this.messages.participants, { count: this.state()?.participants.length ?? 0 });
-  }
-
-  /** Un clic hors du menu des participants le referme. */
-  protected closeParticipantsOutside(event: Event): void {
-    const target = event.target;
-    if (target instanceof Element && target.closest('.participants-menu')) return;
-    this.showParticipants.set(false);
-  }
-
-  protected roleOf(participant: { role: string; online: boolean }): string {
-    return participant.role === 'FACILITATOR'
-      ? this.messages.animator
-      : participant.online
-        ? ''
-        : this.messages.offline;
   }
 
   protected rankOf(feature: Feature): number | null {
