@@ -220,6 +220,43 @@ test.describe('tableau de priorisation', () => {
     expect(overflows).toBe(false);
   });
 
+  test('une ligne ouverte en partie cachée se place sous l’en-tête figé, pas derrière', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await open(page, true);
+    await push(page, sessionState(manyFeatures(30), { animate: true }));
+    const target = rows(page).nth(12);
+    // La ligne passe à moitié sous l'en-tête figé, puis on l'ouvre.
+    await page.locator('.table-wrap').evaluate(
+      (wrap, top) => {
+        wrap.scrollTop = top;
+      },
+      await target.evaluate((row) => (row as HTMLElement).offsetTop - 10),
+    );
+    await target.getByRole('button', { name: 'Modifier' }).dispatchEvent('click');
+
+    await expect(page.getByRole('textbox', { name: 'Titre' })).toBeFocused();
+    await expect
+      .poll(async () => {
+        const header = await page.locator('thead th').first().boundingBox();
+        const row = await page.locator('.edit-row').boundingBox();
+        return row!.y >= header!.y + header!.height - 1;
+      })
+      .toBe(true);
+  });
+
+  test('l’icône ⓘ de l’en-tête WSJF donne la formule et la règle de tri', async ({ page }) => {
+    await open(page, false);
+    await push(page, sessionState([F1, F2, F3], { animate: false }));
+
+    await page.getByRole('button', { name: /^Formule et règle de tri/ }).hover();
+    const tip = page.getByRole('tooltip');
+    await expect(tip).toContainText('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
+    await expect(tip).toContainText('Tri : WSJF décroissant');
+    await expect(tip).toContainText('fin de liste');
+  });
+
   test('les titres longs s’affichent en entier', async ({ page }) => {
     await open(page, false);
     await push(page, sessionState(manyFeatures(1), { animate: false }));

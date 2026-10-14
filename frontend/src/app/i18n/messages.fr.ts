@@ -60,6 +60,7 @@ export const MESSAGES = {
     copy: 'Copier',
     copied: 'Copié',
     copyFailed: 'Copie impossible : sélectionnez le lien et copiez-le.',
+    close: 'Fermer',
   },
   join: {
     title: 'Rejoindre la session',
@@ -210,6 +211,11 @@ export const MESSAGES = {
     scale: 'Échelle de la session',
     scaleValue: 'Entiers de 1 à {max}',
     frozen: 'La méthode est choisie à la création de la session et ne peut plus être modifiée',
+  },
+  methodInfo: {
+    label: 'Formule et règle de tri',
+    sort: 'Tri : {rule}',
+    endOfList: 'Les fonctionnalités incomplètes ou hors échelle viennent en fin de liste.',
   },
   animationLink: {
     copy: 'Copier Session Anim',

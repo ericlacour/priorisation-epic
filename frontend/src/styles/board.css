@@ -90,11 +90,17 @@ app-root > app-session-entry {
   gap: 6px;
   width: 320px;
   margin-top: 6px;
-  padding: 10px 12px;
+  padding: 10px 44px 10px 12px;
   border: 1px solid var(--danger);
   border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+.copy-problem .copy-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
 }
 
 .copy-problem code {
@@ -130,6 +136,8 @@ app-root > app-session-entry {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  /* Le défilement automatique (ligne en édition) s'arrête sous l'en-tête figé, pas derrière. */
+  scroll-padding-top: 44px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
@@ -299,8 +307,38 @@ tr:first-child > td > .rank {
   white-space: normal;
 }
 
-app-criterion-term {
+app-criterion-term,
+app-method-info {
   position: relative;
+}
+
+/* Icône ⓘ de l'en-tête WSJF : formule et règle de tri au survol. */
+.info-icon {
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: help;
+}
+
+/* Le symbole vient du CSS : le texte de l'en-tête reste « WSJF », le nom accessible est l'aria-label. */
+.info-icon::before {
+  content: 'ⓘ';
+}
+
+.info-icon:focus-visible {
+  outline: 2px solid var(--primary-ink);
+  outline-offset: 2px;
+}
+
+/* À droite du tableau : l'aide s'ouvre vers la gauche, sans élargir la liste. */
+.info-tip {
+  right: 0;
+  display: grid;
+  gap: 4px;
+  width: 280px;
 }
 
 .glossary-box {

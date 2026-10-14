@@ -228,19 +228,20 @@ describe('BoardComponent', () => {
     expect(items[1].querySelector('.dot.off')).not.toBeNull();
   });
 
-  it('closes the participants list on Escape and on a click elsewhere', () => {
+  it('puts the formula and the sort rule behind an ⓘ next to the main value header (constitution I)', () => {
     const { fixture, element } = render();
-    button(element, 'Participants (2)')!.click();
-    fixture.detectChanges();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    fixture.detectChanges();
-    expect(element.querySelector('.plist')).toBeNull();
+    const headersWithInfo = [...element.querySelectorAll('thead th')].filter((th) =>
+      th.querySelector('app-method-info'),
+    );
+    expect(headersWithInfo.map((th) => th.querySelector('.term')?.textContent?.trim())).toEqual([
+      'WSJF',
+    ]);
+    const info = element.querySelector<HTMLButtonElement>('.info-icon')!;
+    expect(info.getAttribute('aria-label')).toContain('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
 
-    button(element, 'Participants (2)')!.click();
+    info.dispatchEvent(new Event('mouseenter'));
     fixture.detectChanges();
-    element.querySelector<HTMLElement>('table')!.click();
-    fixture.detectChanges();
-    expect(element.querySelector('.plist')).toBeNull();
+    expect(element.querySelector('.info-tip')?.textContent).toContain('Tri : ');
   });
 
   it('gives the facilitator « Copier Session » and « Copier Session Anim », without showing the links', () => {
