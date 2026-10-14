@@ -122,7 +122,9 @@ test('V4 (partie US1), SC-002 : un participant voit le tableau en direct, sans a
   await expect(alice.getByRole('button', { name: 'Modifier', exact: true })).toHaveCount(0);
   await expect(alice.getByRole('button', { name: '+ Fonctionnalité' })).toHaveCount(0);
   await expect.poll(() => rowTexts(alice)).toEqual(['1 F-1 Paiement en un clic 8 5 3 4 16 4,00']);
-  // Les deux sont en ligne, chez tous.
+  // Les deux sont en ligne, chez tous (la liste s'ouvre à la demande).
+  await alice.getByRole('button', { name: /^Participants/ }).click();
+  await page.getByRole('button', { name: /^Participants/ }).click();
   await expect(alice.locator('.plist li .dot.on')).toHaveCount(2);
   await expect(page.locator('.plist li .dot.on')).toHaveCount(2);
 
@@ -216,10 +218,22 @@ test('FR-002 : le lien d’animation ouvre les droits d’animateur dans un autr
   browser,
   page,
 }) => {
+  // Le presse-papiers est remplacé : ce que « Copier Session Anim » copie se relit dans la page.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          (window as unknown as { copied: string }).copied = text;
+        },
+      },
+    });
+  });
   await createSession(page);
   await addFeature(page, 'F-1', 'Paiement en un clic', { BV: '8', TC: '5', 'RR/OE': '3', JS: '4' });
-  await page.getByRole('button', { name: "Afficher mon lien d'animation" }).click();
-  const animation = await page.locator('.secret code').innerText();
+  await page.getByRole('button', { name: 'Copier Session Anim' }).click();
+  await expect(page.getByRole('button', { name: 'Copié' })).toBeVisible();
+  const animation = await page.evaluate(() => (window as unknown as { copied: string }).copied);
   expect(animation).toContain('/animer#');
 
   // Un autre navigateur : il rejoint, puis ouvre le lien privé et obtient les droits d'animateur.

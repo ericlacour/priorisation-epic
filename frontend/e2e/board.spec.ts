@@ -56,9 +56,8 @@ test.describe('tableau de priorisation', () => {
     await expect(page.getByText('Aucun tour de vote en cours')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Modifier', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '+ Fonctionnalité' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: "Afficher mon lien d'animation" })).toHaveCount(
-      0,
-    );
+    await expect(page.getByRole('button', { name: 'Copier Session Anim' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Copier Session', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Exporter' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Tours révélés' })).toBeDisabled();
     await expect(page.getByRole('cell', { name: '4,00' })).toBeVisible();
@@ -202,6 +201,33 @@ test.describe('tableau de priorisation', () => {
     // L’en-tête reste visible quand la liste défile.
     await page.locator('.table-wrap').evaluate((el) => (el.scrollTop = el.scrollHeight));
     await expect(page.locator('thead th').first()).toBeInViewport();
+  });
+
+  test('1280 × 720 : la ligne en édition tient dans le tableau, sans défilement horizontal', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await open(page, true);
+    await push(page, sessionState(manyFeatures(30), { animate: true }));
+    await rows(page).nth(25).getByRole('button', { name: 'Modifier' }).click();
+
+    await expect(page.getByRole('button', { name: 'Enregistrer' })).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Supprimer' })).toBeInViewport();
+    await expect(page.getByRole('textbox', { name: 'Titre' })).toBeFocused();
+    const overflows = await page
+      .locator('.table-wrap')
+      .evaluate((wrap) => wrap.scrollWidth > wrap.clientWidth);
+    expect(overflows).toBe(false);
+  });
+
+  test('les titres longs s’affichent en entier', async ({ page }) => {
+    await open(page, false);
+    await push(page, sessionState(manyFeatures(1), { animate: false }));
+    const title = page.locator('td.title').first();
+    await expect(title).toHaveText(
+      'Fonctionnalité numéro 1 avec un titre assez long pour être tronqué dans la colonne du tableau',
+    );
+    expect(await title.evaluate((cell) => cell.scrollWidth <= cell.clientWidth)).toBe(true);
   });
 
   test('le panneau de détail s’ouvre au clic sur l’identifiant et se ferme par Échap', async ({

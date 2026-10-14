@@ -53,8 +53,7 @@ export const MESSAGES = {
     animationWarning: 'À garder pour vous.',
     animationHelp:
       "C'est le seul moyen de reprendre la main en tant qu'animateur depuis un autre poste. Ne le partagez pas.",
-    laterHelp:
-      "Vous pourrez le réafficher plus tard depuis la session, avec « Afficher mon lien d'animation ».",
+    laterHelp: 'Vous pourrez le copier à nouveau depuis la session, avec « Copier Session Anim ».',
     goToSession: 'Aller à la session',
   },
   link: {
@@ -132,13 +131,12 @@ export const MESSAGES = {
     noValue: '—',
     openDetail: 'Voir le descriptif de {id}',
     edit: 'Modifier',
-    legend:
-      'Cliquez sur un identifiant pour lire son descriptif. Fonctionnalités incomplètes ou hors échelle en fin de liste.',
     participants: 'Participants ({count})',
+    participantsList: 'Liste des participants',
     animator: 'animateur',
     offline: 'hors ligne',
-    invite: 'Inviter',
-    showAnimationLink: "Afficher mon lien d'animation",
+    copyInvite: 'Copier Session',
+    copyInviteHint: "Copie le lien d'invitation à envoyer aux participants",
   },
   editor: {
     newTitle: 'Nouvelle fonctionnalité',
@@ -214,9 +212,8 @@ export const MESSAGES = {
     frozen: 'La méthode est choisie à la création de la session et ne peut plus être modifiée',
   },
   animationLink: {
-    show: "Afficher mon lien d'animation",
-    hide: 'Masquer',
-    warning: 'À garder pour vous.',
+    copy: 'Copier Session Anim',
+    hint: "Copie votre lien d'animation privé : il redonne les droits d'animateur. Ne le partagez pas.",
     missing: "Ce navigateur ne contient pas le jeton d'animation de cette session.",
   },
   intentErrors: {

@@ -48,6 +48,61 @@ app-root > app-session-entry {
   margin: 0;
 }
 
+/* En haut à droite : statut, participants à la demande, liens à copier. */
+.board-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.board-tools .badge {
+  align-self: center;
+}
+
+.participants-menu {
+  position: relative;
+}
+
+.participants-pop {
+  position: absolute;
+  right: 0;
+  z-index: 6;
+  min-width: 240px;
+  margin-top: 6px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.copy-button {
+  position: relative;
+}
+
+.copy-problem {
+  position: absolute;
+  right: 0;
+  z-index: 6;
+  display: grid;
+  gap: 6px;
+  width: 320px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.copy-problem code {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  user-select: all;
+}
+
 .board-actions {
   display: flex;
   flex-wrap: wrap;
@@ -105,11 +160,10 @@ app-root > app-session-entry {
   white-space: nowrap;
 }
 
+/* Le titre s'affiche en entier, sur plusieurs lignes si besoin. */
 .board-table td.title {
-  max-width: 280px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 200px;
+  overflow-wrap: anywhere;
 }
 
 .board-table tr.incomplete td {
@@ -125,9 +179,26 @@ app-root > app-session-entry {
   background: var(--primary-soft);
 }
 
+/* La ligne d'édition tient dans la largeur du tableau : champs étroits, boutons sur deux lignes au besoin. */
+.board-table .edit-row td {
+  padding: 6px;
+}
+
 .num-input {
-  width: 64px;
+  width: 48px;
   text-align: right;
+}
+
+.board-table td.recalc {
+  max-width: 110px;
+  line-height: 1.2;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 170px;
 }
 
 .rank {
@@ -159,12 +230,6 @@ tr:first-child > td > .rank {
 
 .review {
   color: var(--warning);
-}
-
-.legend {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .side {
