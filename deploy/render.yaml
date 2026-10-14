@@ -1,0 +1,61 @@
+# Blueprint Render de priorisation-epic (research R11, tâche T061). Mode d'emploi : deploy/README.md.
+#
+# La base n'est pas ici : c'est un projet Neon (AWS Europe Frankfurt), dont la chaîne de connexion
+# est la variable secrète DATABASE_URL de l'API.
+#
+# Les variables `sync: false` sont demandées par Render à la création, et ne sont jamais écrites
+# dans le dépôt :
+#   - DATABASE_URL    : chaîne Neon directe (sans -pooler), terminée par ?sslmode=require ;
+#   - ALLOWED_ORIGINS : URL exacte du front, sans / final (par exemple https://priorisation-epic-app.onrender.com) ;
+#   - API_BASE_URL    : URL exacte de l'API, en https et sans / final (par exemple https://priorisation-epic.onrender.com).
+#
+# Render fixe l'adresse *.onrender.com de chaque service à sa création. Si l'adresse obtenue n'est
+# pas celle prévue, il faut reporter l'adresse réelle dans ALLOWED_ORIGINS et dans API_BASE_URL.
+
+services:
+  # Webservice Spring Boot, image Docker de backend/Dockerfile (compatible OpenShift).
+  - type: web
+    name: priorisation-epic-api
+    runtime: docker
+    rootDir: backend
+    region: frankfurt
+    plan: free
+    healthCheckPath: /api/health
+    # Déploiement manuel, en dehors des ateliers.
+    autoDeployTrigger: "off"
+    envVars:
+      # PORT est fourni par Render ; PROXY_SECRET ne sert que derrière Cloudflare.
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  # Front Angular, servi en site statique.
+  - type: web
+    name: priorisation-epic-app
+    runtime: static
+    rootDir: frontend
+    # write-config.mjs écrit config.json et inject-csp.mjs ajoute la CSP, à partir de API_BASE_URL.
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist/frontend/browser
+    autoDeployTrigger: "off"
+    envVars:
+      - key: API_BASE_URL
+        sync: false
+      - key: NODE_VERSION
+        value: 24.15.0
+    # Routage côté client : /s/:id et /s/:id/animer servent index.html.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer

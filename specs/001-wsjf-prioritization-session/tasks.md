@@ -311,11 +311,12 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 **Objectif** : mettre le MVP en ligne sur Render, avec la base sur Neon. On peut lancer cette phase dès que la phase 3 est terminée, ou plus tard (plan, « Ordre de mise en place »).
 
-- [ ] T061 [P] Créer `deploy/render.yaml` sur le modèle de PP : `deploy/render.yaml` :
+- [X] T061 [P] Créer `deploy/render.yaml` sur le modèle de PP : `deploy/render.yaml` :
   - Web Service Docker `priorisation-epic-api` : `rootDir backend`, `healthCheckPath /api/health`, région `frankfurt`, `autoDeployTrigger "off"`, variables `PORT`, `ALLOWED_ORIGINS` (`sync: false`) et `DATABASE_URL` (`sync: false`, la chaîne Neon) ;
   - Static Site `priorisation-epic` : `npm ci && npm run build`, `staticPublishPath ./dist/frontend/browser`, réécriture `/* → /index.html`, en-têtes de sécurité de PP, `API_BASE_URL` et `NODE_VERSION 24`.
+  - Réalisé (2026-10-14) : le Static Site s'appelle `priorisation-epic-app`, l'API a gardé l'adresse `priorisation-epic.onrender.com` de sa création ; `PORT` est fourni par Render et n'est pas déclaré ; les en-têtes de PP n'étant pas dans ce dépôt, le front pose `X-Content-Type-Options`, `X-Frame-Options` et `Referrer-Policy`
 - [ ] T062 [P] Reprendre de PP `deploy/render-deploy.sh`, `deploy/render-deploy.test.sh` et `.github/workflows/deploy.yml` (étiquette `v*` sur la tête de `main`, l'API d'abord, puis le front). Ajouter le job `deploy-script` dans `.github/workflows/ci.yml`
-- [ ] T063 Rédiger `deploy/README.md` sur le modèle de PP, en y ajoutant :
+- [X] T063 Rédiger `deploy/README.md` sur le modèle de PP, en y ajoutant :
   - la création du projet Neon `priorisation-epic` en région AWS Europe (Frankfurt), avec l'adresse directe (sans `-pooler`) et `sslmode=require` ;
   - les limites de l'offre gratuite de Neon : 0,5 Go, mise en veille après 5 minutes, restauration sur 6 heures ;
   - la consigne « ne pas saisir de données confidentielles tant que l'application est sur Neon » ;
