@@ -411,7 +411,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - **WSJF** : CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.
 
   Ces sigles, noms et définitions viennent de la définition de la méthode (FR-017a) : une
-  autre méthode affiche les siens, et l'encadré prend son nom (« Comprendre le RICE »).
+  autre méthode affiche les siens, et le lien et le panneau d'aide prennent son nom (« Comprendre le RICE »).
 - **FR-017**: La méthode de priorisation DOIT être identifiée explicitement pour chaque
   session, avec sa version. En v1, seule la méthode WSJF (version 1) existe, et sa formule
   et ses critères ne sont pas modifiables par l'utilisateur. D'autres méthodes (RICE,
@@ -452,7 +452,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   session » : nom et version, formule, critères saisis (sigle, nom complet, définition,
   colonne d'import et d'export), valeurs calculées (sigle, nom complet, définition,
   affichage), règle de tri et d'égalité, et échelle de la session. Le panneau s'ouvre
-  depuis l'encadré d'aide (« Voir la méthode complète »), depuis le détail du calcul d'une
+  depuis le panneau d'aide (« Voir la méthode complète »), depuis le détail du calcul d'une
   fonctionnalité et depuis le formulaire de création. Il rappelle que la méthode est
   fixée à la création et ne peut pas être modifiée. Son contenu vient uniquement de la
   définition de la méthode (FR-017a).

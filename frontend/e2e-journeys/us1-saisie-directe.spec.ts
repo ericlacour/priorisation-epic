@@ -85,7 +85,8 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
-  // V1a : « Voir la méthode complète » depuis l'encadré d'aide.
+  // V1a : « Voir la méthode complète » depuis le panneau « Comprendre le WSJF ».
+  await page.getByRole('button', { name: 'Comprendre le WSJF' }).click();
   await page.getByRole('button', { name: 'Voir la méthode complète' }).click();
   await expect(page.getByRole('dialog')).toContainText('Entiers de 1 à 10');
   await page.keyboard.press('Escape');
