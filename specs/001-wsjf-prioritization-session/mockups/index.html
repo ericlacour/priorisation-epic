@@ -407,6 +407,27 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 .screen { display: none; }
 .screen.active { display: block; }
 .anno { border-left: 3px solid var(--primary); padding: 2px 0 2px 10px; font-size: 13px; color: var(--muted); }
+
+/* ---------- Prioriser par classement (FR-015a) ---------- */
+.rank-setup { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 16px; }
+@container (max-width: 700px) { .rank-setup { grid-template-columns: 1fr; } }
+.rank-setup fieldset { margin: 0; display: grid; gap: 8px; align-content: start; }
+.rank-setup legend { font-weight: 700; padding: 0 4px; }
+.rank-setup label { display: flex; gap: 8px; align-items: baseline; }
+.rank-setup input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+.rank-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rank-top .input { width: 64px; text-align: right; }
+.rank-levels { list-style: none; margin: 0; padding: 8px; display: grid; gap: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.rank-level { display: flex; gap: 10px; align-items: flex-start; padding: 6px; border-radius: 10px; background: var(--surface-muted); }
+.rank-level.drop { outline: 2px dashed var(--primary); background: var(--primary-soft); }
+.rank-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; flex: 1; min-width: 0; }
+.rank-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: grab; }
+.rank-item .grip { color: var(--muted); }
+.rank-item .t { flex: 1 1 200px; min-width: 0; }
+.rank-item .input { width: 56px; min-height: 36px; padding: 4px 8px; text-align: right; }
+.rank-item .input.override { border-color: var(--warning); }
+.rank-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.rank-steps .badge.current { background: var(--primary); color: var(--primary-fg); }
 </style>
 </head>
 <body>
@@ -431,6 +452,8 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
   <button type="button" data-screen="s4c">4 ter. Descriptif</button>
   <button type="button" data-screen="s4d">4 quater. Méthode</button>
   <button type="button" data-screen="s4e">4 quinquies. Tableau (participant)</button>
+  <button type="button" data-screen="s4f">4 sexies. Classement : choix</button>
+  <button type="button" data-screen="s4g">4 septies. Classement par critère</button>
   <button type="button" data-screen="s5">5. Tour en cours (participant)</button>
   <button type="button" data-screen="s6">6. Révélation et consensus</button>
   <button type="button" data-screen="s7">7. Import</button>
@@ -544,6 +567,7 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
     <div class="actions no-phone">
       <button class="btn primary" type="button">Démarrer la session</button>
       <button class="btn" type="button">+ Fonctionnalité</button>
+      <button class="btn" type="button" data-go="s4f" title="Classer les fonctionnalités critère par critère, puis proposer les valeurs">Prioriser par classement</button>
       <button class="btn" type="button" data-go="s7">Importer</button>
       <button class="btn" type="button" data-go="s8">Échelle</button>
       <button class="btn" type="button" data-go="s9">Exporter</button>
@@ -732,6 +756,118 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
       </div>
     </div>
   </div>
+</section>
+
+<!-- ======================= 4 sexies. PRIORISER PAR CLASSEMENT : CHOIX ======================= -->
+<section class="screen" id="s4f" data-note="Ordinateur uniquement. FR-015a, retour d'usage du 2026-10-15 : ouvert depuis « Prioriser par classement » sur le tableau. L'animateur choisit les critères à saisir (au moins un, tous par défaut, dans l'ordre de la définition de la méthode) et les fonctionnalités à classer (une, plusieurs ou toutes ; celles d'un tour ouvert sont exclues). Rien n'est envoyé avant « Terminer et enregistrer » ; « Annuler » revient au tableau sans rien changer.">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge prep">En préparation</span>
+  </header>
+  <div class="page no-phone">
+    <div class="actions" style="justify-content:space-between">
+      <div><h2 style="margin:0">Prioriser par classement</h2><p class="small muted" style="margin:0">Choisissez les critères à saisir et les fonctionnalités à classer, puis classez-les critère par critère.</p></div>
+      <button class="btn" type="button" data-go="s4">Annuler</button>
+    </div>
+    <div class="rank-setup">
+      <fieldset class="card">
+        <legend>1. Critères à saisir</legend>
+        <label><input type="checkbox" checked> <b>BV</b> · Business Value</label>
+        <label><input type="checkbox" checked> <b>TC</b> · Time Criticality</label>
+        <label><input type="checkbox"> <b>RR/OE</b> · Risk Reduction / Opportunity Enablement</label>
+        <label><input type="checkbox" checked> <b>JS</b> · Job Size</label>
+        <p class="help" style="margin:0">Au moins un critère. Les critères non cochés gardent leurs valeurs.</p>
+      </fieldset>
+      <fieldset class="card">
+        <legend>2. Fonctionnalités à classer</legend>
+        <div class="actions"><button class="btn ghost sm" type="button">Tout sélectionner</button><button class="btn ghost sm" type="button">Tout désélectionner</button></div>
+        <label><input type="checkbox" checked> <b>F-1</b> Paiement en un clic</label>
+        <label><input type="checkbox" checked> <b>F-2</b> Notifications de livraison</label>
+        <label><input type="checkbox" checked> <b>F-3</b> Programme de fidélité</label>
+        <label><input type="checkbox" checked> <b>F-4</b> Export comptable mensuel</label>
+        <label><input type="checkbox" checked> <b>F-5</b> Refonte de la recherche</label>
+        <label><input type="checkbox" disabled> <b>F-6</b> Suivi des retours produits <span class="muted small">(tour de vote ouvert)</span></label>
+        <label><input type="checkbox" checked> <b>F-8</b> Réservation de créneau de livraison</label>
+        <label><input type="checkbox" checked> <b>F-10</b> Tableau de bord des ventes</label>
+        <label><input type="checkbox" checked> <b>F-11</b> Comparateur de produits</label>
+        <label><input type="checkbox" checked> <b>F-12</b> Alertes de baisse de prix</label>
+        <label><input type="checkbox" checked> <b>F-13</b> Partage de liste de courses</label>
+        <label><input type="checkbox" checked> <b>F-14</b> Mode hors connexion</label>
+      </fieldset>
+    </div>
+    <div class="actions" style="justify-content:flex-end"><button class="btn primary" type="button" data-go="s4g">Commencer le classement</button></div>
+  </div>
+  <div class="page phone-only"><div class="notice info" role="note"><span class="ico">i</span><span>Pour saisir les valeurs, utilisez un ordinateur.</span></div></div>
+</section>
+
+<!-- ======================= 4 septies. PRIORISER PAR CLASSEMENT : UN CRITÈRE ======================= -->
+<section class="screen" id="s4g" data-note="Ordinateur uniquement. FR-015a. Un critère après l'autre (ici BV, critère 1 sur 3). L'animateur classe les fonctionnalités de la plus forte à la plus faible, par glisser-déposer (sur un niveau : égalité ; entre deux niveaux : nouveau niveau) ou au clavier (Monter, Descendre, Égalité avec au-dessus). Il fixe la valeur du premier niveau (par défaut le maximum de l'échelle) ; chaque niveau suivant reçoit la valeur juste inférieure de l'échelle, sans valeur sous la plus petite. Toute valeur se modifie ou se vide à la main (« modifiée ») ; « Revenir aux valeurs proposées » annule ces changements. Au départ, les fonctionnalités qui ont déjà une valeur sont groupées par valeur décroissante. « Terminer et enregistrer », au dernier critère, envoie une modification par fonctionnalité et rouvre le tableau, trié par WSJF. Le même classement servira au vote de chaque participant pendant un tour (FR-019).">
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">PF</div>
+    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
+    <span class="spacer"></span>
+    <span class="badge prep">En préparation</span>
+  </header>
+  <div class="page no-phone">
+    <div class="actions" style="justify-content:space-between">
+      <div><h2 style="margin:0">Prioriser par classement</h2><p class="small muted" style="margin:0">Critère 1 sur 3 : BV · Business Value · 11 fonctionnalités</p></div>
+      <button class="btn" type="button" data-go="s4">Annuler</button>
+    </div>
+    <div class="rank-steps" aria-label="Étapes"><span class="badge current">1. BV</span><span class="badge">2. TC</span><span class="badge">3. JS</span></div>
+    <p style="margin:0">Classez les fonctionnalités de la plus forte à la plus faible pour BV (Business Value). Mettez au même niveau celles qui se valent, puis ajustez les valeurs proposées si besoin.</p>
+    <div class="rank-top">
+      <label for="rk-top" style="font-weight:600">Valeur du premier niveau (BV)</label>
+      <input id="rk-top" class="input" inputmode="numeric" value="10">
+      <button class="btn sm" type="button">Revenir aux valeurs proposées</button>
+      <span class="help">Glissez une fonctionnalité sur un niveau pour la mettre à égalité, ou entre deux niveaux.</span>
+    </div>
+    <ol class="rank-levels" aria-label="Classement pour BV">
+      <li class="rank-level"><span class="rank" aria-label="Niveau 1">1</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a><span class="t">Refonte de la recherche</span><input class="input" inputmode="numeric" aria-label="BV de F-5" value="10"><button class="btn ghost sm" type="button" disabled aria-label="Monter : F-5">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-5">↓ Descendre</button><button class="btn ghost sm" type="button" disabled aria-label="Égalité avec au-dessus : F-5">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level"><span class="rank" aria-label="Niveau 2">2</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a><span class="t">Paiement en un clic</span><input class="input" inputmode="numeric" aria-label="BV de F-1" value="9"><button class="btn ghost sm" type="button" aria-label="Monter : F-1">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-1">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-1">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level"><span class="rank" aria-label="Niveau 3">3</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a><span class="t">Programme de fidélité</span><input class="input" inputmode="numeric" aria-label="BV de F-3" value="8"><button class="btn ghost sm" type="button" aria-label="Monter : F-3">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-3">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-3">= Égalité avec au-dessus</button></li>
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a><span class="t">Réservation de créneau de livraison</span><input class="input" inputmode="numeric" aria-label="BV de F-8" value="8"><button class="btn ghost sm" type="button" aria-label="Monter : F-8">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-8">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-8">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level drop"><span class="rank" aria-label="Niveau 4">4</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a><span class="t">Export comptable mensuel</span><input class="input" inputmode="numeric" aria-label="BV de F-4" value="7"><button class="btn ghost sm" type="button" aria-label="Monter : F-4">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-4">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-4">= Égalité avec au-dessus</button></li>
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a><span class="t">Tableau de bord des ventes</span><input class="input" inputmode="numeric" aria-label="BV de F-10" value="7"><button class="btn ghost sm" type="button" aria-label="Monter : F-10">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-10">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-10">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level"><span class="rank" aria-label="Niveau 5">5</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a><span class="t">Mode hors connexion</span><input class="input override" inputmode="numeric" aria-label="BV de F-14" value="5"> <span class="badge warn">modifiée</span><button class="btn ghost sm" type="button" aria-label="Monter : F-14">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-14">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-14">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level"><span class="rank" aria-label="Niveau 6">6</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a><span class="t">Comparateur de produits</span><input class="input" inputmode="numeric" aria-label="BV de F-11" value="5"><button class="btn ghost sm" type="button" aria-label="Monter : F-11">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-11">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-11">= Égalité avec au-dessus</button></li>
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a><span class="t">Alertes de baisse de prix</span><input class="input" inputmode="numeric" aria-label="BV de F-12" value="5"><button class="btn ghost sm" type="button" aria-label="Monter : F-12">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-12">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-12">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+      <li class="rank-level"><span class="rank" aria-label="Niveau 7">7</span>
+        <ul class="rank-items">
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a><span class="t">Partage de liste de courses</span><input class="input" inputmode="numeric" aria-label="BV de F-13" value="4"><button class="btn ghost sm" type="button" aria-label="Monter : F-13">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-13">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-13">= Égalité avec au-dessus</button></li>
+          <li class="rank-item" draggable="true"><span class="grip" aria-hidden="true">⠿</span><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a><span class="t">Notifications de livraison</span><input class="input" inputmode="numeric" aria-label="BV de F-2" value="4"><button class="btn ghost sm" type="button" aria-label="Monter : F-2">↑ Monter</button><button class="btn ghost sm" type="button" aria-label="Descendre : F-2">↓ Descendre</button><button class="btn ghost sm" type="button" aria-label="Égalité avec au-dessus : F-2">= Égalité avec au-dessus</button></li>
+        </ul>
+      </li>
+    </ol>
+    <p class="help" style="margin:0">Propositions : 10, 9, 8… un cran de l'échelle par niveau. F-14 a été modifiée à la main (5 au lieu de 6). Le niveau 4 est survolé pendant un glisser-déposer.</p>
+    <div class="actions" style="justify-content:flex-end"><button class="btn" type="button" data-go="s4f">Précédent</button><button class="btn primary" type="button">Critère suivant</button></div>
+  </div>
+  <div class="page phone-only"><div class="notice info" role="note"><span class="ico">i</span><span>Pour saisir les valeurs, utilisez un ordinateur.</span></div></div>
 </section>
 
 <!-- ======================= 4 ter. DESCRIPTIF D'UNE FONCTIONNALITÉ ======================= -->
