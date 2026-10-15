@@ -281,7 +281,7 @@ test.describe('tableau de priorisation', () => {
     await expect(dialog).toHaveCount(0);
   });
 
-  test('l’aide : la définition d’un sigle au survol, l’encadré repliable garde son état', async ({
+  test('l’aide : la définition d’un sigle au survol, « Comprendre le WSJF » s’ouvre dans un panneau', async ({
     page,
   }) => {
     await open(page, false);
@@ -293,12 +293,12 @@ test.describe('tableau de priorisation', () => {
     );
 
     const glossary = page.locator('app-method-glossary');
+    await expect(glossary).toHaveCount(0);
+    await page.getByRole('button', { name: 'Comprendre le WSJF' }).click();
+    await expect(glossary.getByRole('dialog', { name: 'Comprendre le WSJF' })).toBeVisible();
     await expect(glossary.getByRole('term').first()).toBeVisible();
-    await glossary.getByRole('button', { name: /Comprendre le WSJF/ }).click();
-    await expect(glossary.getByRole('term')).toHaveCount(0);
-    await page.reload();
-    await push(page, sessionState([F1], { animate: false }));
-    await expect(glossary.getByRole('term')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(glossary).toHaveCount(0);
   });
 
   test('accessibilité (axe-core) : tableau animateur, tableau participant, panneau de détail', async ({

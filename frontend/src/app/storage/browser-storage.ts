@@ -17,7 +17,6 @@ export const LOCAL_STORAGE = new InjectionToken<() => Storage | null>('LOCAL_STO
 
 const PSEUDO_KEY = 'pe.pseudo';
 /** Clé de l'état (ouvert ou replié) de l'encadré « Comprendre … ». */
-const GLOSSARY_KEY = 'pe.glossary';
 /** Clé du thème choisi, lue aussi par `main.ts` avant le démarrage d'Angular. */
 export const THEME_KEY = 'pe.theme';
 const tokenKey = (sessionId: string) => `pe.token.${sessionId}`;
@@ -48,15 +47,6 @@ export class BrowserStorage {
 
   saveTheme(theme: string): void {
     this.write(THEME_KEY, theme);
-  }
-
-  /** Encadré d'aide ouvert ? Ouvert par défaut, tant qu'il n'a pas été replié. */
-  readGlossaryOpen(): boolean {
-    return this.read(GLOSSARY_KEY) !== 'closed';
-  }
-
-  saveGlossaryOpen(open: boolean): void {
-    this.write(GLOSSARY_KEY, open ? 'open' : 'closed');
   }
 
   readToken(sessionId: string): string | null {

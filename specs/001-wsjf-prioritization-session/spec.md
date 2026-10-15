@@ -397,9 +397,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   (en WSJF : BV, TC, RR/OE, JS, CoD et WSJF)
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
-  toucher. Un encadré « Comprendre le WSJF », dans le panneau latéral, regroupe toutes
-  les définitions. On peut le **replier et le déplier**, et son état est mémorisé dans le
-  navigateur. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
+  toucher. Un lien « Comprendre le WSJF », placé juste au-dessus du tableau, ouvre un
+  panneau qui regroupe toutes les définitions : le tableau garde ainsi toute la largeur de
+  l'écran. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
   (par exemple « BV · Business Value »), sans répéter la définition. Les définitions
   sont :
   - **BV · Business Value** : valeur apportée aux utilisateurs ou au business ;

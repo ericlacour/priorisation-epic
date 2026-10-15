@@ -190,8 +190,6 @@ export const MESSAGES = {
   },
   glossary: {
     title: 'Comprendre le {method}',
-    fold: 'Replier',
-    unfold: 'Déplier',
     fullMethod: 'Voir la méthode complète',
   },
   methodPanel: {

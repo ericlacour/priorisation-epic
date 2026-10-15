@@ -47,7 +47,8 @@ const NEW_ROW = 'new';
  * par valeur calculée de `methodDefinition` (aucune colonne écrite en dur, FR-017b). Il ne calcule et ne trie rien.
  * L'animateur ajoute, modifie et supprime ; un participant voit le même tableau sans aucune action d'animation
  * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé, titres en entier
- * (FR-014a). Participants à la demande (FR-005) ; liens d'invitation et d'animation copiés sans être affichés.
+ * (FR-014a). Les définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur (FR-016a).
+ * Participants à la demande (FR-005) ; liens d'invitation et d'animation copiés sans être affichés.
  * Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
 @Component({
@@ -135,6 +136,11 @@ const NEW_ROW = 'new';
 
       <div class="layout-board">
         <div class="board-main">
+          <div class="table-tools">
+            <button type="button" class="link-button small" (click)="showGlossary.set(true)">
+              {{ glossaryTitle() }}
+            </button>
+          </div>
           @if (screen.isPhone()) {
             <div class="feature-cards">
               @for (feature of displayed(); track feature.id) {
@@ -322,13 +328,6 @@ const NEW_ROW = 'new';
             </div>
           }
         </div>
-
-        <aside class="side">
-          <app-method-glossary
-            [definition]="state.methodDefinition"
-            (methodRequested)="showMethod.set(true)"
-          />
-        </aside>
       </div>
 
       @if (selected(); as feature) {
@@ -343,6 +342,13 @@ const NEW_ROW = 'new';
           (overwrite)="overwriteText(feature)"
           (staleDismissed)="room.clearRefusal()"
           (review)="changeReview(feature, $event)"
+        />
+      }
+      @if (showGlossary()) {
+        <app-method-glossary
+          [definition]="state.methodDefinition"
+          (closed)="showGlossary.set(false)"
+          (methodRequested)="showGlossary.set(false); showMethod.set(true)"
         />
       }
       @if (showMethod()) {
@@ -371,6 +377,8 @@ export class BoardComponent {
   protected readonly editing = signal<string | null>(null);
   protected readonly selectedId = signal<string | null>(null);
   protected readonly showMethod = signal(false);
+  /** Panneau « Comprendre le <méthode> », ouvert depuis le lien au-dessus du tableau (FR-016a). */
+  protected readonly showGlossary = signal(false);
   private readonly frozenOrder = signal<readonly string[] | null>(null);
   private readonly pending = signal<PendingUpdate | null>(null);
   /** Ce que la ligne en édition attend du serveur, pour la refermer à la confirmation. */
@@ -428,6 +436,10 @@ export class BoardComponent {
       (this.canAnimate() ? 1 : 0)
     );
   });
+
+  protected readonly glossaryTitle = computed(() =>
+    format(MESSAGES.glossary.title, { method: this.state()?.methodDefinition.name ?? '' }),
+  );
 
   protected readonly inviteUrl = computed(
     () => `${this.document.location.origin}/s/${this.state()?.sessionId ?? ''}`,

@@ -115,6 +115,17 @@ describe('FeatureDetailPanelComponent', () => {
     expect(button('Marquer à revoir')).toBeUndefined();
   });
 
+  it('puts the facilitator actions at the top, right under the title', () => {
+    const { element, button } = render({ animate: true });
+    const actions = element.querySelector('.panel-head + .actions')!;
+    expect(actions.contains(button('Modifier le titre et le descriptif')!)).toBe(true);
+    expect(actions.contains(button('Marquer à revoir')!)).toBe(true);
+    const description = element.querySelector('.description')!;
+    expect(
+      actions.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('asks for the full method from the calculation', () => {
     const { button, log } = render();
     button('Voir la méthode complète')!.click();
