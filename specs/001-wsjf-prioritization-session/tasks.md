@@ -345,9 +345,9 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Tests de User Story 3 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T084 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
-- [ ] T085 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, clé de critère, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`. Un simple renommage est accepté. (Le refus `ROUND_OPEN` pendant un tour ouvert est testé avec le vote masqué, T067.)
-- [ ] T086 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
+- [X] T084 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
+- [X] T085 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, clé de critère, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`. Un simple renommage est accepté. (Le refus `ROUND_OPEN` pendant un tour ouvert est testé avec le vote masqué, T067.)
+- [X] T086 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
   - en-têtes imposés, insensibles à la casse et aux espaces, ceux des critères étant lus dans la définition de la méthode ; un cas avec la méthode fictive de T038a (colonnes `Reach` et `Effort` lues, colonne `BV` ignorée et signalée) ;
   - JSON produit avec une autre méthode refusé en entier, avec le message qui nomme les deux méthodes ;
   - fichier refusé en entier sans `Identifiant` ou sans `Titre` ;
@@ -357,7 +357,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - séparateur `;` ou `,` détecté ;
   - BOM accepté ;
   - limites de 5 Mo et de 1 000 lignes.
-- [ ] T087 [P] [US3] Test de contrat REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ImportControllerTest.java` :
+- [X] T087 [P] [US3] Test de contrat REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ImportControllerTest.java` :
   - l'aperçu n'écrit rien ;
   - la confirmation applique les lignes en une seule transaction, puis diffuse un `sessionState` ;
   - un aperçu expiré renvoie 404 ;
@@ -367,25 +367,29 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ### Contrat de User Story 3
 
-- [ ] T088 [US3] Ajouter au contrat les schémas `contract/schemas/update-settings.json`, `import-preview.json` et `import-result.json`, leurs exemples (dont `examples/error/scale-impact.json`), et les opérations d'import dans `contract/openapi.yaml`
+- [X] T088 [US3] Ajouter au contrat les schémas `contract/schemas/update-settings.json`, `import-preview.json` et `import-result.json`, leurs exemples (dont `examples/error/scale-impact.json`), et les opérations d'import dans `contract/openapi.yaml`
 
 ### Implémentation de User Story 3
 
-- [ ] T089 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
-- [ ] T090 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; le refus `ROUND_OPEN` pendant un tour ouvert, FR-011, s'ajoute avec le vote masqué, T074) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
-- [ ] T091 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description` puis les `header` des critères de la méthode, soit `BV`, `TC`, `RR/OE`, `JS` en WSJF, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
-- [ ] T092 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes de critères lues dans la définition de la méthode ; colonnes `Rang` et valeurs calculées de la méthode, soit `CoD` et `WSJF` en WSJF, ignorées)
-- [ ] T093 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `criteria` indexé par clé ; fichier refusé si `method` ou `methodVersion` diffère de la session ; `computed` et `rank` recalculés, avec un avertissement en cas d'écart ; `rounds` et votes **ignorés** (jamais réimportés, constitution VI) ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
-- [ ] T094 [US3] Implémenter `application/ImportUseCase.java` (aperçu stocké dans `import_preview` avec `expiresAt` à la création plus 15 min ; confirmation en une seule transaction, puis `Broadcaster`), `adapter/in/rest/ImportController.java` et `adapter/in/scheduling/ImportPreviewPurgeScheduler.java`
-- [ ] T095 [P] [US3] Front, `frontend/src/app/import-export/import-dialog.component.ts` :
+- [X] T089 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
+- [X] T090 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; le refus `ROUND_OPEN` pendant un tour ouvert, FR-011, s'ajoute avec le vote masqué, T074) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
+- [X] T091 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description` puis les `header` des critères de la méthode, soit `BV`, `TC`, `RR/OE`, `JS` en WSJF, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
+- [X] T092 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes de critères lues dans la définition de la méthode ; colonnes `Rang` et valeurs calculées de la méthode, soit `CoD` et `WSJF` en WSJF, ignorées)
+- [X] T093 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `criteria` indexé par clé ; fichier refusé si `method` ou `methodVersion` diffère de la session ; `computed` et `rank` recalculés, avec un avertissement en cas d'écart ; `rounds` et votes **ignorés** (jamais réimportés, constitution VI) ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
+- [X] T094 [US3] Implémenter `application/ImportUseCase.java` (aperçu stocké dans `import_preview` avec `expiresAt` à la création plus 15 min ; confirmation en une seule transaction, puis `Broadcaster`), `adapter/in/rest/ImportController.java` et `adapter/in/scheduling/ImportPreviewPurgeScheduler.java`
+- [X] T095 [P] [US3] Front, `frontend/src/app/import-export/import-dialog.component.ts` :
   - choix du fichier, puis aperçu des lignes valides, rejetées avec leur motif, et des avertissements ;
   - confirmation ou annulation ;
   - récapitulatif final ;
   - lien « Télécharger le modèle ».
-- [ ] T096 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne (la désactivation pendant un tour ouvert s'ajoute avec le vote masqué, T083). Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
-- [ ] T097 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
+- [X] T096 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne (la désactivation pendant un tour ouvert s'ajoute avec le vote masqué, T083). Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
+- [X] T097 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
 
 **Checkpoint** : US1 et US3 fonctionnent indépendamment.
+
+> Réalisation (2026-10-15) : « Importer » et « Échelle » (écran 4 des maquettes) sont regroupés dans un menu
+> « Préparer ▾ » de l'en-tête du tableau, pour qu'il tienne sur une ligne à 1280 px (FR-014a). Le bouton du
+> récapitulatif d'import s'appelle « Terminer », pour ne pas porter le même nom que la croix « Fermer ».
 
 ---
 
