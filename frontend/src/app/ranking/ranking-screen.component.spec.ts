@@ -76,6 +76,21 @@ describe('RankingScreenComponent', () => {
     expect(element.textContent).toContain('(tour de vote ouvert)');
   });
 
+  it('never chooses or ranks a feature in an open round, even after "Tout sélectionner" or once chosen', () => {
+    const { fixture, room, click, checkbox, toggle, values } = render([F1, F2, IN_ROUND]);
+    click('Tout désélectionner');
+    click('Tout sélectionner');
+    expect(checkbox('F-4').checked).toBe(false);
+
+    // F-2 entre dans un tour après avoir été choisie : elle n'est plus choisie, ni classée.
+    room.state.set(state({ features: [F1, { ...F2, votingInProgress: true }, IN_ROUND] }));
+    fixture.detectChanges();
+    expect(checkbox('F-2').checked).toBe(false);
+    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+    click('Commencer le classement');
+    expect(values().map(([label]) => label)).toEqual(['BV de F-1']);
+  });
+
   it('needs at least one criterion and one feature to start', () => {
     const { element, button, click, toggle } = render();
     click('Tout désélectionner');

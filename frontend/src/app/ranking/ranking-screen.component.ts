@@ -18,6 +18,13 @@ import { SessionRoomService } from '../session/session-room.service';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { RankingStep, newStep, reselect, resolveStep } from './ranking';
 
+/** Une fonctionnalité dans un tour de vote ouvert ne se classe pas : ses valeurs viendront du vote. */
+const isRankable = (feature: Feature): boolean => !feature.votingInProgress;
+
+/** Les identifiants des fonctionnalités qui peuvent être classées, dans l'ordre du tableau. */
+const rankableIds = (features: readonly Feature[] | undefined): string[] =>
+  (features ?? []).filter(isRankable).map((feature) => feature.id);
+
 /** Valeurs envoyées pour une fonctionnalité, par clé de critère. */
 type Changes = Readonly<Record<string, number | null>>;
 
@@ -175,13 +182,13 @@ type Changes = Readonly<Record<string, number | null>>;
                 <label class="check">
                   <input
                     type="checkbox"
-                    [disabled]="feature.votingInProgress"
+                    [disabled]="!isRankable(feature)"
                     [checked]="isChosen(feature)"
                     (change)="toggleFeature(feature.id)"
                   />
                   <span class="fid-text">{{ feature.externalId }}</span>
                   {{ feature.title }}
-                  @if (feature.votingInProgress) {
+                  @if (!isRankable(feature)) {
                     <span class="muted small">{{ messages.inRound }}</span>
                   }
                 </label>
@@ -205,9 +212,10 @@ export class RankingScreenComponent {
   readonly closed = output<void>();
 
   protected readonly state = this.room.state;
+  protected readonly isRankable = isRankable;
   /** Fonctionnalités choisies, par identifiant : toutes celles hors tour au départ. */
   protected readonly chosenFeatures = signal<readonly string[]>(
-    (this.room.state()?.features ?? []).filter((f) => !f.votingInProgress).map((f) => f.id),
+    rankableIds(this.room.state()?.features),
   );
   protected readonly chosenCriteria = signal<ReadonlySet<string>>(
     new Set((this.room.state()?.methodDefinition.criteria ?? []).map((c) => c.key)),
@@ -227,7 +235,7 @@ export class RankingScreenComponent {
   /** Les fonctionnalités choisies qui existent encore et ne sont pas dans un tour, dans l'ordre du tableau. */
   protected readonly selectable = computed(() => {
     const chosen = new Set(this.chosenFeatures());
-    return (this.state()?.features ?? []).filter((f) => chosen.has(f.id) && !f.votingInProgress);
+    return (this.state()?.features ?? []).filter((f) => chosen.has(f.id) && isRankable(f));
   });
 
   /** Les critères choisis, dans l'ordre de la définition de la méthode. */
@@ -338,7 +346,7 @@ export class RankingScreenComponent {
   }
 
   protected isChosen(feature: Feature): boolean {
-    return !feature.votingInProgress && this.chosenFeatures().includes(feature.id);
+    return isRankable(feature) && this.chosenFeatures().includes(feature.id);
   }
 
   protected toggleFeature(id: string): void {
@@ -348,9 +356,7 @@ export class RankingScreenComponent {
   }
 
   protected selectAll(): void {
-    this.chosenFeatures.set(
-      (this.state()?.features ?? []).filter((f) => !f.votingInProgress).map((f) => f.id),
-    );
+    this.chosenFeatures.set(rankableIds(this.state()?.features));
   }
 
   protected toggleCriterion(key: string): void {

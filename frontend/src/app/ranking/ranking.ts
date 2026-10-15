@@ -97,11 +97,11 @@ export function reselect(
     }
     const anchors = next.levels.map((level) => anchorOf(next, level));
     const same = anchors.indexOf(value);
-    const below = anchors.findIndex((anchor) => anchor !== null && anchor < value);
+    const lower = anchors.findIndex((anchor) => anchor !== null && anchor < value);
     const levels =
       same !== -1
         ? next.levels.map((level, index) => (index === same ? [...level, id] : level))
-        : insertLevel(next.levels, below === -1 ? next.levels.length : below, [id]);
+        : insertLevel(next.levels, lower === -1 ? next.levels.length : lower, [id]);
     next = { ...next, levels };
   }
   return next;
