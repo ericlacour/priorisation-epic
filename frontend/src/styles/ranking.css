@@ -269,7 +269,8 @@
 .rank-items {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  /* Ex æquo : 24 px d'une ligne à l'autre, l'écart minimal entre deux cibles (WCAG 2.5.8). */
+  gap: 2px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -340,9 +341,14 @@
 /* Bouton réduit à son symbole ; son nom complet est dans aria-label et l'infobulle. */
 .btn-icon {
   min-width: 24px;
-  min-height: 20px;
+  min-height: 24px;
   padding: 0;
   font-size: 16px;
+}
+
+/* Dans une ligne du classement, le bouton est à la hauteur de la ligne (24 px d'une ligne à l'autre). */
+.rank-actions .btn-icon {
+  min-height: 20px;
   line-height: 1.1;
 }
 

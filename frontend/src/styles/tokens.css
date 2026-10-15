@@ -31,7 +31,7 @@
   /* Un niveau du classement sur deux : bande et lignes teintées (texte atténué toujours AA sur la ligne), avec un
    * filet à gauche pour marquer le changement de niveau. */
   --rank-alt: #c3d2e7;
-  --rank-alt-item: #e9f0fa;
+  --rank-alt-item: #f0f4fb;
   --rank-alt-accent: #5b7fb0;
 }
 
