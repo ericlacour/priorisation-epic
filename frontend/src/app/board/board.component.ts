@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  output,
   signal,
 } from '@angular/core';
 
@@ -105,6 +106,15 @@ const NEW_ROW = 'new';
             (click)="startNew()"
           >
             {{ messages.addFeature }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [attr.title]="messages.rankHint"
+            [disabled]="editing() !== null || state.features.length === 0"
+            (click)="rankingRequested.emit()"
+          >
+            {{ messages.rank }}
           </button>
         </div>
       } @else if (!canAnimate()) {
@@ -362,6 +372,9 @@ const NEW_ROW = 'new';
   `,
 })
 export class BoardComponent {
+  /** L'animateur ouvre l'écran « Prioriser par classement » (FR-015a). */
+  readonly rankingRequested = output<void>();
+
   protected readonly room = inject(SessionRoomService);
   protected readonly screen = inject(ScreenSizeService);
   private readonly document = inject(DOCUMENT);

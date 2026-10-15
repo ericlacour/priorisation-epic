@@ -375,6 +375,30 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   et le tri, sans rechargement et pour tous les membres connectés à la session. Le
   recalcul et le retri ont lieu quand l'animateur **valide la ligne** (« Enregistrer »),
   pas à chaque chiffre tapé : la ligne en cours de saisie ne change pas de place.
+- **FR-015a**: Pour saisir les valeurs **par classement** plutôt que ligne à ligne, l'animateur
+  DOIT pouvoir ouvrir, depuis le tableau (bouton « Prioriser par classement », sur
+  ordinateur), un écran en plusieurs étapes (retour d'usage du 2026-10-15) :
+  1. il choisit les fonctionnalités concernées (une, plusieurs ou toutes ; celles d'un tour
+     ouvert sont exclues) et les critères à saisir (au moins un, par défaut tous, dans
+     l'ordre de la définition de la méthode, FR-017b) ;
+  2. pour chaque critère choisi, il **classe** les fonctionnalités de la plus forte à la
+     plus faible valeur, par glisser-déposer ou au clavier (« Monter », « Descendre »).
+     Plusieurs fonctionnalités peuvent être mises **au même niveau** (« Égalité avec
+     au-dessus »). Au départ, celles qui ont déjà une valeur sont groupées par valeur
+     décroissante, puis viennent les autres, dans l'ordre du tableau ;
+  3. il saisit la **valeur du premier niveau** (par défaut le maximum de l'échelle). Chaque
+     niveau suivant se voit **proposer la valeur juste inférieure** de l'échelle ; sous la
+     plus petite valeur, plus rien n'est proposé et la fonctionnalité reste sans valeur.
+     Les propositions suivent le classement tant que l'animateur ne les modifie pas. Il
+     peut modifier ou vider la valeur de chaque fonctionnalité, contrôlée comme une saisie
+     directe (FR-009), et revenir aux propositions ;
+  4. il passe au critère suivant, ou revient au précédent sans perdre son classement.
+
+  Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
+  enregistrée en une seule modification, avec la version lue à l'ouverture de l'écran
+  (jamais d'écrasement silencieux), et le tableau réapparaît, trié comme d'habitude
+  (FR-014, FR-015). « Annuler » revient au tableau sans rien changer. Ce classement est
+  conçu pour être repris par chaque participant lors de son vote dans un tour (FR-019).
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
