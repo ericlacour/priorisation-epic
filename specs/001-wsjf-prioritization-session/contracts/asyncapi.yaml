@@ -98,7 +98,7 @@ operations:
   receiveUpdateSettings: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Rename or change the scale (FR-010, FR-011) - facilitator', messages: [{ $ref: '#/channels/session/messages/updateSettings' }] }
   receiveChangeStatus: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Start, close or reopen (FR-004) - facilitator', messages: [{ $ref: '#/channels/session/messages/changeStatus' }] }
   receiveOpenRound: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Open a masked round on selected features (FR-018, FR-022) - facilitator', messages: [{ $ref: '#/channels/session/messages/openRound' }] }
-  receiveCastVote: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Save or change own vote (FR-019)', messages: [{ $ref: '#/channels/session/messages/castVote' }] }
+  receiveCastVote: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Send or replace own ranking for the round (FR-019)', messages: [{ $ref: '#/channels/session/messages/castVote' }] }
   receiveRevealRound: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Reveal the whole round (FR-020) - facilitator', messages: [{ $ref: '#/channels/session/messages/revealRound' }] }
   receiveTransferFacilitator: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Hand over the facilitator role (FR-002a) - facilitator', messages: [{ $ref: '#/channels/session/messages/transferFacilitator' }] }
   sendSessionState: { action: send, channel: { $ref: '#/channels/session' }, summary: 'Full state, filtered per recipient', messages: [{ $ref: '#/channels/session/messages/sessionState' }] }
@@ -248,9 +248,16 @@ components:
         action: { type: string, enum: [START, CLOSE, REOPEN] }
     openRound:
       type: object
-      required: [type, featureIds]
+      required: [type, criterionKeys, featureIds]
+      description: Revised 2026-10-15 - a round covers a selection of criteria and features, chosen like in the ranking screen (FR-018)
       properties:
         type: { const: openRound }
+        criterionKeys:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          description: Criteria of the session method evaluated in the round; unknown keys get `error UNKNOWN_CRITERION`
+          items: { $ref: '#/components/schemas/criterionKey' }
         featureIds:
           type: array
           minItems: 1
@@ -259,14 +266,19 @@ components:
         previousRoundId: { type: [string, 'null'], format: uuid }
     castVote:
       type: object
-      required: [type, roundId, featureId, criteria]
+      required: [type, roundId, votes]
+      description: >-
+        Revised 2026-10-15 - the member's whole ranking for the round, sent once with
+        "Envoyer mon vote" (FR-019); it replaces any previous one until the round is revealed.
       properties:
         type: { const: castVote }
         roundId: { type: string, format: uuid }
-        featureId: { type: string, format: uuid }
-        criteria:
-          description: The whole vote for this feature; a missing or null key means "no opinion" (FR-019)
-          $ref: '#/components/schemas/criteria'
+        votes:
+          type: object
+          description: >-
+            By featureId, one entry per feature of the round; criteria limited to the round's
+            criteria; a missing or null key means "no opinion" (feature left unranked, FR-019)
+          additionalProperties: { $ref: '#/components/schemas/criteria' }
     revealRound:
       type: object
       required: [type, roundId]
@@ -355,23 +367,27 @@ components:
             - type: 'null'
     round:
       type: object
-      required: [id, number, status, featureIds, progress]
+      required: [id, number, status, criterionKeys, featureIds, progress]
       properties:
         id: { type: string, format: uuid }
         number: { type: integer }
         status: { type: string, enum: [OPEN, REVEALED] }
+        criterionKeys:
+          type: array
+          description: Criteria evaluated in the round, in method definition order (FR-018)
+          items: { $ref: '#/components/schemas/criterionKey' }
         featureIds:
           type: array
           items: { type: string, format: uuid }
         progress:
           type: array
-          description: Always visible - number of features rated (at least one criterion) by each participant
+          description: Always visible - whether each member has sent their vote (FR-019)
           items:
             type: object
-            required: [participantId, completedCount]
+            required: [participantId, voted]
             properties:
               participantId: { type: string, format: uuid }
-              completedCount: { type: integer, description: 'Features of the round with at least one criterion entered (FR-019)' }
+              voted: { type: boolean, description: 'True once the member has sent their ranking ("Envoyer mon vote")' }
         myVotes:
           type: object
           description: Recipient's own votes, by featureId (only ones visible while OPEN)
@@ -392,7 +408,7 @@ components:
                   properties:
                     criteria: { $ref: '#/components/schemas/criteria' }
                     participantId: { type: string, format: uuid }
-                    voted: { type: boolean, description: 'True when at least one criterion is entered; a null criterion means "no opinion" (FR-019)' }
+                    voted: { type: boolean, description: 'True when the member sent a vote; a null criterion means "no opinion" (FR-019)' }
               min:
                 description: Over entered values only; null for a criterion nobody entered (FR-020)
                 $ref: '#/components/schemas/criteria'

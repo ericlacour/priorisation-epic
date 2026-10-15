@@ -55,14 +55,14 @@ Les contrastes vérifiés sont tous au moins AA :
 | 2 | Session créée : lien d'invitation et lien d'animation privé | FR-002 |
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
 | 4 | Tableau, vue animateur, session en préparation | US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |
-| 4 bis | Ouvrir un tour : choix des fonctionnalités | FR-018 |
+| 4 bis | Ouvrir un tour : choix des fonctionnalités *(à refaire : choix des critères et des fonctionnalités, comme l'écran 4 sexies, revue du 2026-10-15)* | FR-018 |
 | 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
 | 4 quater | Méthode de la session, en lecture seule | FR-017a, FR-017c |
 | 4 quinquies | Tableau, vue participant, sans tour en cours | FR-014a, FR-014b, FR-015 |
 | 4 sexies | Prioriser par classement : choix des critères et des fonctionnalités | FR-015a |
 | 4 septies | Prioriser par classement : classement et valeurs d'un critère | FR-015a |
-| 5 | Tour en cours, vue participant | US2, FR-019, FR-019a, SC-004 |
-| 6 | Révélation et consensus | FR-020 à FR-022 |
+| 5 | Tour en cours, vue participant *(à refaire : vote par classement sur l'écran 4 septies, départ « Non classées », « Envoyer mon vote », revue du 2026-10-15)* | US2, FR-019, FR-019a, SC-004 |
+| 6 | Révélation et consensus *(à ajuster : seulement les critères du tour, revue du 2026-10-15)* | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |
 | 8 | Réglage de l'échelle | FR-009 à FR-011 |
 | 9 | Exports et tours révélés | FR-022 à FR-024 |

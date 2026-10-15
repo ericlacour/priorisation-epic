@@ -17,7 +17,7 @@
 - Q: Comment l'application sait-elle qui est l'animateur, sans authentification ? → A: Un lien d'animation privé, distinct du lien d'invitation, donne seul les droits d'animateur ; l'animateur peut transmettre son rôle à un participant pendant la session.
 - Q: Pendant un tour masqué, les participants voient-ils les valeurs déjà retenues des fonctionnalités du tour ? → A: Non : valeurs retenues, CoD et WSJF des fonctionnalités du tour sont masqués pour les participants jusqu'à la révélation ; le reste du tableau reste visible.
 - Q: Comment l'outil reconnaît-il les colonnes du fichier Excel importé ? → A: Noms de colonnes imposés (Identifiant, Titre, Description, BV, TC, RR/OE, JS), modèle vierge téléchargeable ; un fichier sans ces en-têtes est refusé.
-- Q (maquettes) : comment saisir un vote quand la borne de l'échelle est grande (jusqu'à 100) ? → A: Saisie directe du nombre, avec contrôle (entier, dans l'échelle).
+- Q (maquettes) : comment saisir un vote quand la borne de l'échelle est grande (jusqu'à 100) ? → A: Saisie directe du nombre, avec contrôle (entier, dans l'échelle). *Remplacé le 2026-10-15 : le vote se fait par classement (FR-019).*
 - Q (maquettes) : quand un critère est-il signalé « écart important » à la révélation ? → A: Quand le maximum moins le minimum est strictement supérieur à 3.
 - Q (maquettes) : quand le tableau se retrie-t-il pendant la saisie de l'animateur ? → A: Quand il valide la ligne, pas à chaque frappe.
 - Q (maquettes) : que contiennent les champs de consensus au départ ? → A: Ils sont vides, sauf pour un critère où tous les votants ont saisi la même valeur.
@@ -32,6 +32,14 @@
 - Q : si une nouvelle méthode de calcul arrive, avec d'autres champs que BV, TC, RR/OE, JS, CoD et WSJF, comment l'ajouter facilement ? → A: Chaque méthode est décrite par une définition unique : ses critères saisis, ses valeurs calculées, sa formule et son tri. Le tableau, la saisie, les votes, l'import, les exports et l'historique se construisent à partir de cette définition. Ajouter une méthode revient à écrire sa définition et son calcul, sans toucher au reste de l'application.
 - Q : peut-on créer ou modifier une méthode et ses champs depuis un écran ? → A: Pas en V1. Chaque membre peut consulter la méthode de la session en lecture seule, et l'animateur choisit la méthode à la création parmi celles disponibles (WSJF seule en V1). Un écran de méthodes configurables par modèle est noté comme évolution future.
 - Q : faut-il une case « Je ne sais pas » pour distinguer un « sans avis » volontaire d'un critère pas encore rempli ? → A: Non. Le champ vide suffit, et la fonctionnalité est évaluée même si le participant n'a pas renseigné tous les critères : son vote est complet, sans avertissement.
+
+### Session 2026-10-15 (revue du vote masqué)
+
+- Q : quand réaliser le vote masqué (User Story 2) ? → A: À la fin, après tous les autres parcours. C'est une **fonctionnalité bonus** (priorité P6) : la session est complète sans elle (saisie directe et « Prioriser par classement », FR-015a). Sa conception est revue ci-dessous.
+- Q : comment un participant vote-t-il ? → A: **Par classement**, sur le même écran que « Prioriser par classement » (FR-015a). L'animateur ouvre le tour en choisissant les **critères** et les **fonctionnalités** (même étape de choix que le classement) ; chaque participant fait ensuite **sa priorisation individuelle par classement**, critère par critère, et l'envoie ; puis l'animateur **révèle les votes**. La saisie directe d'un vote, champ par champ, est abandonnée.
+- Q : d'où part le classement d'un participant ? → A: D'un classement vide : toutes les fonctionnalités du tour attendent dans « Non classées (sans valeur) ». Les valeurs retenues des fonctionnalités du tour sont masquées (FR-019a), et partir d'elles créerait l'effet d'ancrage que le vote masqué veut éviter. L'animateur, s'il vote, part lui aussi d'un classement vide.
+- Q : que vaut une fonctionnalité laissée dans « Non classées » pour un critère ? → A: « Sans avis » sur ce critère, comme un champ laissé vide auparavant.
+- Q : quand un participant a-t-il voté ? → A: Quand il a envoyé son classement (« Envoyer mon vote »). Il peut le reprendre et le renvoyer autant de fois qu'il veut jusqu'à la révélation ; chaque envoi remplace le précédent.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -69,26 +77,33 @@ vérifier les CoD, les WSJF et l'ordre du tableau, y compris après modification
 
 ---
 
-### User Story 2 - Évaluation individuelle masquée puis consensus (Priority: P2)
+### User Story 2 - Évaluation individuelle masquée par classement puis consensus (Priority: P6, bonus)
+
+> **Revu le 2026-10-15** : ce parcours garde son identifiant US2, mais passe en **dernier**
+> (fonctionnalité bonus, priorité P6) ; il se réalise après US3, US4 et US5. Le vote se
+> fait par classement, sur le même écran que « Prioriser par classement » (FR-015a).
 
 L'animateur invite les participants (Product Owner, Product Management, Architecte…) à
-rejoindre la session. Il ouvre un tour de vote masqué sur les fonctionnalités de son
-choix : une seule, plusieurs ou toutes. Chaque participant entre avec un pseudo et saisit,
-pour chaque fonctionnalité du tour, ses propres valeurs BV, TC, RR/OE et JS, sans voir
-celles des autres. L'animateur voit qui a déjà voté, sans voir les valeurs. Quand il le
-décide, il révèle le tour entier. L'équipe discute fonctionnalité par fonctionnalité et
-fixe une valeur commune par critère. Si l'équipe n'est pas d'accord sur certaines
-fonctionnalités, l'animateur relance un nouveau tour masqué sur ces seules
-fonctionnalités, autant de fois que nécessaire.
+rejoindre la session. Il ouvre un tour de vote masqué en choisissant, comme pour
+« Prioriser par classement », les **critères** du WSJF à évaluer (un, plusieurs ou tous)
+et les **fonctionnalités** (une, plusieurs ou toutes). Chaque participant fait alors **sa
+propre priorisation par classement**, sur le même écran que « Prioriser par classement » :
+pour chaque critère du tour, il classe les fonctionnalités de la plus forte à la plus
+faible valeur, ajuste les valeurs proposées, puis envoie son vote, sans voir celui des
+autres. L'animateur voit qui a déjà voté, sans voir les valeurs. Quand il le décide, il
+révèle les votes. L'équipe discute fonctionnalité par fonctionnalité et fixe une valeur
+commune par critère. Si l'équipe n'est pas d'accord sur certaines fonctionnalités,
+l'animateur relance un nouveau tour masqué sur ces seules fonctionnalités, autant de fois
+que nécessaire.
 
 **Why this priority**: le vote masqué évite l'effet d'ancrage et fait apparaître les
-désaccords. Il apporte une forte valeur, mais la session reste utilisable sans lui
-(User Story 1).
+désaccords. C'est un bonus : la session est complète sans lui (saisie directe et
+classement par l'animateur, User Story 1), et il réutilise l'écran de classement.
 
 **Independent Test**: avec un animateur et deux participants sur des postes différents,
-faire voter les participants sur une fonctionnalité, vérifier qu'aucun ne voit les valeurs
-des autres avant la révélation, révéler, fixer les valeurs communes et vérifier la mise à
-jour du tableau.
+ouvrir un tour sur deux critères et trois fonctionnalités, faire classer et envoyer leur
+vote aux participants, vérifier qu'aucun ne voit les valeurs des autres avant la
+révélation, révéler, fixer les valeurs communes et vérifier la mise à jour du tableau.
 
 **Acceptance Scenarios**:
 
@@ -98,29 +113,41 @@ jour du tableau.
 1. **Given** une session préparée, **When** l'animateur partage le lien d'invitation et
    qu'un participant l'ouvre puis saisit son pseudo, **Then** le participant rejoint la
    session et apparaît dans la liste des participants de l'animateur.
-2. **Given** un tour de vote ouvert sur F-1, **When** un participant enregistre ses valeurs,
-   **Then** les autres participants et l'animateur voient qu'il a voté, mais pas ses valeurs.
+1a. **Given** une session en cours, **When** l'animateur clique sur « Ouvrir un tour de
+   vote », choisit BV et JS puis F-1, F-2 et F-3, **Then** le tour s'ouvre sur ces deux
+   critères et ces trois fonctionnalités, et chaque membre est invité à voter.
+2. **Given** un tour ouvert sur BV et JS pour F-1, F-2 et F-3, **When** un participant
+   ouvre « Voter », **Then** il arrive sur l'écran de classement, sans étape de choix,
+   avec les trois fonctionnalités dans « Non classées (sans valeur) » pour BV, puis pour
+   JS. **When** il les classe, ajuste les valeurs et clique sur « Envoyer mon vote »,
+   **Then** les autres participants et l'animateur voient qu'il a voté, mais pas ses
+   valeurs.
 2a. **Given** F-1 a déjà des valeurs retenues (WSJF 4,00) et un tour est ouvert sur F-1
    seule, **When** un participant consulte le tableau, **Then** F-1 apparaît « vote en
    cours », sans valeurs, sans CoD et sans WSJF, alors que F-2 reste entièrement visible.
-3. **Given** des votes enregistrés sur F-1, **When** l'animateur révèle le tour, **Then**
-   tous les membres voient, pour chaque participant et chaque critère, la valeur saisie,
-   ainsi que le minimum et le maximum de chaque critère.
-4. **Given** un tour révélé, **When** l'animateur saisit les valeurs communes, **Then** elles
-   deviennent les valeurs de F-1 dans le tableau, qui se recalcule et se retrie.
+2b. **Given** un participant qui a envoyé son vote, **When** il clique sur « Modifier mon
+   vote » avant la révélation, **Then** il retrouve son classement et ses valeurs, et
+   son nouvel envoi remplace le précédent.
+3. **Given** des votes envoyés sur F-1, **When** l'animateur révèle le tour, **Then**
+   tous les membres voient, pour chaque participant et chaque critère du tour, la valeur
+   donnée, ainsi que le minimum et le maximum de chaque critère.
+4. **Given** un tour révélé, **When** l'animateur saisit les valeurs communes des critères
+   du tour, **Then** elles deviennent les valeurs de F-1 dans le tableau, qui se
+   recalcule et se retrie. Les critères hors du tour gardent leur valeur.
 5. **Given** un tour révélé sans accord, **When** l'animateur lance un nouveau tour, **Then**
    les participants votent à nouveau en masqué et les votes du tour précédent restent
    consultables dans l'historique de F-1.
-6. **Given** un participant qui n'a pas voté, **When** l'animateur révèle le tour, **Then**
-   la révélation a lieu et ce participant apparaît comme « n'a pas voté ».
+6. **Given** un participant qui n'a pas envoyé de vote, **When** l'animateur révèle le
+   tour, **Then** la révélation a lieu et ce participant apparaît comme « n'a pas voté ».
 7. **Given** un tour ouvert sur F-1, F-2 et F-3, **When** l'animateur le révèle, **Then** les
    votes des trois fonctionnalités deviennent visibles en même temps. **When** l'équipe
    s'accorde sur F-1 et F-3 mais pas sur F-2, **Then** l'animateur saisit les valeurs
    communes de F-1 et F-3 et lance un nouveau tour sur F-2 seule.
-8. **Given** un tour ouvert sur F-1, **When** alice saisit BV, TC et RR/OE mais laisse JS
-   vide, et que l'animateur saisit les quatre critères avec JS = 4, **Then** alice compte
-   comme ayant noté F-1. À la révélation, son JS apparaît « sans avis », le minimum et le
-   maximum du JS valent 4, et le JS retenu est prérempli à 4.
+8. **Given** un tour ouvert sur BV et JS pour F-1, **When** alice classe F-1 pour BV mais
+   la laisse dans « Non classées » pour JS, et que l'animateur la classe pour les deux
+   critères avec JS = 4, **Then** alice compte comme ayant voté. À la révélation, son JS
+   apparaît « sans avis », le minimum et le maximum du JS valent 4, et le JS retenu est
+   prérempli à 4.
 
 ---
 
@@ -361,8 +388,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   panneau de détail. Quand l'animateur modifie une
   ligne, la ligne d'édition tient dans la largeur du tableau : aucun défilement n'est
   nécessaire pour saisir, enregistrer ou annuler. Le panneau latéral défile
-  séparément si besoin. La même règle s'applique à l'écran du **tour en cours**, où le
-  panneau de vote et le tableau défilent chacun de leur côté, et à l'écran de
+  séparément si besoin. La même règle s'applique à l'écran de **vote** d'un tour, qui
+  reprend la mise en page de l'écran de classement (FR-015a, FR-019), et à l'écran de
   **révélation et consensus**, où seule la liste des fonctionnalités révélées défile et
   où la barre d'actions (« Relancer un tour sur la sélection ») reste visible.
 - **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
@@ -440,13 +467,13 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   avec les valeurs voulues ; l'animateur choisit « Enregistrer quand même » (sur la
   version actuelle) ou « Retour au tableau ». « Annuler » revient au tableau sans rien
   changer. Une session rouverte (reconnexion) commence toujours sur le tableau. Ce
-  classement est conçu pour être repris par chaque participant lors de son vote dans un
-  tour (FR-019).
+  classement est repris tel quel par chaque membre lors de son vote dans un tour masqué
+  (FR-019, User Story 2, réalisée en dernier).
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
 - **FR-016b**: Pour lire le descriptif d'une fonctionnalité sans surcharger les écrans, un
-  clic sur son **identifiant** (dans le tableau, le panneau de vote, la révélation ou le
+  clic sur son **identifiant** (dans le tableau, l'écran de classement ou de vote, la révélation ou le
   choix des fonctionnalités d'un tour) DOIT ouvrir un **panneau de détail** par-dessus
   l'écran. Ce panneau affiche l'identifiant, le rang, le titre, le **descriptif complet**,
   les valeurs retenues et le détail du calcul (FR-016). Il se ferme par une croix, la touche
@@ -462,11 +489,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   limite « Modifications simultanées »).
 - **FR-016a**: Partout où apparaissent les sigles des critères et des valeurs calculées
   (en WSJF : BV, TC, RR/OE, JS, CoD et WSJF)
-  (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
+  (tableau, classement et vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
   toucher. Un lien « Comprendre le WSJF », placé juste au-dessus du tableau, ouvre un
   panneau qui regroupe toutes les définitions : le tableau garde ainsi toute la largeur de
-  l'écran. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
+  l'écran. Dans l'écran de classement et de vote, chaque critère affiche son sigle et son nom complet
   (par exemple « BV · Business Value »), sans répéter la définition. Les définitions
   sont :
   - **BV · Business Value** : valeur apportée aux utilisateurs ou au business ;
@@ -533,52 +560,73 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 
 **Vote masqué et consensus**
 
-- **FR-018**: L'animateur DOIT pouvoir ouvrir un tour de vote masqué en choisissant les
-  fonctionnalités qu'il inclut : une, plusieurs ou toutes celles de la session. Une
-  fonctionnalité ne peut appartenir qu'à un seul tour ouvert à la fois. Un tour ne peut
-  être ouvert que si la session est **en cours** (FR-004). Le vote masqué est facultatif :
-  les valeurs peuvent toujours être saisies directement, **sauf pour une fonctionnalité qui
-  est dans un tour ouvert**. Tant que ce tour n'est pas révélé, ses valeurs retenues ne
+> **Revu le 2026-10-15** : FR-018 à FR-022 décrivent le vote masqué **par classement**,
+> réalisé en dernier (User Story 2, bonus).
+
+- **FR-018**: L'animateur DOIT pouvoir ouvrir un tour de vote masqué, depuis le tableau
+  (bouton « Ouvrir un tour de vote », sur ordinateur), avec la **même étape de choix que
+  « Prioriser par classement »** (FR-015a, étape 1) : les **critères** à évaluer (au moins
+  un, par défaut tous, dans l'ordre de la définition de la méthode, FR-017b) et les
+  **fonctionnalités** (une, plusieurs ou toutes ; celles déjà dans un tour ouvert sont
+  exclues, avec la mention « déjà dans le tour N »). Des sélections rapides aident au
+  choix : « Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir »
+  (FR-006a), « Tout désélectionner ». Une fonctionnalité ne peut appartenir qu'à un seul
+  tour ouvert à la fois. Un tour ne peut être ouvert que si la session est **en cours**
+  (FR-004). Le vote masqué est facultatif : les valeurs peuvent toujours être saisies
+  directement ou par classement, **sauf pour une fonctionnalité qui est dans un tour
+  ouvert**. Tant que ce tour n'est pas révélé, ses valeurs retenues (tous critères) ne
   peuvent être ni modifiées ni supprimées, avec le message « Cette fonctionnalité est en
   cours de vote : révélez le tour avant de modifier ses valeurs ». Son titre et sa
   description restent modifiables.
-- **FR-019**: Pendant un tour ouvert, chaque participant DOIT pouvoir saisir et modifier ses
-  propres valeurs pour les quatre critères de chaque fonctionnalité du tour, par **saisie
-  directe** d'un nombre. La saisie est contrôlée : une valeur qui n'est pas un entier, qui
-  sort de l'échelle ou, en Fibonacci, qui n'appartient pas à la suite est refusée avec un
-  message qui donne les valeurs autorisées (FR-027). Chaque critère est **facultatif** :
-  un participant peut laisser vide un critère sur lequel il n'a pas d'avis (par exemple le
-  JS, s'il n'est pas de son domaine). Un critère vide vaut « sans avis ». Une
-  fonctionnalité compte comme **notée** dès qu'au moins un de ses critères a une valeur ;
-  le vote est alors complet, sans avertissement, même si d'autres critères restent vides.
-  Personne, y compris l'animateur, ne voit les valeurs des autres avant la révélation.
-  Tous voient, pour chaque participant, combien de fonctionnalités du tour il a déjà
-  notées.
+- **FR-019**: Pendant un tour ouvert, chaque membre (animateur compris) DOIT pouvoir faire
+  **sa priorisation individuelle par classement**, sur le **même écran que « Prioriser par
+  classement »** (FR-015a, étapes 2 à 4), sans l'étape de choix : les critères et les
+  fonctionnalités sont ceux du tour. Différences avec le classement de l'animateur :
+  - le classement part **vide** : toutes les fonctionnalités du tour sont dans « Non
+    classées (sans valeur) », pour chaque critère ; la valeur du premier niveau est
+    préremplie avec le maximum de l'échelle, et les valeurs sont proposées selon les
+    règles de FR-015a (étape 3) ;
+  - une fonctionnalité laissée dans « Non classées » pour un critère vaut **« sans avis »**
+    sur ce critère (par exemple le JS, s'il n'est pas de son domaine) ;
+  - chaque valeur reste modifiable ou effaçable, contrôlée comme une saisie directe
+    (FR-009, FR-027) ;
+  - le bouton final est **« Envoyer mon vote »** : il envoie en une seule fois les valeurs
+    de toutes les fonctionnalités du tour pour tous les critères du tour ; rien n'est
+    envoyé avant. « Annuler » revient au tableau sans rien envoyer.
+
+  Un membre **a voté** dès qu'il a envoyé son vote, même si certaines valeurs sont « sans
+  avis ». Jusqu'à la révélation, il peut cliquer sur « Modifier mon vote » : l'écran
+  reprend son classement à partir des valeurs envoyées (groupées par valeur décroissante),
+  et un nouvel envoi remplace le précédent. Personne, y compris l'animateur, ne voit les
+  valeurs des autres avant la révélation. Tous voient, pour chaque membre, s'il a voté.
+  L'écran tient dans la fenêtre, comme celui du classement (FR-015a).
 - **FR-019a**: Pendant un tour ouvert, pour éviter l'effet d'ancrage, le système DOIT
   masquer aux participants, pour les seules fonctionnalités du tour, les valeurs retenues
-  (BV, TC, RR/OE, JS), le CoD, le WSJF et les votes des tours précédents. Ces
-  fonctionnalités restent listées dans le tableau, marquées « vote en cours ». Les autres
-  fonctionnalités restent entièrement visibles. Tout redevient visible à la révélation.
-  L'animateur, lui, continue de tout voir sauf les votes du tour en cours.
+  (tous les critères, même ceux hors du tour), le CoD, le WSJF et les votes des tours
+  précédents. Ces fonctionnalités restent listées dans le tableau, marquées « vote en
+  cours ». Les autres fonctionnalités restent entièrement visibles. Tout redevient visible
+  à la révélation. L'animateur, lui, continue de tout voir sauf les votes du tour en
+  cours.
 - **FR-020**: L'animateur DOIT pouvoir révéler un tour à tout moment. La révélation porte
   sur toutes les fonctionnalités du tour à la fois. Après révélation, pour chaque
-  fonctionnalité du tour, les valeurs de chaque participant ainsi que le minimum et le
-  maximum par critère sont visibles par tous, et le tour n'accepte plus de vote. Un
-  critère laissé vide est affiché « sans avis » et n'entre ni dans le minimum ni dans le
-  maximum. Si personne n'a donné de valeur pour un critère, son minimum et son maximum
-  restent vides. Un participant qui n'a donné aucune valeur pour une fonctionnalité est
-  affiché « n'a pas voté ». Un critère est signalé **« écart important »** quand l'écart
-  entre le maximum et le minimum est **strictement supérieur à 3**.
+  fonctionnalité du tour et chaque **critère du tour**, la valeur de chaque membre ainsi
+  que le minimum et le maximum sont visibles par tous, et le tour n'accepte plus de vote.
+  Une valeur « sans avis » est affichée comme telle et n'entre ni dans le minimum ni dans
+  le maximum. Si personne n'a donné de valeur pour un critère, son minimum et son maximum
+  restent vides. Un membre qui n'a pas envoyé de vote est affiché « n'a pas voté ». Un
+  critère est signalé **« écart important »** quand l'écart entre le maximum et le minimum
+  est **strictement supérieur à 3**.
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
-  retenues par l'équipe. Elles deviennent les valeurs de la fonctionnalité (voir FR-006).
-  Les champs de consensus sont **vides** au départ. Seul un critère pour lequel **tous
-  ceux qui ont donné une valeur** ont saisi la même est prérempli avec cette valeur. Les
-  participants qui n'ont pas voté, et les « sans avis » sur ce critère, ne comptent pas.
-  Un critère sans aucune valeur n'est pas prérempli.
+  retenues par l'équipe, pour les **critères du tour**. Elles deviennent les valeurs de la
+  fonctionnalité (voir FR-006) ; les critères hors du tour ne changent pas. Les champs de
+  consensus sont **vides** au départ. Seul un critère pour lequel **tous ceux qui ont
+  donné une valeur** ont donné la même est prérempli avec cette valeur. Les membres qui
+  n'ont pas voté, et les « sans avis » sur ce critère, ne comptent pas. Un critère sans
+  aucune valeur n'est pas prérempli.
 - **FR-022**: Après révélation, l'animateur DOIT pouvoir lancer un nouveau tour sur une
-  sélection des fonctionnalités du tour précédent (typiquement celles sans accord), sans
-  limite de nombre de tours. Les tours précédents restent consultables, fonctionnalité par
-  fonctionnalité.
+  sélection des fonctionnalités du tour précédent (typiquement celles sans accord), avec
+  les mêmes critères par défaut (modifiables), sans limite de nombre de tours. Les tours
+  précédents restent consultables, fonctionnalité par fonctionnalité.
 
 **Export et consultation**
 
@@ -625,11 +673,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   description et une valeur retenue pour chaque critère de la méthode de la session (en
   WSJF : BV, TC, RR/OE et JS). Les valeurs calculées (en WSJF : CoD et WSJF) et le rang
   sont toujours calculés à partir de ces valeurs, jamais saisis.
-- **Tour de vote** : une évaluation masquée portant sur une ou plusieurs fonctionnalités
-  choisies par l'animateur. Il a un numéro d'ordre, un statut (ouvert, révélé), la liste
-  de ses fonctionnalités et des votes.
-- **Vote** : les valeurs saisies par un participant pour les critères de la méthode (en
-  WSJF : BV, TC, RR/OE et JS), pour une fonctionnalité dans un tour. Chaque valeur est facultative (« sans avis »).
+- **Tour de vote** : une évaluation masquée par classement portant sur un ou plusieurs
+  critères de la méthode et une ou plusieurs fonctionnalités, choisis par l'animateur. Il
+  a un numéro d'ordre, un statut (ouvert, révélé), la liste de ses critères, la liste de
+  ses fonctionnalités et des votes.
+- **Vote** : le classement envoyé par un membre pour un tour, enregistré comme les valeurs
+  qu'il donne à chaque fonctionnalité du tour pour chaque critère du tour. Chaque valeur
+  est facultative (« sans avis » : fonctionnalité laissée non classée). Un nouvel envoi
+  remplace le précédent jusqu'à la révélation.
 - **Entrée d'historique** : une modification de valeur retenue ou d'échelle (FR-025),
   enregistrée mais non affichée en V1. Elle a un auteur (pseudo), une date, l'élément
   modifié, l'ancienne et la nouvelle valeur.
