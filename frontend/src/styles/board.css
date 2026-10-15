@@ -1,6 +1,6 @@
 /*
  * Tableau de priorisation (US1). La page tient dans la fenêtre : seule la liste défile, avec un en-tête figé
- * (FR-014a). Sur téléphone, des cartes en lecture seule remplacent le tableau.
+ * (FR-014a). Lignes compactes, une par fonctionnalité : au moins 15 fonctionnalités visibles sans défilement. Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
 app-root {
   display: flex;
@@ -27,20 +27,55 @@ app-root > app-session-entry {
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  padding: 12px 16px;
+  padding: 8px 16px;
   overflow: hidden;
 }
 
+/* Titre, actions et outils sur une seule ligne (repli sur deux lignes si la fenêtre est étroite). */
 .board-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-bottom: 6px;
+}
+
+/* Le titre prend la place qui reste ; le nom et la ligne d'information se tronquent (en entier au survol). */
+.board-title {
+  flex: 1 1 0;
+  min-width: 320px;
+}
+
+.board-name,
+.board-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-name > *,
+.board-info > * {
+  flex: none;
+}
+
+.board-name h1,
+.board-info-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Boutons de l'en-tête un peu plus bas que les autres, pour qu'il tienne sur une ligne. */
+.board-head .btn {
+  min-height: 34px;
+  padding: 0 12px;
 }
 
 .board-head h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.25;
 }
 
@@ -52,13 +87,10 @@ app-root > app-session-entry {
 .board-tools {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
-}
-
-.board-tools .badge {
-  align-self: center;
+  margin-left: auto;
 }
 
 .participants-menu {
@@ -114,7 +146,16 @@ app-root > app-session-entry {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 8px 0;
+}
+
+/* Vue participant : le bandeau « Aucun tour de vote en cours » tient dans l'en-tête, sur deux lignes au plus. */
+.board-notice {
+  flex: 1 1 0;
+  min-width: 240px;
+  margin: 0;
+  padding: 2px 10px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .layout-board {
@@ -131,18 +172,12 @@ app-root > app-session-entry {
   min-height: 0;
 }
 
-.table-tools {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
-
 .table-wrap {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   /* Le défilement automatique (ligne en édition) s'arrête sous l'en-tête figé, pas derrière. */
-  scroll-padding-top: 44px;
+  scroll-padding-top: 34px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
@@ -151,11 +186,13 @@ app-root > app-session-entry {
 .board-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .board-table th,
 .board-table td {
-  padding: 8px 10px;
+  padding: 2px 10px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: middle;
@@ -173,10 +210,27 @@ app-root > app-session-entry {
   white-space: nowrap;
 }
 
-/* Le titre s'affiche en entier, sur plusieurs lignes si besoin. */
+.board-table thead th {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+/* Une ligne par fonctionnalité : le titre prend la place libre, se tronque et s'affiche en entier au survol. */
 .board-table td.title {
+  width: 100%;
+  max-width: 0;
   min-width: 200px;
-  overflow-wrap: anywhere;
+}
+
+.board-table tr:not(.edit-row) > td.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* « Modifier » : un bouton bas, pour ne pas épaissir la ligne. */
+.board-table td > .btn-sm {
+  min-height: 24px;
 }
 
 .board-table tr.incomplete td {
@@ -218,9 +272,9 @@ app-root > app-session-entry {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
-  border-radius: 14px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
   background: var(--info-soft);
   font-weight: 700;
 }

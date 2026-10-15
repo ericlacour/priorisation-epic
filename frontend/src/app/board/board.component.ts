@@ -47,8 +47,9 @@ const NEW_ROW = 'new';
  * Tableau de priorisation (US1) : les fonctionnalités dans l'ordre reçu du serveur, avec une colonne par critère puis
  * par valeur calculée de `methodDefinition` (aucune colonne écrite en dur, FR-017b). Il ne calcule et ne trie rien.
  * L'animateur ajoute, modifie et supprime ; un participant voit le même tableau sans aucune action d'animation
- * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé, titres en entier
- * (FR-014a). Les définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur (FR-016a).
+ * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé ; une ligne par
+ * fonctionnalité, titre tronqué et en entier au survol, pour voir au moins 15 fonctionnalités (FR-014a). Les
+ * définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur (FR-016a).
  * Participants à la demande (FR-005) ; liens d'invitation et d'animation copiés sans être affichés.
  * Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
@@ -69,13 +70,54 @@ const NEW_ROW = 'new';
   host: { class: 'board-page', role: 'main' },
   template: `
     @if (state(); as state) {
+      <!-- Une seule ligne d'en-tête (titre, actions, outils) : toute la hauteur restante va au tableau (FR-014a). -->
       <div class="board-head">
-        <div>
-          <h1>{{ state.name }}</h1>
-          <p class="muted small">{{ infoLine() }}</p>
+        <div class="board-title">
+          <div class="board-name">
+            <h1 [attr.title]="state.name">{{ state.name }}</h1>
+            <button type="button" class="link-button small" (click)="showGlossary.set(true)">
+              {{ glossaryTitle() }}
+            </button>
+          </div>
+          <p class="board-info muted small">
+            <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
+            <span class="board-info-text" [attr.title]="infoLine()">{{ infoLine() }}</span>
+          </p>
         </div>
+        @if (!canAnimate()) {
+          <p class="notice info board-notice" role="note">{{ messages.noRound }}</p>
+        }
+        @if (canAnimate() && !screen.isPhone()) {
+          <div class="board-actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="editing() !== null"
+              (click)="startNew()"
+            >
+              {{ messages.addFeature }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [attr.title]="messages.rankHint"
+              [disabled]="editing() !== null || state.features.length === 0"
+              (click)="rankingRequested.emit()"
+            >
+              {{ messages.rank }}
+            </button>
+          </div>
+        } @else if (!canAnimate()) {
+          <div class="board-actions">
+            <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
+              {{ messages.export }}
+            </button>
+            <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
+              {{ messages.revealedRounds }}
+            </button>
+          </div>
+        }
         <div class="board-tools">
-          <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
           <app-participants-menu
             [participants]="state.participants"
             [meId]="state.me?.participantId ?? null"
@@ -97,38 +139,6 @@ const NEW_ROW = 'new';
         <p class="notice danger" role="status">{{ connectionMessage }}</p>
       }
 
-      @if (canAnimate() && !screen.isPhone()) {
-        <div class="board-actions">
-          <button
-            type="button"
-            class="btn btn-primary"
-            [disabled]="editing() !== null"
-            (click)="startNew()"
-          >
-            {{ messages.addFeature }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            [attr.title]="messages.rankHint"
-            [disabled]="editing() !== null || state.features.length === 0"
-            (click)="rankingRequested.emit()"
-          >
-            {{ messages.rank }}
-          </button>
-        </div>
-      } @else if (!canAnimate()) {
-        <p class="notice info" role="note">{{ messages.noRound }}</p>
-        <div class="board-actions">
-          <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-            {{ messages.export }}
-          </button>
-          <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-            {{ messages.revealedRounds }}
-          </button>
-        </div>
-      }
-
       @if (refusalText(); as text) {
         <p class="notice danger" role="alert">{{ text }}</p>
       }
@@ -146,11 +156,6 @@ const NEW_ROW = 'new';
 
       <div class="layout-board">
         <div class="board-main">
-          <div class="table-tools">
-            <button type="button" class="link-button small" (click)="showGlossary.set(true)">
-              {{ glossaryTitle() }}
-            </button>
-          </div>
           @if (screen.isPhone()) {
             <div class="feature-cards">
               @for (feature of displayed(); track feature.id) {
@@ -271,7 +276,7 @@ const NEW_ROW = 'new';
                             {{ feature.externalId }}
                           </button>
                         </td>
-                        <td class="title">
+                        <td class="title" [attr.title]="feature.title">
                           @if (feature.markedForReview) {
                             <span class="badge review" [attr.title]="reviewHint(feature)">{{
                               messages.review

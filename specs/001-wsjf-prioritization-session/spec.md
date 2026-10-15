@@ -348,8 +348,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   **tableau de l'animateur** DOIT tenir dans la fenêtre **sans défilement de la page** :
   la barre de session, les actions, le tableau et le panneau latéral restent visibles en
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
-  défile**, avec un en-tête de colonnes figé. Les titres s'affichent **en entier**, sur
-  plusieurs lignes si besoin (retour d'usage du 2026-10-14). Quand l'animateur modifie une
+  défile**, avec un en-tête de colonnes figé. **Au moins 15 fonctionnalités** sont visibles
+  sans défilement ni zoom, dès une fenêtre de 1280 × 620 (retour d'usage du 2026-10-15) :
+  l'en-tête (nom de la session, actions, outils) tient sur une ligne et chaque
+  fonctionnalité sur une ligne, le titre tronqué et affiché en entier au survol et dans le
+  panneau de détail. Quand l'animateur modifie une
   ligne, la ligne d'édition tient dans la largeur du tableau : aucun défilement n'est
   nécessaire pour saisir, enregistrer ou annuler. Le panneau latéral défile
   séparément si besoin. La même règle s'applique à l'écran du **tour en cours**, où le
@@ -417,8 +420,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   classées » à gauche et le classement à droite, côte à côte, chacun défilant de son côté,
   une ligne par fonctionnalité (titre tronqué, en entier au survol ; boutons réduits à leur
   symbole ↑ ↓ = →, nommés en entier pour les lecteurs d'écran) ; la navigation est dans
-  l'en-tête. Une consigne d'une ligne rappelle le critère ; l'explication complète est dans
-  un bouton « Aide ».
+  l'en-tête. Une consigne d'une ligne, dans l'en-tête, rappelle le critère ; l'explication
+  complète est dans un bouton « Aide ». Au moins 15 fonctionnalités sont visibles sans
+  défilement ni zoom dès une fenêtre de 1280 × 620, même quand chacune est à son propre
+  niveau, et sur l'étape de choix des fonctionnalités.
 
   Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
   enregistrée en une seule modification, avec la version lue à l'ouverture de l'écran

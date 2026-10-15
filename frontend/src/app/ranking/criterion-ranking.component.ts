@@ -61,12 +61,13 @@ type Action = 'up' | 'down' | 'join' | 'last';
         id="ranking-top-value"
         class="input num-input"
         inputmode="numeric"
+        [attr.title]="messages.topHelp"
         [attr.aria-invalid]="topInvalid()"
         [attr.aria-describedby]="topInvalid() ? 'ranking-top-error' : 'ranking-top-help'"
         [value]="topText()"
         (input)="setTop($any($event.target).value)"
       />
-      <span id="ranking-top-help" class="muted small">{{ messages.topHelp }}</span>
+      <span id="ranking-top-help" class="sr-only">{{ messages.topHelp }}</span>
       <button
         type="button"
         class="btn btn-secondary btn-sm"

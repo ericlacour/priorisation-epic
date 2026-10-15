@@ -141,7 +141,7 @@ describe('RankingScreenComponent', () => {
     toggle('RR/OE ·');
     toggle('JS ·');
     click('Commencer le classement');
-    expect(element.querySelector('h1 + p')?.textContent).toContain(
+    expect(element.querySelector('h1 + span')?.textContent).toContain(
       'Critère 1 sur 2 : BV · Business Value · 3 fonctionnalité(s)',
     );
     // Valeurs actuelles gardées : F-1 (8), F-2 (3), F-3 non classée.
@@ -153,7 +153,7 @@ describe('RankingScreenComponent', () => {
     press(element, 'Égalité avec le dernier niveau : F-3');
     fixture.detectChanges();
     click('Critère suivant');
-    expect(element.querySelector('h1 + p')?.textContent).toContain('Critère 2 sur 2 : TC');
+    expect(element.querySelector('h1 + span')?.textContent).toContain('Critère 2 sur 2 : TC');
     typeInto(element.querySelector<HTMLInputElement>('#ranking-top-value')!, '3');
     fixture.detectChanges();
     press(element, 'Classer en dernier : F-2');

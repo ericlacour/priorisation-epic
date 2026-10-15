@@ -169,6 +169,32 @@ test.describe('prioriser par classement (FR-015a)', () => {
     expect(rowHeight).toBeLessThanOrEqual(40);
   });
 
+  test('fenêtre de 1280 × 620 : 15 fonctionnalités visibles, chacune à son niveau, sans défilement', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 620 });
+    const unvalued = (manyFeatures(15) as { criteria: object }[]).map((feature) => ({
+      ...feature,
+      criteria: { ...feature.criteria, bv: null },
+    }));
+    await openAsFacilitator(page, unvalued);
+    for (const item of await page.locator('.ranking-feature-list .check').all()) {
+      await expect(item).toBeInViewport({ ratio: 1 });
+    }
+    await page.getByRole('button', { name: 'Commencer le classement' }).click();
+    // « Classer en dernier » sur chaque non classée : 15 niveaux, le cas le plus haut.
+    for (let index = 0; index < 15; index++) {
+      await page.locator('.rank-unranked [data-action="last"]').first().click();
+    }
+    await expect(page.locator('.rank-level')).toHaveCount(15);
+    for (const item of await page.locator('.rank-ranked .rank-item').all()) {
+      await expect(item).toBeInViewport({ ratio: 1 });
+    }
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+    ).toBe(true);
+  });
+
   test('accessibilité : aucune violation axe sur le choix et le classement', async ({ page }) => {
     await openAsFacilitator(page, [F1, F2, F3]);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

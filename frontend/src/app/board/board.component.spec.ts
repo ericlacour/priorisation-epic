@@ -168,13 +168,13 @@ describe('BoardComponent', () => {
     expect(badge.getAttribute('title')).toBe('À revoir : Descriptif à compléter');
   });
 
-  it('opens the glossary in a panel from the link above the table, and shows no legend under the table', () => {
+  it('opens the glossary in a panel from the link next to the session name, and shows no legend under the table', () => {
     const { fixture, element } = render();
     expect(element.querySelector('app-method-glossary')).toBeNull();
     expect(element.querySelector('aside')).toBeNull();
     expect(element.textContent).not.toContain('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
 
-    const link = element.querySelector<HTMLButtonElement>('.table-tools .link-button')!;
+    const link = element.querySelector<HTMLButtonElement>('.board-name .link-button')!;
     expect(link.textContent?.trim()).toBe('Comprendre le WSJF');
     link.click();
     fixture.detectChanges();
@@ -216,7 +216,7 @@ describe('BoardComponent', () => {
     expect(button(element, 'Tours révélés')?.disabled).toBe(true);
     expect(button(element, 'Copier Session')).toBeUndefined();
     expect(element.querySelector('app-animation-link')).toBeNull();
-    expect(element.querySelector('.board-head p')?.textContent).toBe(
+    expect(element.querySelector('.board-info-text')?.textContent).toBe(
       'Vous : Éric · Animée par Éric · Échelle 1 à 10',
     );
   });
@@ -568,7 +568,7 @@ describe('BoardComponent', () => {
   it('opens the method panel from the glossary', () => {
     const { fixture, element } = render();
 
-    element.querySelector<HTMLButtonElement>('.table-tools .link-button')!.click();
+    element.querySelector<HTMLButtonElement>('.board-name .link-button')!.click();
     fixture.detectChanges();
     element.querySelector<HTMLButtonElement>('app-method-glossary .link-button')!.click();
     fixture.detectChanges();
