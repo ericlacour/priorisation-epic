@@ -53,7 +53,8 @@ export const MESSAGES = {
     animationWarning: 'À garder pour vous.',
     animationHelp:
       "C'est le seul moyen de reprendre la main en tant qu'animateur depuis un autre poste. Ne le partagez pas.",
-    laterHelp: 'Vous pourrez le copier à nouveau depuis la session, avec « Copier Session Anim ».',
+    laterHelp:
+      'Vous pourrez le copier à nouveau depuis la session, avec « Liens » puis « Copier mon lien d’animation ».',
     goToSession: 'Aller à la session',
   },
   link: {
@@ -98,12 +99,14 @@ export const MESSAGES = {
     pseudoTaken: 'Ce pseudo est déjà utilisé dans cette session.',
     notFound: "Cette session n'existe pas.",
     tooManyRequests: 'Trop de sessions créées depuis cette adresse. Réessayez dans une minute.',
+    forbidden: "Seul l'animateur peut faire cette action.",
+    tooLarge: 'Le fichier dépasse 5 Mo.',
     network: 'Le service ne répond pas. Vérifiez votre connexion et réessayez.',
   },
   board: {
     tableLabel: 'Tableau de priorisation',
-    facilitatorLine: 'Animateur : {facilitator} · Vous : {me} · Échelle 1 à {max}',
-    participantLine: 'Vous : {me} · Animée par {facilitator} · Échelle 1 à {max}',
+    facilitatorLine: 'Animateur : {facilitator} · Vous : {me} · Échelle {scale}',
+    participantLine: 'Vous : {me} · Animée par {facilitator} · Échelle {scale}',
     youSuffix: '(vous)',
     status: {
       PREPARATION: 'En préparation',
@@ -128,7 +131,17 @@ export const MESSAGES = {
     },
     notComputed: 'non calculé',
     outOfScale: 'hors échelle',
-    outOfScaleValue: 'Valeur hors échelle (1 à {max})',
+    outOfScaleValue: 'Valeur hors échelle ({scale})',
+    import: 'Importer',
+    importHint: 'Importer des fonctionnalités depuis un fichier Excel, CSV ou JSON',
+    scale: 'Échelle',
+    scaleHint: 'Choisir le type d’échelle et sa borne',
+    links: {
+      label: 'Liens',
+      hint: 'Copier le lien d’invitation ou votre lien d’animation',
+      invite: 'Copier le lien d’invitation',
+      inviteHint: "Copie le lien d'invitation à envoyer aux participants",
+    },
     review: 'à revoir',
     reviewHint: 'À revoir : {reason}',
     noValue: '—',
@@ -138,8 +151,6 @@ export const MESSAGES = {
     participantsList: 'Liste des participants',
     animator: 'animateur',
     offline: 'hors ligne',
-    copyInvite: 'Copier Session',
-    copyInviteHint: "Copie le lien d'invitation à envoyer aux participants",
   },
   editor: {
     newTitle: 'Nouvelle fonctionnalité',
@@ -155,6 +166,7 @@ export const MESSAGES = {
     externalIdRequired: "Saisissez l'identifiant (50 caractères au plus).",
     titleRequired: 'Saisissez le titre (200 caractères au plus).',
     valueInvalid: '{code} doit être un entier entre 1 et {max}, ou rester vide.',
+    valueInvalidList: '{code} doit être l’une des valeurs {values}, ou rester vide.',
   },
   ranking: {
     title: 'Prioriser par classement',
@@ -191,6 +203,7 @@ export const MESSAGES = {
     topLabel: 'Valeur du premier niveau ({code})',
     topHelp: 'Puis la valeur juste inférieure de l’échelle à chaque niveau.',
     topInvalid: 'La valeur du premier niveau doit être un entier entre 1 et {max}.',
+    topInvalidList: 'La valeur du premier niveau doit être l’une des valeurs {values}.',
     resetProposals: 'Revenir aux valeurs proposées',
     listLabel: 'Classement pour {code}',
     emptyRanking:
@@ -273,6 +286,7 @@ export const MESSAGES = {
     tieBreak: 'Règle de tri et d’égalité',
     scale: 'Échelle de la session',
     scaleValue: 'Entiers de 1 à {max}',
+    scaleFibonacci: 'Suite de Fibonacci : {values}',
     frozen: 'La méthode est choisie à la création de la session et ne peut plus être modifiée',
   },
   methodInfo: {
@@ -280,7 +294,7 @@ export const MESSAGES = {
     sort: 'Tri : {rule}',
   },
   animationLink: {
-    copy: 'Copier Session Anim',
+    copy: 'Copier mon lien d’animation',
     hint: "Copie votre lien d'animation privé : il redonne les droits d'animateur. Ne le partagez pas.",
     missing: "Ce navigateur ne contient pas le jeton d'animation de cette session.",
   },
@@ -304,6 +318,75 @@ export const MESSAGES = {
   },
   connection: {
     reconnecting: 'Reconnexion…',
+  },
+  scale: {
+    continuousLabel: '1 à {max}',
+    fibonacciLabel: 'Fibonacci {values}',
+  },
+  importDialog: {
+    title: 'Importer des fonctionnalités',
+    file: 'Fichier à importer',
+    formats: 'Formats acceptés : .xlsx, .csv, .json · 5 Mo et 1 000 lignes au plus',
+    expectedHeaders: 'En-têtes attendus :',
+    /** En-têtes imposés des fichiers (contracts/file-formats.md), suivis de ceux des critères de la méthode. */
+    fileHeaders: ['Identifiant', 'Titre', 'Description'],
+    template: 'Télécharger le modèle Excel',
+    reading: 'Lecture du fichier…',
+    fileSummary: '{name} · {count} lignes lues',
+    stats: {
+      valid: 'lignes valides',
+      rejected: 'lignes rejetées',
+      warnings: 'avertissements',
+    },
+    tabs: {
+      valid: 'Valides ({count})',
+      rejected: 'Rejetées ({count})',
+      warnings: 'Avertissements ({count})',
+    },
+    columns: {
+      line: 'Ligne',
+      externalId: 'Identifiant',
+      title: 'Titre',
+      reason: 'Motif',
+      message: 'Avertissement',
+    },
+    wholeFile: 'Fichier',
+    none: 'Aucune ligne.',
+    ignoredColumns: 'Colonnes ignorées : {columns}.',
+    scaleApplied: 'La session étant vide, l’échelle du fichier sera appliquée : {scale}.',
+    cancel: 'Annuler',
+    confirm: 'Importer {count} lignes',
+    confirmOne: 'Importer 1 ligne',
+    importing: 'Import en cours…',
+    nothingToImport: 'Aucune ligne valide : rien ne sera importé.',
+    done: '{imported} fonctionnalité(s) importée(s), {rejected} ligne(s) rejetée(s).',
+    close: 'Terminer',
+    anotherFile: 'Choisir un autre fichier',
+    errors: {
+      tooLarge: 'Le fichier dépasse 5 Mo.',
+      expired: 'L’aperçu a expiré : importez de nouveau le fichier.',
+      forbidden: 'Seul l’animateur peut importer des fonctionnalités.',
+      network: 'Le service ne répond pas. Vérifiez votre connexion et réessayez.',
+    },
+  },
+  settingsDialog: {
+    title: 'Échelle des valeurs',
+    type: 'Type d’échelle',
+    continuous: 'Entiers continus',
+    continuousHint: 'Tout entier de 1 à la borne (10, 20, 50…)',
+    fibonacci: 'Suite de Fibonacci',
+    fibonacciHint: '1, 2, 3, 5, 8, 13, 20, 40, 100',
+    max: 'Borne supérieure',
+    maxInvalid: 'La borne est un entier de 2 à 100.',
+    allowed: 'Valeurs autorisées :',
+    impactTitle: '{count} valeur(s) deviennent hors échelle.',
+    impactText:
+      'Elles seront signalées « hors échelle » et les fonctionnalités concernées sortiront du calcul jusqu’à correction :',
+    impactValue: '{code} = {value}',
+    restored: 'À l’inverse, ces valeurs hors échelle aujourd’hui redeviennent valides : {values}.',
+    cancel: 'Annuler',
+    apply: 'Appliquer',
+    confirm: 'Confirmer le changement',
   },
 } as const;
 

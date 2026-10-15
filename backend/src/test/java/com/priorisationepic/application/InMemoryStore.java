@@ -113,6 +113,12 @@ public final class InMemoryStore
             s.version() + 1));
   }
 
+  @Override
+  public void updateSettings(
+      SessionId sessionId, String name, com.priorisationepic.domain.scale.Scale scale) {
+    sessions.put(sessionId, sessions.get(sessionId).withSettings(name, scale));
+  }
+
   /** Remplace la session telle quelle (préparation d'un test). */
   public void put(Session session) {
     sessions.put(session.id(), session);

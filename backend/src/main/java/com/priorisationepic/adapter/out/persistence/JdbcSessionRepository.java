@@ -91,4 +91,16 @@ class JdbcSessionRepository implements SessionRepository {
         .param("id", sessionId.value())
         .update();
   }
+
+  @Override
+  public void updateSettings(SessionId sessionId, String name, Scale scale) {
+    jdbc.sql(
+            "update session set name = :name, scale_type = :scaleType, scale_max = :scaleMax"
+                + " where session_id = :id")
+        .param("id", sessionId.value())
+        .param("name", name)
+        .param("scaleType", scale.type().name())
+        .param("scaleMax", scale.max())
+        .update();
+  }
 }

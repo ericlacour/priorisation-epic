@@ -29,10 +29,15 @@ import org.springframework.web.util.UrlPathHelper;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Corps des routes {@code POST} limité à {@code priorisation-epic.max-request-body} (5 Mo pour les
- * imports) ({@code 413}, problem+json sans {@code code}). Un {@code Content-Length} au-delà de la
- * limite est refusé sans rien lire ; sans {@code Content-Length}, au plus limite + 1 octets sont
- * lus. Le corps accepté est rejoué tel quel à la suite.
+ * Corps des routes {@code POST} limité à {@code priorisation-epic.max-request-body} ({@code 413},
+ * problem+json sans {@code code}). Un {@code Content-Length} au-delà de la limite est refusé sans
+ * rien lire ; sans {@code Content-Length}, au plus limite + 1 octets sont lus. Le corps accepté est
+ * rejoué tel quel à la suite.
+ *
+ * <p>Les imports ({@code multipart/form-data}) sont limités à {@code priorisation-epic.max-import-
+ * body} plus l'enveloppe du formulaire, sur le seul {@code Content-Length} : leur corps n'est pas
+ * lu ici, car le conteneur le décode lui-même. Sans {@code Content-Length}, la limite du décodage
+ * multipart ({@code spring.servlet.multipart.max-request-size}) s'applique.
  *
  * <p>Le filtre passe avant le {@code DispatcherServlet} : la réponse {@code 413} ne porte pas
  * d'en-têtes CORS. Le front n'envoie jamais un tel corps et l'afficherait comme une erreur réseau.
@@ -44,6 +49,9 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
   private static final Pattern LIMITED_PATHS =
       Pattern.compile("^/api/sessions(/[^/]+/participants)?$");
   private static final Pattern IMPORT_PATHS = Pattern.compile("^/api/sessions/[^/]+/imports$");
+
+  /** Enveloppe d'un formulaire d'import autour du fichier : délimiteurs et en-têtes de partie. */
+  static final long MULTIPART_OVERHEAD = 64 * 1024;
 
   private final long maxBytes;
   private final long maxImportBytes;
@@ -71,7 +79,7 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
   /** Limite en octets du chemin, 0 s'il n'est pas limité. */
   private long limitFor(String path) {
     if (IMPORT_PATHS.matcher(path).matches()) {
-      return maxImportBytes;
+      return maxImportBytes + MULTIPART_OVERHEAD;
     }
     return LIMITED_PATHS.matcher(path).matches() ? maxBytes : 0;
   }
@@ -80,9 +88,14 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
-    long limit = limitFor(UrlPathHelper.defaultInstance.getPathWithinApplication(request));
+    String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
+    long limit = limitFor(path);
     if (request.getContentLengthLong() > limit) {
       refuse(request, response);
+      return;
+    }
+    if (IMPORT_PATHS.matcher(path).matches()) {
+      chain.doFilter(request, response);
       return;
     }
     byte[] body = request.getInputStream().readNBytes((int) Math.min(limit + 1, Integer.MAX_VALUE));

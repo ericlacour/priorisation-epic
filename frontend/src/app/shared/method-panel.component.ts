@@ -100,6 +100,8 @@ export class MethodPanelComponent {
   }
 
   protected scaleLabel(scale: SessionScale): string {
-    return format(this.messages.scaleValue, { max: scale.max });
+    return scale.type === 'FIBONACCI'
+      ? format(this.messages.scaleFibonacci, { values: scale.allowedValues.join(', ') })
+      : format(this.messages.scaleValue, { max: scale.max });
   }
 }

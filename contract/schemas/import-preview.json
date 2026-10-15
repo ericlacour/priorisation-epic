@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "import-preview.json",
+  "title": "Import preview",
+  "description": "Result of reading an imported file (FR-007, FR-008, file-formats.md). Nothing is written until the facilitator confirms it before expiresAt (15 min). line is the line number in the file (1 for the first line of a CSV or a sheet; 0 for the whole file). A row is rejected when its identifier is empty or already used (in the session or above in the file), its title is empty, or a text is too long. A criterion value that is not an integer of the session's scale only gets a warning: the row is imported without it. Unknown columns are listed in ignoredColumns and in warnings. scale is present when a JSON file's scale will be applied (empty session in preparation).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "previewId",
+    "sourceType",
+    "expiresAt",
+    "validRows",
+    "rejectedRows",
+    "warnings",
+    "ignoredColumns"
+  ],
+  "properties": {
+    "previewId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sourceType": {
+      "type": "string",
+      "enum": ["XLSX", "CSV", "JSON"]
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validRows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["line", "externalId", "title", "description", "criteria"],
+        "properties": {
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "externalId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": ["string", "null"],
+            "maxLength": 5000
+          },
+          "criteria": {
+            "$ref": "criteria.json"
+          }
+        }
+      }
+    },
+    "rejectedRows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["line", "externalId", "reason"],
+        "properties": {
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "externalId": {
+            "type": ["string", "null"]
+          },
+          "reason": {
+            "type": "string",
+            "description": "French, actionable."
+          }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["line", "message"],
+        "properties": {
+          "line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string",
+            "description": "French."
+          }
+        }
+      }
+    },
+    "ignoredColumns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scale": {
+      "$ref": "scale.json"
+    }
+  }
+}

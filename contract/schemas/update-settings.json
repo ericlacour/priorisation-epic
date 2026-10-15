@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "update-settings.json",
+  "title": "updateSettings (client → server)",
+  "description": "Facilitator only (FR-010, FR-011). Renames the session and/or changes its scale. CONTINUOUS: max from 2 to 100. FIBONACCI: max is one of 2, 3, 5, 8, 13, 20, 40, 100 (INVALID_VALUE otherwise). Without confirm, a scale change that puts retained values out of scale changes nothing and gets error SCALE_IMPACT with impactedValues; with confirm: true it is applied, the values become out of scale and their features leave the calculation until corrected. Renaming alone never needs confirm.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type"],
+  "minProperties": 2,
+  "properties": {
+    "type": {
+      "const": "updateSettings"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "max"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["CONTINUOUS", "FIBONACCI"]
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 100
+        }
+      }
+    },
+    "confirm": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

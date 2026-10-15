@@ -5,6 +5,8 @@ import {
   helloMessage,
   isSessionId,
   parseCreateSessionResponse,
+  parseImportPreview,
+  parseImportResult,
   parseJoinSessionResponse,
   parseProblem,
   parseServerMessage,
@@ -86,5 +88,55 @@ describe('contract: sessionState and error with a feature', () => {
       type: 'error',
       code: 'STALE_VERSION',
     });
+  });
+});
+
+describe('import and scale messages', () => {
+  const preview = {
+    previewId: '6f1c2b0a-3d4e-4f5a-9b8c-7d6e5f4a3b2c',
+    sourceType: 'XLSX',
+    expiresAt: '2026-10-11T14:15:00Z',
+    validRows: [
+      { line: 2, externalId: 'F-1', title: 'Paiement', description: null, criteria: { bv: 8 } },
+    ],
+    rejectedRows: [{ line: 4, externalId: null, reason: 'Identifiant vide' }],
+    warnings: [{ line: 3, message: 'BV = 12 hors échelle : valeur ignorée' }],
+    ignoredColumns: ['Priorité'],
+  };
+
+  it('reads an error SCALE_IMPACT with its impacted values', () => {
+    const impactedValues = [{ externalId: 'F-1', criterion: 'js', value: 4 }];
+    expect(parseServerMessage({ type: 'error', code: 'SCALE_IMPACT', impactedValues })).toEqual({
+      type: 'error',
+      code: 'SCALE_IMPACT',
+      impactedValues,
+    });
+    expect(
+      parseServerMessage({ type: 'error', code: 'SCALE_IMPACT', impactedValues: [{ value: 'x' }] }),
+    ).toEqual({ type: 'error', code: 'SCALE_IMPACT' });
+  });
+
+  it('reads an import preview and refuses one out of contract', () => {
+    expect(parseImportPreview(preview)).toEqual(preview);
+    expect(parseImportPreview({ ...preview, scale: { type: 'FIBONACCI', max: 20 } }).scale).toEqual(
+      { type: 'FIBONACCI', max: 20 },
+    );
+    expect(() => parseImportPreview({ ...preview, sourceType: 'PDF' })).toThrow();
+    expect(() => parseImportPreview({ ...preview, scale: { type: 'LOG', max: 2 } })).toThrow();
+    expect(() =>
+      parseImportPreview({
+        ...preview,
+        validRows: [{ ...preview.validRows[0], criteria: { bv: 'x' } }],
+      }),
+    ).toThrow();
+    expect(() => parseImportPreview({ ...preview, rejectedRows: [{ line: 1 }] })).toThrow();
+    expect(() => parseImportPreview({ ...preview, warnings: [{ line: 'a' }] })).toThrow();
+    expect(() => parseImportPreview({ ...preview, ignoredColumns: [1] })).toThrow();
+    expect(() => parseImportPreview(null)).toThrow();
+  });
+
+  it('reads an import result', () => {
+    expect(parseImportResult({ imported: 18, rejected: 2 })).toEqual({ imported: 18, rejected: 2 });
+    expect(() => parseImportResult({ imported: '18' })).toThrow();
   });
 });

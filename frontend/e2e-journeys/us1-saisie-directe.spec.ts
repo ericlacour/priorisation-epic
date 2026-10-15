@@ -237,7 +237,7 @@ test('FR-002 : le lien d’animation ouvre les droits d’animateur dans un autr
   browser,
   page,
 }) => {
-  // Le presse-papiers est remplacé : ce que « Copier Session Anim » copie se relit dans la page.
+  // Le presse-papiers est remplacé : ce que « Copier mon lien d’animation » copie se relit dans la page.
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -250,7 +250,8 @@ test('FR-002 : le lien d’animation ouvre les droits d’animateur dans un autr
   });
   await createSession(page);
   await addFeature(page, 'F-1', 'Paiement en un clic', { BV: '8', TC: '5', 'RR/OE': '3', JS: '4' });
-  await page.getByRole('button', { name: 'Copier Session Anim' }).click();
+  await page.getByRole('button', { name: 'Liens' }).click();
+  await page.getByRole('button', { name: 'Copier mon lien d’animation' }).click();
   await expect(page.getByRole('button', { name: 'Copié' })).toBeVisible();
   const animation = await page.evaluate(() => (window as unknown as { copied: string }).copied);
   expect(animation).toContain('/animer#');

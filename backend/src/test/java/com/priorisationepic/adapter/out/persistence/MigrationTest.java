@@ -32,7 +32,7 @@ class MigrationTest extends PostgresTestBase {
         jdbc.queryForObject(
             "select version from flyway_schema_history where success order by installed_rank desc limit 1",
             String.class);
-    assertThat(version).isEqualTo("2");
+    assertThat(version).isEqualTo("3");
   }
 
   @Test

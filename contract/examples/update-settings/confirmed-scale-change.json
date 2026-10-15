@@ -1,0 +1,5 @@
+{
+  "type": "updateSettings",
+  "scale": { "type": "CONTINUOUS", "max": 20 },
+  "confirm": true
+}

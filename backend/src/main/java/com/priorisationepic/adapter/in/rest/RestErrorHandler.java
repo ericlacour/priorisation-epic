@@ -1,5 +1,8 @@
 package com.priorisationepic.adapter.in.rest;
 
+import com.priorisationepic.application.ForbiddenException;
+import com.priorisationepic.application.ImportPreviewNotFoundException;
+import com.priorisationepic.application.ImportRefusedException;
 import com.priorisationepic.application.PseudoTakenException;
 import com.priorisationepic.application.SessionNotFoundException;
 import com.priorisationepic.domain.InvalidPseudoException;
@@ -20,6 +23,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -58,6 +63,30 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
   ProblemDetail sessionNotFound(Locale locale) {
     ProblemDetail problem = problem(HttpStatus.NOT_FOUND, "error.session-not-found", locale);
     problem.setTitle(messages.getMessage("title.session-not-found", null, locale));
+    return problem;
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  ProblemDetail forbidden(Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.FORBIDDEN, "error.forbidden", locale);
+    problem.setTitle(messages.getMessage("title.forbidden", null, locale));
+    return problem;
+  }
+
+  /** Fichier d'import refusé en entier : le message dit la cause et quoi faire (FR-007). */
+  @ExceptionHandler(ImportRefusedException.class)
+  ProblemDetail importRefused(ImportRefusedException e, Locale locale) {
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+    problem.setType(ABOUT_BLANK);
+    problem.setTitle(messages.getMessage("title.import-refused", null, locale));
+    return problem;
+  }
+
+  @ExceptionHandler(ImportPreviewNotFoundException.class)
+  ProblemDetail importPreviewNotFound(Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.NOT_FOUND, "error.import-preview-not-found", locale);
+    problem.setTitle(messages.getMessage("title.import-preview-not-found", null, locale));
     return problem;
   }
 
@@ -120,6 +149,32 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
     ProblemDetail problem =
         problem(HttpStatus.BAD_REQUEST, "error.malformed-body", request.getLocale());
     return handleExceptionInternal(ex, problem, headers, status, request);
+  }
+
+  /** Formulaire d'import sans fichier. */
+  @Override
+  protected ResponseEntity<Object> handleMissingServletRequestPart(
+      MissingServletRequestPartException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    ProblemDetail problem =
+        problem(HttpStatus.BAD_REQUEST, "error.import-file-missing", request.getLocale());
+    problem.setTitle(messages.getMessage("title.import-refused", null, request.getLocale()));
+    return handleExceptionInternal(ex, problem, headers, status, request);
+  }
+
+  /** Import sans {@code Content-Length} au-delà de la limite du décodage multipart. */
+  @Override
+  protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+      MaxUploadSizeExceededException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    ProblemDetail problem =
+        problem(HttpStatus.CONTENT_TOO_LARGE, "error.payload-too-large", request.getLocale());
+    problem.setTitle(HttpStatus.CONTENT_TOO_LARGE.getReasonPhrase());
+    return handleExceptionInternal(ex, problem, headers, HttpStatus.CONTENT_TOO_LARGE, request);
   }
 
   /** Spring 7 omet {@code type} quand il vaut {@code about:blank} ; le contrat l'exige. */

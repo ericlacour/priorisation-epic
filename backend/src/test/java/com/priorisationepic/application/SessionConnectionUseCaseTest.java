@@ -51,6 +51,12 @@ class SessionConnectionUseCaseTest {
         public void incrementVersion(SessionId id) {
           throw new UnsupportedOperationException();
         }
+
+        @Override
+        public void updateSettings(
+            SessionId id, String name, com.priorisationepic.domain.scale.Scale scale) {
+          throw new UnsupportedOperationException();
+        }
       };
 
   private final ParticipantRepository participants =

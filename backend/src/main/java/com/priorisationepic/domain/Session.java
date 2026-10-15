@@ -53,6 +53,12 @@ public record Session(
         0);
   }
 
+  /** La même session, renommée et sur l'échelle donnée. */
+  public Session withSettings(String newName, Scale newScale) {
+    return new Session(
+        id, newName, status, method, methodVersion, newScale, createdAt, createdBy, version);
+  }
+
   /** Les écritures sont refusées en {@code CLOSED}, sauf « rouvrir » (FR-026). */
   public boolean isWritable() {
     return status != SessionStatus.CLOSED;

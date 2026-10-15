@@ -52,5 +52,6 @@ Les règles métier sur `sessionState` qu'un JSON Schema ne sait pas exprimer se
 ## Parcours déjà décrits
 
 - **Prioriser en saisie directe (US1)** : `POST /api/sessions`, `GET /api/sessions/{sessionId}`, `POST /api/sessions/{sessionId}/participants` et `GET /api/methods` (schémas `create-session-*`, `join-session-*`, `method-list`, `session-summary`) ; messages WebSocket `addFeature`, `updateFeature`, `deleteFeature` et `sessionState` (schémas `add-feature`, `update-feature`, `delete-feature`, `session-state`).
+- **Importer et régler l'échelle (US3)** : `POST /api/sessions/{sessionId}/imports` (aperçu, rien n'est écrit), `POST /api/sessions/{sessionId}/imports/{previewId}/confirm` et `GET /api/import-template.xlsx` (schémas `import-preview`, `import-result`) ; message WebSocket `updateSettings` (schéma `update-settings`), refusé par `error SCALE_IMPACT` avec `impactedValues` tant qu'il n'est pas confirmé.
 - `sessionState.me.role` vaut `FACILITATOR` quand la connexion détient les droits d'animateur (jeton d'animation valide), `PARTICIPANT` sinon.
 - Aucun schéma ne nomme un critère d'une méthode : `validate.mjs` le vérifie (`bv`, `tc`, `rrOe`, `js`, `cod`, `wsjf` n'apparaissent que dans les exemples).

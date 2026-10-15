@@ -29,6 +29,8 @@ tags:
     description: Create a session, join it, read it.
   - name: methods
     description: Prioritization methods offered at creation.
+  - name: imports
+    description: Import features from Excel, CSV or JSON, with a preview (FR-007, FR-008).
 
 paths:
   /api/health:
@@ -131,6 +133,109 @@ paths:
         '409':
           $ref: '#/components/responses/PseudoTaken'
 
+  /api/sessions/{sessionId}/imports:
+    parameters:
+      - $ref: '#/components/parameters/sessionId'
+    post:
+      tags: [imports]
+      operationId: previewImport
+      summary: Read a file and return a preview; nothing is written (FR-007, FR-008) - facilitator
+      description: |
+        Accepts `.xlsx`, `.csv` and `.json` (an export of the tool), 5 MB and 1,000 data rows at most.
+        Columns come from the method definition of the session (file-formats.md). A file without
+        the `Identifiant` or `Titre` column, unreadable, empty, or (JSON) produced with another
+        method is refused whole with 400 and a French message. The preview is kept 15 minutes.
+      security:
+        - participantToken: []
+          animationToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  contentMediaType: application/octet-stream
+                  description: .xlsx, .csv or .json; 5 MB max.
+      responses:
+        '200':
+          description: The preview.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/import-preview.json'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/SessionNotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+
+  /api/sessions/{sessionId}/imports/{previewId}/confirm:
+    parameters:
+      - $ref: '#/components/parameters/sessionId'
+      - name: previewId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [imports]
+      operationId: confirmImport
+      summary: Import the valid rows in a single transaction, then broadcast sessionState - facilitator
+      description: The preview is used once. A row whose identifier was taken since the preview is counted as rejected. A closed session refuses with 403.
+      security:
+        - participantToken: []
+          animationToken: []
+      responses:
+        '200':
+          description: The summary.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/import-result.json'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ImportPreviewNotFound'
+
+  /api/import-template.xlsx:
+    get:
+      tags: [imports]
+      operationId: getImportTemplate
+      summary: Download the blank Excel template (FR-007a)
+      description: Sheet « Fonctionnalités » with the headers `Identifiant`, `Titre`, `Description`, then the `header` of each criterion of the method, and an example row. Headers are generated from the method definition (FR-017b). An unknown method gets 400.
+      parameters:
+        - name: method
+          in: query
+          required: false
+          schema:
+            type: string
+            default: WSJF
+        - name: methodVersion
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: The template.
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                contentMediaType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
 components:
   securitySchemes:
     participantToken:
@@ -165,6 +270,12 @@ components:
             $ref: './schemas/problem.json'
     Forbidden:
       description: Facilitator-only action, or session closed.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    ImportPreviewNotFound:
+      description: Unknown or expired import preview (15 minutes), or unknown session.
       content:
         application/problem+json:
           schema:

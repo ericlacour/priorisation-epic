@@ -1,0 +1,30 @@
+{
+  "previewId": "6f1c2b0a-3d4e-4f5a-9b8c-7d6e5f4a3b2c",
+  "sourceType": "XLSX",
+  "expiresAt": "2026-10-11T14:15:00Z",
+  "validRows": [
+    {
+      "line": 2,
+      "externalId": "F-1",
+      "title": "Paiement en un clic",
+      "description": "Description facultative",
+      "criteria": { "bv": 8, "tc": 5, "rrOe": 3, "js": 4 }
+    },
+    {
+      "line": 3,
+      "externalId": "F-2",
+      "title": "Export comptable",
+      "description": null,
+      "criteria": { "tc": 2, "js": 3 }
+    }
+  ],
+  "rejectedRows": [
+    { "line": 4, "externalId": null, "reason": "Identifiant vide" },
+    { "line": 5, "externalId": "F-1", "reason": "Identifiant déjà utilisé" }
+  ],
+  "warnings": [
+    { "line": 1, "message": "Colonne « Priorité » inconnue : ignorée" },
+    { "line": 3, "message": "BV = 12 hors échelle : valeur ignorée" }
+  ],
+  "ignoredColumns": ["Priorité"]
+}

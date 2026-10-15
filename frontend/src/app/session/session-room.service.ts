@@ -4,7 +4,9 @@ import {
   AddFeatureMessage,
   DeleteFeatureMessage,
   ErrorCode,
+  ImpactedValue,
   UpdateFeatureMessage,
+  UpdateSettingsMessage,
   isErrorMessage,
   isSessionState,
 } from '../api/contract';
@@ -16,6 +18,8 @@ import { SessionSocketService } from './session-socket.service';
 export interface IntentRefusal {
   readonly code: ErrorCode | 'NOT_CONNECTED';
   readonly featureId?: string;
+  /** `SCALE_IMPACT` : les valeurs que le changement d'échelle mettrait hors échelle. */
+  readonly impactedValues?: readonly ImpactedValue[];
 }
 
 /**
@@ -44,7 +48,7 @@ export class SessionRoomService {
       if (isSessionState(message)) {
         this.stateSignal.set(message);
       } else if (isErrorMessage(message)) {
-        this.receiveError(message.code, message.featureId);
+        this.receiveError(message.code, message.featureId, message.impactedValues);
       }
     });
     inject(DestroyRef).onDestroy(() => subscription.unsubscribe());
@@ -68,6 +72,19 @@ export class SessionRoomService {
     return this.send({ type: 'deleteFeature', ...message });
   }
 
+  /** Renomme la session ou change son échelle ; sans `confirm`, un changement impactant revient en `SCALE_IMPACT`. */
+  updateSettings(message: Omit<UpdateSettingsMessage, 'type'>): boolean {
+    return this.send({ type: 'updateSettings', ...message });
+  }
+
+  /** Les jetons de l'animateur de cette session rangés dans ce navigateur, pour l'import ; `null` sans eux. */
+  facilitatorTokens(): { participantToken: string; animationToken: string } | null {
+    if (this.sessionId === null) return null;
+    const participantToken = this.storage.readToken(this.sessionId);
+    const animationToken = this.storage.readAnimationToken(this.sessionId);
+    return participantToken && animationToken ? { participantToken, animationToken } : null;
+  }
+
   /** Oublie le dernier refus (l'utilisateur l'a lu ou a corrigé sa saisie). */
   clearRefusal(): void {
     this.refusalSignal.set(null);
@@ -80,7 +97,11 @@ export class SessionRoomService {
     return false;
   }
 
-  private receiveError(code: ErrorCode, featureId?: string): void {
+  private receiveError(
+    code: ErrorCode,
+    featureId?: string,
+    impactedValues?: readonly ImpactedValue[],
+  ): void {
     if (code === 'FORBIDDEN' && !this.socket.hasSentIntent()) {
       // Aucune intention n'est partie sur cette connexion : c'est le refus du `hello`, le jeton d'animation rangé
       // n'est pas valide. La connexion reste celle d'un participant. Un `sessionState` reçu entre-temps (présence
@@ -88,6 +109,10 @@ export class SessionRoomService {
       if (this.sessionId !== null) this.storage.removeAnimationToken(this.sessionId);
       return;
     }
-    this.refusalSignal.set(featureId === undefined ? { code } : { code, featureId });
+    this.refusalSignal.set({
+      code,
+      ...(featureId === undefined ? {} : { featureId }),
+      ...(impactedValues === undefined ? {} : { impactedValues }),
+    });
   }
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * muet » cesse de lire après son premier message, comme un réseau coupé, et ne répond donc plus aux
  * pings.
  */
-final class WsTestClient implements WebSocket.Listener {
+public final class WsTestClient implements WebSocket.Listener {
 
   static final String ORIGIN = "https://front.example";
 
@@ -38,7 +38,7 @@ final class WsTestClient implements WebSocket.Listener {
   }
 
   /** Ouvre la connexion (sans rien envoyer). */
-  static WsTestClient open(HttpClient http, int port, String sessionId, boolean silent)
+  public static WsTestClient open(HttpClient http, int port, String sessionId, boolean silent)
       throws Exception {
     WsTestClient client = new WsTestClient(silent);
     client.socket =
@@ -49,15 +49,20 @@ final class WsTestClient implements WebSocket.Listener {
     return client;
   }
 
-  void send(String json) {
+  /** Coupe la connexion sans poignée de fermeture. */
+  public void abort() {
+    socket.abort();
+  }
+
+  public void send(String json) {
     socket.sendText(json, true).join();
   }
 
-  void hello(String participantToken) {
+  public void hello(String participantToken) {
     send("{\"type\":\"hello\",\"participantToken\":\"" + participantToken + "\"}");
   }
 
-  void hello(String participantToken, String animationToken) {
+  public void hello(String participantToken, String animationToken) {
     send(
         "{\"type\":\"hello\",\"participantToken\":\""
             + participantToken
@@ -67,14 +72,14 @@ final class WsTestClient implements WebSocket.Listener {
   }
 
   /** Prochain message texte reçu, ou {@code null} dans le délai. */
-  String next(long timeoutMs) throws InterruptedException {
+  public String next(long timeoutMs) throws InterruptedException {
     return messages.poll(timeoutMs, TimeUnit.MILLISECONDS);
   }
 
   /**
    * Premier message dont le texte contient {@code fragment} reçu dans le délai, sinon {@code null}.
    */
-  String nextContaining(String fragment, long timeoutMs) throws InterruptedException {
+  public String nextContaining(String fragment, long timeoutMs) throws InterruptedException {
     long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMs);
     while (true) {
       String text = messages.poll(Math.max(deadline - System.nanoTime(), 0), TimeUnit.NANOSECONDS);

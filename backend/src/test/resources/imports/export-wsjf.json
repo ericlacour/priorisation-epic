@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "exportedAt": "2026-10-11T14:00:00Z",
+  "session": {
+    "name": "PI 27 – Epics",
+    "status": "CLOSED",
+    "method": "WSJF",
+    "methodVersion": 1,
+    "scale": { "type": "FIBONACCI", "max": 20 }
+  },
+  "features": [
+    {
+      "externalId": "F-1",
+      "title": "Paiement",
+      "description": "Description",
+      "criteria": { "bv": 13, "tc": 5, "rrOe": 3, "js": 8 },
+      "markedForReview": true,
+      "reviewReason": "descriptif à compléter",
+      "computed": { "cod": "21", "wsjf": "2,63" },
+      "rank": 1
+    },
+    {
+      "externalId": "F-2",
+      "title": "Export",
+      "description": null,
+      "criteria": { "bv": 2, "tc": 2, "rrOe": 2, "js": 1, "effort": 4 },
+      "markedForReview": false,
+      "reviewReason": null,
+      "computed": { "cod": "6", "wsjf": "5,00" },
+      "rank": 1
+    },
+    {
+      "externalId": "F-3",
+      "title": "Incomplète",
+      "description": null,
+      "criteria": { "bv": 20 },
+      "markedForReview": false,
+      "reviewReason": null,
+      "computed": null,
+      "rank": null
+    },
+    { "externalId": "", "title": "Sans identifiant", "criteria": {} }
+  ],
+  "rounds": [
+    {
+      "number": 1,
+      "status": "REVEALED",
+      "featureExternalIds": ["F-1"],
+      "openedAt": "2026-10-11T13:40:00Z",
+      "revealedAt": "2026-10-11T13:45:00Z",
+      "votes": [
+        {
+          "pseudo": "alice",
+          "featureExternalId": "F-1",
+          "criteria": { "bv": 8, "tc": 5, "rrOe": 3, "js": 5 },
+          "updatedAt": "2026-10-11T13:42:00Z"
+        }
+      ]
+    }
+  ]
+}
