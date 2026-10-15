@@ -39,11 +39,13 @@ describe('CriterionRankingComponent', () => {
     return { fixture, element, host };
   }
 
+  /** Les champs de valeur : le classement, du premier niveau au dernier, puis les non classées. */
+  const inputs = (element: HTMLElement) => [
+    ...element.querySelectorAll<HTMLInputElement>('.rank-ranked .rank-item input'),
+    ...element.querySelectorAll<HTMLInputElement>('.rank-unranked .rank-item input'),
+  ];
   const values = (element: HTMLElement) =>
-    [...element.querySelectorAll<HTMLInputElement>('.rank-item input')].map((input) => [
-      input.getAttribute('aria-label'),
-      input.value,
-    ]);
+    inputs(element).map((input) => [input.getAttribute('aria-label'), input.value]);
   const levelsOf = (element: HTMLElement) =>
     [...element.querySelectorAll('.ranking-levels .rank-items')].map((list) =>
       [...list.querySelectorAll('.fid-text')].map((id) => id.textContent?.trim()),
@@ -81,10 +83,12 @@ describe('CriterionRankingComponent', () => {
     action(element, 'Monter : F-b').click();
     fixture.detectChanges();
     expect(levelsOf(element)).toEqual([['F-b'], ['F-a']]);
+    // F-b passe devant F-a, pas à égalité : la valeur juste au-dessus, reprise par la valeur du premier niveau.
     expect(values(element).slice(0, 2)).toEqual([
-      ['BV de F-b', '8'],
+      ['BV de F-b', '9'],
       ['BV de F-a', '8'],
     ]);
+    expect(element.querySelector<HTMLInputElement>('#ranking-top-value')!.value).toBe('9');
 
     action(element, 'Descendre : F-b').click();
     fixture.detectChanges();
@@ -105,7 +109,10 @@ describe('CriterionRankingComponent', () => {
     action(element, 'Égalité avec le dernier niveau : F-d').click();
     fixture.detectChanges();
     expect(host.step().levels).toEqual([['a'], ['b'], ['c', 'd']]);
-    expect(element.querySelector('.rank-unranked')).toBeNull();
+    expect(unrankedOf(element)).toEqual([]);
+    expect(element.querySelector('.rank-unranked')?.textContent).toContain(
+      'Toutes les fonctionnalités sont classées.',
+    );
     expect(values(element).map(([, value]) => value)).toEqual(['8', '5', '4', '4']);
   });
 
@@ -141,6 +148,26 @@ describe('CriterionRankingComponent', () => {
     expect(values(element).map(([, value]) => value)).toEqual(['', '', '', '']);
   });
 
+  it('keeps the current values when the top value is typed again unchanged', () => {
+    const { fixture, element, host } = render();
+    action(element, 'Classer en dernier : F-c').click();
+    fixture.detectChanges();
+    const top = element.querySelector<HTMLInputElement>('#ranking-top-value')!;
+    // On efface « 8 », on tape « 1 » puis « 10 » : 10 propose des valeurs à tous les niveaux…
+    for (const text of ['', '1', '10']) {
+      type(top, text);
+      fixture.detectChanges();
+    }
+    expect(values(element).map(([, value]) => value)).toEqual(['10', '9', '8', '']);
+    // … et revenir à « 8 » rend les valeurs actuelles : rien n'est écrasé.
+    for (const text of ['', '8']) {
+      type(top, text);
+      fixture.detectChanges();
+    }
+    expect(host.step().topTouched).toBe(false);
+    expect(values(element).map(([, value]) => value)).toEqual(['8', '5', '4', '']);
+  });
+
   it('keeps a value changed by hand, marks it, checks it, and goes back to the proposals on demand', () => {
     const { fixture, element, host } = render();
     const reset = [...element.querySelectorAll('button')].find((b) =>
@@ -148,12 +175,12 @@ describe('CriterionRankingComponent', () => {
     )!;
     expect(reset.disabled).toBe(true);
 
-    type(element.querySelectorAll<HTMLInputElement>('.rank-item input')[1]!, '3');
+    type(inputs(element)[1]!, '3');
     fixture.detectChanges();
     expect(host.step().overrides).toEqual({ b: '3' });
     expect(element.querySelector('.rank-item .badge')?.textContent).toContain('modifiée');
 
-    type(element.querySelectorAll<HTMLInputElement>('.rank-item input')[1]!, '30');
+    type(inputs(element)[1]!, '30');
     fixture.detectChanges();
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
       'BV doit être un entier entre 1 et 10',

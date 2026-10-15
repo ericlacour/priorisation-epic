@@ -50,8 +50,54 @@
   font-weight: 600;
 }
 
+/* La navigation est dans l'en-tête : « Annuler », « Précédent » et « Suivant » restent visibles sans barre du bas. */
+.ranking-head {
+  margin-bottom: 4px;
+}
+
 .ranking-help {
-  margin: 8px 0 4px;
+  margin: 4px 0;
+}
+
+.ranking-help-menu {
+  position: relative;
+}
+
+/* « Aide » : par-dessus l'écran, sans prendre de place quand elle est fermée. */
+.ranking-help-panel {
+  position: absolute;
+  right: 0;
+  z-index: 6;
+  width: min(480px, calc(100vw - 32px));
+  margin-top: 6px;
+  padding: 10px 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ranking-help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ranking-help-panel h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ranking-help-panel p {
+  margin: 6px 0;
+}
+
+.ranking-help-panel ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding-left: 18px;
 }
 
 .criterion-ranking {
@@ -61,23 +107,44 @@
   min-height: 0;
 }
 
-/* Le classement et les non classées défilent chacun de leur côté. */
-.ranking-lists {
+.ranking-top {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-bottom: 6px;
+}
+
+.ranking-top-label {
+  font-weight: 600;
+}
+
+.ranking-top .btn {
+  margin-left: auto;
+}
+
+/* Non classées à gauche, classement à droite : chacune défile de son côté et occupe toute la hauteur. */
+.ranking-lists {
+  display: grid;
   flex: 1 1 auto;
-  flex-direction: column;
-  gap: 8px;
+  grid-template-columns: minmax(260px, 2fr) minmax(0, 3fr);
+  gap: 12px;
   min-height: 0;
 }
 
-.rank-unranked {
-  flex: 0 1 auto;
-  max-height: 40%;
+.rank-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
   padding: 6px 8px;
-  overflow: auto;
-  border: 1px dashed var(--border);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
+}
+
+.rank-unranked {
+  border-style: dashed;
 }
 
 .rank-unranked.drop-target {
@@ -85,12 +152,34 @@
   background: var(--primary-soft);
 }
 
-.rank-unranked h2 {
-  margin: 0;
+.rank-column-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: 15px;
 }
 
-.rank-unranked p {
-  margin: 0 0 6px;
+.rank-count {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 13px;
+}
+
+.rank-column-hint {
+  font-weight: 400;
+}
+
+.rank-column-help {
+  margin: 4px 0 0;
+}
+
+.rank-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 .rank-empty {
@@ -101,33 +190,15 @@
   margin: 4px 0;
 }
 
-.ranking-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.ranking-top-label {
-  font-weight: 600;
-}
-
 .ranking-levels {
-  flex: 1 1 auto;
-  min-height: 0;
   margin: 0;
-  padding: 4px 8px;
-  overflow: auto;
+  padding: 0;
   list-style: none;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
 }
 
 /* Zone de dépôt entre deux niveaux : un nouveau niveau à cette place. */
 .rank-gap {
-  height: 8px;
+  height: 4px;
   border-radius: 4px;
 }
 
@@ -142,11 +213,15 @@
 .rank-level-body {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 6px;
+  gap: 6px;
+  padding: 3px 4px;
   border: 1px dashed transparent;
   border-radius: 10px;
   background: var(--surface-muted);
+}
+
+.rank-level-body .rank {
+  margin-top: 4px;
 }
 
 .rank-level-body.drop-target {
@@ -156,21 +231,25 @@
 
 .rank-items {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.rank-level-body .rank-items {
+  flex: 1 1 auto;
+}
+
+/* Une ligne par fonctionnalité : le titre se tronque, il s'affiche en entier au survol. */
 .rank-item {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 6px;
+  min-height: 34px;
+  padding: 1px 4px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -181,29 +260,54 @@
 }
 
 .drag-handle {
-  padding: 2px 4px;
+  padding: 2px;
   color: var(--muted);
   cursor: grab;
 }
 
+.rank-item .fid-text {
+  flex: 0 0 auto;
+}
+
 .rank-title {
-  flex: 1 1 200px;
+  flex: 1 1 auto;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rank-value {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+}
+
+.rank-item .num-input {
+  width: 44px;
+  min-height: 28px;
+  padding: 2px 6px;
 }
 
 .rank-actions {
   display: inline-flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  flex: 0 0 auto;
+  gap: 0;
 }
 
-.ranking-nav {
-  justify-content: flex-end;
+/* Bouton réduit à son symbole ; son nom complet est dans aria-label et l'infobulle. */
+.btn-icon {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  font-size: 16px;
+}
+
+/* Écran étroit : les deux listes l'une sous l'autre, les non classées d'abord. */
+@media (max-width: 899px) {
+  .ranking-lists {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(120px, 2fr) minmax(160px, 3fr);
+  }
 }

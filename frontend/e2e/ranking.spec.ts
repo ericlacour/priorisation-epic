@@ -28,13 +28,18 @@ function saved(): unknown[] {
   ];
 }
 
-/** Les valeurs affichées, dans l'ordre du classement. */
+/** Les valeurs affichées, dans l'ordre du classement, puis celles des non classées. */
 const values = (page: Page) =>
-  expect.poll(() =>
-    page
-      .locator('.rank-item input')
-      .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value)),
-  );
+  expect.poll(async () => {
+    const read = (selector: string) =>
+      page
+        .locator(selector)
+        .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));
+    return [
+      ...(await read('.rank-ranked .rank-item input')),
+      ...(await read('.rank-unranked .rank-item input')),
+    ];
+  });
 
 test.describe('prioriser par classement (FR-015a)', () => {
   test('classer BV puis JS, ajuster les valeurs, puis revenir au tableau avec une modification par fonctionnalité', async ({
@@ -155,6 +160,13 @@ test.describe('prioriser par classement (FR-015a)', () => {
     });
     expect(fits).toEqual({ page: true, list: true });
     await expect(page.getByRole('button', { name: 'Critère suivant' })).toBeInViewport();
+    // Les non classées restent visibles à côté du classement, une ligne par fonctionnalité.
+    await expect(page.locator('.rank-unranked')).toBeInViewport();
+    const rowHeight = await page
+      .locator('.rank-item')
+      .first()
+      .evaluate((row) => row.clientHeight);
+    expect(rowHeight).toBeLessThanOrEqual(40);
   });
 
   test('accessibilité : aucune violation axe sur le choix et le classement', async ({ page }) => {

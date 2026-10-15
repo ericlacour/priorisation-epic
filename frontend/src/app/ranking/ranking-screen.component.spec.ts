@@ -42,11 +42,12 @@ describe('RankingScreenComponent', () => {
       checkbox(text).click();
       fixture.detectChanges();
     };
+    // Le classement, du premier niveau au dernier, puis les non classées.
     const values = () =>
-      [...element.querySelectorAll<HTMLInputElement>('.rank-item input')].map((input) => [
-        input.getAttribute('aria-label'),
-        input.value,
-      ]);
+      [
+        ...element.querySelectorAll<HTMLInputElement>('.rank-ranked .rank-item input'),
+        ...element.querySelectorAll<HTMLInputElement>('.rank-unranked .rank-item input'),
+      ].map((input) => [input.getAttribute('aria-label'), input.value]);
     return {
       fixture,
       room,
@@ -75,6 +76,21 @@ describe('RankingScreenComponent', () => {
     expect(element.textContent).toContain('(tour de vote ouvert)');
   });
 
+  it('never chooses or ranks a feature in an open round, even after "Tout sélectionner" or once chosen', () => {
+    const { fixture, room, click, checkbox, toggle, values } = render([F1, F2, IN_ROUND]);
+    click('Tout désélectionner');
+    click('Tout sélectionner');
+    expect(checkbox('F-4').checked).toBe(false);
+
+    // F-2 entre dans un tour après avoir été choisie : elle n'est plus choisie, ni classée.
+    room.state.set(state({ features: [F1, { ...F2, votingInProgress: true }, IN_ROUND] }));
+    fixture.detectChanges();
+    expect(checkbox('F-2').checked).toBe(false);
+    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+    click('Commencer le classement');
+    expect(values().map(([label]) => label)).toEqual(['BV de F-1']);
+  });
+
   it('needs at least one criterion and one feature to start', () => {
     const { element, button, click, toggle } = render();
     click('Tout désélectionner');
@@ -86,6 +102,30 @@ describe('RankingScreenComponent', () => {
     expect(element.textContent).toContain('Choisissez au moins un critère.');
     toggle('TC ·');
     expect(button('Commencer le classement').disabled).toBe(false);
+  });
+
+  it('opens the help on demand, with the full explanation, and closes it with Escape', () => {
+    const { element, click, toggle, fixture } = render();
+    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+    click('Commencer le classement');
+    expect(element.querySelector('.ranking-help')?.textContent).toContain(
+      'Classez de la plus forte à la plus faible pour BV (Business Value)',
+    );
+    const help = element.querySelector<HTMLButtonElement>('[aria-controls="ranking-help-panel"]')!;
+    expect(help.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('#ranking-help-panel')).toBeNull();
+
+    help.click();
+    fixture.detectChanges();
+    expect(help.getAttribute('aria-expanded')).toBe('true');
+    const panel = element.querySelector<HTMLElement>('#ranking-help-panel')!;
+    expect(panel.textContent).toContain('Les valeurs actuelles sont gardées');
+    expect(panel.textContent).toContain('poignée ⠿');
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(element.querySelector('#ranking-help-panel')).toBeNull();
+    expect(document.activeElement).toBe(help);
   });
 
   const typeInto = (input: HTMLInputElement, text: string) => {

@@ -16,6 +16,7 @@ import {
   proposedValues,
   reselect,
   resolveStep,
+  setTop,
   unrank,
   withPending,
 } from './ranking';
@@ -63,10 +64,41 @@ describe('ranking', () => {
       expect(resolved(step)).toMatchObject({ e: 2 });
     });
 
-    it('gives the top value to a moved feature that opens the first level', () => {
+    it('puts a feature moved to the top ahead of the first level, not tied with it', () => {
+      // Déposée tout en haut.
       let step = start();
       step = place(step, 'a', moveTo(step.levels, 'a', { before: 0 }));
-      expect(resolved(step)).toMatchObject({ a: 8, c: 8, d: 3 });
+      expect(resolved(step)).toMatchObject({ a: 9, c: 8, d: 3 });
+
+      // Montée d'un cran au-dessus de la première.
+      const two = newStep(['a', 'b'], (id) => ({ a: 8, b: 5 })[id], SCALE);
+      expect(resolved(place(two, 'b', moveUp(two.levels, 'b')))).toEqual({ b: 9, a: 8 });
+
+      // Sortie d'une égalité en tête.
+      const tied = newStep(['a', 'b'], () => 8, SCALE);
+      expect(resolved(place(tied, 'b', moveUp(tied.levels, 'b')))).toEqual({ b: 9, a: 8 });
+    });
+
+    it('pushes the levels below down when there is no room above the first one', () => {
+      const fibonacci = { type: 'FIBONACCI', max: 13, allowedValues: [1, 2, 3, 5, 8, 13] };
+      const step = newStep(['a', 'b'], (id) => ({ a: 13, b: 5 })[id], fibonacci);
+      const moved = place(step, 'b', moveUp(step.levels, 'b'));
+      expect(Object.fromEntries(resolveStep(moved, fibonacci) ?? [])).toEqual({ b: 13, a: 8 });
+    });
+
+    it('never gives a higher-ranked feature a lower value than a feature below it', () => {
+      // Fibonacci, A = 13 et C = 8 : X puis Y placées chacune dans un nouveau niveau entre A et C.
+      const fibonacci = { type: 'FIBONACCI', max: 13, allowedValues: [1, 2, 3, 5, 8, 13] };
+      let step = newStep(['a', 'c', 'x', 'y'], (id) => ({ a: 13, c: 8 })[id] ?? null, fibonacci);
+      step = place(step, 'x', moveTo(withPending(step, 'x'), 'x', { before: 1 }));
+      step = place(step, 'y', moveTo(withPending(step, 'y'), 'y', { before: 2 }));
+      expect(step.levels).toEqual([['a'], ['x'], ['y'], ['c']]);
+      expect(levelValues(step, fibonacci)).toEqual([13, 8, 5, 3]);
+
+      // Avec de la place entre les deux, C garde sa valeur.
+      let linear = newStep(['a', 'c', 'x'], (id) => ({ a: 10, c: 5 })[id] ?? null, SCALE);
+      linear = place(linear, 'x', moveTo(withPending(linear, 'x'), 'x', { before: 1 }));
+      expect(resolved(linear)).toEqual({ a: 10, x: 9, c: 5 });
     });
 
     it('proposes a value to every level once the top value is typed', () => {
@@ -101,6 +133,30 @@ describe('ranking', () => {
       expect(unrank(step, 'b')).toBe(step);
       expect(place(step, 'a', step.levels)).toBe(step);
       expect(unrank(start(), 'c').levels).toEqual([['a', 'd']]);
+    });
+  });
+
+  describe('setTop', () => {
+    it('proposes values only when the top value really changes', () => {
+      const step = start();
+      expect(setTop(step, '8', SCALE).topTouched).toBe(false);
+      expect(setTop(step, '6', SCALE).topTouched).toBe(true);
+      expect(resolved(setTop(step, '6', SCALE))).toMatchObject({ c: 6, a: 5, d: 5 });
+    });
+
+    it('gives the current values back when the same top value is typed again', () => {
+      let step = start();
+      for (const text of ['', '1', '8']) step = setTop(step, text, SCALE);
+      expect(step.top).toBe('8');
+      expect(step.topTouched).toBe(false);
+      expect(resolved(step)).toEqual({ a: 3, b: null, c: 8, d: 3, e: null });
+    });
+
+    it('compares with the current value of the first level, even after a move', () => {
+      let step = start();
+      step = place(step, 'a', moveTo(step.levels, 'a', { before: 0 }));
+      expect(setTop(step, '9', SCALE).topTouched).toBe(false);
+      expect(setTop(step, '8', SCALE).topTouched).toBe(true);
     });
   });
 

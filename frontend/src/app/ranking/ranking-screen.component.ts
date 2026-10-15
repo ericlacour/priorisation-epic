@@ -18,6 +18,13 @@ import { SessionRoomService } from '../session/session-room.service';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { RankingStep, newStep, reselect, resolveStep } from './ranking';
 
+/** Une fonctionnalité dans un tour de vote ouvert ne se classe pas : ses valeurs viendront du vote. */
+const isRankable = (feature: Feature): boolean => !feature.votingInProgress;
+
+/** Les identifiants des fonctionnalités qui peuvent être classées, dans l'ordre du tableau. */
+const rankableIds = (features: readonly Feature[] | undefined): string[] =>
+  (features ?? []).filter(isRankable).map((feature) => feature.id);
+
 /** Valeurs envoyées pour une fonctionnalité, par clé de critère. */
 type Changes = Readonly<Record<string, number | null>>;
 
@@ -33,17 +40,73 @@ type Changes = Readonly<Record<string, number | null>>;
   selector: 'app-ranking-screen',
   imports: [CriterionRankingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'board-page ranking-page', role: 'main' },
+  host: {
+    class: 'board-page ranking-page',
+    role: 'main',
+    '(keydown.escape)': 'closeHelp()',
+  },
   template: `
     @if (state(); as state) {
-      <div class="board-head">
+      <!-- Navigation dans l'en-tête : toute la hauteur restante va aux listes. -->
+      <div class="board-head ranking-head">
         <div>
           <h1 tabindex="-1">{{ messages.title }}</h1>
           <p class="muted small">{{ subtitle() }}</p>
         </div>
-        <div class="board-tools">
+        <div class="board-tools ranking-nav">
+          <div class="ranking-help-menu">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              aria-controls="ranking-help-panel"
+              [attr.aria-expanded]="helpOpen()"
+              (click)="toggleHelp()"
+            >
+              ? {{ messages.help }}
+            </button>
+            @if (helpOpen()) {
+              <section
+                id="ranking-help-panel"
+                class="ranking-help-panel"
+                aria-labelledby="ranking-help-title"
+              >
+                <div class="ranking-help-head">
+                  <h2 id="ranking-help-title">{{ messages.helpTitle }}</h2>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-icon"
+                    [attr.aria-label]="messages.helpClose"
+                    (click)="closeHelp()"
+                  >
+                    ✕
+                  </button>
+                </div>
+                @if (current(); as criterion) {
+                  <p>{{ instruction(criterion) }}</p>
+                }
+                <ul>
+                  @for (line of messages.helpSteps; track line) {
+                    <li>{{ line }}</li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
           <button type="button" class="btn btn-secondary" (click)="closed.emit()">
             {{ messages.cancel }}
+          </button>
+          @if (stepIndex() !== null && !pending()) {
+            <button type="button" class="btn btn-secondary" (click)="previous()">
+              {{ messages.previous }}
+            </button>
+          }
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!canGoOn() || pending() !== null"
+            (click)="next()"
+          >
+            {{ nextLabel() }}
           </button>
         </div>
       </div>
@@ -78,7 +141,7 @@ type Changes = Readonly<Record<string, number | null>>;
       }
 
       @if (current(); as criterion) {
-        <p class="ranking-help">{{ instruction(criterion) }}</p>
+        <p class="ranking-help">{{ shortInstruction(criterion) }}</p>
         <app-criterion-ranking
           [items]="items()"
           [criterion]="criterion"
@@ -119,13 +182,13 @@ type Changes = Readonly<Record<string, number | null>>;
                 <label class="check">
                   <input
                     type="checkbox"
-                    [disabled]="feature.votingInProgress"
+                    [disabled]="!isRankable(feature)"
                     [checked]="isChosen(feature)"
                     (change)="toggleFeature(feature.id)"
                   />
                   <span class="fid-text">{{ feature.externalId }}</span>
                   {{ feature.title }}
-                  @if (feature.votingInProgress) {
+                  @if (!isRankable(feature)) {
                     <span class="muted small">{{ messages.inRound }}</span>
                   }
                 </label>
@@ -137,22 +200,6 @@ type Changes = Readonly<Record<string, number | null>>;
           </fieldset>
         </div>
       }
-
-      <div class="board-actions ranking-nav">
-        @if (stepIndex() !== null && !pending()) {
-          <button type="button" class="btn btn-secondary" (click)="previous()">
-            {{ messages.previous }}
-          </button>
-        }
-        <button
-          type="button"
-          class="btn btn-primary"
-          [disabled]="!canGoOn() || pending() !== null"
-          (click)="next()"
-        >
-          {{ nextLabel() }}
-        </button>
-      </div>
     }
   `,
 })
@@ -165,9 +212,10 @@ export class RankingScreenComponent {
   readonly closed = output<void>();
 
   protected readonly state = this.room.state;
+  protected readonly isRankable = isRankable;
   /** Fonctionnalités choisies, par identifiant : toutes celles hors tour au départ. */
   protected readonly chosenFeatures = signal<readonly string[]>(
-    (this.room.state()?.features ?? []).filter((f) => !f.votingInProgress).map((f) => f.id),
+    rankableIds(this.room.state()?.features),
   );
   protected readonly chosenCriteria = signal<ReadonlySet<string>>(
     new Set((this.room.state()?.methodDefinition.criteria ?? []).map((c) => c.key)),
@@ -179,13 +227,15 @@ export class RankingScreenComponent {
   protected readonly pending = signal<ReadonlyMap<string, Changes> | null>(null);
   /** Pourquoi l'enregistrement n'a pas abouti. */
   protected readonly failure = signal<ErrorCode | 'NOT_CONNECTED' | null>(null);
+  /** L'aide « Comment classer » est ouverte. */
+  protected readonly helpOpen = signal(false);
   /** Les fonctionnalités telles qu'au début du classement : leurs versions et valeurs de départ. */
   private readonly base = signal<readonly Feature[]>([]);
 
   /** Les fonctionnalités choisies qui existent encore et ne sont pas dans un tour, dans l'ordre du tableau. */
   protected readonly selectable = computed(() => {
     const chosen = new Set(this.chosenFeatures());
-    return (this.state()?.features ?? []).filter((f) => chosen.has(f.id) && !f.votingInProgress);
+    return (this.state()?.features ?? []).filter((f) => chosen.has(f.id) && isRankable(f));
   });
 
   /** Les critères choisis, dans l'ordre de la définition de la méthode. */
@@ -276,12 +326,27 @@ export class RankingScreenComponent {
     afterNextRender(() => this.focusTitle());
   }
 
+  protected shortInstruction(criterion: CriterionDefinition): string {
+    return format(this.messages.shortInstruction, { code: criterion.code, label: criterion.label });
+  }
+
+  protected toggleHelp(): void {
+    this.helpOpen.update((open) => !open);
+  }
+
+  /** Ferme l'aide et rend le focus au bouton « Aide ». */
+  protected closeHelp(): void {
+    if (!this.helpOpen()) return;
+    this.helpOpen.set(false);
+    this.host.querySelector<HTMLElement>('[aria-controls="ranking-help-panel"]')?.focus();
+  }
+
   protected instruction(criterion: CriterionDefinition): string {
     return format(this.messages.instruction, { code: criterion.code, label: criterion.label });
   }
 
   protected isChosen(feature: Feature): boolean {
-    return !feature.votingInProgress && this.chosenFeatures().includes(feature.id);
+    return isRankable(feature) && this.chosenFeatures().includes(feature.id);
   }
 
   protected toggleFeature(id: string): void {
@@ -291,9 +356,7 @@ export class RankingScreenComponent {
   }
 
   protected selectAll(): void {
-    this.chosenFeatures.set(
-      (this.state()?.features ?? []).filter((f) => !f.votingInProgress).map((f) => f.id),
-    );
+    this.chosenFeatures.set(rankableIds(this.state()?.features));
   }
 
   protected toggleCriterion(key: string): void {

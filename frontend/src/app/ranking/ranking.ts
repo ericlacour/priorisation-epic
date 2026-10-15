@@ -10,9 +10,11 @@ import { parseCriterionInput } from '../board/feature-editor.component';
  *
  * Au départ, chaque fonctionnalité garde sa valeur actuelle : un classement ouvert puis terminé sans rien toucher ne
  * change rien. Une valeur n'est **proposée** qu'à une fonctionnalité déplacée (la valeur de son niveau d'arrivée, ou
- * la valeur juste inférieure à celle du niveau au-dessus), ou à toutes quand l'animateur saisit la valeur du premier
- * niveau : chaque niveau reçoit alors la valeur juste inférieure de l'échelle. Sous la plus petite valeur de
- * l'échelle, plus de proposition : la fonctionnalité reste sans valeur.
+ * la valeur juste inférieure à celle du niveau au-dessus ; en tête, la valeur juste supérieure à celle du niveau
+ * en dessous), ou à toutes quand l'animateur saisit une **autre** valeur du premier niveau : chaque niveau reçoit
+ * alors la valeur juste inférieure de l'échelle. Les valeurs suivent toujours le classement : un niveau plus haut a
+ * une valeur plus haute. Quand l'échelle n'a pas de place entre deux niveaux, les niveaux du dessous descendent
+ * d'un cran. Sous la plus petite valeur de l'échelle, plus de proposition : la fonctionnalité reste sans valeur.
  */
 
 /** Niveaux du plus fort au plus faible ; chaque niveau contient des identifiants de fonctionnalité. */
@@ -31,7 +33,10 @@ export interface RankingStep {
   /** Valeurs au début du classement. */
   readonly initial: Readonly<Record<string, number | null>>;
   readonly top: string;
-  /** L'animateur a saisi la valeur du premier niveau : tous les niveaux prennent les valeurs proposées. */
+  /**
+   * L'animateur a saisi une valeur du premier niveau différente de la valeur actuelle : tous les niveaux prennent les
+   * valeurs proposées. Revenir à la valeur actuelle rend les valeurs actuelles.
+   */
   readonly topTouched: boolean;
   readonly overrides: Readonly<Record<string, string>>;
 }
@@ -92,11 +97,11 @@ export function reselect(
     }
     const anchors = next.levels.map((level) => anchorOf(next, level));
     const same = anchors.indexOf(value);
-    const below = anchors.findIndex((anchor) => anchor !== null && anchor < value);
+    const lower = anchors.findIndex((anchor) => anchor !== null && anchor < value);
     const levels =
       same !== -1
         ? next.levels.map((level, index) => (index === same ? [...level, id] : level))
-        : insertLevel(next.levels, below === -1 ? next.levels.length : below, [id]);
+        : insertLevel(next.levels, lower === -1 ? next.levels.length : lower, [id]);
     next = { ...next, levels };
   }
   return next;
@@ -122,19 +127,61 @@ function below(value: number | null, allowedValues: readonly number[]): number |
   return lower.length > 0 ? Math.max(...lower) : null;
 }
 
+/** La valeur de l'échelle juste supérieure, ou `null`. */
+function above(value: number | null, allowedValues: readonly number[]): number | null {
+  if (value === null) return null;
+  const higher = allowedValues.filter((allowed) => allowed > value);
+  return higher.length > 0 ? Math.min(...higher) : null;
+}
+
 /** La valeur de chaque niveau, ou `null` si la valeur du premier niveau n'est pas valide. */
 export function levelValues(step: RankingStep, scale: SessionScale): (number | null)[] | null {
   const top = parseCriterionInput(step.top, scale);
   if (top === null || top === undefined) return null;
   if (step.topTouched) return proposedValues(step.levels.length, top, scale.allowedValues);
+  return currentValues(step, top, scale.allowedValues);
+}
+
+/**
+ * Les valeurs sans saisie de la valeur du premier niveau : chaque niveau garde sa valeur de départ tant qu'elle reste
+ * sous celle du niveau au-dessus ; sinon, et pour un niveau sans valeur de départ, la valeur juste inférieure. Les
+ * niveaux placés au-dessus du premier niveau qui a une valeur de départ prennent les valeurs juste supérieures, pour
+ * passer devant lui et non à égalité ; sans place au-dessus, ils partent du haut de l'échelle.
+ */
+function currentValues(
+  step: RankingStep,
+  top: number,
+  allowedValues: readonly number[],
+): (number | null)[] {
+  const anchors = step.levels.map((level) => anchorOf(step, level));
+  const first = anchors.findIndex((anchor) => anchor !== null);
+  let start: number | null = first === -1 ? top : (anchors[first] ?? null);
+  for (let index = 0; index < first && start !== null; index++) {
+    start = above(start, allowedValues);
+  }
+  start ??= Math.max(...allowedValues);
   const values: (number | null)[] = [];
-  for (const [index, level] of step.levels.entries()) {
-    const anchor = anchorOf(step, level);
-    values.push(
-      anchor ?? (index === 0 ? top : below(values[index - 1] ?? null, scale.allowedValues)),
-    );
+  for (const [index, anchor] of anchors.entries()) {
+    const previous = index === 0 ? null : (values[index - 1] ?? null);
+    if (index === 0) values.push(anchor ?? start);
+    else if (previous === null) values.push(null);
+    else
+      values.push(anchor !== null && anchor < previous ? anchor : below(previous, allowedValues));
   }
   return values;
+}
+
+/**
+ * Saisie de la valeur du premier niveau : les valeurs proposées ne s'appliquent que si elle diffère de la valeur
+ * actuelle du premier niveau. Revenir à cette valeur (par exemple en effaçant « 13 » puis en le retapant) rend les
+ * valeurs actuelles, sans rien écraser.
+ */
+export function setTop(step: RankingStep, text: string, scale: SessionScale): RankingStep {
+  const next = { ...step, top: text, topTouched: false };
+  const typed = parseCriterionInput(text, scale);
+  if (typed === null || typed === undefined) return next;
+  const current = levelValues(next, scale)?.[0];
+  return { ...next, topTouched: current !== undefined && current !== typed };
 }
 
 /**
