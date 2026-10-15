@@ -17,7 +17,7 @@ class AggregatesTest {
 
   private static final SessionId SESSION = new SessionId("k3Jx9QvT2mLpZ8wR4nYb7A");
   private static final Instant NOW = Instant.parse("2026-10-12T08:00:00Z");
-  private static final WsjfMethod WSJF = new WsjfMethod();
+  private static final WsjfMethod WSJF = WsjfMethod.version1();
   private static final MethodDefinition DEFINITION = WSJF.definition();
 
   // --- Session --------------------------------------------------------------------------------

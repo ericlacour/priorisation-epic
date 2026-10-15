@@ -6,6 +6,7 @@ import com.priorisationepic.ContractExamples;
 import com.priorisationepic.ContractSchemas;
 import com.priorisationepic.PostgresTestBase;
 import com.priorisationepic.domain.Tokens;
+import com.priorisationepic.domain.method.MethodRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ class SessionControllerTest extends PostgresTestBase {
   // --- GET /api/methods -----------------------------------------------------------------------
 
   @Test
-  void methodsListsWsjfVersion1Alone() throws Exception {
+  void methodsListsWsjfVersion2Alone() throws Exception {
     RestClient.Response response = rest.get("/api/methods");
 
     assertThat(response.status()).isEqualTo(200);
@@ -61,11 +62,11 @@ class SessionControllerTest extends PostgresTestBase {
     JsonNode methods = response.json();
     assertThat(methods).hasSize(1);
     assertThat(methods.get(0).get("key").asString()).isEqualTo("WSJF");
-    assertThat(methods.get(0).get("version").asInt()).isEqualTo(1);
+    assertThat(methods.get(0).get("version").asInt()).isEqualTo(2);
     assertThat(methods.get(0).get("criteria")).hasSize(4);
     assertThat(methods.get(0).get("computedValues")).hasSize(2);
     assertThat(methods.get(0))
-        .isEqualTo(json.readTree(ContractExamples.read("method-definition", "wsjf")));
+        .isEqualTo(json.readTree(ContractExamples.read("method-definition", "wsjf-v2")));
   }
 
   // --- POST /api/sessions ---------------------------------------------------------------------
@@ -88,7 +89,7 @@ class SessionControllerTest extends PostgresTestBase {
                 sessionId))
         .containsEntry("status", "PREPARATION")
         .containsEntry("method", "WSJF")
-        .containsEntry("method_version", 1)
+        .containsEntry("method_version", 2)
         .containsEntry("scale_type", "CONTINUOUS")
         .containsEntry("scale_max", 10)
         .containsEntry("name", "Atelier Q4");
@@ -299,7 +300,7 @@ class SessionControllerTest extends PostgresTestBase {
     assertThat(state.get("name").asString()).isEqualTo("Atelier Q4");
     assertThat(state.get("status").asString()).isEqualTo("PREPARATION");
     assertThat(state.get("method").asString()).isEqualTo("WSJF");
-    assertThat(state.get("methodVersion").asInt()).isEqualTo(1);
+    assertThat(state.get("methodVersion").asInt()).isEqualTo(2);
     assertThat(state.get("me").isNull()).isTrue();
     assertThat(state.get("features")).isEmpty();
     assertThat(state.get("scale").get("allowedValues")).hasSize(10);
@@ -307,7 +308,7 @@ class SessionControllerTest extends PostgresTestBase {
     assertThat(state.get("participants").get(0).get("pseudo").asString()).isEqualTo("Éric");
     assertThat(state.get("participants").get(0).get("online").asBoolean()).isFalse();
     assertThat(state.get("formula").asString())
-        .isEqualTo("CoD = BV + TC + RR/OE ; WSJF = CoD / JS");
+        .isEqualTo(MethodRegistry.standard().defaultMethod().definition().formula());
     assertThat(response.body()).doesNotContain("Token");
   }
 

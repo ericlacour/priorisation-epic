@@ -47,11 +47,16 @@ type Changes = Readonly<Record<string, number | null>>;
   },
   template: `
     @if (state(); as state) {
-      <!-- Navigation dans l'en-tête : toute la hauteur restante va aux listes. -->
+      <!-- Navigation et consigne dans l'en-tête : toute la hauteur restante va aux listes. -->
       <div class="board-head ranking-head">
-        <div>
-          <h1 tabindex="-1">{{ messages.title }}</h1>
-          <p class="muted small">{{ subtitle() }}</p>
+        <div class="ranking-heading">
+          <div class="ranking-title">
+            <h1 tabindex="-1">{{ messages.title }}</h1>
+            <span class="muted small">{{ subtitle() }}</span>
+          </div>
+          @if (current(); as criterion) {
+            <p class="small ranking-help">{{ shortInstruction(criterion) }}</p>
+          }
         </div>
         <div class="board-tools ranking-nav">
           <div class="ranking-help-menu">
@@ -141,7 +146,6 @@ type Changes = Readonly<Record<string, number | null>>;
       }
 
       @if (current(); as criterion) {
-        <p class="ranking-help">{{ shortInstruction(criterion) }}</p>
         <app-criterion-ranking
           [items]="items()"
           [criterion]="criterion"

@@ -61,12 +61,13 @@ type Action = 'up' | 'down' | 'join' | 'last';
         id="ranking-top-value"
         class="input num-input"
         inputmode="numeric"
+        [attr.title]="messages.topHelp"
         [attr.aria-invalid]="topInvalid()"
         [attr.aria-describedby]="topInvalid() ? 'ranking-top-error' : 'ranking-top-help'"
         [value]="topText()"
         (input)="setTop($any($event.target).value)"
       />
-      <span id="ranking-top-help" class="muted small">{{ messages.topHelp }}</span>
+      <span id="ranking-top-help" class="sr-only">{{ messages.topHelp }}</span>
       <button
         type="button"
         class="btn btn-secondary btn-sm"
@@ -118,7 +119,8 @@ type Action = 'up' | 'down' | 'join' | 'last';
         </h2>
         <ol class="ranking-levels rank-scroll" [attr.aria-label]="listLabel()">
           @for (level of step().levels; track $index; let index = $index) {
-            <li class="rank-level">
+            <!-- Un niveau sur deux est teinté : deux niveaux voisins se distinguent d'un coup d'œil. -->
+            <li class="rank-level" [class.rank-level-alt]="index % 2 === 1">
               <div
                 class="rank-gap"
                 aria-hidden="true"

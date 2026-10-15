@@ -336,8 +336,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   jusqu'à correction. **Le changement d'échelle est refusé tant qu'un tour de vote est
   ouvert**, avec le message « Un tour de vote est en cours : révélez-le avant de changer
   l'échelle ». Changer le nom de la session reste possible.
-- **FR-012**: Pour chaque fonctionnalité dont les quatre critères sont renseignés, le
-  système DOIT calculer CoD = BV + TC + RR/OE et WSJF = CoD / JS.
+- **FR-012**: Pour chaque fonctionnalité dont le **JS** et **au moins un critère parmi
+  BV, TC et RR/OE** sont renseignés, le système DOIT calculer CoD = BV + TC + RR/OE et
+  WSJF = CoD / JS ; un critère du CoD sans valeur compte 0, et le détail du calcul le dit
+  (par exemple « CoD = 8 + 0 + 3 = 11 (TC sans valeur, compté 0) ; WSJF = 11 / 4 = 2,75 »).
+  Sans JS, ou sans aucun de BV, TC et RR/OE, la fonctionnalité reste « non calculé »
+  (retour d'usage du 2026-10-15). C'est la **version 2** du WSJF, proposée aux nouvelles
+  sessions ; une session créée en version 1 garde sa règle : les quatre critères
+  (FR-017d).
 - **FR-013**: Le WSJF DOIT être affiché avec deux décimales et une virgule décimale. Le
   tri utilise la valeur exacte, non arrondie.
 - **FR-014**: Le tableau DOIT afficher, pour chaque fonctionnalité, son rang, son
@@ -348,8 +354,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   **tableau de l'animateur** DOIT tenir dans la fenêtre **sans défilement de la page** :
   la barre de session, les actions, le tableau et le panneau latéral restent visibles en
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
-  défile**, avec un en-tête de colonnes figé. Les titres s'affichent **en entier**, sur
-  plusieurs lignes si besoin (retour d'usage du 2026-10-14). Quand l'animateur modifie une
+  défile**, avec un en-tête de colonnes figé. **Au moins 15 fonctionnalités** sont visibles
+  sans défilement ni zoom, dès une fenêtre de 1280 × 620 (retour d'usage du 2026-10-15) :
+  l'en-tête (nom de la session, actions, outils) tient sur une ligne et chaque
+  fonctionnalité sur une ligne, le titre tronqué et affiché en entier au survol et dans le
+  panneau de détail. Quand l'animateur modifie une
   ligne, la ligne d'édition tient dans la largeur du tableau : aucun défilement n'est
   nécessaire pour saisir, enregistrer ou annuler. Le panneau latéral défile
   séparément si besoin. La même règle s'applique à l'écran du **tour en cours**, où le
@@ -417,8 +426,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   classées » à gauche et le classement à droite, côte à côte, chacun défilant de son côté,
   une ligne par fonctionnalité (titre tronqué, en entier au survol ; boutons réduits à leur
   symbole ↑ ↓ = →, nommés en entier pour les lecteurs d'écran) ; la navigation est dans
-  l'en-tête. Une consigne d'une ligne rappelle le critère ; l'explication complète est dans
-  un bouton « Aide ».
+  l'en-tête. Une consigne d'une ligne, dans l'en-tête, rappelle le critère ; l'explication
+  complète est dans un bouton « Aide ». Au moins 15 fonctionnalités sont visibles sans
+  défilement ni zoom dès une fenêtre de 1280 × 620, même quand chacune est à son propre
+  niveau, et sur l'étape de choix des fonctionnalités.
 
   Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
   enregistrée en une seule modification, avec la version lue à l'ouverture de l'écran
@@ -484,8 +495,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - ses **valeurs calculées**, dans l'ordre d'affichage : pour chacune, une clé, un sigle,
     un nom complet, une définition et un format d'affichage (entier, ou deux décimales) ;
   - sa **formule**, sa **règle de tri et d'égalité**, et la condition pour qu'une
-    fonctionnalité soit calculable (en WSJF : les quatre critères renseignés et dans
-    l'échelle).
+    fonctionnalité soit calculable (en WSJF version 2 : le JS et au moins un critère
+    parmi BV, TC et RR/OE renseignés, et toutes les valeurs renseignées dans l'échelle ;
+    en version 1 : les quatre critères).
 
   Pour le WSJF, les critères saisis sont BV, TC, RR/OE et JS, et les valeurs calculées
   sont CoD (entier) et WSJF (deux décimales).

@@ -203,6 +203,21 @@ test.describe('tableau de priorisation', () => {
     await expect(page.locator('thead th').first()).toBeInViewport();
   });
 
+  for (const animate of [true, false]) {
+    test(`fenêtre de 1280 × 620 : 15 fonctionnalités visibles sans défilement (${animate ? 'animateur' : 'participant'})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 620 });
+      await open(page, animate);
+      await push(page, sessionState(manyFeatures(15), { animate }));
+      await expect(rows(page)).toHaveCount(15);
+      for (const row of await rows(page).all()) await expect(row).toBeInViewport({ ratio: 1 });
+      expect(
+        await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+      ).toBe(true);
+    });
+  }
+
   test('1280 × 720 : la ligne en édition tient dans le tableau, sans défilement horizontal', async ({
     page,
   }) => {
@@ -254,17 +269,22 @@ test.describe('tableau de priorisation', () => {
     const tip = page.getByRole('tooltip');
     await expect(tip).toContainText('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
     await expect(tip).toContainText('Tri : WSJF décroissant');
-    await expect(tip).toContainText('fin de liste');
+    await expect(tip).toContainText('fin de tableau');
   });
 
-  test('les titres longs s’affichent en entier', async ({ page }) => {
+  test('un titre long tient sur une ligne et s’affiche en entier au survol', async ({ page }) => {
     await open(page, false);
     await push(page, sessionState(manyFeatures(1), { animate: false }));
+    const full =
+      'Fonctionnalité numéro 1 avec un titre assez long pour être tronqué dans la colonne du tableau';
     const title = page.locator('td.title').first();
-    await expect(title).toHaveText(
-      'Fonctionnalité numéro 1 avec un titre assez long pour être tronqué dans la colonne du tableau',
-    );
-    expect(await title.evaluate((cell) => cell.scrollWidth <= cell.clientWidth)).toBe(true);
+    await expect(title).toHaveText(full);
+    await expect(title).toHaveAttribute('title', full);
+    const { lineHeight, height } = await title.evaluate((cell) => ({
+      lineHeight: parseFloat(getComputedStyle(cell).lineHeight),
+      height: cell.clientHeight,
+    }));
+    expect(height).toBeLessThan(lineHeight * 2);
   });
 
   test('le panneau de détail s’ouvre au clic sur l’identifiant et se ferme par Échap', async ({

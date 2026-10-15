@@ -232,7 +232,8 @@ export const MESSAGES = {
     noDescription: 'Aucun descriptif.',
     values: 'Valeurs retenues',
     calculation: 'Détail du calcul',
-    notComputed: 'Calcul impossible : toutes les valeurs ne sont pas renseignées dans l’échelle.',
+    notComputed:
+      'Calcul impossible : il manque une valeur nécessaire au calcul, ou une valeur est hors échelle.',
     methodLink: 'Voir la méthode complète',
     editText: 'Modifier le titre et le descriptif',
     titleLabel: 'Titre',
@@ -277,7 +278,6 @@ export const MESSAGES = {
   methodInfo: {
     label: 'Formule et règle de tri',
     sort: 'Tri : {rule}',
-    endOfList: 'Les fonctionnalités incomplètes ou hors échelle viennent en fin de liste.',
   },
   animationLink: {
     copy: 'Copier Session Anim',

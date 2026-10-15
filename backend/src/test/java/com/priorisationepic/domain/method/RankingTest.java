@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class RankingTest {
 
-  private static final WsjfMethod WSJF = new WsjfMethod();
+  private static final WsjfMethod WSJF = WsjfMethod.version1();
   private static final Scale SCALE = Scale.defaultScale();
 
   /** Une fonctionnalité de test : identifiant et valeurs retenues. */

@@ -14,7 +14,7 @@ class MethodGenericityTest {
 
   private static final FakeTwoCriteriaMethod FAKE = new FakeTwoCriteriaMethod();
   private static final MethodRegistry REGISTRY =
-      new MethodRegistry(List.of(new WsjfMethod(), FAKE));
+      new MethodRegistry(List.of(WsjfMethod.version1(), FAKE));
 
   private record Row(String id, Score score) {}
 
@@ -73,7 +73,7 @@ class MethodGenericityTest {
             return FAKE.compare(a, b);
           }
         };
-    MethodRegistry registry = new MethodRegistry(List.of(new WsjfMethod(), FAKE, v2));
+    MethodRegistry registry = new MethodRegistry(List.of(WsjfMethod.version1(), FAKE, v2));
 
     assertThat(registry.latest("REACH")).isSameAs(v2);
     assertThat(registry.get("REACH", 1)).isSameAs(FAKE);
@@ -84,12 +84,15 @@ class MethodGenericityTest {
   void theDefaultMethodIsWsjf() {
     assertThat(REGISTRY.defaultMethod()).isInstanceOf(WsjfMethod.class);
     assertThat(MethodRegistry.standard().available()).hasSize(1);
-    assertThat(MethodRegistry.standard().defaultMethod().definition().version()).isEqualTo(1);
+    assertThat(MethodRegistry.standard().defaultMethod().definition().version()).isEqualTo(2);
+    // La version 1 reste connue pour les sessions créées avec elle.
+    assertThat(MethodRegistry.standard().get("WSJF", 1).definition().version()).isEqualTo(1);
   }
 
   @Test
   void aDuplicateMethodIsRefused() {
-    assertThatThrownBy(() -> new MethodRegistry(List.of(new WsjfMethod(), new WsjfMethod())))
+    assertThatThrownBy(
+            () -> new MethodRegistry(List.of(WsjfMethod.version1(), WsjfMethod.version1())))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -102,7 +105,7 @@ class MethodGenericityTest {
     assertThatThrownBy(() -> Criteria.of(FAKE.definition(), Map.of("bv", 3)))
         .isInstanceOf(UnknownCriterionException.class)
         .hasMessageContaining("bv");
-    assertThatThrownBy(() -> Criteria.of(new WsjfMethod().definition(), Map.of("reach", 3)))
+    assertThatThrownBy(() -> Criteria.of(WsjfMethod.version1().definition(), Map.of("reach", 3)))
         .isInstanceOf(UnknownCriterionException.class);
   }
 
@@ -150,7 +153,7 @@ class MethodGenericityTest {
 
   @Test
   void theWsjfDefinitionMatchesTheDataModelTable() {
-    MethodDefinition d = new WsjfMethod().definition();
+    MethodDefinition d = WsjfMethod.version1().definition();
 
     assertThat(d.key()).isEqualTo("WSJF");
     assertThat(d.version()).isEqualTo(1);

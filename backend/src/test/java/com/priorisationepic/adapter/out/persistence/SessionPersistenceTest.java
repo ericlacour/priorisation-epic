@@ -39,7 +39,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 class SessionPersistenceTest extends PostgresTestBase {
 
   private static final SessionId ID = new SessionId("k3Jx9QvT2mLpZ8wR4nYb7A");
-  private static final MethodDefinition WSJF = new WsjfMethod().definition();
+  private static final MethodDefinition WSJF = WsjfMethod.version1().definition();
   private static final Instant NOW = Instant.parse("2026-10-12T08:00:00Z");
 
   @Autowired JdbcTemplate jdbc;
