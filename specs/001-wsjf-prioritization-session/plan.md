@@ -169,6 +169,7 @@ frontend/                                  # Angular 22
     ├── home/                              # liste des sessions, création
     ├── session/                           # service WebSocket, rejoindre, état de session
     ├── board/                             # tableau, détail du calcul, édition (colonnes issues de methodDefinition)
+    ├── ranking/                           # prioriser par classement (FR-015a), repris pour le vote
     ├── rounds/                            # vote masqué, révélation, consensus
     ├── import-export/
     └── rounds-history/                    # liste des tours révélés (consultation)

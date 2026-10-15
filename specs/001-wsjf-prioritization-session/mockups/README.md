@@ -1,6 +1,6 @@
 # Maquettes : session de priorisation WSJF
 
-Maquettes cliquables des 13 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
+Maquettes cliquables des 15 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
 La barre du haut permet de basculer entre ordinateur et téléphone, et entre thème clair et
 thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 
@@ -20,6 +20,7 @@ l'application.
 | À revoir / hors échelle | « À revoir » : marque posée par l'animateur avec un motif, sans effet sur le classement, retirée à la révélation (FR-006a). « Hors échelle » : état calculé quand une valeur sort de l'échelle (FR-011) |
 | Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |
 | Méthode | Choisie à la création (WSJF seule en V1, par défaut), puis figée. Consultable en lecture seule par tous dans le panneau « Méthode de la session ». Pas d'édition de méthode à l'écran en V1 (FR-017c, FR-017d) |
+| Saisie par classement | Écran « Prioriser par classement » ouvert depuis le tableau : choix des critères et des fonctionnalités, puis un classement par critère (glisser-déposer par la poignée ou clavier, égalités, « Non classées »). Les valeurs actuelles sont gardées ; une valeur n'est proposée qu'à une fonctionnalité déplacée, ou à tous les niveaux quand la valeur du premier niveau est saisie (valeur juste inférieure de l'échelle à chaque niveau), et reste modifiable. Enregistrement à la fin seulement, confirmé par le serveur ; un refus garde l'écran ouvert. Repris pour le vote des tours (FR-015a, retours du 2026-10-15) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
 ## Charte
@@ -58,6 +59,8 @@ Les contrastes vérifiés sont tous au moins AA :
 | 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
 | 4 quater | Méthode de la session, en lecture seule | FR-017a, FR-017c |
 | 4 quinquies | Tableau, vue participant, sans tour en cours | FR-014a, FR-014b, FR-015 |
+| 4 sexies | Prioriser par classement : choix des critères et des fonctionnalités | FR-015a |
+| 4 septies | Prioriser par classement : classement et valeurs d'un critère | FR-015a |
 | 5 | Tour en cours, vue participant | US2, FR-019, FR-019a, SC-004 |
 | 6 | Révélation et consensus | FR-020 à FR-022 |
 | 7 | Import avec aperçu | FR-007, FR-007a, FR-008 |

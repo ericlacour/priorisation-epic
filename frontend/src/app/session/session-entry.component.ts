@@ -13,6 +13,7 @@ import { SessionApi, SessionApiError } from '../api/session-api';
 import { BoardComponent } from '../board/board.component';
 import { MESSAGES } from '../i18n/messages.fr';
 import { BrowserStorage } from '../storage/browser-storage';
+import { RankingScreenComponent } from '../ranking/ranking-screen.component';
 import { JoinComponent } from './join/join.component';
 import { SessionRoomService } from './session-room.service';
 import { SessionSocketService } from './session-socket.service';
@@ -23,11 +24,12 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
 /**
  * Lien de session `/s/:sessionId`. Sans jeton rangé dans ce navigateur, l'écran d'entrée ; avec un jeton, la
  * connexion à la session et le tableau. La connexion (`4401`) ou la session (`4404`) perdue ramène à l'entrée ou à
- * « Session introuvable ». Le socket et l'état de la session vivent et meurent avec la page.
+ * « Session introuvable ». L'animateur passe du tableau à l'écran « Prioriser par classement » et en revient. Le
+ * socket et l'état de la session vivent et meurent avec la page.
  */
 @Component({
   selector: 'app-session-entry',
-  imports: [BoardComponent, JoinComponent, RouterLink],
+  imports: [BoardComponent, JoinComponent, RankingScreenComponent, RouterLink],
   providers: [SessionSocketService, SessionRoomService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -41,7 +43,11 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
         <app-join [sessionId]="sessionId()" (joined)="open()" (notFound)="phase.set('notFound')" />
       }
       @case ('room') {
-        <app-board />
+        @if (ranking()) {
+          <app-ranking-screen (closed)="ranking.set(false)" />
+        } @else {
+          <app-board (rankingRequested)="ranking.set(true)" />
+        }
       }
       @case ('notFound') {
         <main class="state-screen" role="alert">
@@ -72,6 +78,8 @@ export class SessionEntryComponent implements OnInit {
   /** Identifiant de la session, lu dans l'URL. */
   readonly sessionId = input.required<string>();
   protected readonly phase = signal<Phase>('checking');
+  /** Dans la session : l'écran « Prioriser par classement » à la place du tableau (FR-015a). */
+  protected readonly ranking = signal(false);
 
   constructor() {
     effect(() => {
@@ -98,6 +106,8 @@ export class SessionEntryComponent implements OnInit {
 
   /** Ouvre la connexion avec les jetons rangés. */
   protected open(): void {
+    // Une session rouverte (après une reconnexion ou un retour à l'entrée) commence toujours sur le tableau.
+    this.ranking.set(false);
     this.phase.set('room');
     this.room.open(this.sessionId());
   }

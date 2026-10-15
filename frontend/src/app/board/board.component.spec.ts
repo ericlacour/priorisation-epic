@@ -283,6 +283,25 @@ describe('BoardComponent', () => {
     expect(element.querySelector('.fcard button.fid')).not.toBeNull();
   });
 
+  it('offers the facilitator « Prioriser par classement », when there is something to rank (FR-015a)', () => {
+    const { element, fixture } = render();
+    let requested = 0;
+    fixture.componentInstance.rankingRequested.subscribe(() => requested++);
+    button(element, 'Prioriser par classement')!.click();
+    expect(requested).toBe(1);
+
+    button(element, 'Modifier')!.click();
+    fixture.detectChanges();
+    expect(button(element, 'Prioriser par classement')!.disabled).toBe(true);
+  });
+
+  it('offers no ranking to a participant, nor on an empty board', () => {
+    expect(button(render({ animate: false }).element, 'Prioriser par classement')).toBeUndefined();
+    TestBed.resetTestingModule();
+    const { element } = render({ state: state({ features: [] }) });
+    expect(button(element, 'Prioriser par classement')!.disabled).toBe(true);
+  });
+
   it('shows an empty board message', () => {
     const { element } = render({ state: state({ features: [] }) });
     expect(rowsOf(element)[0][0]).toContain('Aucune fonctionnalité');

@@ -1,0 +1,209 @@
+/*
+ * Écran « Prioriser par classement » (FR-015a). Comme le tableau, il tient dans la fenêtre : seules la liste des
+ * fonctionnalités à choisir et la liste du classement défilent, la barre « Précédent / Suivant » reste visible.
+ */
+.ranking-setup {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  gap: 12px;
+  min-height: 0;
+  margin-top: 8px;
+}
+
+.ranking-setup fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+.ranking-setup legend {
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.ranking-select-all {
+  display: flex;
+  gap: 12px;
+}
+
+.ranking-feature-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.check {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.fid-text {
+  font-weight: 600;
+}
+
+.ranking-help {
+  margin: 8px 0 4px;
+}
+
+.criterion-ranking {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Le classement et les non classées défilent chacun de leur côté. */
+.ranking-lists {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.rank-unranked {
+  flex: 0 1 auto;
+  max-height: 40%;
+  padding: 6px 8px;
+  overflow: auto;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.rank-unranked.drop-target {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.rank-unranked h2 {
+  margin: 0;
+}
+
+.rank-unranked p {
+  margin: 0 0 6px;
+}
+
+.rank-empty {
+  padding: 8px;
+}
+
+.ranking-unsaved ul {
+  margin: 4px 0;
+}
+
+.ranking-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ranking-top-label {
+  font-weight: 600;
+}
+
+.ranking-levels {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 8px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+/* Zone de dépôt entre deux niveaux : un nouveau niveau à cette place. */
+.rank-gap {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.rank-gap-end {
+  height: 24px;
+}
+
+.rank-gap.drop-target {
+  background: var(--primary);
+}
+
+.rank-level-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px;
+  border: 1px dashed transparent;
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.rank-level-body.drop-target {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.rank-items {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rank-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.rank-item.dragging {
+  opacity: 0.5;
+}
+
+.drag-handle {
+  padding: 2px 4px;
+  color: var(--muted);
+  cursor: grab;
+}
+
+.rank-title {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rank-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rank-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.ranking-nav {
+  justify-content: flex-end;
+}

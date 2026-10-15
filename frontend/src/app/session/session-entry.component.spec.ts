@@ -109,4 +109,44 @@ describe('SessionEntryComponent', () => {
 
     expect(element.querySelector('h1')?.textContent).toBe('Session introuvable');
   });
+
+  it('switches to the ranking screen from the board, and back (FR-015a)', async () => {
+    const { fixture, room, element } = await render({ token: true });
+    room.canAnimate.set(true);
+    await settle(fixture);
+    const button = (text: string) =>
+      [...element.querySelectorAll<HTMLButtonElement>('button')].find((b) =>
+        b.textContent?.includes(text),
+      )!;
+
+    button('Prioriser par classement').click();
+    await settle(fixture);
+    expect(element.querySelector('app-board')).toBeNull();
+    expect(element.querySelector('app-ranking-screen')).not.toBeNull();
+
+    button('Annuler').click();
+    await settle(fixture);
+    expect(element.querySelector('app-ranking-screen')).toBeNull();
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('reopens a session on the board, not on the ranking screen (FR-015a)', async () => {
+    const { fixture, room, element } = await render({ token: true });
+    room.canAnimate.set(true);
+    await settle(fixture);
+    [...element.querySelectorAll<HTMLButtonElement>('button')]
+      .find((b) => b.textContent?.includes('Prioriser par classement'))!
+      .click();
+    await settle(fixture);
+    expect(element.querySelector('app-ranking-screen')).not.toBeNull();
+
+    room.end.set('unknownToken');
+    await settle(fixture);
+    expect(element.querySelector('app-join')).not.toBeNull();
+    // Le participant rejoint de nouveau : la session rouvre sur le tableau.
+    (fixture.componentInstance as unknown as { open: () => void }).open();
+    await settle(fixture);
+    expect(element.querySelector('app-ranking-screen')).toBeNull();
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
 });
