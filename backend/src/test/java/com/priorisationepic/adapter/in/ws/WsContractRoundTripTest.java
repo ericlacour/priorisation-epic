@@ -95,7 +95,10 @@ class WsContractRoundTripTest extends PostgresTestBase {
       {"update-feature", "values"},
       {"update-feature", "title-and-description"},
       {"update-feature", "mark-for-review"},
-      {"delete-feature", "delete"}
+      {"delete-feature", "delete"},
+      {"update-settings", "rename"},
+      {"update-settings", "fibonacci"},
+      {"update-settings", "confirmed-scale-change"}
     };
     for (String[] example : examples) {
       facilitator.send(ContractExamples.read(example[0], example[1]));
@@ -107,12 +110,13 @@ class WsContractRoundTripTest extends PostgresTestBase {
       JsonNode message = json.readTree(text);
       if (message.get("type").asString().equals("error")) {
         assertThat(ContractSchemas.validate("error", text)).as(text).isEmpty();
-        // Les identifiants des exemples n'existent pas : version périmée, jamais message invalide.
+        // Les identifiants des exemples n'existent pas : version périmée ; le JS 4 de F-1 sort de
+        // Fibonacci 13 : SCALE_IMPACT. Jamais message invalide.
         assertThat(message.get("code").asString()).as(text).isNotEqualTo("INVALID_MESSAGE");
         answers++;
       }
     }
-    assertThat(answers).isEqualTo(4);
+    assertThat(answers).isEqualTo(5);
   }
 
   @Test

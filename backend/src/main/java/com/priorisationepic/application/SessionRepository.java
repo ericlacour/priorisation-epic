@@ -2,6 +2,7 @@ package com.priorisationepic.application;
 
 import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
+import com.priorisationepic.domain.scale.Scale;
 import java.util.Optional;
 
 /** Accès aux sessions. */
@@ -19,4 +20,7 @@ public interface SessionRepository {
 
   /** Incrémente le compteur de changements de la session ({@code sessionState.version}). */
   void incrementVersion(SessionId sessionId);
+
+  /** Enregistre le nom et l'échelle de la session (sans changer son compteur). */
+  void updateSettings(SessionId sessionId, String name, Scale scale);
 }

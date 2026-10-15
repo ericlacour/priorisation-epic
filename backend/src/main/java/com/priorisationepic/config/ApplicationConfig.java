@@ -14,6 +14,7 @@ import com.priorisationepic.application.SessionLocks;
 import com.priorisationepic.application.SessionRepository;
 import com.priorisationepic.application.SessionStateAssembler;
 import com.priorisationepic.application.Transactions;
+import com.priorisationepic.application.UpdateSettingsUseCase;
 import com.priorisationepic.domain.IdGenerator;
 import com.priorisationepic.domain.method.MethodRegistry;
 import java.security.SecureRandom;
@@ -124,6 +125,20 @@ public class ApplicationConfig {
         ids,
         clock,
         transactions);
+  }
+
+  @Bean
+  public UpdateSettingsUseCase updateSettingsUseCase(
+      SessionRepository sessions,
+      ParticipantRepository participants,
+      FeatureRepository features,
+      ChangeLogWriter changeLog,
+      MethodRegistry methods,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions) {
+    return new UpdateSettingsUseCase(
+        sessions, participants, features, changeLog, methods, broadcaster, locks, transactions);
   }
 
   /**

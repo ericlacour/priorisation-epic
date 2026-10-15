@@ -23,6 +23,8 @@ final class ClientMessages {
       Pattern.compile(
           "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
+  private static final Set<String> SCALE_TYPES = Set.of("CONTINUOUS", "FIBONACCI");
+
   private ClientMessages() {}
 
   sealed interface ClientMessage {}
@@ -63,6 +65,13 @@ final class ClientMessages {
   /** {@code delete-feature.json} */
   record DeleteFeatureMessage(UUID featureId, int version) implements ClientMessage {}
 
+  /**
+   * {@code update-settings.json} : {@code name}, {@code scaleType} et {@code scaleMax} valent
+   * {@code null} s'ils sont absents.
+   */
+  record UpdateSettingsMessage(String name, String scaleType, Integer scaleMax, boolean confirm)
+      implements ClientMessage {}
+
   /** JSON invalide, {@code type} inconnu ou message hors schéma. */
   record Invalid() implements ClientMessage {}
 
@@ -82,6 +91,7 @@ final class ClientMessages {
       case "addFeature" -> addFeature(node);
       case "updateFeature" -> updateFeature(node);
       case "deleteFeature" -> deleteFeature(node);
+      case "updateSettings" -> updateSettings(node);
       default -> new Invalid();
     };
   }
@@ -172,6 +182,37 @@ final class ClientMessages {
     }
     return new DeleteFeatureMessage(
         UUID.fromString(node.get("featureId").asString()), node.get("version").asInt());
+  }
+
+  private static ClientMessage updateSettings(JsonNode node) {
+    if (!onlyFields(node, "type", "name", "scale", "confirm")
+        || node.size() < 2
+        || (node.has("name") && !isString(node.get("name"), 1, 120))
+        || (node.has("confirm") && !node.get("confirm").isBoolean())) {
+      return new Invalid();
+    }
+    String scaleType = null;
+    Integer scaleMax = null;
+    if (node.has("scale")) {
+      JsonNode scale = node.get("scale");
+      if (!scale.isObject()
+          || scale.size() != 2
+          || !scale.path("type").isString()
+          || !SCALE_TYPES.contains(scale.get("type").asString())
+          || !scale.path("max").isIntegralNumber()
+          || !scale.get("max").canConvertToInt()
+          || scale.get("max").asInt() < 2
+          || scale.get("max").asInt() > 100) {
+        return new Invalid();
+      }
+      scaleType = scale.get("type").asString();
+      scaleMax = scale.get("max").asInt();
+    }
+    return new UpdateSettingsMessage(
+        text(node, "name"),
+        scaleType,
+        scaleMax,
+        node.has("confirm") && node.get("confirm").asBoolean());
   }
 
   /** Valeurs par clé de critère : entiers ≥ 1 ou {@code null}. {@code null} si hors schéma. */

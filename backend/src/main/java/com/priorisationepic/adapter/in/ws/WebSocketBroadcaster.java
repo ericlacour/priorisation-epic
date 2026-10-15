@@ -4,6 +4,7 @@ import com.priorisationepic.application.Broadcaster;
 import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.ConnectionMaintenance;
 import com.priorisationepic.application.ErrorCode;
+import com.priorisationepic.application.IntentRejectedException;
 import com.priorisationepic.application.SessionStateProvider;
 import com.priorisationepic.application.SessionStateProvider.Recipient;
 import com.priorisationepic.domain.SessionId;
@@ -194,6 +195,19 @@ public class WebSocketBroadcaster implements Broadcaster, ConnectionMaintenance,
     WsConnection connection = connections.get(connectionId);
     if (connection != null && connection.attachment() != null) {
       connection.enqueue(toText(ServerMessages.ErrorMessage.of(code, featureId)));
+    }
+  }
+
+  @Override
+  public void sendRejection(String connectionId, IntentRejectedException rejection) {
+    if (rejection.code() != ErrorCode.SCALE_IMPACT) {
+      sendError(connectionId, rejection.code(), rejection.featureId());
+      return;
+    }
+    WsConnection connection = connections.get(connectionId);
+    if (connection != null && connection.attachment() != null) {
+      connection.enqueue(
+          toText(ServerMessages.ErrorMessage.scaleImpact(rejection.impactedValues())));
     }
   }
 

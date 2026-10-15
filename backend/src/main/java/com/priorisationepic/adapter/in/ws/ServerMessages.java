@@ -2,6 +2,8 @@ package com.priorisationepic.adapter.in.ws;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.priorisationepic.application.ErrorCode;
+import com.priorisationepic.domain.scale.Scale;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,14 +21,29 @@ final class ServerMessages {
 
   /** {@code error.json} */
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  record ErrorMessage(String type, String code, UUID featureId) {
+  record ErrorMessage(
+      String type, String code, UUID featureId, List<ImpactedValue> impactedValues) {
 
     static ErrorMessage of(ErrorCode code) {
-      return new ErrorMessage("error", code.name(), null);
+      return of(code, null);
     }
 
     static ErrorMessage of(ErrorCode code, UUID featureId) {
-      return new ErrorMessage("error", code.name(), featureId);
+      return new ErrorMessage("error", code.name(), featureId, null);
+    }
+
+    /** {@code SCALE_IMPACT} et ses valeurs impactées. */
+    static ErrorMessage scaleImpact(List<Scale.Impact> impacts) {
+      return new ErrorMessage(
+          "error",
+          ErrorCode.SCALE_IMPACT.name(),
+          null,
+          impacts.stream()
+              .map(i -> new ImpactedValue(i.externalId(), i.criterionKey(), i.value()))
+              .toList());
     }
   }
+
+  /** Une valeur que le changement d'échelle mettrait hors échelle. */
+  record ImpactedValue(String externalId, String criterion, int value) {}
 }

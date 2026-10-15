@@ -32,4 +32,12 @@ public interface Broadcaster {
   default void sendError(String connectionId, ErrorCode code, UUID featureId) {
     sendError(connectionId, code);
   }
+
+  /**
+   * Envoie le refus d'une intention : {@code error} avec son code, la fonctionnalité concernée et,
+   * pour {@code SCALE_IMPACT}, les valeurs impactées.
+   */
+  default void sendRejection(String connectionId, IntentRejectedException rejection) {
+    sendError(connectionId, rejection.code(), rejection.featureId());
+  }
 }
