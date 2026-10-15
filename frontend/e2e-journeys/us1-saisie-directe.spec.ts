@@ -168,7 +168,7 @@ test('V14 : deux onglets d’animateur modifient la même valeur, le second voit
     .toEqual(['1 F-1 Paiement en un clic 9 5 3 4 17 4,25 Modifier']);
 });
 
-test('V16 : définitions au survol, encadré repliable, descriptif et titre modifié visible ailleurs', async ({
+test('V16 : définitions au survol, panneau « Comprendre le WSJF », descriptif et titre modifié visible ailleurs', async ({
   browser,
   page,
 }) => {

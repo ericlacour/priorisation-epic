@@ -5,6 +5,11 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SidePanelComponent } from './side-panel.component';
 
+/** « Comprendre le <méthode> » : titre du panneau et du lien qui l'ouvre. */
+export function glossaryTitle(definition: MethodDefinition): string {
+  return format(MESSAGES.glossary.title, { method: definition.name });
+}
+
 /**
  * Panneau « Comprendre le <méthode> » (FR-016a) : toutes les définitions de la méthode de la session, ouvert depuis
  * le lien placé au-dessus du tableau, pour laisser au tableau toute la largeur de l'écran. Seuls les textes
@@ -38,9 +43,7 @@ export class MethodGlossaryComponent {
   readonly closed = output<void>();
   /** Demande d'ouverture du panneau « Méthode de la session ». */
   readonly methodRequested = output<void>();
-  protected readonly title = computed(() =>
-    format(this.messages.title, { method: this.definition().name }),
-  );
+  protected readonly title = computed(() => glossaryTitle(this.definition()));
   protected readonly entries = computed(() => [
     ...this.definition().criteria,
     ...this.definition().computedValues,

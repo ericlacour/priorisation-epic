@@ -17,7 +17,7 @@ import { AnimationLinkComponent } from '../session/animation-link.component';
 import { SessionRoomService } from '../session/session-room.service';
 import { CopyButtonComponent } from '../shared/copy-button.component';
 import { CriterionTermComponent } from '../shared/criterion-term.component';
-import { MethodGlossaryComponent } from '../shared/method-glossary.component';
+import { MethodGlossaryComponent, glossaryTitle } from '../shared/method-glossary.component';
 import { MethodInfoComponent } from '../shared/method-info.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
 import {
@@ -437,9 +437,10 @@ export class BoardComponent {
     );
   });
 
-  protected readonly glossaryTitle = computed(() =>
-    format(MESSAGES.glossary.title, { method: this.state()?.methodDefinition.name ?? '' }),
-  );
+  protected readonly glossaryTitle = computed(() => {
+    const definition = this.state()?.methodDefinition;
+    return definition ? glossaryTitle(definition) : '';
+  });
 
   protected readonly inviteUrl = computed(
     () => `${this.document.location.origin}/s/${this.state()?.sessionId ?? ''}`,

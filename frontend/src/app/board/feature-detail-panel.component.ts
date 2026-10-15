@@ -34,8 +34,9 @@ const REASON_MAX = 200;
 /**
  * Panneau de détail d'une fonctionnalité (FR-016, FR-016b), ouvert au clic sur son identifiant : descriptif complet,
  * valeurs retenues avec le nom complet des critères, détail du calcul tel que le serveur l'écrit (constitution I).
- * L'animateur peut y marquer la fonctionnalité « à revoir » et modifier son titre et son descriptif, par les boutons
- * placés en haut du panneau : « Enregistrer » émet une seule modification, « Annuler » n'émet rien. Les valeurs et le calcul restent masqués tant que le serveur
+ * Les boutons de l'animateur, « Modifier le titre et le descriptif » et « Marquer à revoir », sont en haut du panneau,
+ * sous le titre. Pendant la modification, « Enregistrer » (une seule modification émise) et « Annuler » (rien
+ * d'émis) restent sous la saisie. Les valeurs et le calcul restent masqués tant que le serveur
  * ne les envoie pas (tour de vote ouvert, pour un participant).
  */
 @Component({
