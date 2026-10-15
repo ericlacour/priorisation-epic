@@ -19,7 +19,8 @@ import net.jqwik.api.Provide;
 /** Propriétés du calcul, du tri et de la comparaison du WSJF (constitution II). */
 class WsjfMethodPropertiesTest {
 
-  private static final WsjfMethod WSJF = new WsjfMethod();
+  private static final WsjfMethod WSJF = WsjfMethod.version1();
+  private static final WsjfMethod V2 = WsjfMethod.version2();
   private static final Scale SCALE = Scale.defaultScale();
 
   /** Valeurs complètes dans l'échelle 1 à 10. */
@@ -114,14 +115,50 @@ class WsjfMethodPropertiesTest {
   }
 
   @Property
+  void version2ComputesWithTheJobSizeAndOneBenefitCountingTheMissingOnesAsZero(
+      @ForAll("rows") Row row) {
+    Criteria c = row.criteria();
+    Score score = Score.of(V2, c, SCALE);
+    boolean computable =
+        c.isEntered("js") && (c.isEntered("bv") || c.isEntered("tc") || c.isEntered("rrOe"));
+
+    assertThat(score.complete()).isEqualTo(computable);
+    if (computable) {
+      long cod = orZero(c, "bv") + orZero(c, "tc") + orZero(c, "rrOe");
+      assertThat(score.computed().get("cod")).isEqualTo(Fraction.of(cod));
+      Fraction wsjf = score.computed().get("wsjf");
+      assertThat(wsjf.numerator() * c.get("js")).isEqualTo(cod * wsjf.denominator());
+    } else {
+      assertThat(score.computed()).isNull();
+    }
+  }
+
+  private static int orZero(Criteria criteria, String key) {
+    Integer value = criteria.get(key);
+    return value == null ? 0 : value;
+  }
+
+  @Property
   void theRankingIsTotalStableAndOrderedByTheDocumentedRule(@ForAll("rowLists") List<Row> rows) {
+    checkRanking(WSJF, rows);
+  }
+
+  @Property
+  void theVersion2RankingIsTotalStableAndOrderedByTheDocumentedRule(
+      @ForAll("rowLists") List<Row> rows) {
+    checkRanking(V2, rows);
+  }
+
+  private static void checkRanking(WsjfMethod method, List<Row> rows) {
+    java.util.function.Function<Row, Score> scoreOf =
+        row -> Score.of(method, row.criteria(), SCALE);
     List<Row> distinct = new ArrayList<>();
     for (Row row : rows) {
       if (distinct.stream().noneMatch(r -> r.id().equals(row.id()))) {
         distinct.add(row);
       }
     }
-    List<Ranking.Ranked<Row>> ranked = Ranking.rank(WSJF, distinct, Row::id, Row::score);
+    List<Ranking.Ranked<Row>> ranked = Ranking.rank(method, distinct, Row::id, scoreOf);
 
     assertThat(ranked).hasSameSizeAs(distinct);
     assertThat(ranked)
@@ -131,10 +168,10 @@ class WsjfMethodPropertiesTest {
     for (int i = 0; i + 1 < ranked.size(); i++) {
       Row before = ranked.get(i).item();
       Row after = ranked.get(i + 1).item();
-      Score sb = before.score();
-      Score sa = after.score();
+      Score sb = scoreOf.apply(before);
+      Score sa = scoreOf.apply(after);
       if (sb.complete() && sa.complete()) {
-        int byMethod = WSJF.compare(sb.computed(), sa.computed());
+        int byMethod = method.compare(sb.computed(), sa.computed());
         assertThat(byMethod).isLessThanOrEqualTo(0);
         if (byMethod == 0) {
           assertThat(before.id().toLowerCase(Locale.ROOT))
@@ -152,7 +189,7 @@ class WsjfMethodPropertiesTest {
     List<Row> reversed = new ArrayList<>(distinct);
     java.util.Collections.reverse(reversed);
     assertThat(
-            Ranking.rank(WSJF, reversed, Row::id, Row::score).stream()
+            Ranking.rank(method, reversed, Row::id, scoreOf).stream()
                 .map(r -> r.item().id())
                 .toList())
         .isEqualTo(ranked.stream().map(r -> r.item().id()).toList());

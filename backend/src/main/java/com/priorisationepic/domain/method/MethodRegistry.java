@@ -34,7 +34,7 @@ public final class MethodRegistry {
    * version 2, proposée aux nouvelles sessions.
    */
   public static MethodRegistry standard() {
-    return new MethodRegistry(List.of(new WsjfMethod(), WsjfMethod.version2()));
+    return new MethodRegistry(List.of(WsjfMethod.version1(), WsjfMethod.version2()));
   }
 
   /** La méthode de cette version, ou {@link UnknownMethodException}. */

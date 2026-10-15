@@ -278,7 +278,6 @@ export const MESSAGES = {
   methodInfo: {
     label: 'Formule et règle de tri',
     sort: 'Tri : {rule}',
-    endOfList: 'Les fonctionnalités incomplètes ou hors échelle viennent en fin de liste.',
   },
   animationLink: {
     copy: 'Copier Session Anim',

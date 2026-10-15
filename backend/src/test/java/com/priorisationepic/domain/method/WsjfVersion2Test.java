@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
  */
 class WsjfVersion2Test {
 
-  private static final WsjfMethod V1 = new WsjfMethod();
+  private static final WsjfMethod V1 = WsjfMethod.version1();
   private static final WsjfMethod V2 = WsjfMethod.version2();
   private static final Scale SCALE = Scale.defaultScale();
 

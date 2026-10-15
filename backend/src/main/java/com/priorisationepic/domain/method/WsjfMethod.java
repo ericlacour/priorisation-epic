@@ -105,23 +105,22 @@ public final class WsjfMethod implements PrioritizationMethod {
 
   private final MethodDefinition definition;
 
-  /** WSJF version 1. */
-  public WsjfMethod() {
-    this(1);
+  /** Le JS et au moins un critère du CoD suffisent au calcul (version 2) ; sinon, les quatre. */
+  private final boolean partialBenefits;
+
+  private WsjfMethod(MethodDefinition definition, boolean partialBenefits) {
+    this.definition = definition;
+    this.partialBenefits = partialBenefits;
   }
 
-  private WsjfMethod(int version) {
-    this.definition =
-        switch (version) {
-          case 1 -> VERSION_1;
-          case 2 -> VERSION_2;
-          default -> throw new UnknownMethodException(KEY, version);
-        };
+  /** WSJF version 1 : les quatre critères sont nécessaires. */
+  public static WsjfMethod version1() {
+    return new WsjfMethod(VERSION_1, false);
   }
 
   /** WSJF version 2 : le JS et au moins un critère du CoD suffisent. */
   public static WsjfMethod version2() {
-    return new WsjfMethod(2);
+    return new WsjfMethod(VERSION_2, true);
   }
 
   @Override
@@ -129,13 +128,9 @@ public final class WsjfMethod implements PrioritizationMethod {
     return definition;
   }
 
-  private boolean partialBenefits() {
-    return definition.version() >= 2;
-  }
-
   @Override
   public boolean computable(Criteria criteria) {
-    if (!partialBenefits()) {
+    if (!partialBenefits) {
       return PrioritizationMethod.super.computable(criteria);
     }
     return criteria.isEntered(JS) && BENEFITS.stream().anyMatch(criteria::isEntered);
@@ -189,11 +184,7 @@ public final class WsjfMethod implements PrioritizationMethod {
   }
 
   private String codeOf(String key) {
-    return definition.criteria().stream()
-        .filter(c -> c.key().equals(key))
-        .findFirst()
-        .orElseThrow()
-        .code();
+    return definition.criterion(key).orElseThrow().code();
   }
 
   private static String missingNote(List<String> missing) {

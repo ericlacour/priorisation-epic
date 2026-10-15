@@ -269,7 +269,7 @@ test.describe('tableau de priorisation', () => {
     const tip = page.getByRole('tooltip');
     await expect(tip).toContainText('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
     await expect(tip).toContainText('Tri : WSJF décroissant');
-    await expect(tip).toContainText('fin de liste');
+    await expect(tip).toContainText('fin de tableau');
   });
 
   test('un titre long tient sur une ligne et s’affiche en entier au survol', async ({ page }) => {

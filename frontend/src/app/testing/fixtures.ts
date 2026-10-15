@@ -56,7 +56,8 @@ export const WSJF: MethodDefinition = {
     },
   ],
   formula: 'CoD = BV + TC + RR/OE ; WSJF = CoD / JS',
-  tieBreakRule: 'WSJF décroissant, puis CoD décroissant, puis identifiant croissant.',
+  tieBreakRule:
+    'WSJF décroissant, puis CoD décroissant, puis identifiant croissant (sans tenir compte de la casse). Les fonctionnalités incomplètes ou hors échelle viennent en fin de tableau, par identifiant croissant.',
 };
 
 /** Méthode fictive à deux critères : le front n'a aucun code propre au WSJF (SC-009). */

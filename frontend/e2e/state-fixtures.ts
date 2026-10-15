@@ -54,7 +54,8 @@ export const WSJF = {
     },
   ],
   formula: 'CoD = BV + TC + RR/OE ; WSJF = CoD / JS',
-  tieBreakRule: 'WSJF décroissant, puis CoD décroissant, puis identifiant croissant.',
+  tieBreakRule:
+    'WSJF décroissant, puis CoD décroissant, puis identifiant croissant (sans tenir compte de la casse). Les fonctionnalités incomplètes ou hors échelle viennent en fin de tableau, par identifiant croissant.',
 };
 
 export interface FeatureOptions {

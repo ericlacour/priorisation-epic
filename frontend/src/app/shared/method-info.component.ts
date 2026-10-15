@@ -6,7 +6,8 @@ import { MESSAGES } from '../i18n/messages.fr';
 /**
  * Icône ⓘ à côté de l'en-tête de la valeur principale (en WSJF : le WSJF), constitution I : la formule et la règle de
  * tri s'affichent au survol, au focus clavier et au toucher, et sont annoncées aux lecteurs d'écran. Le texte vient de
- * `sessionState` (`formula`, `tieBreakRule`), jamais du composant.
+ * `sessionState` (`formula`, `tieBreakRule`), jamais du composant : la règle de tri dit elle-même où vont les
+ * fonctionnalités non calculées, ce qui dépend de la version de la méthode.
  */
 @Component({
   selector: 'app-method-info',
@@ -28,7 +29,6 @@ import { MESSAGES } from '../i18n/messages.fr';
       <span class="term-tip info-tip" role="tooltip" [id]="tipId">
         <span class="info-line">{{ formula() }}</span>
         <span class="info-line">{{ sortLine() }}</span>
-        <span class="info-line">{{ messages.endOfList }}</span>
       </span>
     }
   `,
@@ -44,8 +44,9 @@ export class MethodInfoComponent {
   protected readonly sortLine = computed(() =>
     format(this.messages.sort, { rule: this.tieBreakRule() }),
   );
-  protected readonly text = computed(
-    () =>
-      `${this.messages.label} : ${this.formula()}. ${this.sortLine()} ${this.messages.endOfList}`,
-  );
+  /** Une formule qui finit déjà par un point (WSJF version 2) n'en reçoit pas un second. */
+  protected readonly text = computed(() => {
+    const formula = this.formula().replace(/\.$/, '');
+    return `${this.messages.label} : ${formula}. ${this.sortLine()}`;
+  });
 }
