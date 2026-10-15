@@ -28,6 +28,9 @@
   --offline: #8a8f98;
   --masked: repeating-linear-gradient(135deg, #f0edea 0 6px, #e7e3de 6px 12px);
   --shadow: 0 1px 2px rgb(47 51 56 / 6%), 0 4px 16px rgb(47 51 56 / 6%);
+  /* Un niveau du classement sur deux : bande et lignes teintées (texte atténué toujours AA sur la ligne). */
+  --rank-alt: #dce4ef;
+  --rank-alt-item: #f1f5fb;
 }
 
 :root[data-theme='dark'] {
@@ -54,6 +57,8 @@
   --offline: #7a8191;
   --masked: repeating-linear-gradient(135deg, #282c32 0 6px, #2f343b 6px 12px);
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+  --rank-alt: #313a48;
+  --rank-alt-item: #262d38;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -81,5 +86,7 @@
     --offline: #7a8191;
     --masked: repeating-linear-gradient(135deg, #282c32 0 6px, #2f343b 6px 12px);
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+    --rank-alt: #313a48;
+    --rank-alt-item: #262d38;
   }
 }

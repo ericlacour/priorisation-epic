@@ -102,6 +102,16 @@ describe('CriterionRankingComponent', () => {
     ).toEqual(['8', '8']);
   });
 
+  it('tints every other level, so that two neighbouring levels stand apart', () => {
+    const { fixture, element } = render();
+    action(element, 'Classer en dernier : F-c').click();
+    fixture.detectChanges();
+    const tinted = [...element.querySelectorAll('.rank-level')].map((level) =>
+      level.classList.contains('rank-level-alt'),
+    );
+    expect(tinted).toEqual([false, true, false]);
+  });
+
   it('ranks an unranked feature last, or ties it with the last level', () => {
     const { fixture, element, host } = render();
     action(element, 'Classer en dernier : F-c').click();

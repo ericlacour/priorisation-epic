@@ -119,7 +119,8 @@ type Action = 'up' | 'down' | 'join' | 'last';
         </h2>
         <ol class="ranking-levels rank-scroll" [attr.aria-label]="listLabel()">
           @for (level of step().levels; track $index; let index = $index) {
-            <li class="rank-level">
+            <!-- Un niveau sur deux est teinté : deux niveaux voisins se distinguent d'un coup d'œil. -->
+            <li class="rank-level" [class.rank-level-alt]="index % 2 === 1">
               <div
                 class="rank-gap"
                 aria-hidden="true"

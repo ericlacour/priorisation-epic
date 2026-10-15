@@ -243,6 +243,15 @@
   background: var(--surface-muted);
 }
 
+/* Un niveau sur deux est teinté, pour voir où finit un niveau et où commence le suivant. */
+.rank-level-alt .rank-level-body {
+  background: var(--rank-alt);
+}
+
+.rank-level-alt .rank-item {
+  background: var(--rank-alt-item);
+}
+
 .rank-level-body .rank {
   margin-top: 1px;
 }
