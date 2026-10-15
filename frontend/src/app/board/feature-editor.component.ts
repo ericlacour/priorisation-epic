@@ -15,6 +15,7 @@ import { CriteriaChanges } from '../api/contract';
 import { Feature, MethodDefinition, SessionScale } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
+import { invalidValueMessage } from '../shared/scale';
 
 /** Ce que l'animateur a saisi dans la ligne : seuls les champs modifiés sont présents (jamais d'envoi inutile). */
 export interface FeatureEdit {
@@ -165,9 +166,7 @@ export class FeatureEditorComponent implements OnInit {
     if (!this.title().trim()) errors.push(this.messages.titleRequired);
     for (const criterion of this.definition().criteria) {
       if (this.invalidKeys().has(criterion.key)) {
-        errors.push(
-          format(this.messages.valueInvalid, { code: criterion.code, max: this.scale().max }),
-        );
+        errors.push(invalidValueMessage(criterion.code, this.scale()));
       }
     }
     return errors;

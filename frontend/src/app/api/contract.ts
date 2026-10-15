@@ -73,11 +73,20 @@ export interface TickMessage {
   readonly type: 'tick';
 }
 
+/** Une valeur que le changement d'échelle demandé mettrait hors échelle (`SCALE_IMPACT`). */
+export interface ImpactedValue {
+  readonly externalId: string;
+  readonly criterion: string;
+  readonly value: number;
+}
+
 export interface ErrorMessage {
   readonly type: 'error';
   readonly code: ErrorCode;
   /** La fonctionnalité concernée (`STALE_VERSION`). */
   readonly featureId?: string;
+  /** Les valeurs impactées (`SCALE_IMPACT`). */
+  readonly impactedValues?: readonly ImpactedValue[];
 }
 
 /** Valeurs saisies par clé de critère ; `null` efface la valeur. */
@@ -112,6 +121,52 @@ export interface DeleteFeatureMessage {
   readonly version: number;
 }
 
+/** Type d'échelle (`scale.json`). */
+export type ScaleType = 'CONTINUOUS' | 'FIBONACCI';
+
+/**
+ * `updateSettings` (animateur) : renommer la session ou changer son échelle. Sans `confirm`, un changement qui met
+ * des valeurs hors échelle est refusé par `error SCALE_IMPACT` avec `impactedValues`.
+ */
+export interface UpdateSettingsMessage {
+  readonly type: 'updateSettings';
+  readonly name?: string;
+  readonly scale?: { readonly type: ScaleType; readonly max: number };
+  readonly confirm?: boolean;
+}
+
+/** Une ligne valide de l'aperçu d'import (`import-preview.json`). */
+export interface ImportRow {
+  readonly line: number;
+  readonly externalId: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly criteria: Readonly<Record<string, number | null>>;
+}
+
+/** `import-preview.json` : rien n'est écrit avant la confirmation. */
+export interface ImportPreview {
+  readonly previewId: string;
+  readonly sourceType: 'XLSX' | 'CSV' | 'JSON';
+  readonly expiresAt: string;
+  readonly validRows: readonly ImportRow[];
+  readonly rejectedRows: readonly {
+    readonly line: number;
+    readonly externalId: string | null;
+    readonly reason: string;
+  }[];
+  readonly warnings: readonly { readonly line: number; readonly message: string }[];
+  readonly ignoredColumns: readonly string[];
+  /** L'échelle d'un export JSON qui sera appliquée à la session vide. */
+  readonly scale?: { readonly type: ScaleType; readonly max: number };
+}
+
+/** `import-result.json` : le bilan de la confirmation (FR-008). */
+export interface ImportResult {
+  readonly imported: number;
+  readonly rejected: number;
+}
+
 /** Messages du serveur reconnus ; un type inconnu est conservé brut. */
 export type ServerMessage = TickMessage | ErrorMessage | SessionState | { readonly type: string };
 
@@ -126,6 +181,17 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isText = (value: unknown): value is string => typeof value === 'string' && value.length > 0;
+
+const isInt = (value: unknown): value is number => Number.isInteger(value);
+
+const isImpactedValue = (value: unknown): value is ImpactedValue =>
+  isObject(value) &&
+  isText(value['externalId']) &&
+  isText(value['criterion']) &&
+  isInt(value['value']);
+
+const isScaleType = (value: unknown): value is ScaleType =>
+  value === 'CONTINUOUS' || value === 'FIBONACCI';
 
 /** Un identifiant de session est toujours de 128 bits en base64url (22 caractères). */
 export const isSessionId = (value: string): boolean => SESSION_ID.test(value);
@@ -150,9 +216,15 @@ export function parseServerMessage(json: unknown): ServerMessage | null {
     const code = json['code'];
     if (!ERROR_CODES.includes(code as ErrorCode)) return null;
     const featureId = json['featureId'];
-    return typeof featureId === 'string'
-      ? { type: 'error', code: code as ErrorCode, featureId }
-      : { type: 'error', code: code as ErrorCode };
+    const impacted = json['impactedValues'];
+    return {
+      type: 'error',
+      code: code as ErrorCode,
+      ...(typeof featureId === 'string' ? { featureId } : {}),
+      ...(Array.isArray(impacted) && impacted.every(isImpactedValue)
+        ? { impactedValues: impacted }
+        : {}),
+    };
   }
   if (json['type'] === 'sessionState') return parseSessionState(json);
   return { type: json['type'] };
@@ -202,4 +274,57 @@ export function parseProblem(json: unknown): Problem | null {
     return null;
   }
   return { title: json['title'], status: json['status'], detail: json['detail'] };
+}
+
+function isImportRow(value: unknown): value is ImportRow {
+  return (
+    isObject(value) &&
+    isInt(value['line']) &&
+    isText(value['externalId']) &&
+    isText(value['title']) &&
+    (value['description'] === null || typeof value['description'] === 'string') &&
+    isObject(value['criteria']) &&
+    Object.values(value['criteria']).every((v) => v === null || isInt(v))
+  );
+}
+
+const isRejectedRow = (value: unknown): boolean =>
+  isObject(value) &&
+  isInt(value['line']) &&
+  (value['externalId'] === null || typeof value['externalId'] === 'string') &&
+  typeof value['reason'] === 'string';
+
+const isWarning = (value: unknown): boolean =>
+  isObject(value) && isInt(value['line']) && typeof value['message'] === 'string';
+
+/** Lit un aperçu d'import, ou lève une erreur s'il ne respecte pas le contrat. */
+export function parseImportPreview(json: unknown): ImportPreview {
+  const scale = isObject(json) ? json['scale'] : undefined;
+  if (
+    !isObject(json) ||
+    !isText(json['previewId']) ||
+    !['XLSX', 'CSV', 'JSON'].includes(json['sourceType'] as string) ||
+    !isText(json['expiresAt']) ||
+    !Array.isArray(json['validRows']) ||
+    !json['validRows'].every(isImportRow) ||
+    !Array.isArray(json['rejectedRows']) ||
+    !json['rejectedRows'].every(isRejectedRow) ||
+    !Array.isArray(json['warnings']) ||
+    !json['warnings'].every(isWarning) ||
+    !Array.isArray(json['ignoredColumns']) ||
+    !json['ignoredColumns'].every((c) => typeof c === 'string') ||
+    (scale !== undefined &&
+      (!isObject(scale) || !isScaleType(scale['type']) || !isInt(scale['max'])))
+  ) {
+    throw new Error('import-preview: unexpected shape');
+  }
+  return json as unknown as ImportPreview;
+}
+
+/** Lit le bilan d'un import, ou lève une erreur s'il ne respecte pas le contrat. */
+export function parseImportResult(json: unknown): ImportResult {
+  if (!isObject(json) || !isInt(json['imported']) || !isInt(json['rejected'])) {
+    throw new Error('import-result: unexpected shape');
+  }
+  return { imported: json['imported'], rejected: json['rejected'] };
 }

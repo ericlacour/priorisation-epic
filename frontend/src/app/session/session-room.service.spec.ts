@@ -130,4 +130,29 @@ describe('SessionRoomService', () => {
     expect(room.state()).toBeNull();
     expect(room.refusal()).toBeNull();
   });
+
+  it('sends updateSettings and keeps the impacted values of a SCALE_IMPACT refusal', () => {
+    const { room, messages, socket } = setup();
+    expect(room.updateSettings({ scale: { type: 'FIBONACCI', max: 13 } })).toBe(true);
+    expect(socket.send).toHaveBeenLastCalledWith({
+      type: 'updateSettings',
+      scale: { type: 'FIBONACCI', max: 13 },
+    });
+
+    const impactedValues = [{ externalId: 'F-1', criterion: 'js', value: 4 }];
+    messages.next({ type: 'error', code: 'SCALE_IMPACT', impactedValues });
+    expect(room.refusal()).toEqual({ code: 'SCALE_IMPACT', impactedValues });
+  });
+
+  it('gives the facilitator tokens stored for the session, or null', () => {
+    const { room, storage } = setup();
+    expect(room.facilitatorTokens()).toBeNull();
+    storage.data.set(`pe.token.${SESSION_ID}`, 'p-token');
+    expect(room.facilitatorTokens()).toBeNull();
+    storage.data.set(`pe.animation.${SESSION_ID}`, 'a-token');
+    expect(room.facilitatorTokens()).toEqual({
+      participantToken: 'p-token',
+      animationToken: 'a-token',
+    });
+  });
 });

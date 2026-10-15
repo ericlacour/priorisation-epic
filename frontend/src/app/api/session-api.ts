@@ -4,10 +4,14 @@ import { APP_CONFIG } from '../config/app-config';
 import {
   CreateSessionRequest,
   CreateSessionResponse,
+  ImportPreview,
+  ImportResult,
   JoinSessionRequest,
   JoinSessionResponse,
   isSessionId,
   parseCreateSessionResponse,
+  parseImportPreview,
+  parseImportResult,
   parseJoinSessionResponse,
   parseProblem,
 } from './contract';
@@ -27,10 +31,12 @@ export const REQUEST_TIMEOUT_MS = 15_000;
  * - `pseudoTaken` : 409 ;
  * - `notFound` : 404 ;
  * - `tooManyRequests` : 429 ;
- * - `network` : échec réseau, délai dépassé, 5xx, 413, ou toute réponse inattendue.
+ * - `forbidden` : 403 (import : droits d'animateur absents, ou session clôturée) ;
+ * - `tooLarge` : 413 (import : fichier trop gros) ;
+ * - `network` : échec réseau, délai dépassé, 5xx, 413 hors import, ou toute réponse inattendue.
  */
 export type SessionApiErrorKind =
-  'invalid' | 'pseudoTaken' | 'notFound' | 'tooManyRequests' | 'network';
+  'invalid' | 'pseudoTaken' | 'notFound' | 'tooManyRequests' | 'forbidden' | 'tooLarge' | 'network';
 
 export class SessionApiError extends Error {
   constructor(
@@ -48,6 +54,19 @@ const KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
   409: 'pseudoTaken',
   429: 'tooManyRequests',
 };
+
+/** Les statuts propres à l'import. */
+const IMPORT_KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
+  ...KINDS,
+  403: 'forbidden',
+  413: 'tooLarge',
+};
+
+/** Les jetons d'un animateur, envoyés en en-têtes : jamais dans l'adresse. */
+export interface FacilitatorTokens {
+  readonly participantToken: string;
+  readonly animationToken: string;
+}
 
 /** Appels REST des sessions (contrat : openapi.yaml). */
 @Injectable({ providedIn: 'root' })
@@ -92,15 +111,64 @@ export class SessionApi {
     throw await errorOf(response);
   }
 
+  /**
+   * `POST /api/sessions/{sessionId}/imports` : lit le fichier et renvoie l'aperçu ; rien n'est écrit (FR-008).
+   * Un fichier refusé en entier donne `invalid`, avec le message du serveur.
+   */
+  async previewImport(
+    sessionId: string,
+    file: Blob,
+    fileName: string,
+    tokens: FacilitatorTokens,
+  ): Promise<ImportPreview> {
+    assertWellFormedId(sessionId);
+    const form = new FormData();
+    form.append('file', file, fileName);
+    const response = await this.request(`${sessionPath(sessionId)}/imports`, {
+      method: 'POST',
+      headers: tokenHeaders(tokens),
+      body: form,
+    });
+    if (response.status === 200) return parseOrNetwork(response, parseImportPreview);
+    throw await errorOf(response, IMPORT_KINDS);
+  }
+
+  /** `POST /api/sessions/{sessionId}/imports/{previewId}/confirm` : `notFound` si l'aperçu a expiré. */
+  async confirmImport(
+    sessionId: string,
+    previewId: string,
+    tokens: FacilitatorTokens,
+  ): Promise<ImportResult> {
+    assertWellFormedId(sessionId);
+    const response = await this.request(
+      `${sessionPath(sessionId)}/imports/${encodeURIComponent(previewId)}/confirm`,
+      { method: 'POST', headers: tokenHeaders(tokens) },
+    );
+    if (response.status === 200) return parseOrNetwork(response, parseImportResult);
+    throw await errorOf(response, IMPORT_KINDS);
+  }
+
+  /** L'adresse du modèle Excel d'une méthode (`GET /api/import-template.xlsx`), à télécharger par un lien. */
+  templateUrl(method: string, methodVersion: number): string {
+    const query = new URLSearchParams({ method, methodVersion: String(methodVersion) });
+    return `${this.baseUrl}/api/import-template.xlsx?${query.toString()}`;
+  }
+
   private async send(path: string, method: 'GET' | 'POST', body?: unknown): Promise<Response> {
+    return this.request(path, {
+      method,
+      ...(body === undefined
+        ? {}
+        : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+    });
+  }
+
+  private async request(path: string, init: RequestInit): Promise<Response> {
     const timeout = new AbortController();
     const timer = setTimeout(() => timeout.abort(), REQUEST_TIMEOUT_MS);
     try {
       return await this.fetchFn(`${this.baseUrl}${path}`, {
-        method,
-        ...(body === undefined
-          ? {}
-          : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+        ...init,
         cache: 'no-store',
         signal: timeout.signal,
       });
@@ -119,6 +187,11 @@ function assertWellFormedId(sessionId: string): void {
 
 const sessionPath = (sessionId: string) => `/api/sessions/${encodeURIComponent(sessionId)}`;
 
+const tokenHeaders = (tokens: FacilitatorTokens): Record<string, string> => ({
+  'X-Participant-Token': tokens.participantToken,
+  'X-Animation-Token': tokens.animationToken,
+});
+
 async function parseOrNetwork<T>(response: Response, parse: (json: unknown) => T): Promise<T> {
   try {
     return parse(await response.json());
@@ -128,8 +201,11 @@ async function parseOrNetwork<T>(response: Response, parse: (json: unknown) => T
 }
 
 /** L'erreur typée d'une réponse inattendue, d'après son statut ; `detail` vient du `problem+json` s'il est lisible. */
-async function errorOf(response: Response): Promise<SessionApiError> {
-  const kind = KINDS[response.status];
+async function errorOf(
+  response: Response,
+  kinds: Readonly<Record<number, SessionApiErrorKind>> = KINDS,
+): Promise<SessionApiError> {
+  const kind = kinds[response.status];
   if (!kind) return new SessionApiError('network');
   let detail: string | null = null;
   try {

@@ -114,3 +114,72 @@ describe('SessionApi', () => {
     expect(await kindOf(apiWith(unreadable).listMethods())).toBe('network');
   });
 });
+
+describe('SessionApi imports', () => {
+  const tokens = { participantToken: 'p-token', animationToken: 'a-token' };
+  const preview = {
+    previewId: 'id-1',
+    sourceType: 'CSV',
+    expiresAt: '2026-10-11T14:15:00Z',
+    validRows: [],
+    rejectedRows: [],
+    warnings: [],
+    ignoredColumns: [],
+  };
+
+  it('sends the file as multipart with the facilitator tokens in headers', async () => {
+    const fetchFn = json(200, preview);
+    const file = new Blob(['Identifiant;Titre\n'], { type: 'text/csv' });
+
+    const result = await apiWith(fetchFn).previewImport(ID, file, 'a.csv', tokens);
+
+    expect(result.previewId).toBe('id-1');
+    const [url, init] = (fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://api.example/api/sessions/${ID}/imports`);
+    expect(init.method).toBe('POST');
+    expect(init.headers).toEqual({
+      'X-Participant-Token': 'p-token',
+      'X-Animation-Token': 'a-token',
+    });
+    expect((init.body as FormData).get('file')).toBeInstanceOf(Blob);
+    expect(String(url)).not.toContain('token');
+  });
+
+  it('maps the import statuses to typed errors, with the French reason of a refused file', async () => {
+    const problem = { title: 'Fichier refusé', status: 400, detail: 'Sans colonne Titre' };
+    const file = new Blob(['x']);
+    await expect(
+      apiWith(json(400, problem)).previewImport(ID, file, 'a.csv', tokens),
+    ).rejects.toMatchObject({ kind: 'invalid', detail: 'Sans colonne Titre' });
+    expect(await kindOf(apiWith(json(403, {})).previewImport(ID, file, 'a.csv', tokens))).toBe(
+      'forbidden',
+    );
+    expect(await kindOf(apiWith(json(413, {})).previewImport(ID, file, 'a.csv', tokens))).toBe(
+      'tooLarge',
+    );
+    expect(
+      await kindOf(apiWith(json(200, { previewId: 1 })).previewImport(ID, file, 'a.csv', tokens)),
+    ).toBe('network');
+    expect(await kindOf(apiWith(json(200, {})).previewImport('court', file, 'a.csv', tokens))).toBe(
+      'notFound',
+    );
+  });
+
+  it('confirms a preview and reports an expired one as notFound', async () => {
+    const fetchFn = json(200, { imported: 18, rejected: 2 });
+    expect(await apiWith(fetchFn).confirmImport(ID, 'id-1', tokens)).toEqual({
+      imported: 18,
+      rejected: 2,
+    });
+    const [url, init] = (fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://api.example/api/sessions/${ID}/imports/id-1/confirm`);
+    expect(init.headers['X-Animation-Token']).toBe('a-token');
+    expect(await kindOf(apiWith(json(404, {})).confirmImport(ID, 'id-1', tokens))).toBe('notFound');
+  });
+
+  it('gives the template address of a method', () => {
+    expect(apiWith(json(200, {})).templateUrl('WSJF', 2)).toBe(
+      'https://api.example/api/import-template.xlsx?method=WSJF&methodVersion=2',
+    );
+  });
+});

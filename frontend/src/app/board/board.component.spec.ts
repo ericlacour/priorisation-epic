@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 
 import { Feature } from '../api/session-state';
+import { APP_CONFIG } from '../config/app-config';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
 import { FakeRoom } from '../testing/fake-room';
@@ -38,6 +39,7 @@ describe('BoardComponent', () => {
       providers: [
         { provide: SessionRoomService, useValue: room },
         { provide: ScreenSizeService, useValue: { isPhone: signal(options.phone ?? false) } },
+        { provide: APP_CONFIG, useValue: { apiBaseUrl: 'https://api.example' } },
         memoryStorage().provider,
       ],
     });
@@ -598,5 +600,52 @@ describe('BoardComponent', () => {
       markedForReview: true,
       reviewReason: 'À confirmer',
     });
+  });
+
+  it('opens the import and scale dialogs from the « Préparer » menu, for the facilitator only', async () => {
+    const { fixture, element } = render();
+    const open = async (label: string) => {
+      button(element, 'Préparer')!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      button(element, label)!.click();
+      fixture.detectChanges();
+    };
+    await open('Importer des fonctionnalités');
+    expect(element.querySelector('app-import-dialog')).not.toBeNull();
+    (element.querySelector('app-import-dialog .panel-close') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-import-dialog')).toBeNull();
+
+    await open('Échelle des valeurs');
+    expect(element.querySelector('app-settings-dialog')).not.toBeNull();
+    button(element, 'Annuler')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-settings-dialog')).toBeNull();
+
+    TestBed.resetTestingModule();
+    const participant = render({ animate: false });
+    expect(button(participant.element, 'Préparer')).toBeUndefined();
+  });
+
+  it('names a Fibonacci scale in the info line and in the out-of-scale hint', () => {
+    const outOfScale = feature({
+      id: 'f5',
+      externalId: 'F-5',
+      criteria: { bv: 4 },
+      score: { ...INCOMPLETE, outOfScale: ['bv'] },
+    });
+    const { element } = render({
+      state: state({
+        scale: { type: 'FIBONACCI', max: 13, allowedValues: [1, 2, 3, 5, 8, 13] },
+        features: [outOfScale],
+      }),
+    });
+    expect(element.querySelector('.board-info-text')?.textContent).toContain(
+      'Échelle Fibonacci 1, 2, 3, 5, 8, 13',
+    );
+    expect(element.querySelector('td .review')?.getAttribute('title')).toBe(
+      'Valeur hors échelle (Fibonacci 1, 2, 3, 5, 8, 13)',
+    );
   });
 });

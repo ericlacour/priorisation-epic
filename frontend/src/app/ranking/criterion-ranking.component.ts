@@ -32,6 +32,7 @@ import {
   unrank,
   withPending,
 } from './ranking';
+import { invalidValueMessage } from '../shared/scale';
 
 /** Une fonctionnalité à classer : seul ce qui s'affiche. */
 export interface RankedItem {
@@ -303,10 +304,12 @@ export class CriterionRankingComponent {
     format(this.messages.topLabel, { code: this.criterion().code }),
   );
   protected readonly topError = computed(() =>
-    format(this.messages.topInvalid, { max: this.scale().max }),
+    this.scale().type === 'FIBONACCI'
+      ? format(this.messages.topInvalidList, { values: this.scale().allowedValues.join(', ') })
+      : format(this.messages.topInvalid, { max: this.scale().max }),
   );
   protected readonly valueError = computed(() =>
-    format(MESSAGES.editor.valueInvalid, { code: this.criterion().code, max: this.scale().max }),
+    invalidValueMessage(this.criterion().code, this.scale()),
   );
   protected readonly listLabel = computed(() =>
     format(this.messages.listLabel, { code: this.criterion().code }),

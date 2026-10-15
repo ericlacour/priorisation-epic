@@ -1,0 +1,213 @@
+/* Fenêtre modale centrée (import, échelle), d'après les écrans 7 et 8 des maquettes. */
+.modal-backdrop {
+  position: fixed;
+  padding: 0;
+  border: 0;
+  cursor: default;
+  inset: 0;
+  z-index: 20;
+  background: rgb(22 24 28 / 45%);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 21;
+  display: grid;
+  gap: 14px;
+  width: min(760px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 22px;
+  overflow: auto;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+  transform: translate(-50%, -50%);
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.modal h2 {
+  margin: 0;
+  padding-right: 44px;
+}
+
+.modal .actions.end {
+  justify-content: flex-end;
+}
+
+.modal a {
+  color: var(--primary-ink);
+}
+
+.modal .settings-max {
+  max-width: 260px;
+}
+
+.modal code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-muted);
+  font-size: 13px;
+}
+
+/* Aperçu d'import : chiffres clés, onglets, zone de dépôt. */
+.dropzone {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stat {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.stat b {
+  display: block;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.stat.ok b {
+  color: var(--success);
+}
+
+.stat.ko b {
+  color: var(--danger);
+}
+
+.stat.wn b {
+  color: var(--warning);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected='true'] {
+  border-bottom-color: var(--primary);
+  color: var(--fg);
+}
+
+.tabs button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.preview-table {
+  max-height: 280px;
+  overflow: auto;
+}
+
+.preview-table td.wrap {
+  white-space: normal;
+}
+
+/* Type d'échelle : deux cartes radio. */
+.radio-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.radio-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.radio-card[aria-checked='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* Sur le fond teinté de la carte choisie, l'aide garde un contraste AA. */
+.radio-card[aria-checked='true'] .muted {
+  color: var(--fg);
+}
+
+.radio-card:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips li {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  font-weight: 600;
+}
+
+.impact {
+  display: block;
+}
+
+.impact ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 599px) {
+  .modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .radio-cards {
+    grid-template-columns: 1fr;
+  }
+}

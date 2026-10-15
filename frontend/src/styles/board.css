@@ -145,6 +145,19 @@ app-root > app-session-entry {
   user-select: all;
 }
 
+/* Menu « Préparer » (import, échelle) : la liste s'ouvre sous le bouton, alignée à gauche. */
+.prepare-menu {
+  position: relative;
+  display: flex;
+}
+
+.prepare-menu .menu-list {
+  right: auto;
+  left: 0;
+  min-width: 240px;
+  white-space: nowrap;
+}
+
 .board-actions {
   display: flex;
   flex-wrap: wrap;

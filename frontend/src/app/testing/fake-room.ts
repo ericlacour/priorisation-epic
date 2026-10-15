@@ -15,5 +15,9 @@ export class FakeRoom {
   readonly addFeature = vi.fn<(message: object) => boolean>(() => true);
   readonly updateFeature = vi.fn<(message: object) => boolean>(() => true);
   readonly deleteFeature = vi.fn<(message: object) => boolean>(() => true);
+  readonly updateSettings = vi.fn<(message: object) => boolean>(() => true);
+  readonly facilitatorTokens = vi.fn<
+    () => { participantToken: string; animationToken: string } | null
+  >(() => ({ participantToken: 'p-token', animationToken: 'a-token' }));
   readonly clearRefusal = vi.fn(() => this.refusal.set(null));
 }
