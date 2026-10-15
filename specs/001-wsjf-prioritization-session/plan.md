@@ -212,6 +212,11 @@ différences sont imposées par la spec ou la constitution :
   - les secrets GitHub du déploiement.
 
   Il fait l'objet d'une phase dédiée dans `tasks.md`, et non de la fondation.
+- **Vote masqué en dernier** (revue du 2026-10-15) : la User Story 2 (vote masqué par
+  classement puis consensus) est une fonctionnalité bonus, réalisée après US3, US4, US5 et
+  les finitions. Le démarrage de session (`START`) passe en US5, et tout ce qui dépend des
+  tours (export des votes, tours révélés, refus pendant un tour ouvert) est regroupé dans
+  la phase de la User Story 2.
 
 ## Complexity Tracking
 

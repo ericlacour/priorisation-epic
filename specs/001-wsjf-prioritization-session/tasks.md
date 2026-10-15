@@ -15,7 +15,9 @@ automatisés sur toute la logique métier, et la CI bloque le merge. Dans chaque
 on écrit les tests **d'abord** et on vérifie qu'ils **échouent** avant d'implémenter.
 
 **Organisation** : les tâches sont regroupées par parcours utilisateur (US1 à US5), pour
-pouvoir implémenter, tester et livrer chaque parcours indépendamment.
+pouvoir implémenter, tester et livrer chaque parcours indépendamment. **Revue du
+2026-10-15** : le vote masqué (US2) est une fonctionnalité bonus, reconçue (vote par
+classement) et réalisée **en dernier** (phase 9), après US3, US4, US5 et les finitions.
 
 **Projet de référence** : `ericlacour/planning-poker` (PP), dépôt public, branche `main`.
 Quand une tâche dit « sur le modèle de PP : `<chemin>` », il faut lire ce fichier dans PP
@@ -335,72 +337,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ---
 
-## Phase 5 : User Story 2 — Vote masqué puis consensus (Priority: P2)
-
-**Objectif** : l'animateur ouvre des tours de vote masqués sur une sélection de fonctionnalités, les participants votent sans voir les votes des autres, puis l'animateur révèle le tour, fixe le consensus et peut relancer un tour sur les désaccords. Il peut aussi transmettre son rôle.
-
-**Test indépendant** : un animateur et deux participants, sur trois navigateurs. Aucun ne voit les votes des autres ni les valeurs masquées avant la révélation (quickstart V4 à V8).
-
-### Tests de User Story 2 (à écrire d'abord, ils doivent échouer)
-
-- [ ] T064 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` (démarrage) : `PREPARATION → IN_PROGRESS` par l'intention `START`, réservée à l'animateur ; un `START` sur une session déjà en cours ne change rien ; un tour ne s'ouvre qu'en `IN_PROGRESS`
-- [ ] T065 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/round/VotingRoundTest.java` :
-  - au moins une fonctionnalité par tour ;
-  - une fonctionnalité ne peut être que dans un seul tour `OPEN` (`FEATURE_IN_OPEN_ROUND`) ;
-  - `OPEN → REVEALED` est la seule transition possible ;
-  - un tour `REVEALED` est immuable (`ROUND_REVEALED`) ;
-  - relance à partir de `previousRoundId` sur une sélection des fonctionnalités du tour précédent ;
-  - minimum et maximum pour chaque critère de la méthode (aucune liste écrite en dur ; un cas avec la méthode fictive de T038a), calculés sur les seules valeurs saisies : un critère « sans avis » (vide) est ignoré, et un critère sans aucune valeur a un minimum et un maximum vides (FR-020) ;
-  - `largeSpread` : un critère est en écart important si et seulement si maximum moins minimum est **strictement supérieur à 3** (cas limites : 3 donne non, 4 donne oui) ;
-  - `unanimous` : valeur d'un critère si **tous ceux qui ont donné une valeur** pour ce critère ont saisi la même, sinon vide. Les non-votants et les « sans avis » sont ignorés. Un critère sans aucune valeur donne vide (cas : alice laisse JS vide, eric saisit 4, donc `unanimous.js` = 4) ;
-  - « n'a pas voté » signalé pour un participant sans aucune valeur sur la fonctionnalité ; un vote avec au moins un critère compte comme voté, et compte dans `completedCount`.
-- [ ] T066 [P] [US2] Test unitaire de visibilité `backend/src/test/java/com/priorisationepic/domain/round/VisibilityTest.java` (FR-019, FR-019a, SC-004). Pendant un tour `OPEN` :
-  - le destinataire ne voit que ses propres votes ;
-  - `results` vaut null ;
-  - pour un non-animateur, les fonctionnalités du tour ont des critères et un `score` null, `votingInProgress` vaut true, elles sont placées en fin de tableau, et les votes des tours précédents sont masqués ;
-  - l'animateur voit les valeurs retenues, mais pas les votes en cours ;
-  - `progress` est toujours visible.
-- [ ] T067 [P] [US2] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/RoundUseCaseTest.java`, `VoteUseCaseTest.java` et `TransferFacilitatorUseCaseTest.java`. `openRound` en `PREPARATION` renvoie `SESSION_NOT_STARTED` (FR-004, FR-018). Pendant un tour ouvert, `updateFeature` qui change un critère d'une fonctionnalité du tour, ou `deleteFeature` sur elle, renvoie `FEATURE_IN_OPEN_ROUND` sans rien modifier ; un changement de titre ou de description reste accepté ; après révélation, la saisie redevient possible. Transmission vers un participant sans connexion ouverte : `PARTICIPANT_OFFLINE`, sans aucun changement. Pour une transmission valide (FR-002a) : l'ancien animateur devient `PARTICIPANT`, le nouveau jeton n'est envoyé qu'au bénéficiaire, et l'ancien jeton reçoit `FORBIDDEN` La révélation d'un tour retire la marque « à revoir » de ses fonctionnalités (FR-006a).
-- [ ] T068 [P] [US2] Test WebSocket multi-connexions `backend/src/test/java/com/priorisationepic/adapter/in/ws/MaskedRoundEndToEndTest.java`, avec 3 connexions (animateur, alice, bob). **Aucune trame envoyée à bob ne contient une valeur d'alice** avant `revealRound`, et toutes la contiennent après Vérifier aussi que le `sessionState` reçu par un participant, qui alimente le tableau comme le panneau de détail (FR-016b), ne contient aucune valeur ni aucun score d'une fonctionnalité en cours de vote.
-- [ ] T069 [P] [US2] Tests Vitest `frontend/src/app/rounds/vote-panel.component.spec.ts` et `reveal-results.component.spec.ts`
-
-### Contrat de User Story 2
-
-- [ ] T070 [US2] Ajouter au contrat :
-  - les schémas `contract/schemas/open-round.json`, `cast-vote.json`, `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json`, `change-status.json` (`START` en US2 ; `CLOSE` et `REOPEN` ajoutés en US5) et `round.json`, les codes d'erreur `SESSION_NOT_STARTED` et `PARTICIPANT_OFFLINE` dans `error.json`, et compléter `session-state.json` avec `openRounds` et `lastRevealedRounds` ;
-  - leurs exemples, dont `examples/session-state/open-round-participant.json`, `open-round-facilitator.json` et `revealed-with-non-voter.json`.
-
-  Étendre `contract/scripts/validate.mjs` avec les règles de masquage, et `validate.test.mjs` avec des cas falsifiés qui doivent échouer. Règles à vérifier :
-  - pendant un tour `OPEN`, `results` vaut null ;
-  - `myVotes` ne contient que les votes du destinataire ;
-  - pour un non-animateur, les fonctionnalités `votingInProgress` ont des critères et un `score` null.
-
-### Implémentation de User Story 2
-
-- [ ] T071 [P] [US2] Implémenter `domain/SessionStatus.java` (transition `START`) et `application/ChangeStatusUseCase.java` (intention `changeStatus` avec `START` seulement à ce stade), puis brancher l'intention dans `adapter/in/ws/SessionSocketHandler.java`, dans `backend/src/main/java/com/priorisationepic/`
-- [ ] T072 [P] [US2] Implémenter `domain/round/VotingRound.java`, `domain/round/Vote.java` et `domain/round/RoundResults.java` (minimum, maximum, `largeSpread`, `unanimous`) dans `backend/src/main/java/com/priorisationepic/`
-- [ ] T073 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
-- [ ] T074 [US2] Implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature` et `vote`, et réalisation de `RoundRepository`
-- [ ] T075 [US2] Dans `application/FeatureUseCase.java`, refuser avec `FEATURE_IN_OPEN_ROUND` toute modification des critères et toute suppression d'une fonctionnalité qui est dans un tour `OPEN` (FR-018). Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session ; `openRound` refusé en `PREPARATION` avec `SESSION_NOT_STARTED` ; `revealRound` retire la marque « à revoir » des fonctionnalités du tour, FR-006a) et `application/VoteUseCase.java` (intention `castVote` ; tout membre peut voter, l'animateur compris ; valeurs validées par `Scale`)
-- [ ] T076 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : refus avec `PARTICIPANT_OFFLINE` si le bénéficiaire n'a aucune connexion ouverte (FR-002a) ; sinon `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
-- [ ] T077 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`progress`, `myVotes`, `results`) et `lastRevealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
-- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/open-round-dialog.component.ts`, selon l'écran 4 bis des maquettes : l'animateur sélectionne une, plusieurs ou toutes les fonctionnalités par des cases à cocher, avec une recherche par identifiant ou titre et des sélections rapides (« Tout sélectionner », « Non évaluées » pour les fonctionnalités incomplètes, « Hors échelle » pour celles dont une valeur sort de l'échelle, « À revoir » pour celles marquées par l'animateur (FR-006a), « Tout désélectionner »). Chaque ligne affiche l'état (WSJF, non évaluée, hors échelle) et le badge « à revoir » éventuel. Les fonctionnalités déjà dans un tour ouvert sont désactivées, avec la mention « déjà dans le tour N ». Le bouton indique le nombre choisi (« Ouvrir le tour (3 fonctionnalités) ») et reste désactivé tant que rien n'est coché. Ajouter le test Vitest `frontend/src/app/rounds/open-round-dialog.component.spec.ts` L'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b).
-- [ ] T079 [P] [US2] Front, `frontend/src/app/rounds/vote-panel.component.ts` : le participant saisit un nombre pour chaque critère de `methodDefinition` (en WSJF : BV, TC, RR/OE et JS) et pour chaque fonctionnalité du tour, par **saisie directe** (FR-019). Chaque champ affiche le `code` et le `label` du critère, par exemple « BV · Business Value », sans la définition, qui est dans l'encadré « Comprendre le WSJF » (FR-016a, écran 5 des maquettes). Un nombre non entier, hors échelle ou hors suite de Fibonacci est refusé avec le message « Saisissez un nombre entier entre 1 et {max} » ou « Valeurs autorisées : 1, 2, 3, 5, 8, 13 ». Un champ peut rester vide : il vaut « sans avis » (FR-019), le texte d'aide l'indique et le champ vide affiche « sans avis ». La fonctionnalité passe « Noté » dès qu'un critère a une valeur. Ajouter ces cas au test `vote-panel.component.spec.ts`. Le participant peut aussi saisir son vote **par classement**, en reprenant `criterion-ranking.component.ts` et `ranking.ts` (T060a, FR-015a) au lieu des champs un à un. La progression de chacun s'affiche (« alice : 1/2 »). Dans le tableau, les fonctionnalités en vote sont marquées « vote en cours ». Pour l'animateur, l'édition des valeurs et la suppression de ces lignes sont désactivées, avec l'infobulle « Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs » L'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b). Mise en page sans défilement de la page dans une fenêtre de 1280 × 720 (FR-014a, écran 5) : le panneau de vote et le tableau défilent chacun de leur côté.
-- [ ] T080 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` : Mise en page sans défilement de la page dans une fenêtre de 1280 × 720 (FR-014a, écran 6) : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible.
-  - votes par participant, avec « sans avis » pour un critère vide, minimum et maximum par critère calculés sans les « sans avis », et « n'a pas voté » ; une colonne par critère de `methodDefinition`, en-têtes avec `criterion-term` (FR-016a) ;
-  - badge « écart important » sur les critères de `largeSpread` (maximum moins minimum > 3, FR-020) ;
-  - l'animateur saisit les valeurs communes (intention `updateFeature`). Les champs sont **vides**, sauf ceux préremplis par `unanimous` (FR-021) ;
-  - bouton « Relancer un tour sur la sélection ».
-  - l'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b).
-- [ ] T081 [P] [US2] Front, bouton « Démarrer la session » pour l'animateur dans `frontend/src/app/session/session-status.component.ts`. Tant que la session est en préparation, l'action « Ouvrir un tour » est désactivée, avec l'explication « Démarrez la session pour ouvrir un tour de vote »
-- [ ] T082 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
-- [ ] T083 [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004) Vérifier aussi, dans une fenêtre de 1280 × 720 avec un tour de 10 fonctionnalités, que les écrans du tour en cours et de la révélation ne font pas défiler la page (FR-014a).
-
-**Checkpoint** : US1 et US2 fonctionnent indépendamment.
-
----
-
-## Phase 6 : User Story 3 — Import Excel et réglage de l'échelle (Priority: P3)
+## Phase 5 : User Story 3 — Import Excel et réglage de l'échelle (Priority: P3)
 
 **Objectif** : l'animateur importe des fonctionnalités depuis Excel, CSV ou JSON avec un aperçu, télécharge le modèle, et choisit le type et la borne de l'échelle.
 
@@ -409,7 +346,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Tests de User Story 3 (à écrire d'abord, ils doivent échouer)
 
 - [ ] T084 [P] [US3] Compléter `backend/src/test/java/com/priorisationepic/domain/scale/ScaleTest.java` pour Fibonacci : valeurs {1, 2, 3, 5, 8, 13, 20, 40, 100} jusqu'à la borne, 20 par défaut, borne obligatoirement dans la suite, 4 et 10 refusés avec la borne 13. Ajouter un test de propriétés jqwik sur `accepts` et `allowedValues`
-- [ ] T085 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, clé de critère, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`. Tant qu'un tour est `OPEN`, un changement d'échelle renvoie `ROUND_OPEN` sans rien modifier, alors qu'un simple renommage est accepté
+- [ ] T085 [P] [US3] Test `backend/src/test/java/com/priorisationepic/application/UpdateSettingsUseCaseTest.java` : `updateSettings` sans `confirm` renvoie `error SCALE_IMPACT` avec `impactedValues` (externalId, clé de critère, value). Avec `confirm`, l'échelle est appliquée, les valeurs hors échelle apparaissent dans `outOfScale` et la fonctionnalité sort du calcul (FR-011). Une entrée `SCALE_CHANGE` est écrite dans `change_log`. Un simple renommage est accepté. (Le refus `ROUND_OPEN` pendant un tour ouvert est testé avec le vote masqué, T067.)
 - [ ] T086 [P] [US3] Tests de lecture `backend/src/test/java/com/priorisationepic/adapter/out/io/XlsxFeatureReaderTest.java`, `CsvFeatureReaderTest.java` et `JsonSessionReaderTest.java`, avec des fichiers de test dans `backend/src/test/resources/imports/`. Cas vérifiés (`contracts/file-formats.md`) :
   - en-têtes imposés, insensibles à la casse et aux espaces, ceux des critères étant lus dans la définition de la méthode ; un cas avec la méthode fictive de T038a (colonnes `Reach` et `Effort` lues, colonne `BV` ignorée et signalée) ;
   - JSON produit avec une autre méthode refusé en entier, avec le message qui nomme les deux méthodes ;
@@ -435,7 +372,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Implémentation de User Story 3
 
 - [ ] T089 [P] [US3] Étendre `domain/scale/Scale.java` avec `FIBONACCI` et `impactOf(newScale, features)`
-- [ ] T090 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; changement d'échelle refusé avec `ROUND_OPEN` tant qu'un tour est ouvert, FR-011) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
+- [ ] T090 [US3] Implémenter `application/UpdateSettingsUseCase.java` (intention `updateSettings` : nom, échelle et `confirm` ; le refus `ROUND_OPEN` pendant un tour ouvert, FR-011, s'ajoute avec le vote masqué, T074) et le brancher dans `adapter/in/ws/SessionSocketHandler.java`
 - [ ] T091 [P] [US3] Implémenter `adapter/out/io/XlsxFeatureReader.java` (Apache POI XSSF, première feuille, première ligne non vide comme en-tête, formules lues par leur valeur calculée) et `adapter/out/io/ImportTemplateWriter.java` (feuille « Fonctionnalités », en-têtes `Identifiant`, `Titre`, `Description` puis les `header` des critères de la méthode, soit `BV`, `TC`, `RR/OE`, `JS` en WSJF, et la ligne d'exemple `F-1 | Exemple de fonctionnalité | Description facultative | 8 | 5 | 3 | 4`)
 - [ ] T092 [P] [US3] Implémenter `adapter/out/io/CsvFeatureReader.java` (Commons CSV, UTF-8 avec ou sans BOM, `;` ou `,`, guillemets RFC 4180 ; colonnes de critères lues dans la définition de la méthode ; colonnes `Rang` et valeurs calculées de la méthode, soit `CoD` et `WSJF` en WSJF, ignorées)
 - [ ] T093 [P] [US3] Implémenter `adapter/out/io/JsonSessionReader.java` (`formatVersion` 1 ; `criteria` indexé par clé ; fichier refusé si `method` ou `methodVersion` diffère de la session ; `computed` et `rank` recalculés, avec un avertissement en cas d'écart ; `rounds` et votes **ignorés** (jamais réimportés, constitution VI) ; échelle du fichier appliquée si la session est en `PREPARATION` et sans fonctionnalité)
@@ -445,16 +382,16 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - confirmation ou annulation ;
   - récapitulatif final ;
   - lien « Télécharger le modèle ».
-- [ ] T096 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne. Tant qu'un tour est ouvert, le choix de l'échelle est désactivé, avec l'explication « Un tour de vote est en cours : révélez-le avant de changer l'échelle ». Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
+- [ ] T096 [P] [US3] Front, `frontend/src/app/session/settings-dialog.component.ts` : type d'échelle et borne (la désactivation pendant un tour ouvert s'ajoute avec le vote masqué, T083). Sur `SCALE_IMPACT`, afficher la liste des valeurs impactées et demander confirmation. Les valeurs « à revoir » sont mises en évidence dans le tableau
 - [ ] T097 [US3] Écrire le parcours e2e `frontend/e2e-journeys/us3-import-echelle.spec.ts` (quickstart V9 et V10 ; SC-001 : 20 fonctionnalités importées en moins de 5 minutes)
 
-**Checkpoint** : US1, US2 et US3 fonctionnent indépendamment.
+**Checkpoint** : US1 et US3 fonctionnent indépendamment.
 
 ---
 
-## Phase 7 : User Story 4 — Exporter le tableau (Priority: P4)
+## Phase 6 : User Story 4 — Exporter le tableau (Priority: P4)
 
-**Objectif** : exporter le tableau en CSV et au format Confluence, les votes en CSV, et la session complète en JSON, dont les données de priorisation sont réimportables.
+**Objectif** : exporter le tableau en CSV et au format Confluence, et la session complète en JSON, dont les données de priorisation sont réimportables. L'export des votes en CSV dépend des tours : il est réalisé avec le vote masqué (T082).
 
 **Test indépendant** : exporter 5 fonctionnalités dans chaque format, réimporter l'export JSON et le CSV tableau chacun dans une session vide (quickstart V11 et V12). L'aller-retour JSON dépend du lecteur JSON de US3 (T093).
 
@@ -467,58 +404,158 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - UTF-8 avec BOM ;
   - échappement wiki de `| { } [ ]` et sauts de ligne remplacés par `\\` ;
   - titre « Priorisation Fonctionnalités : <nom> (<JJ/MM/AAAA>) » et légende avec la formule et la règle d'égalité ;
-  - JSON `formatVersion: 1` sans les votes d'un tour ouvert ;
-  - **CSV des votes** `votes-v1` (`CsvVotesWriterTest.java`) : colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS` (critères de la méthode), une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo, **tours révélés uniquement** ;
-  - **versions de format** dans le nom des fichiers (`-tableau-v1.csv`, `-votes-v1.csv`, `-confluence-v1.txt`) et dans la légende Confluence (« Format confluence-v1 »), selon la section « Versions des formats » de `contracts/file-formats.md`.
+  - JSON `formatVersion: 1`, avec `rounds` vide tant que le vote masqué n'existe pas (les tours s'ajoutent en T082) ;
+  - **versions de format** dans le nom des fichiers (`-tableau-v1.csv`, `-confluence-v1.txt`) et dans la légende Confluence (« Format confluence-v1 »), selon la section « Versions des formats » de `contracts/file-formats.md`.
 - [ ] T099 [P] [US4] Test d'aller-retour SC-008 `backend/src/test/java/com/priorisationepic/adapter/out/io/JsonRoundTripPropertiesTest.java` (jqwik) : pour une session générée aléatoirement, exporter en JSON, puis importer dans une session vide, redonne des fonctionnalités, des valeurs, une échelle et des scores identiques (données de priorisation, constitution VI v2.2.0). Les tours et les votes ne sont pas réimportés. Ajouter `CsvRoundTripPropertiesTest.java` : exporter le CSV `tableau-v1`, puis l'importer dans une session vide de même échelle, redonne les mêmes fonctionnalités (identifiant, titre, description, BV, TC, RR/OE, JS), donc les mêmes scores et le même ordre (constitution VI)
-- [ ] T099a [P] [US4] Test de bout en bout de la généricité (SC-009) `backend/src/test/java/com/priorisationepic/MethodPluggabilityIT.java` (avec `PostgresTestBase`) : la méthode fictive de T038a est enregistrée dans `MethodRegistry` **par la configuration de test uniquement**. Une session créée avec elle permet, sans aucun autre code de test spécifique : saisie directe, tour de vote avec « sans avis », révélation (min – max, écart important, unanimité), consensus, tri, import CSV et JSON, exports CSV, Confluence et JSON, et `sessionState` valide contre le contrat. Le test échoue si une classe hors de `domain/method/` mentionne `bv`, `tc`, `rrOe`, `js`, `cod` ou `wsjf` (règle ArchUnit ou recherche dans les sources)
-- [ ] T100 [P] [US4] Test REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ExportControllerTest.java` : les 4 formats, et le **même masquage que la vue de l'appelant** (SC-004)
+- [ ] T099a [P] [US4] Test de bout en bout de la généricité (SC-009) `backend/src/test/java/com/priorisationepic/MethodPluggabilityIT.java` (avec `PostgresTestBase`) : la méthode fictive de T038a est enregistrée dans `MethodRegistry` **par la configuration de test uniquement**. Une session créée avec elle permet, sans aucun autre code de test spécifique : saisie directe, tri, import CSV et JSON, exports CSV, Confluence et JSON (le vote, la révélation et le consensus s'ajoutent en T083a), et `sessionState` valide contre le contrat. Le test échoue si une classe hors de `domain/method/` mentionne `bv`, `tc`, `rrOe`, `js`, `cod` ou `wsjf` (règle ArchUnit ou recherche dans les sources)
+- [ ] T100 [P] [US4] Test REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/ExportControllerTest.java` : les formats `csv`, `confluence-wiki`, `confluence-html` et `json` (le masquage pendant un tour ouvert, SC-004, est ajouté avec le vote masqué, T082)
 
 ### Implémentation de User Story 4
 
-- [ ] T101 [P] [US4] Implémenter `adapter/out/io/CsvBoardWriter.java` (format `tableau-v1`) et `adapter/out/io/CsvVotesWriter.java` (format `votes-v1`, tours révélés uniquement)
+- [ ] T101 [P] [US4] Implémenter `adapter/out/io/CsvBoardWriter.java` (format `tableau-v1`). `CsvVotesWriter.java` (format `votes-v1`) est réalisé avec le vote masqué (T082)
 - [ ] T102 [P] [US4] Implémenter `adapter/out/io/ConfluenceWriter.java` (sorties `confluence-html` et `confluence-wiki`)
-- [ ] T103 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java`, avec `updatedAt` pour chaque vote, et `openedAt` et `revealedAt` pour chaque tour
-- [ ] T104 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}` avec `format` parmi `csv`, `csv-votes`, `confluence-wiki`, `confluence-html` et `json`, avec le filtrage `Visibility` du destinataire et le nom de fichier versionné) et ajouter l'opération à `contract/openapi.yaml`
-- [ ] T105 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau, du CSV des votes et du JSON, bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
+- [ ] T103 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java` (`rounds` vide ; les tours et leurs votes s'ajoutent en T082)
+- [ ] T104 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}` avec `format` parmi `csv`, `confluence-wiki`, `confluence-html` et `json`, et le nom de fichier versionné ; `csv-votes` et le filtrage `Visibility` s'ajoutent en T082) et ajouter l'opération à `contract/openapi.yaml`
+- [ ] T105 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau et du JSON (le CSV des votes s'ajoute en T082), bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
 - [ ] T106 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12). Étape manuelle (SC-007) : coller l'export « Copier pour Confluence » et le *wiki markup* dans une page Confluence de test, puis cocher le résultat dans la description de la PR (« rendu Confluence vérifié le JJ/MM/AAAA »)
 
-**Checkpoint** : US1 à US4 fonctionnent indépendamment.
+**Checkpoint** : US1, US3 et US4 fonctionnent indépendamment.
 
 ---
 
-## Phase 8 : User Story 5 — Revoir une session passée (Priority: P5)
+## Phase 7 : User Story 5 — Revoir une session passée (Priority: P5)
 
-**Objectif** : lister les sessions, clôturer et rouvrir une session, consulter une session clôturée en lecture seule avec ses tours révélés.
+**Objectif** : lister les sessions, démarrer, clôturer et rouvrir une session, consulter une session clôturée en lecture seule. Le démarrage (`START`) vient de l'ancienne phase du vote masqué ; la consultation des tours révélés s'ajoute avec le vote masqué (T083).
 
-**Test indépendant** : clôturer une session, la rouvrir depuis la liste, vérifier le tableau et les tours révélés (quickstart V13).
+**Test indépendant** : démarrer puis clôturer une session, la rouvrir depuis la liste, vérifier le tableau (quickstart V13).
 
 ### Tests de User Story 5 (à écrire d'abord, ils doivent échouer)
 
-- [ ] T107 [P] [US5] Compléter `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : transitions `IN_PROGRESS → CLOSED → IN_PROGRESS` réservées à l'animateur ; `CLOSE` refusé avec `ROUND_OPEN` tant qu'un tour est ouvert ; en `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`
+- [ ] T107 [P] [US5] Test unitaire `backend/src/test/java/com/priorisationepic/domain/SessionStatusTest.java` : `PREPARATION → IN_PROGRESS` par `START` (un `START` sur une session déjà en cours ne change rien), puis `IN_PROGRESS → CLOSED → IN_PROGRESS` par `CLOSE` et `REOPEN`, toutes réservées à l'animateur ; en `CLOSED`, toute intention d'écriture reçoit `SESSION_CLOSED`, sauf `REOPEN`. (Le refus de `CLOSE` pendant un tour ouvert est testé avec le vote masqué, T067.)
 - [ ] T108 [P] [US5] Tests REST `backend/src/test/java/com/priorisationepic/adapter/in/rest/SessionListControllerTest.java` (`GET /api/sessions`, de la plus récente à la plus ancienne)
 
 ### Implémentation de User Story 5
 
-- [ ] T109 [US5] Étendre `domain/SessionStatus.java` et `application/ChangeStatusUseCase.java` avec `CLOSE` et `REOPEN` (le `START` existe depuis US2). Compléter `contract/schemas/change-status.json`, ajouter le code `ROUND_OPEN` dans `error.json` et leurs exemples. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
+- [ ] T109 [US5] Implémenter `domain/SessionStatus.java` et `application/ChangeStatusUseCase.java` (intention `changeStatus` : `START`, `CLOSE` et `REOPEN`), et brancher l'intention dans `adapter/in/ws/SessionSocketHandler.java`. Créer `contract/schemas/change-status.json`, ajouter le code `SESSION_CLOSED` dans `error.json` s'il n'y est pas, avec leurs exemples. Vérifier `SESSION_CLOSED` dans tous les cas d'usage d'écriture
 - [ ] T110 [US5] Implémenter `adapter/in/rest/SessionListController.java`, avec le schéma `session-summary.json` et ses exemples dans `contract/`
 - [ ] T111 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, méthode, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
-- [ ] T112 [P] [US5] Front, `frontend/src/app/rounds-history/revealed-rounds.component.ts` : liste des tours révélés (numéro, fonctionnalités, date de révélation) avec, pour chacun, l'affichage de ses votes, comme sur l'écran 9 des maquettes. Les données viennent de `sessionState.revealedRounds` (tous les tours révélés, du plus récent au plus ancien), à ajouter dans `SessionStateAssembler` et dans `contract/schemas/session-state.json`. Pas d'historique des modifications de valeurs (FR-025)
-- [ ] T113 [US5] Front, boutons Clôturer et Rouvrir pour l'animateur (Démarrer existe depuis US2), et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
+- T112 : déplacée avec le vote masqué (T083, tours révélés), car elle dépend des tours.
+- [ ] T113 [US5] Front, boutons « Démarrer la session », « Clôturer » et « Rouvrir » pour l'animateur, et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
 - [ ] T114 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
 
-**Checkpoint** : les cinq parcours fonctionnent indépendamment.
+**Checkpoint** : US1, US3, US4 et US5 fonctionnent indépendamment. Il ne reste que le bonus du vote masqué (phase 9).
 
 ---
 
-## Phase 9 : Finitions et sujets transverses
+## Phase 8 : Finitions et sujets transverses
 
 - [ ] T115 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
 - [ ] T116 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
 - [ ] T117 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier (y compris l'affichage des définitions WSJF au focus), rendu sur un écran de portable de 1280 px, sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
 - [ ] T118 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
 - [ ] T119 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
-- [ ] T120 Dérouler intégralement `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V18, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
+- [ ] T120 Dérouler `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V18 sauf V5 à V8, déroulés avec le vote masqué en T083b, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
+
+---
+
+## Phase 9 : User Story 2 — Vote masqué par classement puis consensus (Priority: P6, bonus)
+
+> **Revue du 2026-10-15** : fonctionnalité **bonus**, réalisée **après toutes les autres
+> phases**. Sa conception a été revue : le vote se fait **par classement**, sur le même
+> écran que « Prioriser par classement » (T060a). L'animateur choisit les critères du WSJF
+> et les fonctionnalités du tour, chaque membre fait sa priorisation individuelle par
+> classement et l'envoie, puis l'animateur révèle les votes (spec : clarifications du
+> 2026-10-15, User Story 2, FR-018 à FR-022 ; `data-model.md` : `VotingRound`,
+> `RoundCriterion`, `RoundBallot`, `Vote` ; `contracts/asyncapi.yaml` : `openRound`,
+> `castVote`, `round`).
+>
+> Les tâches T064 à T083 ont été **réécrites**. Le démarrage de session (`START`, ex-T064,
+> T071 et T081) est passé en US5 (T107, T109, T113), qui en a besoin pour clôturer. Ce qui
+> dépendait des tours dans US3, US4 et US5 (refus pendant un tour ouvert, export des votes,
+> tours révélés, généricité du vote) est regroupé ici (T082 à T083b).
+
+**Objectif** : l'animateur ouvre un tour masqué en choisissant critères et fonctionnalités, chaque membre classe les fonctionnalités critère par critère sans voir les votes des autres et envoie son vote, puis l'animateur révèle les votes, fixe le consensus et peut relancer un tour sur les désaccords. Il peut aussi transmettre son rôle.
+
+**Test indépendant** : un animateur et deux participants, sur trois navigateurs. Tour sur BV et JS pour trois fonctionnalités : aucun ne voit les votes des autres ni les valeurs masquées avant la révélation (quickstart V4 à V8).
+
+### Conception de User Story 2
+
+- [ ] T064 [US2] Mettre à jour les maquettes `specs/001-wsjf-prioritization-session/mockups/index.html` et `mockups/README.md`, puis les faire valider **avant d'écrire le code** :
+  - écran 4 bis « Ouvrir un tour de vote » : même étape de choix que l'écran 4 sexies (critères, au moins un, tous par défaut ; fonctionnalités), avec les sélections rapides « Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner », les fonctionnalités déjà dans un tour ouvert désactivées (« déjà dans le tour N ») et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) », désactivé tant que rien n'est choisi ;
+  - écran 5 « Voter » : l'écran 4 septies sans étape de choix, toutes les fonctionnalités au départ dans « Non classées (sans valeur) », en-tête « Tour N · critère 1 / 2 », bouton final « Envoyer mon vote » ; sur le tableau, bandeau « Tour N ouvert : Voter » puis « Vote envoyé · Modifier mon vote », et progression « a voté / n'a pas encore voté » par membre ;
+  - écran 6 « Révélation et consensus » : colonnes limitées aux critères du tour.
+
+### Tests de User Story 2 (à écrire d'abord, ils doivent échouer)
+
+- [ ] T065 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/round/VotingRoundTest.java` :
+  - au moins un critère et une fonctionnalité par tour ; les critères sont des clés de la méthode (`UNKNOWN_CRITERION` sinon), rangés dans l'ordre de la définition ; un cas avec la méthode fictive de T038a ;
+  - une fonctionnalité ne peut être que dans un seul tour `OPEN` (`FEATURE_IN_OPEN_ROUND`) ;
+  - `OPEN → REVEALED` est la seule transition possible ; un tour `REVEALED` est immuable (`ROUND_REVEALED`) ;
+  - un vote envoyé contient une entrée par fonctionnalité du tour, avec les seuls critères du tour (`UNKNOWN_CRITERION` pour un critère hors du tour, refus d'une fonctionnalité hors du tour), valeurs validées par `Scale` ; un nouvel envoi **remplace** le précédent ;
+  - relance à partir de `previousRoundId` sur une sélection des fonctionnalités du tour précédent, avec ses critères par défaut ;
+  - minimum et maximum pour chaque critère **du tour**, calculés sur les seules valeurs données : un « sans avis » (fonctionnalité non classée) est ignoré, et un critère sans aucune valeur a un minimum et un maximum vides (FR-020) ;
+  - `largeSpread` : maximum moins minimum **strictement supérieur à 3** (3 donne non, 4 donne oui) ;
+  - `unanimous` : valeur d'un critère si tous ceux qui ont donné une valeur ont donné la même, sinon vide (cas : alice laisse F-1 non classée pour JS, eric lui donne 4, donc `unanimous.js` = 4) ;
+  - « n'a pas voté » pour un membre sans vote envoyé ; un vote envoyé entièrement « sans avis » compte comme voté.
+- [ ] T066 [P] [US2] Test unitaire de visibilité `backend/src/test/java/com/priorisationepic/domain/round/VisibilityTest.java` (FR-019, FR-019a, SC-004). Pendant un tour `OPEN` :
+  - le destinataire ne voit que son propre vote (`myVotes`) ;
+  - `results` vaut null ;
+  - pour un non-animateur, les fonctionnalités du tour ont des critères (y compris ceux hors du tour) et un `score` null, `votingInProgress` vaut true, elles sont placées en fin de tableau, et les votes des tours précédents sont masqués ;
+  - l'animateur voit les valeurs retenues, mais pas les votes en cours ;
+  - `progress` (a voté ou non) est toujours visible.
+- [ ] T067 [P] [US2] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/RoundUseCaseTest.java`, `VoteUseCaseTest.java` et `TransferFacilitatorUseCaseTest.java` :
+  - `openRound` en `PREPARATION` renvoie `SESSION_NOT_STARTED` (FR-004, FR-018) ; `openRound` sans critère ou sans fonctionnalité est refusé ;
+  - pendant un tour ouvert, `updateFeature` qui change **un critère quelconque** d'une fonctionnalité du tour, ou `deleteFeature` sur elle, renvoie `FEATURE_IN_OPEN_ROUND` sans rien modifier ; un changement de titre ou de description reste accepté ; après révélation, la saisie redevient possible ;
+  - `castVote` : tout membre peut voter, l'animateur compris ; refus après révélation (`ROUND_REVEALED`) ;
+  - la révélation retire la marque « à revoir » des fonctionnalités du tour (FR-006a) ;
+  - tant qu'un tour est ouvert, `updateSettings` qui change l'échelle et `changeStatus CLOSE` renvoient `ROUND_OPEN` sans rien modifier (repris de T085 et T107) ;
+  - transmission vers un participant sans connexion ouverte : `PARTICIPANT_OFFLINE`, sans aucun changement ; transmission valide (FR-002a) : l'ancien animateur devient `PARTICIPANT`, le nouveau jeton n'est envoyé qu'au bénéficiaire, et l'ancien jeton reçoit `FORBIDDEN`.
+- [ ] T068 [P] [US2] Test WebSocket multi-connexions `backend/src/test/java/com/priorisationepic/adapter/in/ws/MaskedRoundEndToEndTest.java`, avec 3 connexions (animateur, alice, bob). **Aucune trame envoyée à bob ne contient une valeur d'alice** avant `revealRound`, et toutes la contiennent après. Le `sessionState` reçu par un participant, qui alimente le tableau comme le panneau de détail (FR-016b), ne contient aucune valeur ni aucun score d'une fonctionnalité en cours de vote.
+- [ ] T069 [P] [US2] Tests Vitest : compléter `frontend/src/app/ranking/ranking.spec.ts` (départ vide, reprise à partir de valeurs envoyées), et créer `frontend/src/app/rounds/open-round-screen.component.spec.ts`, `vote-screen.component.spec.ts` et `reveal-results.component.spec.ts`
+
+### Contrat de User Story 2
+
+- [ ] T070 [US2] Ajouter au contrat :
+  - les schémas `contract/schemas/open-round.json` (`criterionKeys`, `featureIds`, `previousRoundId`), `cast-vote.json` (`roundId` et `votes` indexé par `featureId`), `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json` et `round.json` (`criterionKeys`, `progress` avec `voted`), les codes d'erreur `SESSION_NOT_STARTED`, `ROUND_OPEN` et `PARTICIPANT_OFFLINE` dans `error.json`, et compléter `session-state.json` avec `openRounds`, `lastRevealedRounds` et `revealedRounds` ;
+  - leurs exemples, dont `examples/session-state/open-round-participant.json`, `open-round-facilitator.json` et `revealed-with-non-voter.json`.
+
+  Étendre `contract/scripts/validate.mjs` avec les règles de masquage, et `validate.test.mjs` avec des cas falsifiés qui doivent échouer. Règles à vérifier :
+  - pendant un tour `OPEN`, `results` vaut null ;
+  - `myVotes` ne contient que le vote du destinataire ;
+  - pour un non-animateur, les fonctionnalités `votingInProgress` ont des critères et un `score` null ;
+  - les critères des votes et des résultats appartiennent à `criterionKeys` du tour.
+
+### Implémentation de User Story 2
+
+- [ ] T071 [P] [US2] Implémenter dans `backend/src/main/java/com/priorisationepic/domain/round/` : `VotingRound.java` (critères et fonctionnalités du tour), `Ballot.java` (vote envoyé d'un membre, remplacé à chaque envoi), `Vote.java` et `RoundResults.java` (minimum, maximum, `largeSpread`, `unanimous`, par critère du tour)
+- [ ] T072 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
+- [ ] T073 [US2] Écrire la migration `backend/src/main/resources/db/migration/V<n>__round_criteria_and_ballots.sql` (`round_criterion`, `round_ballot`, `data-model.md`), puis implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature`, `round_criterion`, `round_ballot`, `vote` et `vote_criterion_value`, et réalisation de `RoundRepository` (remplacement d'un vote en une transaction)
+- [ ] T074 [US2] Dans `application/FeatureUseCase.java`, refuser avec `FEATURE_IN_OPEN_ROUND` toute modification des critères et toute suppression d'une fonctionnalité qui est dans un tour `OPEN` (FR-018). Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session ; `openRound` refusé en `PREPARATION` avec `SESSION_NOT_STARTED` ; `revealRound` retire la marque « à revoir » des fonctionnalités du tour, FR-006a) et `application/VoteUseCase.java` (intention `castVote` : tout le classement du membre en une fois, qui remplace le précédent ; valeurs validées par `Scale`). Ajouter le refus `ROUND_OPEN` dans `UpdateSettingsUseCase` (changement d'échelle) et dans `ChangeStatusUseCase` (`CLOSE`)
+- [ ] T075 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : refus avec `PARTICIPANT_OFFLINE` si le bénéficiaire n'a aucune connexion ouverte (FR-002a) ; sinon `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
+- [ ] T076 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`criterionKeys`, `progress`, `myVotes`, `results`), `lastRevealedRounds` et `revealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
+- [ ] T077 [P] [US2] Front, réutilisation du classement (T060a) pour le vote : dans `frontend/src/app/ranking/ranking.ts`, ajouter un départ **vide** (toutes les fonctionnalités dans « Non classées », valeur du premier niveau préremplie avec le maximum de l'échelle) et une reprise à partir de valeurs envoyées (groupées par valeur décroissante). Extraire de `ranking-screen.component.ts` l'étape de choix (`ranking/selection-step.component.ts`) et l'enchaînement des critères (`ranking/ranking-steps.component.ts`), pour qu'ils servent tels quels à l'ouverture d'un tour et au vote, sans changer le comportement de « Prioriser par classement » (ses tests T060a restent verts)
+- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/open-round-screen.component.ts` (écran 4 bis, FR-018) : bouton « Ouvrir un tour de vote » sur le tableau de l'animateur (ordinateur), désactivé en préparation avec l'explication « Démarrez la session pour ouvrir un tour de vote ». Il reprend `selection-step` (critères et fonctionnalités) avec les sélections rapides (« Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner »), le badge « à revoir », les fonctionnalités déjà dans un tour ouvert désactivées (« déjà dans le tour N ») et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) ». Il envoie une seule intention `openRound`. L'identifiant de chaque fonctionnalité ouvre `feature-detail-panel` (FR-016b)
+- [ ] T079 [P] [US2] Front, `frontend/src/app/rounds/vote-screen.component.ts` (écran 5, FR-019) : `ranking-steps` et `criterion-ranking.component.ts` sur les critères et les fonctionnalités du tour, sans étape de choix, avec un départ vide. Bouton final « Envoyer mon vote » : une seule intention `castVote` avec toutes les fonctionnalités du tour ; l'écran attend que l'état reçu indique « a voté », puis revient au tableau ; sur un refus (`ROUND_REVEALED`, coupure), il le dit et garde le classement. « Annuler » n'envoie rien. Sur le tableau : bandeau « Tour N ouvert : Voter » puis « Vote envoyé · Modifier mon vote » (reprise à partir des valeurs envoyées), progression « a voté / n'a pas encore voté » par membre, fonctionnalités du tour marquées « vote en cours » ; pour l'animateur, l'édition des valeurs, la suppression et « Prioriser par classement » sont désactivées sur ces lignes, avec l'infobulle « Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs ». Même mise en page sans défilement que le classement (FR-014a, FR-015a)
+- [ ] T080 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` (écran 6). Mise en page sans défilement de la page dans une fenêtre de 1280 × 720 (FR-014a) : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible.
+  - votes par membre, avec « sans avis » pour une fonctionnalité non classée, minimum et maximum par critère calculés sans les « sans avis », et « n'a pas voté » ; une colonne par **critère du tour**, en-têtes avec `criterion-term` (FR-016a) ;
+  - badge « écart important » sur les critères de `largeSpread` (maximum moins minimum > 3, FR-020) ;
+  - l'animateur saisit les valeurs communes des critères du tour (intention `updateFeature`, les autres critères inchangés). Les champs sont **vides**, sauf ceux préremplis par `unanimous` (FR-021) ;
+  - bouton « Relancer un tour sur la sélection », qui ouvre `open-round-screen` avec les fonctionnalités choisies et les critères du tour ;
+  - l'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b).
+- [ ] T081 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
+- [ ] T082 [US2] Exports des tours (repris de US4, FR-024, SC-004) :
+  - **CSV des votes** `votes-v1` : `backend/src/main/java/com/priorisationepic/adapter/out/io/CsvVotesWriter.java` et son test `CsvVotesWriterTest.java` (colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`, critères de la méthode, vides pour un critère hors du tour ; une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo ; **tours révélés uniquement** ; nom de fichier `-votes-v1.csv`) ;
+  - format `csv-votes` dans `ExportController.java` et `contract/openapi.yaml` ;
+  - `JsonSessionWriter.java` : `rounds` avec `criterionKeys`, `openedAt`, `revealedAt` et `updatedAt` de chaque vote, sans les votes d'un tour ouvert ; compléter `JsonSessionWriterTest.java` ;
+  - `ExportControllerTest.java` : le **même masquage que la vue de l'appelant** pendant un tour ouvert, pour tous les formats ;
+  - bouton « CSV des votes » dans `frontend/src/app/import-export/export-menu.component.ts`.
+- [ ] T083 [US2] Front, tours révélés et échelle (repris de US5 et US3) :
+  - `frontend/src/app/rounds-history/revealed-rounds.component.ts` : liste des tours révélés (numéro, critères, fonctionnalités, date de révélation) avec, pour chacun, l'affichage de ses votes, comme sur l'écran 9 des maquettes. Les données viennent de `sessionState.revealedRounds` (T076). Pas d'historique des modifications de valeurs (FR-025) ;
+  - dans `frontend/src/app/session/settings-dialog.component.ts`, tant qu'un tour est ouvert, le choix de l'échelle est désactivé, avec l'explication « Un tour de vote est en cours : révélez-le avant de changer l'échelle ».
+- [ ] T083a [US2] Compléter `backend/src/test/java/com/priorisationepic/MethodPluggabilityIT.java` (T099a) avec le vote de la méthode fictive : tour sur un critère, vote avec « sans avis », révélation (min – max, écart important, unanimité), consensus et CSV des votes
+- [ ] T083b [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core, sur Chromium, Firefox et WebKit) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004). Vérifier aussi, dans une fenêtre de 1280 × 720 avec un tour de 10 fonctionnalités, que les écrans de vote et de révélation ne font pas défiler la page (FR-014a), et ajouter un tour ouvert au test de charge `deploy/load-test.mjs` (T115)
+
+**Checkpoint** : les cinq parcours fonctionnent, vote masqué compris.
 
 ---
 
@@ -530,11 +567,11 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **Fondations (phase 2)** : dépendent du setup, et **bloquent tous les parcours**.
 - **US1 (phase 3, MVP)** : dépend des fondations.
 - **Déploiement (phase 4)** : dépend de US1. On peut le faire plus tard, à tout moment.
-- **US2 (phase 5)** : dépend des fondations. Elle s'appuie sur le tableau et les agrégats de US1 (T045 à T051), donc il vaut mieux la faire après US1.
-- **US3 (phase 6)** : dépend des fondations et de `Scale` et de l'édition de US1.
-- **US4 (phase 7)** : l'export dépend de US1. **L'aller-retour JSON (T099) dépend de T093 (lecteur JSON, US3). L'aller-retour CSV dépend de T092 (lecteur CSV, US3).** Le test de généricité T099a dépend aussi de US2 (tours) et de US3 (lecteurs).
-- **US5 (phase 8)** : dépend des fondations, de `change_log` (T029) et du démarrage de session de US2 (T071 : `START`), puisqu'on ne clôture qu'une session en cours. Elle est indépendante de US3 et US4.
-- **Finitions (phase 9)** : après les parcours voulus.
+- **US3 (phase 5)** : dépend des fondations et de `Scale` et de l'édition de US1.
+- **US4 (phase 6)** : l'export dépend de US1. **L'aller-retour JSON (T099) dépend de T093 (lecteur JSON, US3). L'aller-retour CSV dépend de T092 (lecteur CSV, US3).** Le test de généricité T099a dépend aussi de US3 (lecteurs).
+- **US5 (phase 7)** : dépend des fondations et de `change_log` (T029). Elle porte désormais le démarrage de session (`START`). Elle est indépendante de US3 et US4.
+- **Finitions (phase 8)** : après US3, US4 et US5.
+- **US2, vote masqué (phase 9, bonus)** : **en dernier**. Elle dépend de l'écran de classement (T060a), du démarrage de session (T109), de l'échelle (T090, T096), des exports (T101 à T105), de la généricité (T099a) et de la liste des sessions (US5). La conception (T064, maquettes) se valide avant toute autre tâche de la phase.
 
 ### À l'intérieur de chaque parcours
 
@@ -545,8 +582,8 @@ Dans l'ordre : tests (ils doivent échouer), contrat, domaine, persistance, cas 
 - **Phase 1** : T004, T005 et T006 en parallèle de T002 et T003.
 - **Phase 2** : T011, T012, T013 et T014 (sécurité) ; T018 à T021 (configuration et garde-fous) ; T026 et T027 (domaine) ; T034, T035 et T036 (front).
 - **US1** : tous les tests T037 à T043 ensemble ; puis T045, T046 et T047 (domaine) ; puis T054 et T055 (front) en parallèle du back.
-- **US2 à US5** : chaque bloc de tests marqué [P], les lecteurs et écrivains de fichiers (T091, T092, T093 ; T101, T102, T103) et les composants front.
-- Une fois T071 (démarrage de session, US2) terminée, **US5** peut avancer en parallèle de la fin de US2, de US3 et de US4 si plusieurs personnes travaillent.
+- **US3 à US5, puis US2** : chaque bloc de tests marqué [P], les lecteurs et écrivains de fichiers (T091, T092, T093 ; T101, T102, T103) et les composants front.
+- **US5** peut avancer en parallèle de US3 et de US4 si plusieurs personnes travaillent.
 
 ### Exemple de lancement parallèle (US1)
 
@@ -572,7 +609,7 @@ T045 Scale · T046 PrioritizationMethod, MethodRegistry, WsjfMethod, Score, Rank
 
 ### Livraison incrémentale
 
-Après le MVP, on ajoute US2 (vote masqué), puis US3 (import et échelle), puis US4 (exports), puis US5 (consultation). Chaque parcours se teste et se déploie seul (étiquette `v*`), en dehors des ateliers.
+Après le MVP, on ajoute US3 (import et échelle), puis US4 (exports), puis US5 (démarrage, clôture et consultation), puis les finitions. Le vote masqué par classement (US2, bonus) vient **en dernier**. Chaque parcours se teste et se déploie seul (étiquette `v*`), en dehors des ateliers.
 
 ### Notes
 

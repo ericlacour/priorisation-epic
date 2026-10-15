@@ -12,6 +12,8 @@ Session *───1 PrioritizationMethod (définie dans le code, non stockée)
 Session 1───* Participant
 Session 1───* Feature 1───* FeatureCriterionValue
 Session 1───* VotingRound 1───* RoundFeature *───1 Feature
+VotingRound 1───* RoundCriterion
+VotingRound 1───* RoundBallot *───1 Participant
 VotingRound 1───* Vote *───1 Participant
                  Vote *───1 Feature
                  Vote 1───* VoteCriterionValue
@@ -172,6 +174,13 @@ ou hors échelle, par `externalId` croissant. La marque « à revoir » ne chang
 
 ## VotingRound (Tour de vote)
 
+> **Revu le 2026-10-15** (spec, User Story 2, réalisée en dernier) : le vote se fait **par
+> classement**, sur l'écran de « Prioriser par classement ». Un tour porte sur une
+> sélection de **critères** et de **fonctionnalités**, et chaque membre envoie son vote
+> en une fois. Les tables `voting_round`, `round_feature`, `vote` et `vote_criterion_value`
+> existent depuis `V1__init.sql` ; une migration dédiée à ce parcours
+> (`V<n>__round_criteria_and_ballots.sql`) ajoute `round_criterion` et `round_ballot`.
+
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
@@ -184,43 +193,66 @@ ou hors échelle, par `externalId` croissant. La marque « à revoir » ne chang
 **RoundFeature** : couple (`roundId`, `featureId`) qui indique quelles fonctionnalités
 font partie du tour (au moins une, FR-018).
 
+**RoundCriterion** : (`roundId`, `criterionKey`, `position`), clé primaire (`roundId`,
+`criterionKey`). Critères de la méthode évalués dans le tour (au moins un, FR-018), dans
+l'ordre de la définition de la méthode. Une clé inconnue de la méthode est refusée
+(`UNKNOWN_CRITERION`).
+
 **Règles** :
 - Une fonctionnalité ne peut appartenir qu'à **un seul tour `OPEN`** à la fois. La règle
   est vérifiée sous verrou sur la session (research, R7 : verrou par session).
 - `OPEN → REVEALED` est la seule transition possible. Elle est réservée à l'animateur et
   porte sur toutes les fonctionnalités du tour à la fois (FR-020).
 - Un tour `REVEALED` est immuable.
+- Une relance (FR-022) reprend par défaut les critères du tour précédent ; l'animateur
+  peut les changer.
+
+## RoundBallot (Vote envoyé)
+
+| Champ | Type | Règles |
+|-------|------|--------|
+| roundId, participantId | UUID | Clé primaire (`roundId`, `participantId`) |
+| submittedAt | horodatage | Date du dernier envoi |
+
+Un `RoundBallot` existe dès qu'un membre a envoyé son vote (« Envoyer mon vote », FR-019) :
+c'est lui qui dit qu'un membre **a voté**. Un nouvel envoi, tant que le tour est `OPEN`,
+**remplace** en une transaction toutes les lignes `Vote` de ce membre pour ce tour et met à
+jour `submittedAt`. Après la révélation, l'envoi est refusé (`ROUND_REVEALED`).
 
 ## Vote (Vote)
 
 | Champ | Type | Règles |
 |-------|------|--------|
 | id | UUID | |
-| roundId, featureId, participantId | UUID | Unique sur (`roundId`, `featureId`, `participantId`) |
-| criteria | valeurs par clé de critère, dans `VoteCriterionValue` | Chaque valeur doit appartenir à l'échelle courante de la session. Critère absent = « sans avis » (FR-019) |
+| roundId, featureId, participantId | UUID | Unique sur (`roundId`, `featureId`, `participantId`). Une ligne par fonctionnalité du tour à chaque envoi |
+| criteria | valeurs par clé de critère, dans `VoteCriterionValue` | Seulement les critères du tour (`RoundCriterion`), sinon `UNKNOWN_CRITERION`. Chaque valeur doit appartenir à l'échelle courante de la session. Critère absent = « sans avis » : fonctionnalité laissée non classée pour ce critère (FR-019) |
 | updatedAt | horodatage | |
 
 **VoteCriterionValue** : (`voteId`, `criterionKey`, `value`), clé primaire (`voteId`,
 `criterionKey`), mêmes règles que `FeatureCriterionValue`.
 
+Le serveur ne stocke **que des valeurs** : le classement (niveaux, ordre) est une aide de
+saisie du front, reconstruite à partir des valeurs envoyées quand le membre reprend son
+vote (« Modifier mon vote », groupement par valeur décroissante, comme FR-015a).
+
 **Règles de visibilité** (FR-019, FR-019a, SC-004), appliquées par le serveur à chaque
 `sessionState` envoyé, connexion par connexion, ainsi qu'aux réponses REST et aux exports :
-- Tant que le tour est `OPEN`, chacun ne voit que ses propres valeurs. Les autres membres
-  voient seulement, pour chaque participant, le nombre de fonctionnalités notées, c'est-à-dire
-  ayant au moins un critère renseigné (FR-019).
+- Tant que le tour est `OPEN`, chacun ne voit que ses propres valeurs (`myVotes`). Les
+  autres membres voient seulement, pour chaque membre, s'il **a voté** (`RoundBallot`
+  présent, FR-019).
 - Tant que le tour est `OPEN`, un participant non animateur voit les fonctionnalités du tour
-  sans critères, sans valeurs calculées, ni votes des tours précédents. Elles
-  portent le marqueur `votingInProgress = true` et sont placées en fin de tableau.
-  L'animateur, lui, voit les valeurs retenues.
+  sans critères (y compris ceux hors du tour), sans valeurs calculées, ni votes des tours
+  précédents. Elles portent le marqueur `votingInProgress = true` et sont placées en fin
+  de tableau. L'animateur, lui, voit les valeurs retenues.
 - Une fois le tour `REVEALED`, tout le monde voit tous les votes, ainsi que le minimum et le
-  maximum de chaque critère de la méthode, calculés sur les seules valeurs saisies : un critère vide
-  (« sans avis ») est ignoré, et un critère sans aucune valeur a un minimum et un maximum
-  vides. Le domaine calcule aussi, par critère, l'**écart important**
+  maximum de chaque **critère du tour**, calculés sur les seules valeurs données : une
+  valeur « sans avis » est ignorée, et un critère sans aucune valeur a un minimum et un
+  maximum vides. Le domaine calcule aussi, par critère du tour, l'**écart important**
   (maximum moins minimum strictement supérieur à 3, FR-020) et la **valeur unanime**
   (identique chez tous ceux qui ont donné une valeur pour ce critère, vide si elles diffèrent
-  ou s'il n'y en a aucune), qui préremplit le consensus (FR-021). Les participants qui n'ont
-  donné aucune valeur pour une fonctionnalité sont signalés « n'a pas voté ». Ce sont
-  les participants inscrits dans la session au moment de la révélation, animateur compris.
+  ou s'il n'y en a aucune), qui préremplit le consensus (FR-021). Les membres sans
+  `RoundBallot` sont signalés « n'a pas voté ». Ce sont les participants inscrits dans la
+  session au moment de la révélation, animateur compris.
 - Tous les tours révélés restent visibles par tous, du plus récent au plus ancien, avec
   leurs votes (`revealedRounds` dans `sessionState`, FR-022, écran 9). Un tour encore
   `OPEN` n'y figure jamais.
