@@ -28,6 +28,7 @@ import {
   moveTo,
   moveUp,
   place,
+  setTop,
   unrank,
   withPending,
 } from './ranking';
@@ -62,7 +63,7 @@ type Action = 'up' | 'down' | 'join' | 'last';
         inputmode="numeric"
         [attr.aria-invalid]="topInvalid()"
         [attr.aria-describedby]="topInvalid() ? 'ranking-top-error' : 'ranking-top-help'"
-        [value]="step().top"
+        [value]="topText()"
         (input)="setTop($any($event.target).value)"
       />
       <span id="ranking-top-help" class="muted small">{{ messages.topHelp }}</span>
@@ -267,6 +268,16 @@ export class CriterionRankingComponent {
   /** La valeur de chaque niveau ; vide si la valeur du premier niveau n'est pas valide. */
   private readonly levels = computed(() => levelValues(this.step(), this.scale()) ?? []);
 
+  /**
+   * La valeur du premier niveau affichée : celle saisie, ou, tant qu'aucune autre n'a été saisie, la valeur actuelle du
+   * premier niveau (une fonctionnalité montée en tête peut l'avoir changée).
+   */
+  protected readonly topText = computed(() => {
+    const step = this.step();
+    const first = this.levels()[0];
+    return step.topTouched || first === null || first === undefined ? step.top : String(first);
+  });
+
   protected readonly topInvalid = computed(() => {
     const top = parseCriterionInput(this.step().top, this.scale());
     return top === null || top === undefined;
@@ -339,7 +350,7 @@ export class CriterionRankingComponent {
   }
 
   protected setTop(text: string): void {
-    this.step.update((step) => ({ ...step, top: text, topTouched: true }));
+    this.step.update((step) => setTop(step, text, this.scale()));
   }
 
   protected override(id: string, text: string): void {

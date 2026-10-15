@@ -394,12 +394,19 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   3. une valeur n'est **proposée** que :
      - à une fonctionnalité **déplacée** : la valeur du niveau qu'elle rejoint, ou, dans
        un nouveau niveau, la **valeur juste inférieure** de l'échelle à celle du niveau
-       au-dessus (la valeur du premier niveau si elle est en tête) ;
-     - à **tous les niveaux** quand l'animateur saisit la **valeur du premier niveau**
-       (préremplie avec la plus haute valeur actuelle, ou le maximum de l'échelle) :
-       chaque niveau suivant reçoit alors la valeur juste inférieure de l'échelle.
+       au-dessus ; en tête, la **valeur juste supérieure** à celle du niveau en dessous,
+       pour qu'elle passe devant et non à égalité (le maximum de l'échelle s'il n'y a pas
+       de place au-dessus) ;
+     - à **tous les niveaux** quand l'animateur saisit une valeur du premier niveau
+       **différente de la valeur actuelle** (préremplie avec la valeur actuelle du premier
+       niveau, ou le maximum de l'échelle) : chaque niveau suivant reçoit alors la valeur
+       juste inférieure de l'échelle. Revenir à la valeur actuelle (par exemple en
+       effaçant « 13 » puis en le retapant) rend les valeurs actuelles, sans rien écraser.
 
-     Sous la plus petite valeur, plus rien n'est proposé et la fonctionnalité reste sans
+     Les valeurs suivent toujours le classement : un niveau plus haut a une valeur plus
+     haute que tous les niveaux en dessous. Quand l'échelle n'a pas de place entre deux
+     niveaux (en Fibonacci, rien entre 13 et 8), les niveaux du dessous descendent d'un
+     cran, même s'ils n'ont pas été déplacés. Sous la plus petite valeur, plus rien n'est proposé et la fonctionnalité reste sans
      valeur. L'animateur peut modifier ou vider la valeur de chaque fonctionnalité,
      contrôlée comme une saisie directe (FR-009), et revenir aux propositions ;
   4. il passe au critère suivant, ou revient au précédent sans perdre son classement. Il

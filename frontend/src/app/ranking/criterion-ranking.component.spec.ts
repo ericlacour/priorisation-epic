@@ -83,10 +83,12 @@ describe('CriterionRankingComponent', () => {
     action(element, 'Monter : F-b').click();
     fixture.detectChanges();
     expect(levelsOf(element)).toEqual([['F-b'], ['F-a']]);
+    // F-b passe devant F-a, pas à égalité : la valeur juste au-dessus, reprise par la valeur du premier niveau.
     expect(values(element).slice(0, 2)).toEqual([
-      ['BV de F-b', '8'],
+      ['BV de F-b', '9'],
       ['BV de F-a', '8'],
     ]);
+    expect(element.querySelector<HTMLInputElement>('#ranking-top-value')!.value).toBe('9');
 
     action(element, 'Descendre : F-b').click();
     fixture.detectChanges();
@@ -144,6 +146,26 @@ describe('CriterionRankingComponent', () => {
       'La valeur du premier niveau doit être un entier entre 1 et 10.',
     );
     expect(values(element).map(([, value]) => value)).toEqual(['', '', '', '']);
+  });
+
+  it('keeps the current values when the top value is typed again unchanged', () => {
+    const { fixture, element, host } = render();
+    action(element, 'Classer en dernier : F-c').click();
+    fixture.detectChanges();
+    const top = element.querySelector<HTMLInputElement>('#ranking-top-value')!;
+    // On efface « 8 », on tape « 1 » puis « 10 » : 10 propose des valeurs à tous les niveaux…
+    for (const text of ['', '1', '10']) {
+      type(top, text);
+      fixture.detectChanges();
+    }
+    expect(values(element).map(([, value]) => value)).toEqual(['10', '9', '8', '']);
+    // … et revenir à « 8 » rend les valeurs actuelles : rien n'est écrasé.
+    for (const text of ['', '8']) {
+      type(top, text);
+      fixture.detectChanges();
+    }
+    expect(host.step().topTouched).toBe(false);
+    expect(values(element).map(([, value]) => value)).toEqual(['8', '5', '4', '']);
   });
 
   it('keeps a value changed by hand, marks it, checks it, and goes back to the proposals on demand', () => {
