@@ -304,6 +304,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - messages d'erreur français tirés de `messages.fr.ts` (FR-027).
 - [X] T059 [P] [US1] Front, action « Afficher mon lien d'animation » dans `frontend/src/app/session/animation-link.component.ts` (FR-002, cas limite « Lien d'animation perdu ») : visible seulement pour l'animateur, elle reconstruit le lien `/s/{sessionId}/animer#{animationToken}` à partir du jeton `pe.animation.{sessionId}` stocké dans le navigateur, l'affiche avec un bouton « Copier » et l'avertissement « à garder pour vous ». Aucun appel serveur : le serveur ne connaît que l'empreinte du jeton. Ajouter le test Vitest `frontend/src/app/session/animation-link.component.spec.ts`
   - Révisé le 2026-10-14 (retour d'usage) : bouton « Copier Session Anim » en haut à droite du tableau, qui copie le lien sans l'afficher ; le lien ne s'affiche que si le navigateur refuse la copie. Toujours masqué sur téléphone
+  - Révisé le 2026-10-15 : « Copier Session » et « Copier Session Anim » sont regroupés dans un menu « Liens » (`frontend/src/app/board/links-menu.component.ts`), avec « Copier le lien d'invitation » et « Copier mon lien d'animation » (ce dernier absent sur téléphone)
 - [X] T060 [US1] Écrire les tests e2e Playwright `frontend/e2e/board.spec.ts` (avec un faux socket, sur le modèle de PP : `e2e/fake-session-socket.ts`, et les contrôles axe-core), avec un cas « téléphone » (fenêtre de 390 px : tableau en cartes, aucune action de saisie, bandeau « Pour voter ou modifier, utilisez un ordinateur »), et un cas « participant hors tour » (tableau complet visible, aucune action d'animation présente dans la page, FR-014b), et un cas « le tableau ne se retrie qu'à « Enregistrer » », et un cas « fenêtre 1280 × 720 avec 50 fonctionnalités : la page ne défile pas (`document.documentElement.scrollHeight <= innerHeight`), seule la liste défile », puis les parcours `frontend/e2e-journeys/us1-saisie-directe.spec.ts` (quickstart V1, V2, V3, V14 et V16 : définitions WSJF au survol, panneau « Comprendre le WSJF », panneau de descriptif et modification du titre visible dans un second navigateur, avec deux navigateurs et une propagation en moins de 2 s, SC-002)
 - [X] T060a [US1] Front, écran « Prioriser par classement » (FR-015a, retour d'usage du 2026-10-15, écrans 4 sexies et 4 septies des maquettes) :
   - `frontend/src/app/ranking/ranking.ts` : logique pure du classement (`RankingStep` : niveaux du plus fort au plus faible, non classées, déplacées, valeurs de départ ; `newStep` garde les valeurs actuelles, `reselect` garde le travail quand la sélection change, `moveUp`, `moveDown`, `joinAbove`, `moveTo`, `place`, `unrank`, `levelValues` et `resolveStep` : une valeur n'est proposée qu'aux fonctionnalités déplacées, ou à tous les niveaux quand la valeur du premier niveau est saisie) ;
@@ -387,8 +388,9 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 **Checkpoint** : US1 et US3 fonctionnent indépendamment.
 
-> Réalisation (2026-10-15) : « Importer » et « Échelle » (écran 4 des maquettes) sont regroupés dans un menu
-> « Préparer ▾ » de l'en-tête du tableau, pour qu'il tienne sur une ligne à 1280 px (FR-014a). Le bouton du
+> Réalisation (2026-10-15) : « Importer » et « Échelle » (écran 4 des maquettes) sont d'abord regroupés dans un
+> menu « Préparer ▾ », puis redeviennent deux boutons directs de l'en-tête du tableau, la place étant gagnée en
+> regroupant les liens dans un menu « Liens » ; l'en-tête tient toujours sur une ligne à 1280 px (FR-014a). Le bouton du
 > récapitulatif d'import s'appelle « Terminer », pour ne pas porter le même nom que la croix « Fermer ».
 
 ---

@@ -145,17 +145,33 @@ app-root > app-session-entry {
   user-select: all;
 }
 
-/* Menu « Préparer » (import, échelle) : la liste s'ouvre sous le bouton, alignée à gauche. */
-.prepare-menu {
+/* Liens de l'animateur, à la demande : la liste s'ouvre sous le bouton, à droite. */
+.links-menu {
   position: relative;
-  display: flex;
 }
 
-.prepare-menu .menu-list {
-  right: auto;
-  left: 0;
-  min-width: 240px;
-  white-space: nowrap;
+.links-pop {
+  position: absolute;
+  right: 0;
+  z-index: 6;
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+  min-width: 260px;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.links-pop:focus {
+  outline: none;
+}
+
+.links-pop .copy-button > .btn {
+  width: 100%;
 }
 
 .board-actions {

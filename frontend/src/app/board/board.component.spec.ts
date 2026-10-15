@@ -216,8 +216,9 @@ describe('BoardComponent', () => {
     expect(element.textContent).toContain('Aucun tour de vote en cours');
     expect(button(element, 'Exporter')?.disabled).toBe(true);
     expect(button(element, 'Tours révélés')?.disabled).toBe(true);
-    expect(button(element, 'Copier Session')).toBeUndefined();
-    expect(element.querySelector('app-animation-link')).toBeNull();
+    expect(button(element, 'Liens')).toBeUndefined();
+    expect(button(element, 'Importer')).toBeUndefined();
+    expect(button(element, 'Échelle')).toBeUndefined();
     expect(element.querySelector('.board-info-text')?.textContent).toBe(
       'Vous : Éric · Animée par Éric · Échelle 1 à 10',
     );
@@ -257,11 +258,21 @@ describe('BoardComponent', () => {
     expect(element.querySelector('.info-tip')?.textContent).toContain('Tri : ');
   });
 
-  it('gives the facilitator « Copier Session » and « Copier Session Anim », without showing the links', () => {
-    const { element } = render();
-    expect(button(element, 'Copier Session')).toBeDefined();
+  it('gives the facilitator the invitation and animation links under « Liens », without showing them', () => {
+    const { fixture, element } = render();
+    button(element, 'Liens')!.click();
+    fixture.detectChanges();
+    expect(button(element, 'Copier le lien d’invitation')).toBeDefined();
     expect(element.querySelector('app-animation-link')).not.toBeNull();
     expect(element.textContent).not.toContain('/s/k3Jx9QvT2mLpZ8wR4nYb7A');
+  });
+
+  it('offers no animation link on a phone', () => {
+    const { fixture, element } = render({ phone: true });
+    button(element, 'Liens')!.click();
+    fixture.detectChanges();
+    expect(button(element, 'Copier le lien d’invitation')).toBeDefined();
+    expect(element.querySelector('app-animation-link')).toBeNull();
   });
 
   it('says the connection is lost and is silent otherwise', () => {
@@ -602,30 +613,21 @@ describe('BoardComponent', () => {
     });
   });
 
-  it('opens the import and scale dialogs from the « Préparer » menu, for the facilitator only', async () => {
+  it('opens the import and scale dialogs for the facilitator', () => {
     const { fixture, element } = render();
-    const open = async (label: string) => {
-      button(element, 'Préparer')!.click();
-      fixture.detectChanges();
-      await fixture.whenStable();
-      button(element, label)!.click();
-      fixture.detectChanges();
-    };
-    await open('Importer des fonctionnalités');
+    button(element, 'Importer')!.click();
+    fixture.detectChanges();
     expect(element.querySelector('app-import-dialog')).not.toBeNull();
     (element.querySelector('app-import-dialog .panel-close') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(element.querySelector('app-import-dialog')).toBeNull();
 
-    await open('Échelle des valeurs');
+    button(element, 'Échelle')!.click();
+    fixture.detectChanges();
     expect(element.querySelector('app-settings-dialog')).not.toBeNull();
     button(element, 'Annuler')!.click();
     fixture.detectChanges();
     expect(element.querySelector('app-settings-dialog')).toBeNull();
-
-    TestBed.resetTestingModule();
-    const participant = render({ animate: false });
-    expect(button(participant.element, 'Préparer')).toBeUndefined();
   });
 
   it('names a Fibonacci scale in the info line and in the out-of-scale hint', () => {

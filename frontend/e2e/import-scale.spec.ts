@@ -49,8 +49,7 @@ test.describe('import et échelle', () => {
   test('l’aperçu d’import, puis le récapitulatif ; accessibilité (axe-core)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await open(page);
-    await page.getByRole('button', { name: 'Préparer' }).click();
-    await page.getByRole('menuitem', { name: 'Importer des fonctionnalités' }).click();
+    await page.getByRole('button', { name: 'Importer', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Importer des fonctionnalités' });
     await expect(dialog).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -76,11 +75,10 @@ test.describe('import et échelle', () => {
     page,
   }) => {
     await open(page);
-    await page.getByRole('button', { name: 'Préparer' }).click();
-    await page.getByRole('menuitem', { name: 'Échelle des valeurs' }).click();
+    await page.getByRole('button', { name: 'Échelle', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Échelle des valeurs' });
     await dialog.getByRole('radio', { name: /Suite de Fibonacci/ }).click();
-    await dialog.getByLabel('Borne supérieure').selectOption('13');
+    await dialog.getByRole('combobox', { name: 'Borne supérieure' }).selectOption('13');
     await dialog.getByRole('button', { name: 'Appliquer' }).click();
     expect(await sentOfType(page, 'updateSettings')).toEqual([
       { type: 'updateSettings', scale: { type: 'FIBONACCI', max: 13 } },

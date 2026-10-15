@@ -397,9 +397,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   calculées, badges « à revoir » et « hors échelle », mis à jour en direct (FR-015). Il voit
   aussi la liste des participants en ligne (à la demande, FR-005), l'aide sur les sigles
   (FR-016a) et la méthode (FR-017c), qui donne la formule et la règle d'égalité. Le lien
-  d'invitation n'est copiable que par l'animateur, par le bouton « Copier Session » en haut
-  à droite ; son lien d'animation privé l'est par « Copier Session Anim ». Aucun des deux
-  liens n'est affiché à l'écran (retour d'usage du 2026-10-14). Il peut ouvrir le
+  d'invitation n'est copiable que par l'animateur, par le menu « Liens » en haut à droite
+  (« Copier le lien d'invitation ») ; son lien d'animation privé l'est par « Copier mon
+  lien d'animation », dans le même menu. Aucun des deux liens n'est affiché à l'écran
+  (retour d'usage du 2026-10-14, menu « Liens » du 2026-10-15). Il peut ouvrir le
   panneau de détail en lecture seule (FR-016b), consulter les tours révélés (FR-022) et
   exporter (FR-023, FR-024). Il ne voit **aucune action d'animation** : ni « Modifier »,
   ni ajout, import, échelle, ouverture de tour, démarrage ou clôture, ni édition du titre

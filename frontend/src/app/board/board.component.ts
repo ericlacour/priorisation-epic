@@ -15,10 +15,8 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { ImportDialogComponent } from '../import-export/import-dialog.component';
 import { ScreenSizeService } from '../layout/screen-size.service';
-import { AnimationLinkComponent } from '../session/animation-link.component';
 import { SessionRoomService } from '../session/session-room.service';
 import { SettingsDialogComponent } from '../session/settings-dialog.component';
-import { CopyButtonComponent } from '../shared/copy-button.component';
 import { CriterionTermComponent } from '../shared/criterion-term.component';
 import { MethodGlossaryComponent, glossaryTitle } from '../shared/method-glossary.component';
 import { MethodInfoComponent } from '../shared/method-info.component';
@@ -30,7 +28,7 @@ import {
 } from './feature-detail-panel.component';
 import { FeatureEdit, FeatureEditorComponent } from './feature-editor.component';
 import { ParticipantsMenuComponent } from './participants-menu.component';
-import { PrepareAction, PrepareMenuComponent } from './prepare-menu.component';
+import { LinksMenuComponent } from './links-menu.component';
 import { scaleLabel } from '../shared/scale';
 
 /** Ce que le dernier envoi voulait faire, pour proposer « Remplacer par les miennes » après un conflit. */
@@ -60,8 +58,6 @@ const NEW_ROW = 'new';
 @Component({
   selector: 'app-board',
   imports: [
-    AnimationLinkComponent,
-    CopyButtonComponent,
     CriterionTermComponent,
     FeatureDetailPanelComponent,
     FeatureEditorComponent,
@@ -70,7 +66,7 @@ const NEW_ROW = 'new';
     MethodInfoComponent,
     MethodPanelComponent,
     ParticipantsMenuComponent,
-    PrepareMenuComponent,
+    LinksMenuComponent,
     SettingsDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -113,7 +109,24 @@ const NEW_ROW = 'new';
             >
               {{ messages.rank }}
             </button>
-            <app-prepare-menu [disabled]="editing() !== null" (chosen)="prepare($event)" />
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [attr.title]="messages.importHint"
+              [disabled]="editing() !== null"
+              (click)="openImport()"
+            >
+              {{ messages.import }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [attr.title]="messages.scaleHint"
+              [disabled]="editing() !== null"
+              (click)="openSettings()"
+            >
+              {{ messages.scale }}
+            </button>
           </div>
         } @else if (!canAnimate()) {
           <div class="board-actions">
@@ -131,14 +144,11 @@ const NEW_ROW = 'new';
             [meId]="state.me?.participantId ?? null"
           />
           @if (canAnimate()) {
-            <app-copy-button
-              [label]="messages.copyInvite"
-              [hint]="messages.copyInviteHint"
-              [text]="inviteUrl()"
+            <app-links-menu
+              [sessionId]="state.sessionId"
+              [inviteUrl]="inviteUrl()"
+              [withAnimation]="!screen.isPhone()"
             />
-            @if (!screen.isPhone()) {
-              <app-animation-link [sessionId]="state.sessionId" />
-            }
           }
         </div>
       </div>
@@ -602,11 +612,14 @@ export class BoardComponent {
     return format(this.conflictMessages.current, { values });
   }
 
-  /** Le menu « Préparer » ouvre la fenêtre d'import ou celle de l'échelle. */
-  protected prepare(action: PrepareAction): void {
+  protected openImport(): void {
     this.room.clearRefusal();
-    if (action === 'import') this.showImport.set(true);
-    else this.showSettings.set(true);
+    this.showImport.set(true);
+  }
+
+  protected openSettings(): void {
+    this.room.clearRefusal();
+    this.showSettings.set(true);
   }
 
   protected openDetail(feature: Feature): void {

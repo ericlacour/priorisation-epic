@@ -53,7 +53,8 @@ export const MESSAGES = {
     animationWarning: 'À garder pour vous.',
     animationHelp:
       "C'est le seul moyen de reprendre la main en tant qu'animateur depuis un autre poste. Ne le partagez pas.",
-    laterHelp: 'Vous pourrez le copier à nouveau depuis la session, avec « Copier Session Anim ».',
+    laterHelp:
+      'Vous pourrez le copier à nouveau depuis la session, avec « Liens » puis « Copier mon lien d’animation ».',
     goToSession: 'Aller à la session',
   },
   link: {
@@ -131,11 +132,15 @@ export const MESSAGES = {
     notComputed: 'non calculé',
     outOfScale: 'hors échelle',
     outOfScaleValue: 'Valeur hors échelle ({scale})',
-    prepare: {
-      label: 'Préparer',
-      hint: 'Importer des fonctionnalités ou régler l’échelle',
-      import: 'Importer des fonctionnalités',
-      scale: 'Échelle des valeurs',
+    import: 'Importer',
+    importHint: 'Importer des fonctionnalités depuis un fichier Excel, CSV ou JSON',
+    scale: 'Échelle',
+    scaleHint: 'Choisir le type d’échelle et sa borne',
+    links: {
+      label: 'Liens',
+      hint: 'Copier le lien d’invitation ou votre lien d’animation',
+      invite: 'Copier le lien d’invitation',
+      inviteHint: "Copie le lien d'invitation à envoyer aux participants",
     },
     review: 'à revoir',
     reviewHint: 'À revoir : {reason}',
@@ -146,8 +151,6 @@ export const MESSAGES = {
     participantsList: 'Liste des participants',
     animator: 'animateur',
     offline: 'hors ligne',
-    copyInvite: 'Copier Session',
-    copyInviteHint: "Copie le lien d'invitation à envoyer aux participants",
   },
   editor: {
     newTitle: 'Nouvelle fonctionnalité',
@@ -291,7 +294,7 @@ export const MESSAGES = {
     sort: 'Tri : {rule}',
   },
   animationLink: {
-    copy: 'Copier Session Anim',
+    copy: 'Copier mon lien d’animation',
     hint: "Copie votre lien d'animation privé : il redonne les droits d'animateur. Ne le partagez pas.",
     missing: "Ce navigateur ne contient pas le jeton d'animation de cette session.",
   },

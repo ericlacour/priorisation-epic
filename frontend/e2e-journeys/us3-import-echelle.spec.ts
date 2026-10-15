@@ -30,13 +30,11 @@ async function createSession(page: Page): Promise<string> {
 }
 
 async function openImport(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Préparer' }).click();
-  await page.getByRole('menuitem', { name: 'Importer des fonctionnalités' }).click();
+  await page.getByRole('button', { name: 'Importer', exact: true }).click();
 }
 
 async function openScale(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Préparer' }).click();
-  await page.getByRole('menuitem', { name: 'Échelle des valeurs' }).click();
+  await page.getByRole('button', { name: 'Échelle', exact: true }).click();
 }
 
 async function openParticipant(context: BrowserContext, invitation: string): Promise<Page> {
@@ -142,7 +140,7 @@ test('V10 : Fibonacci 13 avec des valeurs 4 et 10, avertissement puis hors éche
   // Fibonacci 13 : les valeurs 4 et 10 de F-1 sont annoncées, rien ne change avant confirmation.
   await openScale(page);
   await dialog.getByRole('radio', { name: /Suite de Fibonacci/ }).click();
-  await dialog.getByLabel('Borne supérieure').selectOption('13');
+  await dialog.getByRole('combobox', { name: 'Borne supérieure' }).selectOption('13');
   await expect(dialog.locator('.chips li')).toHaveText(['1', '2', '3', '5', '8', '13']);
   await dialog.getByRole('button', { name: 'Appliquer' }).click();
   const warning = dialog.getByRole('alert');

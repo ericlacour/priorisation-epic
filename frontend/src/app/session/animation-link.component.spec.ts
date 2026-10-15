@@ -20,9 +20,11 @@ describe('AnimationLinkComponent', () => {
     return { fixture, element, clipboard };
   }
 
-  it('offers « Copier Session Anim » without showing the private link', () => {
+  it('offers « Copier mon lien d’animation » without showing the private link', () => {
     const { element } = render('secret');
-    expect(element.querySelector('button')?.textContent?.trim()).toBe('Copier Session Anim');
+    expect(element.querySelector('button')?.textContent?.trim()).toBe(
+      'Copier mon lien d’animation',
+    );
     expect(element.textContent).not.toContain('secret');
   });
 

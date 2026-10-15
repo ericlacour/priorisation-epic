@@ -5,7 +5,7 @@ import { CopyButtonComponent } from '../shared/copy-button.component';
 import { BrowserStorage } from '../storage/browser-storage';
 
 /**
- * « Copier Session Anim » (FR-002, cas « Lien d'animation perdu »), pour l'animateur seulement : le lien
+ * « Copier mon lien d’animation » (FR-002, cas « Lien d'animation perdu »), pour l'animateur seulement : le lien
  * `/s/{sessionId}/animer#{animationToken}` est reconstruit à partir du jeton rangé dans ce navigateur, puis copié sans
  * être affiché. Aucun appel au serveur : il ne connaît que l'empreinte du jeton.
  */
