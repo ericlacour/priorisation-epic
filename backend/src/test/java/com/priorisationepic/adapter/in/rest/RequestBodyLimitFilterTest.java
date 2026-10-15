@@ -117,7 +117,9 @@ class RequestBodyLimitFilterTest {
   }
 
   private static int limitOf(String path) {
-    return path.endsWith("/imports") ? IMPORT_LIMIT : LIMIT;
+    return path.endsWith("/imports")
+        ? (int) (IMPORT_LIMIT + RequestBodyLimitFilter.MULTIPART_OVERHEAD)
+        : LIMIT;
   }
 
   private static String bodyOf(int bytes) {
@@ -156,12 +158,7 @@ class RequestBodyLimitFilterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "/api/sessions",
-        "/api/sessions/k3Jx9QvT2mLpZ8wR4nYb7A/participants",
-        "/api/sessions/k3Jx9QvT2mLpZ8wR4nYb7A/imports"
-      })
+  @ValueSource(strings = {"/api/sessions", "/api/sessions/k3Jx9QvT2mLpZ8wR4nYb7A/participants"})
   void aChunkedBodyOverTheLimitIsRefusedAfterReadingAtMostTheLimitPlusOne(String path)
       throws Exception {
     ChunkedRequest request = new ChunkedRequest(path, new byte[20 * 1024], -1);
@@ -171,6 +168,18 @@ class RequestBodyLimitFilterTest {
 
     assertPayloadTooLarge(response, path);
     assertThat(request.read.get()).isLessThanOrEqualTo(limitOf(path) + 1);
+  }
+
+  /** Le conteneur décode lui-même le formulaire d'import : le filtre n'en lit rien. */
+  @Test
+  void anImportWithinTheLimitIsPassedOnUnread() throws Exception {
+    String path = "/api/sessions/k3Jx9QvT2mLpZ8wR4nYb7A/imports";
+    byte[] body = new byte[20 * 1024];
+    ChunkedRequest request = new ChunkedRequest(path, body, body.length);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    assertThat(filter(request, response)).hasSize(body.length);
+    assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
