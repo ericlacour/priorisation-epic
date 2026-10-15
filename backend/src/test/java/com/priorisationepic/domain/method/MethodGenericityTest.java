@@ -84,7 +84,9 @@ class MethodGenericityTest {
   void theDefaultMethodIsWsjf() {
     assertThat(REGISTRY.defaultMethod()).isInstanceOf(WsjfMethod.class);
     assertThat(MethodRegistry.standard().available()).hasSize(1);
-    assertThat(MethodRegistry.standard().defaultMethod().definition().version()).isEqualTo(1);
+    assertThat(MethodRegistry.standard().defaultMethod().definition().version()).isEqualTo(2);
+    // La version 1 reste connue pour les sessions créées avec elle.
+    assertThat(MethodRegistry.standard().get("WSJF", 1).definition().version()).isEqualTo(1);
   }
 
   @Test

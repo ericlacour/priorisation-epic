@@ -29,9 +29,12 @@ public final class MethodRegistry {
     }
   }
 
-  /** Le registre de la V1 : WSJF version 1. */
+  /**
+   * Le registre standard : WSJF version 1, gardée pour les sessions créées avec elle, et WSJF
+   * version 2, proposée aux nouvelles sessions.
+   */
   public static MethodRegistry standard() {
-    return new MethodRegistry(List.of(new WsjfMethod()));
+    return new MethodRegistry(List.of(new WsjfMethod(), WsjfMethod.version2()));
   }
 
   /** La méthode de cette version, ou {@link UnknownMethodException}. */

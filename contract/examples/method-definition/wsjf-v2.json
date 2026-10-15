@@ -1,0 +1,55 @@
+{
+  "key": "WSJF",
+  "version": 2,
+  "name": "WSJF",
+  "criteria": [
+    {
+      "key": "bv",
+      "code": "BV",
+      "label": "Business Value",
+      "definition": "Valeur apportée aux utilisateurs ou au business.",
+      "header": "BV"
+    },
+    {
+      "key": "tc",
+      "code": "TC",
+      "label": "Time Criticality",
+      "definition": "Importance de réaliser rapidement la fonctionnalité.",
+      "header": "TC"
+    },
+    {
+      "key": "rrOe",
+      "code": "RR/OE",
+      "label": "Risk Reduction / Opportunity Enablement",
+      "definition": "Capacité à réduire un risque ou à permettre une opportunité.",
+      "header": "RR/OE"
+    },
+    {
+      "key": "js",
+      "code": "JS",
+      "label": "Job Size",
+      "definition": "Taille relative du travail nécessaire.",
+      "header": "JS"
+    }
+  ],
+  "computedValues": [
+    {
+      "key": "cod",
+      "code": "CoD",
+      "label": "Cost of Delay",
+      "definition": "Coût du retard : BV + TC + RR/OE ; un critère sans valeur compte 0.",
+      "header": "CoD",
+      "display": "INTEGER"
+    },
+    {
+      "key": "wsjf",
+      "code": "WSJF",
+      "label": "Weighted Shortest Job First",
+      "definition": "CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.",
+      "header": "WSJF",
+      "display": "DECIMAL_2"
+    }
+  ],
+  "formula": "CoD = BV + TC + RR/OE (un critère sans valeur compte 0) ; WSJF = CoD / JS. Il faut le JS et au moins un critère parmi BV, TC et RR/OE.",
+  "tieBreakRule": "WSJF décroissant, puis CoD décroissant, puis identifiant croissant (sans tenir compte de la casse). Les fonctionnalités sans JS, sans aucun de BV, TC et RR/OE, ou hors échelle viennent en fin de tableau, par identifiant croissant."
+}

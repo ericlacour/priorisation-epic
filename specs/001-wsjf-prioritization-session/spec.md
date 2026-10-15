@@ -336,8 +336,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   jusqu'à correction. **Le changement d'échelle est refusé tant qu'un tour de vote est
   ouvert**, avec le message « Un tour de vote est en cours : révélez-le avant de changer
   l'échelle ». Changer le nom de la session reste possible.
-- **FR-012**: Pour chaque fonctionnalité dont les quatre critères sont renseignés, le
-  système DOIT calculer CoD = BV + TC + RR/OE et WSJF = CoD / JS.
+- **FR-012**: Pour chaque fonctionnalité dont le **JS** et **au moins un critère parmi
+  BV, TC et RR/OE** sont renseignés, le système DOIT calculer CoD = BV + TC + RR/OE et
+  WSJF = CoD / JS ; un critère du CoD sans valeur compte 0, et le détail du calcul le dit
+  (par exemple « CoD = 8 + 0 + 3 = 11 (TC sans valeur, compté 0) ; WSJF = 11 / 4 = 2,75 »).
+  Sans JS, ou sans aucun de BV, TC et RR/OE, la fonctionnalité reste « non calculé »
+  (retour d'usage du 2026-10-15). C'est la **version 2** du WSJF, proposée aux nouvelles
+  sessions ; une session créée en version 1 garde sa règle : les quatre critères
+  (FR-017d).
 - **FR-013**: Le WSJF DOIT être affiché avec deux décimales et une virgule décimale. Le
   tri utilise la valeur exacte, non arrondie.
 - **FR-014**: Le tableau DOIT afficher, pour chaque fonctionnalité, son rang, son
@@ -489,8 +495,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - ses **valeurs calculées**, dans l'ordre d'affichage : pour chacune, une clé, un sigle,
     un nom complet, une définition et un format d'affichage (entier, ou deux décimales) ;
   - sa **formule**, sa **règle de tri et d'égalité**, et la condition pour qu'une
-    fonctionnalité soit calculable (en WSJF : les quatre critères renseignés et dans
-    l'échelle).
+    fonctionnalité soit calculable (en WSJF version 2 : le JS et au moins un critère
+    parmi BV, TC et RR/OE renseignés, et toutes les valeurs renseignées dans l'échelle ;
+    en version 1 : les quatre critères).
 
   Pour le WSJF, les critères saisis sont BV, TC, RR/OE et JS, et les valeurs calculées
   sont CoD (entier) et WSJF (deux décimales).

@@ -55,7 +55,9 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
   await expect(page.locator('#create-method option')).toContainText('WSJF');
   await page.getByRole('button', { name: 'Voir le détail de la méthode' }).click();
   const methodPanel = page.getByRole('dialog');
-  await expect(methodPanel).toContainText('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
+  await expect(methodPanel).toContainText(
+    'CoD = BV + TC + RR/OE (un critère sans valeur compte 0) ; WSJF = CoD / JS',
+  );
   await expect(methodPanel).toContainText('Risk Reduction / Opportunity Enablement');
   await expect(methodPanel.getByRole('button', { name: /Enregistrer|Modifier/ })).toHaveCount(0);
   await page.keyboard.press('Escape');
@@ -109,6 +111,23 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
       '1 F-2 Notifications de livraison 2 2 2 3 6 2,00 Modifier',
       '2 F-1 Paiement en un clic 8 5 3 10 16 1,60 Modifier',
     ]);
+
+  // FR-012 (WSJF version 2) : le JS et un seul critère du CoD suffisent ; sans JS, « non calculé ».
+  await addFeature(page, 'F-3', 'Export comptable', { BV: '9', JS: '3' });
+  await addFeature(page, 'F-4', 'Mode hors ligne', { BV: '5' });
+  await expect
+    .poll(() => rowTexts(page))
+    .toEqual([
+      '1 F-3 Export comptable 9 — — 3 9 3,00 Modifier',
+      '2 F-2 Notifications de livraison 2 2 2 3 6 2,00 Modifier',
+      '3 F-1 Paiement en un clic 8 5 3 10 16 1,60 Modifier',
+      '— F-4 Mode hors ligne 5 — — — — non calculé Modifier',
+    ]);
+  await page.getByRole('button', { name: 'F-3', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText(
+    'CoD = 9 + 0 + 0 = 9 (TC et RR/OE sans valeur, comptés 0) ; WSJF = 9 / 3 = 3,00',
+  );
+  await page.keyboard.press('Escape');
 });
 
 test('V4 (partie US1), SC-002 : un participant voit le tableau en direct, sans action d’animation', async ({

@@ -62,12 +62,12 @@ class CreateSessionUseCaseTest {
   }
 
   @Test
-  void aNewSessionStartsInPreparationWithWsjfVersion1AndTheDefaultScale() {
+  void aNewSessionStartsInPreparationWithWsjfVersion2AndTheDefaultScale() {
     Session session = store.find(create(null, null).sessionId()).orElseThrow();
 
     assertThat(session.status()).isEqualTo(SessionStatus.PREPARATION);
     assertThat(session.method()).isEqualTo("WSJF");
-    assertThat(session.methodVersion()).isEqualTo(1);
+    assertThat(session.methodVersion()).isEqualTo(2);
     assertThat(session.scale()).isEqualTo(Scale.defaultScale());
     assertThat(session.createdAt()).isEqualTo(clock.instant());
     assertThat(session.createdBy().value()).isEqualTo("Éric");

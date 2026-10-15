@@ -13,8 +13,16 @@ public interface PrioritizationMethod {
   MethodDefinition definition();
 
   /**
+   * Assez de critères renseignés pour calculer. Par défaut, tous ; une méthode peut en demander
+   * moins (WSJF version 2 : le JS et au moins un critère du CoD).
+   */
+  default boolean computable(Criteria criteria) {
+    return definition().criteria().stream().allMatch(c -> criteria.isEntered(c.key()));
+  }
+
+  /**
    * Les valeurs calculées par clé de {@link MethodDefinition#computedValues()}. Appelée seulement
-   * quand tous les critères sont renseignés et dans l'échelle.
+   * quand {@link #computable(Criteria)} et que les critères renseignés sont dans l'échelle.
    */
   Map<String, Fraction> compute(Criteria criteria);
 

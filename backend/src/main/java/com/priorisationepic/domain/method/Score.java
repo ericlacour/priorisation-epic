@@ -9,9 +9,11 @@ import java.util.Objects;
 /**
  * Score d'une fonctionnalité : calculé par le domaine seul, jamais saisi (constitution I).
  *
- * <p>{@code complete} : tous les critères de la méthode sont renseignés et dans l'échelle. {@code
- * outOfScale} : les critères renseignés mais hors de l'échelle courante. {@code computed} et {@code
- * explanation} n'existent que si {@code complete}. {@code rank} est posé par {@link Ranking}.
+ * <p>{@code complete} : assez de critères renseignés pour calculer ({@link
+ * PrioritizationMethod#computable(Criteria)}) et tous les critères renseignés dans l'échelle.
+ * {@code outOfScale} : les critères renseignés mais hors de l'échelle courante. {@code computed} et
+ * {@code explanation} n'existent que si {@code complete}. {@code rank} est posé par {@link
+ * Ranking}.
  */
 public record Score(
     boolean complete,
@@ -34,16 +36,13 @@ public record Score(
   /** Le score de {@code criteria} pour {@code method} sur {@code scale}, sans rang. */
   public static Score of(PrioritizationMethod method, Criteria criteria, Scale scale) {
     List<String> outOfScale = new ArrayList<>();
-    boolean allEntered = true;
     for (CriterionDefinition criterion : method.definition().criteria()) {
       Integer value = criteria.get(criterion.key());
-      if (value == null) {
-        allEntered = false;
-      } else if (!scale.accepts(value)) {
+      if (value != null && !scale.accepts(value)) {
         outOfScale.add(criterion.key());
       }
     }
-    if (!allEntered || !outOfScale.isEmpty()) {
+    if (!method.computable(criteria) || !outOfScale.isEmpty()) {
       return new Score(false, outOfScale, null, null, null);
     }
     return new Score(

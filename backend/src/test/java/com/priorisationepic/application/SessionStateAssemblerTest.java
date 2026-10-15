@@ -69,9 +69,9 @@ class SessionStateAssemblerTest {
 
     assertThat(state.type()).isEqualTo("sessionState");
     assertThat(state.method()).isEqualTo("WSJF");
-    assertThat(state.methodVersion()).isEqualTo(1);
+    assertThat(state.methodVersion()).isEqualTo(2);
     assertThat(state.methodDefinition()).isEqualTo(methods.defaultMethod().definition());
-    assertThat(state.formula()).isEqualTo("CoD = BV + TC + RR/OE ; WSJF = CoD / JS");
+    assertThat(state.formula()).isEqualTo(methods.defaultMethod().definition().formula());
     assertThat(state.tieBreakRule()).isEqualTo(methods.defaultMethod().definition().tieBreakRule());
     assertThat(state.scale().max()).isEqualTo(10);
     assertThat(state.scale().allowedValues()).hasSize(10);
