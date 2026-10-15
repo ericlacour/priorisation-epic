@@ -40,10 +40,13 @@ app-root > app-session-entry {
   margin-bottom: 6px;
 }
 
-/* Le titre prend la place qui reste ; le nom et la ligne d'information se tronquent (en entier au survol). */
+/*
+ * Le titre prend la place qui reste ; le nom et la ligne d'information se tronquent (en entier au survol). Son
+ * minimum reste bas pour que l'en-tête tienne sur une ligne à 1280 px, même avec une police plus large qu'Inter.
+ */
 .board-title {
   flex: 1 1 0;
-  min-width: 320px;
+  min-width: 200px;
 }
 
 .board-name,
