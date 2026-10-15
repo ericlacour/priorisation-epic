@@ -10,7 +10,7 @@ app-root {
 }
 
 /* Tout ce qui suit la barre du haut et le bandeau occupe le reste de la hauteur et défile au besoin. */
-app-root > :not(app-top-bar):not(.read-only-banner) {
+app-root > :not(app-top-bar):not(.read-only-banner):not(router-outlet) {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
@@ -120,8 +120,7 @@ app-root > app-session-entry {
 .layout-board {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -130,6 +129,12 @@ app-root > app-session-entry {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+}
+
+.table-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
 }
 
 .table-wrap {
@@ -240,15 +245,6 @@ tr:first-child > td > .rank {
   color: var(--warning);
 }
 
-.side {
-  min-height: 0;
-  overflow: auto;
-}
-
-.side .card:first-child {
-  margin-top: 0;
-}
-
 .plist {
   display: grid;
   gap: 6px;
@@ -341,36 +337,6 @@ app-method-info {
   width: 280px;
 }
 
-.glossary-box {
-  padding: 0;
-}
-
-.glossary-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 12px 16px;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.glossary-toggle h2 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.side h2 {
-  font-size: 16px;
-}
-
-.glossary-box #glossary-body {
-  padding: 0 16px 12px;
-}
-
 .glossary dt {
   margin-top: 8px;
   font-weight: 600;
@@ -421,12 +387,7 @@ app-method-info {
 
 @media (max-width: 899px) {
   .layout-board {
-    grid-template-columns: minmax(0, 1fr);
     overflow: auto;
-  }
-
-  .side {
-    overflow: visible;
   }
 }
 

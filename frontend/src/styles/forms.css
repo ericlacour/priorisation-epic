@@ -43,7 +43,6 @@
 .link-button:focus-visible,
 .fid:focus-visible,
 .term:focus-visible,
-.glossary-toggle:focus-visible,
 .panel-close:focus-visible {
   outline: 2px solid var(--primary-ink);
   outline-offset: 2px;

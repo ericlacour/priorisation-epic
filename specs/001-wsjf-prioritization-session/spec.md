@@ -397,9 +397,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   (en WSJF : BV, TC, RR/OE, JS, CoD et WSJF)
   (tableau, panneau de vote, révélation, consensus), chaque participant DOIT pouvoir
   retrouver leur signification sans quitter l'écran : au survol, au focus clavier ou au
-  toucher. Un encadré « Comprendre le WSJF », dans le panneau latéral, regroupe toutes
-  les définitions. On peut le **replier et le déplier**, et son état est mémorisé dans le
-  navigateur. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
+  toucher. Un lien « Comprendre le WSJF », placé juste au-dessus du tableau, ouvre un
+  panneau qui regroupe toutes les définitions : le tableau garde ainsi toute la largeur de
+  l'écran. Dans le panneau de vote, chaque critère affiche son sigle et son nom complet
   (par exemple « BV · Business Value »), sans répéter la définition. Les définitions
   sont :
   - **BV · Business Value** : valeur apportée aux utilisateurs ou au business ;
@@ -411,7 +411,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - **WSJF** : CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.
 
   Ces sigles, noms et définitions viennent de la définition de la méthode (FR-017a) : une
-  autre méthode affiche les siens, et l'encadré prend son nom (« Comprendre le RICE »).
+  autre méthode affiche les siens, et le lien et le panneau d'aide prennent son nom (« Comprendre le RICE »).
 - **FR-017**: La méthode de priorisation DOIT être identifiée explicitement pour chaque
   session, avec sa version. En v1, seule la méthode WSJF (version 1) existe, et sa formule
   et ses critères ne sont pas modifiables par l'utilisateur. D'autres méthodes (RICE,
@@ -452,7 +452,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   session » : nom et version, formule, critères saisis (sigle, nom complet, définition,
   colonne d'import et d'export), valeurs calculées (sigle, nom complet, définition,
   affichage), règle de tri et d'égalité, et échelle de la session. Le panneau s'ouvre
-  depuis l'encadré d'aide (« Voir la méthode complète »), depuis le détail du calcul d'une
+  depuis le panneau d'aide (« Voir la méthode complète »), depuis le détail du calcul d'une
   fonctionnalité et depuis le formulaire de création. Il rappelle que la méthode est
   fixée à la création et ne peut pas être modifiée. Son contenu vient uniquement de la
   définition de la méthode (FR-017a).

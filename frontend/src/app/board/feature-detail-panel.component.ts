@@ -34,8 +34,9 @@ const REASON_MAX = 200;
 /**
  * Panneau de détail d'une fonctionnalité (FR-016, FR-016b), ouvert au clic sur son identifiant : descriptif complet,
  * valeurs retenues avec le nom complet des critères, détail du calcul tel que le serveur l'écrit (constitution I).
- * L'animateur peut y marquer la fonctionnalité « à revoir » et modifier son titre et son descriptif : « Enregistrer »
- * émet une seule modification, « Annuler » n'émet rien. Les valeurs et le calcul restent masqués tant que le serveur
+ * Les boutons de l'animateur, « Modifier le titre et le descriptif » et « Marquer à revoir », sont en haut du panneau,
+ * sous le titre. Pendant la modification, « Enregistrer » (une seule modification émise) et « Annuler » (rien
+ * d'émis) restent sous la saisie. Les valeurs et le calcul restent masqués tant que le serveur
  * ne les envoie pas (tour de vote ouvert, pour un participant).
  */
 @Component({
@@ -68,6 +69,41 @@ const REASON_MAX = 200;
           <h2 id="detail-title">{{ feature().title }}</h2>
         }
       </header>
+
+      @if (canAnimate() && !editing()) {
+        <div class="actions">
+          <button type="button" class="btn btn-secondary" (click)="startEdit()">
+            {{ messages.editText }}
+          </button>
+          @if (feature().markedForReview) {
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="review.emit({ marked: false, reason: null })"
+            >
+              {{ messages.unmark }}
+            </button>
+          } @else if (marking()) {
+            <div class="field">
+              <label for="detail-reason">{{ messages.reasonLabel }}</label>
+              <input
+                id="detail-reason"
+                class="input wide"
+                maxlength="200"
+                [value]="reason()"
+                (input)="reason.set($any($event.target).value)"
+              />
+              <button type="button" class="btn btn-primary btn-sm" (click)="mark()">
+                {{ messages.confirmMark }}
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="btn btn-secondary" (click)="marking.set(true)">
+              {{ messages.mark }}
+            </button>
+          }
+        </div>
+      }
 
       @if (savedMessage()) {
         <p class="notice success" role="status">{{ messages.saved }}</p>
@@ -142,40 +178,6 @@ const REASON_MAX = 200;
               {{ messages.methodLink }}
             </button>
           </section>
-        }
-        @if (canAnimate()) {
-          <div class="actions">
-            <button type="button" class="btn btn-secondary" (click)="startEdit()">
-              {{ messages.editText }}
-            </button>
-            @if (feature().markedForReview) {
-              <button
-                type="button"
-                class="btn btn-secondary"
-                (click)="review.emit({ marked: false, reason: null })"
-              >
-                {{ messages.unmark }}
-              </button>
-            } @else if (marking()) {
-              <div class="field">
-                <label for="detail-reason">{{ messages.reasonLabel }}</label>
-                <input
-                  id="detail-reason"
-                  class="input wide"
-                  maxlength="200"
-                  [value]="reason()"
-                  (input)="reason.set($any($event.target).value)"
-                />
-                <button type="button" class="btn btn-primary btn-sm" (click)="mark()">
-                  {{ messages.confirmMark }}
-                </button>
-              </div>
-            } @else {
-              <button type="button" class="btn btn-secondary" (click)="marking.set(true)">
-                {{ messages.mark }}
-              </button>
-            }
-          </div>
         }
       }
     </app-side-panel>

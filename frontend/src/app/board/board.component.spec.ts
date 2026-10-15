@@ -168,10 +168,21 @@ describe('BoardComponent', () => {
     expect(badge.getAttribute('title')).toBe('À revoir : Descriptif à compléter');
   });
 
-  it('shows the glossary, which leads to the formula (constitution I), and no legend under the table', () => {
-    const { element } = render();
-    expect(element.querySelector('app-method-glossary h2')?.textContent).toBe('Comprendre le WSJF');
+  it('opens the glossary in a panel from the link above the table, and shows no legend under the table', () => {
+    const { fixture, element } = render();
+    expect(element.querySelector('app-method-glossary')).toBeNull();
+    expect(element.querySelector('aside')).toBeNull();
     expect(element.textContent).not.toContain('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
+
+    const link = element.querySelector<HTMLButtonElement>('.table-tools .link-button')!;
+    expect(link.textContent?.trim()).toBe('Comprendre le WSJF');
+    link.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-method-glossary h2')?.textContent).toBe('Comprendre le WSJF');
+
+    element.querySelector<HTMLButtonElement>('app-method-glossary .panel-close')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-method-glossary')).toBeNull();
   });
 
   it('shows the full title, without truncation', () => {
@@ -538,9 +549,12 @@ describe('BoardComponent', () => {
   it('opens the method panel from the glossary', () => {
     const { fixture, element } = render();
 
+    element.querySelector<HTMLButtonElement>('.table-tools .link-button')!.click();
+    fixture.detectChanges();
     element.querySelector<HTMLButtonElement>('app-method-glossary .link-button')!.click();
     fixture.detectChanges();
 
+    expect(element.querySelector('app-method-glossary')).toBeNull();
     expect(element.querySelector('app-method-panel h2')?.textContent).toContain('WSJF');
     element.querySelector<HTMLButtonElement>('app-method-panel .panel-close')!.click();
     fixture.detectChanges();

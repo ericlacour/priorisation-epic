@@ -15,7 +15,7 @@ l'application.
 | Écart important | Signalé quand le maximum moins le minimum est strictement supérieur à 3 (FR-020) |
 | Retri du tableau | Quand l'animateur valide la ligne, pas à chaque frappe (FR-015) |
 | Consensus | Champs vides, sauf pour un critère où tous les votants ont saisi la même valeur (FR-021) |
-| Sigles WSJF | Définition au survol, au focus ou au toucher. Encadré « Comprendre le WSJF » repliable et dépliable. Le panneau de vote n'affiche que le sigle et le nom complet (FR-016a) |
+| Sigles WSJF | Définition au survol, au focus ou au toucher. Lien « Comprendre le WSJF » au-dessus du tableau, qui ouvre un panneau avec toutes les définitions. Le panneau de vote n'affiche que le sigle et le nom complet (FR-016a) |
 | Tableau, tour en cours, révélation | Tiennent dans 1280 × 720 sans défilement de la page ; seules les listes défilent, en-têtes et actions restent visibles (FR-014a) |
 | À revoir / hors échelle | « À revoir » : marque posée par l'animateur avec un motif, sans effet sur le classement, retirée à la révélation (FR-006a). « Hors échelle » : état calculé quand une valeur sort de l'échelle (FR-011) |
 | Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |

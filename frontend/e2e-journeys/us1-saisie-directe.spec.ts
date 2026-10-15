@@ -85,7 +85,8 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
-  // V1a : « Voir la méthode complète » depuis l'encadré d'aide.
+  // V1a : « Voir la méthode complète » depuis le panneau « Comprendre le WSJF ».
+  await page.getByRole('button', { name: 'Comprendre le WSJF' }).click();
   await page.getByRole('button', { name: 'Voir la méthode complète' }).click();
   await expect(page.getByRole('dialog')).toContainText('Entiers de 1 à 10');
   await page.keyboard.press('Escape');
@@ -168,7 +169,7 @@ test('V14 : deux onglets d’animateur modifient la même valeur, le second voit
     .toEqual(['1 F-1 Paiement en un clic 9 5 3 4 17 4,25 Modifier']);
 });
 
-test('V16 : définitions au survol, encadré repliable, descriptif et titre modifié visible ailleurs', async ({
+test('V16 : définitions au survol, panneau « Comprendre le WSJF », descriptif et titre modifié visible ailleurs', async ({
   browser,
   page,
 }) => {
@@ -183,13 +184,12 @@ test('V16 : définitions au survol, encadré repliable, descriptif et titre modi
     'Valeur apportée aux utilisateurs ou au business.',
   );
 
-  // L'encadré se replie, et garde son état après rechargement.
+  // « Comprendre le WSJF » ouvre un panneau avec toutes les définitions.
   const glossary = page.locator('app-method-glossary');
-  await glossary.getByRole('button', { name: /Comprendre le WSJF/ }).click();
-  await expect(glossary.getByRole('term')).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByRole('heading', { level: 1, name: 'Démo' })).toBeVisible();
-  await expect(glossary.getByRole('term')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Comprendre le WSJF' }).click();
+  await expect(glossary.getByRole('term').first()).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(glossary).toHaveCount(0);
 
   // Le descriptif, le titre modifié (visible chez Alice en moins de 2 s), et « Annuler » n'envoie rien.
   await page.getByRole('button', { name: 'F-1', exact: true }).click();
