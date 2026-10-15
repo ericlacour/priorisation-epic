@@ -19,6 +19,15 @@ async function openAsFacilitator(page: Page, features: unknown[]): Promise<void>
   await page.getByRole('button', { name: 'Prioriser par classement' }).click();
 }
 
+/** F-1, F-2 et F-3 telles qu'enregistrées par le premier scénario. */
+function saved(): unknown[] {
+  return [
+    { ...F1, version: 2, criteria: { bv: 5, tc: 5, rrOe: 3, js: 2 } },
+    { ...F2, version: 1, criteria: { bv: 4, tc: 2, rrOe: 2, js: null } },
+    { ...F3, version: 1, criteria: { bv: 4, js: 3 } },
+  ];
+}
+
 /** Les valeurs affichées, dans l'ordre du classement. */
 const values = (page: Page) =>
   expect.poll(() =>
@@ -38,15 +47,19 @@ test.describe('prioriser par classement (FR-015a)', () => {
     await page.getByLabel('RR/OE · Risk Reduction / Opportunity Enablement').uncheck();
     await page.getByRole('button', { name: 'Commencer le classement' }).click();
 
-    // BV : F-1 (8), F-3 (6), F-2 (2), proposées 10, 9, 8 ; F-2 mise à égalité avec F-3.
-    await values(page).toEqual(['10', '9', '8']);
+    // BV : les valeurs actuelles sont gardées, F-1 (8), F-3 (6), F-2 (2) ; F-2 mise à égalité avec F-3.
+    await values(page).toEqual(['8', '6', '2']);
     await page.getByRole('button', { name: 'Égalité avec au-dessus : F-2' }).click();
-    await values(page).toEqual(['10', '9', '9']);
+    await values(page).toEqual(['8', '6', '6']);
+    // Saisir la valeur du premier niveau propose une valeur à tous les niveaux.
     await page.getByLabel('Valeur du premier niveau (BV)').fill('5');
     await values(page).toEqual(['5', '4', '4']);
     await page.getByRole('button', { name: 'Critère suivant' }).click();
 
-    // JS : F-1 (4), F-2 (3), F-3 sans valeur ; F-3 montée en tête, F-2 vidée à la main.
+    // JS : F-1 (4), F-2 (3), F-3 non classée ; F-3 classée puis montée en tête, F-2 vidée à la main.
+    await values(page).toEqual(['4', '3', '']);
+    await page.getByRole('button', { name: 'Classer en dernier : F-3' }).click();
+    await values(page).toEqual(['4', '3', '2']);
     await page.getByRole('button', { name: 'Monter : F-3' }).click();
     await page.getByRole('button', { name: 'Monter : F-3' }).click();
     await expect(page.getByRole('button', { name: 'Monter : F-3' })).toBeDisabled();
@@ -61,10 +74,32 @@ test.describe('prioriser par classement (FR-015a)', () => {
       { type: 'updateFeature', featureId: F2.id, version: 0, criteria: { bv: 4, js: null } },
       { type: 'updateFeature', featureId: F3.id, version: 0, criteria: { bv: 4, js: 3 } },
     ]);
+    // L'écran attend la confirmation du serveur avant de rendre la main au tableau.
+    await expect(page.getByText('Enregistrement…')).toBeVisible();
+    await push(page, sessionState(saved(), { animate: true, version: 2 }));
     await expect(page.locator('table.board-table')).toBeVisible();
   });
 
-  test('glisser une fonctionnalité sur un niveau la met à égalité', async ({
+  test('un refus du serveur garde l’écran ouvert et nomme la fonctionnalité non enregistrée', async ({
+    page,
+  }) => {
+    await openAsFacilitator(page, [F1, F2, F3]);
+    await page.getByLabel('TC · Time Criticality').uncheck();
+    await page.getByLabel('RR/OE · Risk Reduction / Opportunity Enablement').uncheck();
+    await page.getByLabel('JS · Job Size').uncheck();
+    await page.getByRole('button', { name: 'Commencer le classement' }).click();
+    await page.getByLabel('Valeur du premier niveau (BV)').fill('9');
+    await page.getByRole('button', { name: 'Terminer et enregistrer' }).click();
+
+    await push(page, { type: 'error', code: 'STALE_VERSION', featureId: F1.id });
+    const alert = page.locator('.ranking-unsaved');
+    await expect(alert).toContainText('La fonctionnalité a été modifiée entre-temps');
+    await expect(alert).toContainText('F-1 (BV 9)');
+    await page.getByRole('button', { name: 'Retour au tableau' }).click();
+    await expect(page.locator('table.board-table')).toBeVisible();
+  });
+
+  test('glisser une fonctionnalité par sa poignée sur un niveau la met à égalité', async ({
     page,
     browserName,
   }) => {
@@ -77,9 +112,22 @@ test.describe('prioriser par classement (FR-015a)', () => {
 
     await page
       .locator('.rank-item', { hasText: 'F-2' })
+      .locator('.drag-handle')
       .dragTo(page.locator('.rank-level-body').first());
     await expect(page.locator('.rank-level')).toHaveCount(2);
-    await values(page).toEqual(['10', '10', '9']);
+    await values(page).toEqual(['8', '8', '6']);
+  });
+
+  test('un clic dans une valeur la sélectionne pour la modifier', async ({ page }) => {
+    await openAsFacilitator(page, [F1, F2, F3]);
+    await page.getByRole('button', { name: 'Commencer le classement' }).click();
+    const value = page.getByLabel('BV de F-3');
+    await value.click();
+    await expect(value).toBeFocused();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type('7');
+    await expect(value).toHaveValue('7');
   });
 
   test('« Annuler » revient au tableau sans rien envoyer', async ({ page }) => {

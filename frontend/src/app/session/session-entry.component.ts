@@ -106,6 +106,8 @@ export class SessionEntryComponent implements OnInit {
 
   /** Ouvre la connexion avec les jetons rangés. */
   protected open(): void {
+    // Une session rouverte (après une reconnexion ou un retour à l'entrée) commence toujours sur le tableau.
+    this.ranking.set(false);
     this.phase.set('room');
     this.room.open(this.sessionId());
   }

@@ -382,23 +382,41 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      ouvert sont exclues) et les critères à saisir (au moins un, par défaut tous, dans
      l'ordre de la définition de la méthode, FR-017b) ;
   2. pour chaque critère choisi, il **classe** les fonctionnalités de la plus forte à la
-     plus faible valeur, par glisser-déposer ou au clavier (« Monter », « Descendre »).
-     Plusieurs fonctionnalités peuvent être mises **au même niveau** (« Égalité avec
-     au-dessus »). Au départ, celles qui ont déjà une valeur sont groupées par valeur
-     décroissante, puis viennent les autres, dans l'ordre du tableau ;
-  3. il saisit la **valeur du premier niveau** (par défaut le maximum de l'échelle). Chaque
-     niveau suivant se voit **proposer la valeur juste inférieure** de l'échelle ; sous la
-     plus petite valeur, plus rien n'est proposé et la fonctionnalité reste sans valeur.
-     Les propositions suivent le classement tant que l'animateur ne les modifie pas. Il
-     peut modifier ou vider la valeur de chaque fonctionnalité, contrôlée comme une saisie
-     directe (FR-009), et revenir aux propositions ;
-  4. il passe au critère suivant, ou revient au précédent sans perdre son classement.
+     plus faible valeur, par glisser-déposer (par la poignée ⠿, les champs de valeur
+     restant cliquables) ou au clavier (« Monter », « Descendre »). Plusieurs
+     fonctionnalités peuvent être mises **au même niveau** (« Égalité avec au-dessus »).
+     Au départ, celles qui ont déjà une valeur sont groupées par valeur décroissante et
+     **gardent leur valeur** ; les autres attendent dans « Non classées (sans valeur) »,
+     d'où l'animateur les place (« Classer en dernier », « Égalité avec le dernier
+     niveau », ou glisser-déposer). Une fonctionnalité glissée dans « Non classées » en
+     ressort sans valeur. Ouvrir puis terminer le classement sans rien toucher ne change
+     donc aucune valeur (retour de revue du 2026-10-15) ;
+  3. une valeur n'est **proposée** que :
+     - à une fonctionnalité **déplacée** : la valeur du niveau qu'elle rejoint, ou, dans
+       un nouveau niveau, la **valeur juste inférieure** de l'échelle à celle du niveau
+       au-dessus (la valeur du premier niveau si elle est en tête) ;
+     - à **tous les niveaux** quand l'animateur saisit la **valeur du premier niveau**
+       (préremplie avec la plus haute valeur actuelle, ou le maximum de l'échelle) :
+       chaque niveau suivant reçoit alors la valeur juste inférieure de l'échelle.
+
+     Sous la plus petite valeur, plus rien n'est proposé et la fonctionnalité reste sans
+     valeur. L'animateur peut modifier ou vider la valeur de chaque fonctionnalité,
+     contrôlée comme une saisie directe (FR-009), et revenir aux propositions ;
+  4. il passe au critère suivant, ou revient au précédent sans perdre son classement. Il
+     peut aussi revenir au choix : retirer ou ajouter une fonctionnalité garde le
+     classement des autres.
 
   Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
   enregistrée en une seule modification, avec la version lue à l'ouverture de l'écran
-  (jamais d'écrasement silencieux), et le tableau réapparaît, trié comme d'habitude
-  (FR-014, FR-015). « Annuler » revient au tableau sans rien changer. Ce classement est
-  conçu pour être repris par chaque participant lors de son vote dans un tour (FR-019).
+  (jamais d'écrasement silencieux). L'écran attend que le serveur ait enregistré chaque
+  valeur, puis le tableau réapparaît, trié comme d'habitude (FR-014, FR-015). Si une
+  modification est refusée (fonctionnalité modifiée entre-temps par un autre poste,
+  connexion perdue), l'écran reste ouvert et liste les fonctionnalités non enregistrées
+  avec les valeurs voulues ; l'animateur choisit « Enregistrer quand même » (sur la
+  version actuelle) ou « Retour au tableau ». « Annuler » revient au tableau sans rien
+  changer. Une session rouverte (reconnexion) commence toujours sur le tableau. Ce
+  classement est conçu pour être repris par chaque participant lors de son vote dans un
+  tour (FR-019).
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.

@@ -10,23 +10,24 @@ import {
   signal,
 } from '@angular/core';
 
+import { ErrorCode } from '../api/contract';
 import { CriterionDefinition, Feature } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SessionRoomService } from '../session/session-room.service';
-import {
-  CriterionRankingComponent,
-  RankedItem,
-  RankingStep,
-  resolveStep,
-} from './criterion-ranking.component';
-import { initialLevels } from './ranking';
+import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
+import { RankingStep, newStep, reselect, resolveStep } from './ranking';
+
+/** Valeurs envoyées pour une fonctionnalité, par clé de critère. */
+type Changes = Readonly<Record<string, number | null>>;
 
 /**
  * Écran « Prioriser par classement » (FR-015a), ouvert depuis le tableau par l'animateur : choix des fonctionnalités
  * et des critères, puis un classement par critère, dans l'ordre de `methodDefinition`. Rien n'est envoyé avant
  * « Terminer » : chaque fonctionnalité modifiée part alors en une seule modification, avec la version lue au début
- * (jamais d'écrasement silencieux), et l'écran rend la main au tableau, que le serveur retrie.
+ * (jamais d'écrasement silencieux). L'écran attend que le serveur ait enregistré chaque valeur avant de rendre la main
+ * au tableau, que le serveur retrie. Si une modification est refusée (modifiée entre-temps par un autre poste,
+ * connexion perdue), il reste ouvert et nomme les fonctionnalités non enregistrées.
  */
 @Component({
   selector: 'app-ranking-screen',
@@ -47,8 +48,33 @@ import { initialLevels } from './ranking';
         </div>
       </div>
 
-      @if (notSent()) {
-        <p class="notice danger" role="alert">{{ notConnected }}</p>
+      @if (failure(); as code) {
+        <div class="notice danger ranking-unsaved" role="alert">
+          <div>
+            <p>{{ failureText(code) }}</p>
+            <p>{{ messages.unsavedTitle }}</p>
+            <ul>
+              @for (line of unsavedLines(); track line) {
+                <li>{{ line }}</li>
+              }
+            </ul>
+          </div>
+          <div class="board-actions">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              [attr.title]="messages.retryHint"
+              (click)="retry()"
+            >
+              {{ messages.retry }}
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="backToBoard()">
+              {{ messages.backToBoard }}
+            </button>
+          </div>
+        </div>
+      } @else if (pending()) {
+        <p class="notice info" role="status">{{ messages.saving }}</p>
       }
 
       @if (current(); as criterion) {
@@ -113,12 +139,17 @@ import { initialLevels } from './ranking';
       }
 
       <div class="board-actions ranking-nav">
-        @if (stepIndex() !== null) {
+        @if (stepIndex() !== null && !pending()) {
           <button type="button" class="btn btn-secondary" (click)="previous()">
             {{ messages.previous }}
           </button>
         }
-        <button type="button" class="btn btn-primary" [disabled]="!canGoOn()" (click)="next()">
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!canGoOn() || pending() !== null"
+          (click)="next()"
+        >
           {{ nextLabel() }}
         </button>
       </div>
@@ -129,7 +160,6 @@ export class RankingScreenComponent {
   private readonly room = inject(SessionRoomService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly messages = MESSAGES.ranking;
-  protected readonly notConnected = MESSAGES.intentErrors.NOT_CONNECTED;
 
   /** Retour au tableau : après « Terminer » ou « Annuler ». */
   readonly closed = output<void>();
@@ -145,7 +175,10 @@ export class RankingScreenComponent {
   /** `null` : choix des fonctionnalités et des critères ; sinon, l'index du critère classé. */
   protected readonly stepIndex = signal<number | null>(null);
   protected readonly steps = signal<Readonly<Record<string, RankingStep>>>({});
-  protected readonly notSent = signal(false);
+  /** Les valeurs envoyées, en attente de confirmation par le serveur ; `null` avant « Terminer ». */
+  protected readonly pending = signal<ReadonlyMap<string, Changes> | null>(null);
+  /** Pourquoi l'enregistrement n'a pas abouti. */
+  protected readonly failure = signal<ErrorCode | 'NOT_CONNECTED' | null>(null);
   /** Les fonctionnalités telles qu'au début du classement : leurs versions et valeurs de départ. */
   private readonly base = signal<readonly Feature[]>([]);
 
@@ -168,6 +201,33 @@ export class RankingScreenComponent {
   protected readonly items = computed<ReadonlyMap<string, RankedItem>>(
     () => new Map(this.base().map((f) => [f.id, f])),
   );
+
+  /** Les fonctionnalités envoyées dont l'état reçu n'a pas encore toutes les valeurs (supprimées entre-temps : ignorées). */
+  protected readonly unsaved = computed(() => {
+    const pending = this.pending();
+    if (!pending) return [];
+    const features = new Map((this.state()?.features ?? []).map((f) => [f.id, f]));
+    return [...pending].flatMap(([id, changes]) => {
+      const feature = features.get(id);
+      const saved =
+        !feature ||
+        Object.entries(changes).every(
+          ([key, value]) => (feature.criteria?.[key] ?? null) === value,
+        );
+      return saved ? [] : [{ feature: feature as Feature, changes }];
+    });
+  });
+
+  protected readonly unsavedLines = computed(() => {
+    const criteria = this.state()?.methodDefinition.criteria ?? [];
+    return this.unsaved().map(({ feature, changes }) => {
+      const values = criteria
+        .filter((c) => c.key in changes)
+        .map((c) => `${c.code} ${changes[c.key] ?? MESSAGES.board.noValue}`)
+        .join(', ');
+      return format(this.messages.unsavedItem, { id: feature.externalId, values });
+    });
+  });
 
   protected readonly canGoOn = computed(() => {
     const criterion = this.current();
@@ -200,6 +260,18 @@ export class RankingScreenComponent {
     // Plus de droits d'animateur (jeton refusé, rôle transmis) : retour au tableau.
     effect(() => {
       if (!this.room.canAnimate()) this.closed.emit();
+    });
+    // Pendant l'enregistrement : tout est confirmé, on rend la main ; un refus ou une coupure, on le dit.
+    effect(() => {
+      if (!this.pending()) return;
+      if (this.unsaved().length === 0) {
+        this.pending.set(null);
+        this.closed.emit();
+        return;
+      }
+      const refusal = this.room.refusal();
+      if (refusal) this.failure.set(refusal.code);
+      else if (this.room.connection() === 'lost') this.failure.set('NOT_CONNECTED');
     });
     afterNextRender(() => this.focusTitle());
   }
@@ -257,30 +329,23 @@ export class RankingScreenComponent {
   }
 
   /**
-   * Commence (ou recommence après un retour au choix) : les classements déjà faits sont gardés si la sélection n'a
-   * pas changé ; sinon chaque critère repart des valeurs actuelles.
+   * Commence, ou recommence après un retour au choix : les classements déjà faits sont gardés. Une fonctionnalité
+   * retirée de la sélection en sort, une nouvelle y entre à la place de sa valeur actuelle (ou non classée).
    */
   private start(): void {
-    const features = this.selectable();
-    const before = this.base();
-    const sameSelection =
-      features.length === before.length && features.every((f, i) => before[i]?.id === f.id);
-    if (!sameSelection) {
-      this.base.set(features);
-      this.steps.set({});
-    }
-    const base = this.base();
+    const previous = new Map(this.base().map((f) => [f.id, f]));
+    // Une fonctionnalité déjà classée garde la version et les valeurs lues au début.
+    const base = this.selectable().map((f) => previous.get(f.id) ?? f);
+    this.base.set(base);
+    const byId = new Map(base.map((f) => [f.id, f]));
+    const ids = base.map((f) => f.id);
     const scale = this.state()?.scale;
+    if (!scale) return;
     const steps = { ...this.steps() };
     for (const criterion of this.criteria()) {
-      steps[criterion.key] ??= {
-        levels: initialLevels(
-          base.map((f) => f.id),
-          (id) => base.find((f) => f.id === id)?.criteria?.[criterion.key],
-        ),
-        top: String(scale?.max ?? ''),
-        overrides: {},
-      };
+      const valueOf = (id: string) => byId.get(id)?.criteria?.[criterion.key];
+      const step = steps[criterion.key];
+      steps[criterion.key] = step ? reselect(step, ids, valueOf) : newStep(ids, valueOf, scale);
     }
     this.steps.set(steps);
     this.stepIndex.set(0);
@@ -302,19 +367,44 @@ export class RankingScreenComponent {
       }
     }
     const existing = new Set((this.state()?.features ?? []).map((f) => f.id));
-    for (const feature of this.base()) {
-      const criteria = changes.get(feature.id);
-      if (!criteria || !existing.has(feature.id)) continue;
-      const sent = this.room.updateFeature({
-        featureId: feature.id,
-        version: feature.version,
-        criteria,
-      });
-      if (!sent) {
-        this.notSent.set(true);
+    const toSend = this.base().filter((f) => changes.has(f.id) && existing.has(f.id));
+    if (toSend.length === 0) {
+      this.closed.emit();
+      return;
+    }
+    this.failure.set(null);
+    this.pending.set(new Map(toSend.map((f) => [f.id, changes.get(f.id) ?? {}])));
+    for (const feature of toSend) {
+      const criteria = changes.get(feature.id) ?? {};
+      if (!this.room.updateFeature({ featureId: feature.id, version: feature.version, criteria })) {
+        this.failure.set('NOT_CONNECTED');
         return;
       }
     }
+  }
+
+  protected failureText(code: ErrorCode | 'NOT_CONNECTED'): string {
+    return MESSAGES.intentErrors[code];
+  }
+
+  /** Renvoie les valeurs non enregistrées, sur la version actuelle : l'animateur choisit de remplacer. */
+  protected retry(): void {
+    this.failure.set(null);
+    for (const { feature, changes } of this.unsaved()) {
+      const sent = this.room.updateFeature({
+        featureId: feature.id,
+        version: feature.version,
+        criteria: changes,
+      });
+      if (!sent) {
+        this.failure.set('NOT_CONNECTED');
+        return;
+      }
+    }
+  }
+
+  protected backToBoard(): void {
+    this.room.clearRefusal();
     this.closed.emit();
   }
 

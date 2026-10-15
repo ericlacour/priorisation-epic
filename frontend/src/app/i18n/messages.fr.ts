@@ -174,19 +174,33 @@ export const MESSAGES = {
     next: 'Critère suivant',
     finish: 'Terminer et enregistrer',
     instruction:
-      'Classez les fonctionnalités de la plus forte à la plus faible pour {code} ({label}). Mettez au même niveau celles qui se valent, puis ajustez les valeurs proposées si besoin.',
+      'Classez les fonctionnalités de la plus forte à la plus faible pour {code} ({label}). Mettez au même niveau celles qui se valent. Les valeurs actuelles sont gardées : une fonctionnalité déplacée reçoit la valeur proposée pour son niveau, et saisir la valeur du premier niveau propose une valeur à tous les niveaux.',
     topLabel: 'Valeur du premier niveau ({code})',
+    topHelp: 'Puis la valeur juste inférieure de l’échelle à chaque niveau.',
     topInvalid: 'La valeur du premier niveau doit être un entier entre 1 et {max}.',
     resetProposals: 'Revenir aux valeurs proposées',
-    dragHelp:
-      'Glissez une fonctionnalité sur un niveau pour la mettre à égalité, ou entre deux niveaux.',
     listLabel: 'Classement pour {code}',
+    emptyRanking:
+      'Aucune fonctionnalité classée : placez-les depuis « Non classées », ou glissez-les ici.',
     levelLabel: 'Niveau {level}',
     valueLabel: '{code} de {id}',
     overridden: 'modifiée',
+    dragHandle: 'Glisser sur un niveau pour une égalité, ou entre deux niveaux',
     moveUp: 'Monter',
     moveDown: 'Descendre',
     joinAbove: 'Égalité avec au-dessus',
+    unrankedTitle: 'Non classées (sans valeur)',
+    unrankedHelp:
+      'Elles restent sans valeur tant qu’elles ne sont pas classées. Glissez ici une fonctionnalité pour la retirer du classement.',
+    rankLast: 'Classer en dernier',
+    joinLast: 'Égalité avec le dernier niveau',
+    saving: 'Enregistrement…',
+    unsavedTitle: 'Ces fonctionnalités n’ont pas été enregistrées :',
+    unsavedItem: '{id} ({values})',
+    retry: 'Enregistrer quand même',
+    retryHint:
+      'Renvoie vos valeurs, en remplaçant celles enregistrées entre-temps par un autre poste',
+    backToBoard: 'Retour au tableau',
   },
   conflict: {
     title: '{id} a été modifiée entre-temps par un autre poste.',

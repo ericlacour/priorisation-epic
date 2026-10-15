@@ -20,7 +20,7 @@ l'application.
 | À revoir / hors échelle | « À revoir » : marque posée par l'animateur avec un motif, sans effet sur le classement, retirée à la révélation (FR-006a). « Hors échelle » : état calculé quand une valeur sort de l'échelle (FR-011) |
 | Descriptif | Clic sur l'identifiant : panneau de détail avec descriptif, valeurs et calcul (FR-016b) |
 | Méthode | Choisie à la création (WSJF seule en V1, par défaut), puis figée. Consultable en lecture seule par tous dans le panneau « Méthode de la session ». Pas d'édition de méthode à l'écran en V1 (FR-017c, FR-017d) |
-| Saisie par classement | Écran « Prioriser par classement » ouvert depuis le tableau : choix des critères et des fonctionnalités, puis un classement par critère (glisser-déposer ou clavier, égalités). Valeur du premier niveau, puis valeur juste inférieure de l'échelle à chaque niveau, modifiable ; enregistrement à la fin seulement. Repris pour le vote des tours (FR-015a, retour d'usage du 2026-10-15) |
+| Saisie par classement | Écran « Prioriser par classement » ouvert depuis le tableau : choix des critères et des fonctionnalités, puis un classement par critère (glisser-déposer par la poignée ou clavier, égalités, « Non classées »). Les valeurs actuelles sont gardées ; une valeur n'est proposée qu'à une fonctionnalité déplacée, ou à tous les niveaux quand la valeur du premier niveau est saisie (valeur juste inférieure de l'échelle à chaque niveau), et reste modifiable. Enregistrement à la fin seulement, confirmé par le serveur ; un refus garde l'écran ouvert. Repris pour le vote des tours (FR-015a, retours du 2026-10-15) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
 ## Charte

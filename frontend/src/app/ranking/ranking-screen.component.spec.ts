@@ -88,99 +88,195 @@ describe('RankingScreenComponent', () => {
     expect(button('Commencer le classement').disabled).toBe(false);
   });
 
-  it('ranks each chosen criterion in turn, then sends one change per feature, with its starting version', () => {
-    const { element, room, click, toggle, values, closed, fixture } = render();
+  const typeInto = (input: HTMLInputElement, text: string) => {
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
+  };
+  const press = (element: HTMLElement, label: string) =>
+    element.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!.click();
+
+  /** BV puis TC, terminé : F-3 à égalité avec F-2 en BV ; TC à 3 en tête, F-2 classée en dernier. */
+  function rankBvAndTc(screen: ReturnType<typeof render>) {
+    const { element, click, toggle, values, fixture } = screen;
     toggle('RR/OE ·');
     toggle('JS ·');
     click('Commencer le classement');
     expect(element.querySelector('h1 + p')?.textContent).toContain(
       'Critère 1 sur 2 : BV · Business Value · 3 fonctionnalité(s)',
     );
-    // F-1 (BV 8) puis F-2 (BV 3), puis F-3 sans valeur.
+    // Valeurs actuelles gardées : F-1 (8), F-2 (3), F-3 non classée.
     expect(values()).toEqual([
-      ['BV de F-1', '10'],
-      ['BV de F-2', '9'],
-      ['BV de F-3', '8'],
+      ['BV de F-1', '8'],
+      ['BV de F-2', '3'],
+      ['BV de F-3', ''],
     ]);
-    // F-3 à égalité avec F-2.
-    element
-      .querySelector<HTMLButtonElement>('[aria-label="Égalité avec au-dessus : F-3"]')!
-      .click();
+    press(element, 'Égalité avec le dernier niveau : F-3');
     fixture.detectChanges();
     click('Critère suivant');
     expect(element.querySelector('h1 + p')?.textContent).toContain('Critère 2 sur 2 : TC');
-    // TC : F-1 (5) puis les autres sans valeur ; premier niveau à 3 et F-3 vidée à la main.
-    const top = element.querySelector<HTMLInputElement>('#ranking-top-value')!;
-    top.value = '3';
-    top.dispatchEvent(new Event('input'));
+    typeInto(element.querySelector<HTMLInputElement>('#ranking-top-value')!, '3');
     fixture.detectChanges();
-    const f3 = element.querySelectorAll<HTMLInputElement>('.rank-item input')[2]!;
-    f3.value = '';
-    f3.dispatchEvent(new Event('input'));
+    press(element, 'Classer en dernier : F-2');
     fixture.detectChanges();
     expect(values()).toEqual([
       ['TC de F-1', '3'],
       ['TC de F-2', '2'],
       ['TC de F-3', ''],
     ]);
-
     click('Terminer et enregistrer');
-    expect(room.updateFeature.mock.calls.map(([message]) => message)).toEqual([
-      { featureId: 'f1', version: 2, criteria: { bv: 10, tc: 3 } },
-      { featureId: 'f2', version: 0, criteria: { bv: 9, tc: 2 } },
-      { featureId: 'f3', version: 5, criteria: { bv: 9 } },
+  }
+
+  const sentMessages = (room: FakeRoom) =>
+    room.updateFeature.mock.calls.map(([message]) => message);
+
+  it('ranks each chosen criterion in turn, sends one change per feature with its starting version, and waits for the server', () => {
+    const screen = render();
+    const { element, room, closed, fixture } = screen;
+    rankBvAndTc(screen);
+    expect(sentMessages(room)).toEqual([
+      { featureId: 'f1', version: 2, criteria: { tc: 3 } },
+      { featureId: 'f2', version: 0, criteria: { tc: 2 } },
+      { featureId: 'f3', version: 5, criteria: { bv: 3 } },
     ]);
+    expect(element.querySelector('[role="status"]')?.textContent).toContain('Enregistrement…');
+    expect(closed()).toBe(0);
+
+    room.state.set(
+      state({
+        features: [
+          { ...F1, version: 3, criteria: { ...F1.criteria, tc: 3 } },
+          { ...F2, version: 1, criteria: { bv: 3, tc: 2 } },
+          { ...F3, version: 6, criteria: { bv: 3 } },
+        ],
+      }),
+    );
+    fixture.detectChanges();
     expect(closed()).toBe(1);
   });
 
-  it('keeps the rankings when going back, and only restarts them when the selection changes', () => {
-    const { element, click, toggle, values, fixture } = render();
-    click('Commencer le classement');
-    element.querySelector<HTMLButtonElement>('[aria-label="Monter : F-3"]')!.click();
+  it('stays open after a refusal, names what was not saved, and can send it again on the current version', () => {
+    const screen = render();
+    const { element, room, click, closed, fixture } = screen;
+    rankBvAndTc(screen);
+    // F-1 modifiée entre-temps par un autre poste : refusée ; F-2 et F-3 enregistrées.
+    room.state.set(
+      state({
+        features: [
+          { ...F1, version: 7, criteria: { ...F1.criteria, bv: 9 } },
+          { ...F2, version: 1, criteria: { bv: 3, tc: 2 } },
+          { ...F3, version: 6, criteria: { bv: 3 } },
+        ],
+      }),
+    );
+    room.refusal.set({ code: 'STALE_VERSION', featureId: 'f1' });
     fixture.detectChanges();
-    click('Critère suivant');
-    click('Précédent');
-    expect(values().map(([label]) => label)).toEqual(['BV de F-1', 'BV de F-3', 'BV de F-2']);
-    click('Précédent');
-    expect(element.querySelector('fieldset')).not.toBeNull();
-    click('Commencer le classement');
-    expect(values().map(([label]) => label)).toEqual(['BV de F-1', 'BV de F-3', 'BV de F-2']);
+    const alert = element.querySelector('.ranking-unsaved')!;
+    expect(alert.textContent).toContain('La fonctionnalité a été modifiée entre-temps');
+    expect([...alert.querySelectorAll('li')].map((li) => li.textContent?.trim())).toEqual([
+      'F-1 (TC 3)',
+    ]);
+    expect(closed()).toBe(0);
 
-    click('Précédent');
-    toggle('F-2');
-    click('Commencer le classement');
-    expect(values().map(([label]) => label)).toEqual(['BV de F-1', 'BV de F-3']);
+    room.updateFeature.mockClear();
+    click('Enregistrer quand même');
+    expect(sentMessages(room)).toEqual([{ featureId: 'f1', version: 7, criteria: { tc: 3 } }]);
+    expect(element.querySelector('.ranking-unsaved')).toBeNull();
+
+    room.state.set(
+      state({
+        features: [
+          { ...F1, version: 8, criteria: { ...F1.criteria, bv: 9, tc: 3 } },
+          { ...F2, version: 1, criteria: { bv: 3, tc: 2 } },
+          { ...F3, version: 6, criteria: { bv: 3 } },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+    expect(closed()).toBe(1);
   });
 
-  it('blocks the next step while a value is invalid', () => {
-    const { element, button, click, fixture } = render();
-    click('Commencer le classement');
-    const top = element.querySelector<HTMLInputElement>('#ranking-top-value')!;
-    top.value = '0';
-    top.dispatchEvent(new Event('input'));
+  it('goes back to the board after a refusal, and forgets it', () => {
+    const screen = render();
+    const { room, click, closed, fixture } = screen;
+    rankBvAndTc(screen);
+    room.refusal.set({ code: 'STALE_VERSION', featureId: 'f1' });
     fixture.detectChanges();
-    expect(button('Critère suivant').disabled).toBe(true);
+    click('Retour au tableau');
+    expect(room.clearRefusal).toHaveBeenCalled();
+    expect(closed()).toBe(1);
   });
 
-  it('sends nothing for unchanged values, nor for a feature deleted meanwhile', () => {
-    const unchanged = feature({ id: 'u', externalId: 'U-1', criteria: { bv: 10 } });
-    const { room, click, toggle, closed } = render([unchanged, F3]);
-    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+  it('says when nothing could be sent, or when the connection drops while waiting', () => {
+    const lost = render();
+    lost.room.updateFeature.mockReturnValue(false);
+    rankBvAndTc(lost);
+    expect(lost.element.querySelector('.ranking-unsaved')?.textContent).toContain(
+      'Connexion perdue',
+    );
+    // Un nouvel essai qui échoue encore le redit.
+    lost.click('Enregistrer quand même');
+    expect(lost.element.querySelector('.ranking-unsaved')?.textContent).toContain(
+      'Connexion perdue',
+    );
+    TestBed.resetTestingModule();
+
+    const dropped = render();
+    rankBvAndTc(dropped);
+    dropped.room.connection.set('lost');
+    dropped.fixture.detectChanges();
+    expect(dropped.element.querySelector('.ranking-unsaved')?.textContent).toContain(
+      'Connexion perdue',
+    );
+    expect(dropped.closed()).toBe(0);
+  });
+
+  it('sends nothing when no value changes, and closes', () => {
+    const { room, click, closed } = render();
     click('Commencer le classement');
-    room.state.set(state({ features: [unchanged] }));
+    for (let i = 0; i < 3; i++) click('Critère suivant');
     click('Terminer et enregistrer');
     expect(room.updateFeature).not.toHaveBeenCalled();
     expect(closed()).toBe(1);
   });
 
-  it('stays open with a message when the connection is lost', () => {
-    const { element, room, click, closed } = render();
-    room.updateFeature.mockReturnValue(false);
+  it('keeps the rankings when going back, even when the selection changes', () => {
+    const { element, click, toggle, values, fixture } = render();
     click('Commencer le classement');
-    for (let i = 0; i < 3; i++) click('Critère suivant');
+    press(element, 'Monter : F-2');
+    fixture.detectChanges();
+    click('Critère suivant');
+    click('Précédent');
+    expect(values().map(([label]) => label)).toEqual(['BV de F-2', 'BV de F-1', 'BV de F-3']);
+    click('Précédent');
+    expect(element.querySelector('fieldset')).not.toBeNull();
+    toggle('F-3');
+    click('Commencer le classement');
+    expect(values().map(([label]) => label)).toEqual(['BV de F-2', 'BV de F-1']);
+
+    click('Précédent');
+    toggle('F-3');
+    click('Commencer le classement');
+    expect(values().map(([label]) => label)).toEqual(['BV de F-2', 'BV de F-1', 'BV de F-3']);
+  });
+
+  it('blocks the next step while a value is invalid', () => {
+    const { element, button, click, fixture } = render();
+    click('Commencer le classement');
+    typeInto(element.querySelector<HTMLInputElement>('#ranking-top-value')!, '0');
+    fixture.detectChanges();
+    expect(button('Critère suivant').disabled).toBe(true);
+  });
+
+  it('sends nothing for a feature deleted meanwhile', () => {
+    const { element, room, click, toggle, closed, fixture } = render([F2, F3]);
+    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+    click('Commencer le classement');
+    press(element, 'Égalité avec le dernier niveau : F-3');
+    fixture.detectChanges();
+    room.state.set(state({ features: [F2] }));
     click('Terminer et enregistrer');
-    expect(element.querySelector('[role="alert"]')?.textContent).toContain('Connexion perdue');
-    expect(closed()).toBe(0);
+    expect(room.updateFeature).not.toHaveBeenCalled();
+    expect(closed()).toBe(1);
   });
 
   it('goes back to the board on cancel, or when the facilitator rights are lost', () => {

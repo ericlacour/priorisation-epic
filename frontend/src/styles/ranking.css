@@ -61,6 +61,46 @@
   min-height: 0;
 }
 
+/* Le classement et les non classées défilent chacun de leur côté. */
+.ranking-lists {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.rank-unranked {
+  flex: 0 1 auto;
+  max-height: 40%;
+  padding: 6px 8px;
+  overflow: auto;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.rank-unranked.drop-target {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.rank-unranked h2 {
+  margin: 0;
+}
+
+.rank-unranked p {
+  margin: 0 0 6px;
+}
+
+.rank-empty {
+  padding: 8px;
+}
+
+.ranking-unsaved ul {
+  margin: 4px 0;
+}
+
 .ranking-top {
   display: flex;
   flex-wrap: wrap;
@@ -134,7 +174,6 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  cursor: grab;
 }
 
 .rank-item.dragging {
@@ -142,7 +181,9 @@
 }
 
 .drag-handle {
+  padding: 2px 4px;
   color: var(--muted);
+  cursor: grab;
 }
 
 .rank-title {
