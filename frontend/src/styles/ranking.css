@@ -1,7 +1,7 @@
 /*
  * Écran « Prioriser par classement » (FR-015a). Comme le tableau, il tient dans la fenêtre : seules la liste des
  * fonctionnalités à choisir et la liste du classement défilent, la barre « Précédent / Suivant » reste visible.
- * Lignes compactes : au moins 15 fonctionnalités visibles sans défilement, même chacune à son propre niveau.
+ * Lignes compactes : au moins 15 fonctionnalités visibles sans défilement dans une fenêtre de 1280 × 560, même chacune à son propre niveau.
  */
 .ranking-setup {
   display: grid;
@@ -18,6 +18,7 @@
   min-width: 0;
   min-height: 0;
   margin: 0;
+  padding: 4px 12px 8px;
 }
 
 .ranking-setup legend {
@@ -49,6 +50,7 @@
 
 /* Une ligne par fonctionnalité à choisir : le titre se tronque. */
 .ranking-feature-list .check {
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -226,7 +228,7 @@
 }
 
 .rank-gap-end {
-  height: 16px;
+  height: 10px;
 }
 
 .rank-gap.drop-target {
@@ -243,9 +245,10 @@
   background: var(--surface-muted);
 }
 
-/* Un niveau sur deux est teinté, pour voir où finit un niveau et où commence le suivant. */
+/* Un niveau sur deux est teinté et marqué d'un filet, pour voir où finit un niveau et où commence le suivant. */
 .rank-level-alt .rank-level-body {
   background: var(--rank-alt);
+  box-shadow: inset 3px 0 0 var(--rank-alt-accent);
 }
 
 .rank-level-alt .rank-item {
@@ -253,7 +256,9 @@
 }
 
 .rank-level-body .rank {
+  height: 20px;
   margin-top: 1px;
+  border-radius: 10px;
 }
 
 .rank-level-body.drop-target {
@@ -264,7 +269,8 @@
 .rank-items {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  /* Ex æquo : 24 px d'une ligne à l'autre, l'écart minimal entre deux cibles (WCAG 2.5.8). */
+  gap: 2px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -280,13 +286,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 26px;
+  min-height: 22px;
   padding: 0 4px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   font-size: 15px;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .rank-item.dragging {
@@ -320,9 +326,10 @@
 
 .rank-item .num-input {
   width: 44px;
-  min-height: 22px;
+  min-height: 20px;
   padding: 0 6px;
   font-size: 14px;
+  line-height: 18px;
 }
 
 .rank-actions {
@@ -337,6 +344,12 @@
   min-height: 24px;
   padding: 0;
   font-size: 16px;
+}
+
+/* Dans une ligne du classement, le bouton est à la hauteur de la ligne (24 px d'une ligne à l'autre). */
+.rank-actions .btn-icon {
+  min-height: 20px;
+  line-height: 1.1;
 }
 
 /* Écran étroit : les deux listes l'une sous l'autre, les non classées d'abord. */

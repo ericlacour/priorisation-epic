@@ -382,7 +382,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   la barre de session, les actions, le tableau et le panneau latéral restent visibles en
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
   défile**, avec un en-tête de colonnes figé. **Au moins 15 fonctionnalités** sont visibles
-  sans défilement ni zoom, dès une fenêtre de 1280 × 620 (retour d'usage du 2026-10-15) :
+  sans défilement ni zoom, dès une fenêtre de 1280 × 560 (retours d'usage du 2026-10-15) :
   l'en-tête (nom de la session, actions, outils) tient sur une ligne et chaque
   fonctionnalité sur une ligne, le titre tronqué et affiché en entier au survol et dans le
   panneau de détail. Quand l'animateur modifie une
@@ -455,7 +455,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   symbole ↑ ↓ = →, nommés en entier pour les lecteurs d'écran) ; la navigation est dans
   l'en-tête. Une consigne d'une ligne, dans l'en-tête, rappelle le critère ; l'explication
   complète est dans un bouton « Aide ». Au moins 15 fonctionnalités sont visibles sans
-  défilement ni zoom dès une fenêtre de 1280 × 620, même quand chacune est à son propre
+  défilement ni zoom dès une fenêtre de 1280 × 560, même quand chacune est à son propre
   niveau, et sur l'étape de choix des fonctionnalités.
 
   Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
