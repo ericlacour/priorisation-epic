@@ -42,11 +42,12 @@ describe('RankingScreenComponent', () => {
       checkbox(text).click();
       fixture.detectChanges();
     };
+    // Le classement, du premier niveau au dernier, puis les non classées.
     const values = () =>
-      [...element.querySelectorAll<HTMLInputElement>('.rank-item input')].map((input) => [
-        input.getAttribute('aria-label'),
-        input.value,
-      ]);
+      [
+        ...element.querySelectorAll<HTMLInputElement>('.rank-ranked .rank-item input'),
+        ...element.querySelectorAll<HTMLInputElement>('.rank-unranked .rank-item input'),
+      ].map((input) => [input.getAttribute('aria-label'), input.value]);
     return {
       fixture,
       room,
@@ -86,6 +87,30 @@ describe('RankingScreenComponent', () => {
     expect(element.textContent).toContain('Choisissez au moins un critère.');
     toggle('TC ·');
     expect(button('Commencer le classement').disabled).toBe(false);
+  });
+
+  it('opens the help on demand, with the full explanation, and closes it with Escape', () => {
+    const { element, click, toggle, fixture } = render();
+    for (const code of ['TC', 'RR/OE', 'JS']) toggle(`${code} ·`);
+    click('Commencer le classement');
+    expect(element.querySelector('.ranking-help')?.textContent).toContain(
+      'Classez de la plus forte à la plus faible pour BV (Business Value)',
+    );
+    const help = element.querySelector<HTMLButtonElement>('[aria-controls="ranking-help-panel"]')!;
+    expect(help.getAttribute('aria-expanded')).toBe('false');
+    expect(element.querySelector('#ranking-help-panel')).toBeNull();
+
+    help.click();
+    fixture.detectChanges();
+    expect(help.getAttribute('aria-expanded')).toBe('true');
+    const panel = element.querySelector<HTMLElement>('#ranking-help-panel')!;
+    expect(panel.textContent).toContain('Les valeurs actuelles sont gardées');
+    expect(panel.textContent).toContain('poignée ⠿');
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(element.querySelector('#ranking-help-panel')).toBeNull();
+    expect(document.activeElement).toBe(help);
   });
 
   const typeInto = (input: HTMLInputElement, text: string) => {

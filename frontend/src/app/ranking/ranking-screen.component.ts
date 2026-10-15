@@ -33,17 +33,73 @@ type Changes = Readonly<Record<string, number | null>>;
   selector: 'app-ranking-screen',
   imports: [CriterionRankingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'board-page ranking-page', role: 'main' },
+  host: {
+    class: 'board-page ranking-page',
+    role: 'main',
+    '(keydown.escape)': 'closeHelp()',
+  },
   template: `
     @if (state(); as state) {
-      <div class="board-head">
+      <!-- Navigation dans l'en-tête : toute la hauteur restante va aux listes. -->
+      <div class="board-head ranking-head">
         <div>
           <h1 tabindex="-1">{{ messages.title }}</h1>
           <p class="muted small">{{ subtitle() }}</p>
         </div>
-        <div class="board-tools">
+        <div class="board-tools ranking-nav">
+          <div class="ranking-help-menu">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              aria-controls="ranking-help-panel"
+              [attr.aria-expanded]="helpOpen()"
+              (click)="toggleHelp()"
+            >
+              ? {{ messages.help }}
+            </button>
+            @if (helpOpen()) {
+              <section
+                id="ranking-help-panel"
+                class="ranking-help-panel"
+                aria-labelledby="ranking-help-title"
+              >
+                <div class="ranking-help-head">
+                  <h2 id="ranking-help-title">{{ messages.helpTitle }}</h2>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-icon"
+                    [attr.aria-label]="messages.helpClose"
+                    (click)="closeHelp()"
+                  >
+                    ✕
+                  </button>
+                </div>
+                @if (current(); as criterion) {
+                  <p>{{ instruction(criterion) }}</p>
+                }
+                <ul>
+                  @for (line of messages.helpSteps; track line) {
+                    <li>{{ line }}</li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
           <button type="button" class="btn btn-secondary" (click)="closed.emit()">
             {{ messages.cancel }}
+          </button>
+          @if (stepIndex() !== null && !pending()) {
+            <button type="button" class="btn btn-secondary" (click)="previous()">
+              {{ messages.previous }}
+            </button>
+          }
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!canGoOn() || pending() !== null"
+            (click)="next()"
+          >
+            {{ nextLabel() }}
           </button>
         </div>
       </div>
@@ -78,7 +134,7 @@ type Changes = Readonly<Record<string, number | null>>;
       }
 
       @if (current(); as criterion) {
-        <p class="ranking-help">{{ instruction(criterion) }}</p>
+        <p class="ranking-help">{{ shortInstruction(criterion) }}</p>
         <app-criterion-ranking
           [items]="items()"
           [criterion]="criterion"
@@ -137,22 +193,6 @@ type Changes = Readonly<Record<string, number | null>>;
           </fieldset>
         </div>
       }
-
-      <div class="board-actions ranking-nav">
-        @if (stepIndex() !== null && !pending()) {
-          <button type="button" class="btn btn-secondary" (click)="previous()">
-            {{ messages.previous }}
-          </button>
-        }
-        <button
-          type="button"
-          class="btn btn-primary"
-          [disabled]="!canGoOn() || pending() !== null"
-          (click)="next()"
-        >
-          {{ nextLabel() }}
-        </button>
-      </div>
     }
   `,
 })
@@ -179,6 +219,8 @@ export class RankingScreenComponent {
   protected readonly pending = signal<ReadonlyMap<string, Changes> | null>(null);
   /** Pourquoi l'enregistrement n'a pas abouti. */
   protected readonly failure = signal<ErrorCode | 'NOT_CONNECTED' | null>(null);
+  /** L'aide « Comment classer » est ouverte. */
+  protected readonly helpOpen = signal(false);
   /** Les fonctionnalités telles qu'au début du classement : leurs versions et valeurs de départ. */
   private readonly base = signal<readonly Feature[]>([]);
 
@@ -274,6 +316,21 @@ export class RankingScreenComponent {
       else if (this.room.connection() === 'lost') this.failure.set('NOT_CONNECTED');
     });
     afterNextRender(() => this.focusTitle());
+  }
+
+  protected shortInstruction(criterion: CriterionDefinition): string {
+    return format(this.messages.shortInstruction, { code: criterion.code, label: criterion.label });
+  }
+
+  protected toggleHelp(): void {
+    this.helpOpen.update((open) => !open);
+  }
+
+  /** Ferme l'aide et rend le focus au bouton « Aide ». */
+  protected closeHelp(): void {
+    if (!this.helpOpen()) return;
+    this.helpOpen.set(false);
+    this.host.querySelector<HTMLElement>('[aria-controls="ranking-help-panel"]')?.focus();
   }
 
   protected instruction(criterion: CriterionDefinition): string {

@@ -39,11 +39,13 @@ describe('CriterionRankingComponent', () => {
     return { fixture, element, host };
   }
 
+  /** Les champs de valeur : le classement, du premier niveau au dernier, puis les non classées. */
+  const inputs = (element: HTMLElement) => [
+    ...element.querySelectorAll<HTMLInputElement>('.rank-ranked .rank-item input'),
+    ...element.querySelectorAll<HTMLInputElement>('.rank-unranked .rank-item input'),
+  ];
   const values = (element: HTMLElement) =>
-    [...element.querySelectorAll<HTMLInputElement>('.rank-item input')].map((input) => [
-      input.getAttribute('aria-label'),
-      input.value,
-    ]);
+    inputs(element).map((input) => [input.getAttribute('aria-label'), input.value]);
   const levelsOf = (element: HTMLElement) =>
     [...element.querySelectorAll('.ranking-levels .rank-items')].map((list) =>
       [...list.querySelectorAll('.fid-text')].map((id) => id.textContent?.trim()),
@@ -105,7 +107,10 @@ describe('CriterionRankingComponent', () => {
     action(element, 'Égalité avec le dernier niveau : F-d').click();
     fixture.detectChanges();
     expect(host.step().levels).toEqual([['a'], ['b'], ['c', 'd']]);
-    expect(element.querySelector('.rank-unranked')).toBeNull();
+    expect(unrankedOf(element)).toEqual([]);
+    expect(element.querySelector('.rank-unranked')?.textContent).toContain(
+      'Toutes les fonctionnalités sont classées.',
+    );
     expect(values(element).map(([, value]) => value)).toEqual(['8', '5', '4', '4']);
   });
 
@@ -148,12 +153,12 @@ describe('CriterionRankingComponent', () => {
     )!;
     expect(reset.disabled).toBe(true);
 
-    type(element.querySelectorAll<HTMLInputElement>('.rank-item input')[1]!, '3');
+    type(inputs(element)[1]!, '3');
     fixture.detectChanges();
     expect(host.step().overrides).toEqual({ b: '3' });
     expect(element.querySelector('.rank-item .badge')?.textContent).toContain('modifiée');
 
-    type(element.querySelectorAll<HTMLInputElement>('.rank-item input')[1]!, '30');
+    type(inputs(element)[1]!, '30');
     fixture.detectChanges();
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
       'BV doit être un entier entre 1 et 10',

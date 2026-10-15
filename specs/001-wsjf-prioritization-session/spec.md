@@ -406,6 +406,13 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      peut aussi revenir au choix : retirer ou ajouter une fonctionnalité garde le
      classement des autres.
 
+  L'écran de classement tient dans la fenêtre (retour d'usage du 2026-10-15) : « Non
+  classées » à gauche et le classement à droite, côte à côte, chacun défilant de son côté,
+  une ligne par fonctionnalité (titre tronqué, en entier au survol ; boutons réduits à leur
+  symbole ↑ ↓ = →, nommés en entier pour les lecteurs d'écran) ; la navigation est dans
+  l'en-tête. Une consigne d'une ligne rappelle le critère ; l'explication complète est dans
+  un bouton « Aide ».
+
   Rien n'est envoyé avant « Terminer » : chaque fonctionnalité modifiée est alors
   enregistrée en une seule modification, avec la version lue à l'ouverture de l'écran
   (jamais d'écrasement silencieux). L'écran attend que le serveur ait enregistré chaque

@@ -44,8 +44,9 @@ type Action = 'up' | 'down' | 'join' | 'last';
 /**
  * Classement des fonctionnalités pour un critère (FR-015a) : niveaux du plus fort au plus faible, déplacés par
  * glisser-déposer (par la poignée ⠿, pour que les champs de valeur restent cliquables) ou par boutons (clavier),
- * égalités, fonctionnalités non classées, valeur du premier niveau et valeurs proposées, modifiables une à une. Ne
- * sait rien de l'envoi : il édite un `RankingStep`, ce qui le rend réutilisable pour le vote d'un tour.
+ * égalités, fonctionnalités non classées, valeur du premier niveau et valeurs proposées, modifiables une à une. Les
+ * non classées et le classement sont côte à côte et défilent chacun de leur côté, une ligne par fonctionnalité, pour
+ * en voir le plus possible sans faire défiler la page. Ne sait rien de l'envoi : il édite un `RankingStep`, ce qui le rend réutilisable pour le vote d'un tour.
  */
 @Component({
   selector: 'app-criterion-ranking',
@@ -64,6 +65,7 @@ type Action = 'up' | 'down' | 'join' | 'last';
         [value]="step().top"
         (input)="setTop($any($event.target).value)"
       />
+      <span id="ranking-top-help" class="muted small">{{ messages.topHelp }}</span>
       <button
         type="button"
         class="btn btn-secondary btn-sm"
@@ -72,81 +74,92 @@ type Action = 'up' | 'down' | 'join' | 'last';
       >
         {{ messages.resetProposals }}
       </button>
-      <span id="ranking-top-help" class="muted small">{{ messages.topHelp }}</span>
     </div>
     @if (topInvalid()) {
       <p id="ranking-top-error" class="err" role="alert">{{ topError() }}</p>
     }
-
-    <div class="ranking-lists">
-      <ol class="ranking-levels" [attr.aria-label]="listLabel()">
-        @for (level of step().levels; track $index; let index = $index) {
-          <li class="rank-level">
-            <div
-              class="rank-gap"
-              aria-hidden="true"
-              [class.drop-target]="dropTarget() === 'before-' + index"
-              (dragover)="allowDrop($event, 'before-' + index)"
-              (dragleave)="dropTarget.set(null)"
-              (drop)="drop($event, { before: index })"
-            ></div>
-            <div
-              class="rank-level-body"
-              [class.drop-target]="dropTarget() === 'into-' + index"
-              (dragover)="allowDrop($event, 'into-' + index)"
-              (dragleave)="dropTarget.set(null)"
-              (drop)="drop($event, { into: index })"
-            >
-              <span class="rank" [attr.aria-label]="levelLabel(index)">{{ index + 1 }}</span>
-              <ul class="rank-items">
-                @for (id of level; track id) {
-                  <ng-container
-                    [ngTemplateOutlet]="row"
-                    [ngTemplateOutletContext]="{ id, value: valueText(id, index), ranked: true }"
-                  />
-                }
-              </ul>
-            </div>
-          </li>
-        } @empty {
-          <li class="muted small rank-empty">{{ messages.emptyRanking }}</li>
-        }
-        <li
-          class="rank-gap rank-gap-end"
-          aria-hidden="true"
-          [class.drop-target]="dropTarget() === 'end'"
-          (dragover)="allowDrop($event, 'end')"
-          (dragleave)="dropTarget.set(null)"
-          (drop)="drop($event, { before: step().levels.length })"
-        ></li>
-      </ol>
-
-      @if (step().unranked.length > 0 || dragged() !== null) {
-        <section
-          class="rank-unranked"
-          [attr.aria-label]="messages.unrankedTitle"
-          [class.drop-target]="dropTarget() === 'unranked'"
-          (dragover)="allowDrop($event, 'unranked')"
-          (dragleave)="dropTarget.set(null)"
-          (drop)="dropUnranked($event)"
-        >
-          <h2 class="small">{{ messages.unrankedTitle }}</h2>
-          <p class="muted small">{{ messages.unrankedHelp }}</p>
-          <ul class="rank-items">
-            @for (id of step().unranked; track id) {
-              <ng-container
-                [ngTemplateOutlet]="row"
-                [ngTemplateOutletContext]="{ id, value: valueText(id, -1), ranked: false }"
-              />
-            }
-          </ul>
-        </section>
-      }
-    </div>
     @if (invalidIds().size > 0) {
       <p class="err" role="alert">{{ valueError() }}</p>
     }
 
+    <!-- Deux colonnes : les non classées à gauche, toujours visibles, et le classement à droite. -->
+    <div class="ranking-lists">
+      <section
+        class="rank-column rank-unranked"
+        aria-labelledby="rank-unranked-title"
+        [class.drop-target]="dropTarget() === 'unranked'"
+        (dragover)="allowDrop($event, 'unranked')"
+        (dragleave)="dropTarget.set(null)"
+        (drop)="dropUnranked($event)"
+      >
+        <h2 id="rank-unranked-title" class="rank-column-title">
+          {{ messages.unrankedTitle }}
+          <span class="rank-count">{{ step().unranked.length }}</span>
+        </h2>
+        <ul class="rank-items rank-scroll">
+          @for (id of step().unranked; track id) {
+            <ng-container
+              [ngTemplateOutlet]="row"
+              [ngTemplateOutletContext]="{ id, value: valueText(id, -1), ranked: false }"
+            />
+          } @empty {
+            <li class="muted small rank-empty">{{ messages.allRanked }}</li>
+          }
+        </ul>
+        <p class="muted small rank-column-help">{{ messages.unrankedHelp }}</p>
+      </section>
+
+      <section class="rank-column rank-ranked" aria-labelledby="rank-ranked-title">
+        <h2 id="rank-ranked-title" class="rank-column-title">
+          {{ messages.rankedTitle }}
+          <span class="rank-count">{{ rankedCount() }}</span>
+          <span class="muted small rank-column-hint">{{ messages.rankedHint }}</span>
+        </h2>
+        <ol class="ranking-levels rank-scroll" [attr.aria-label]="listLabel()">
+          @for (level of step().levels; track $index; let index = $index) {
+            <li class="rank-level">
+              <div
+                class="rank-gap"
+                aria-hidden="true"
+                [class.drop-target]="dropTarget() === 'before-' + index"
+                (dragover)="allowDrop($event, 'before-' + index)"
+                (dragleave)="dropTarget.set(null)"
+                (drop)="drop($event, { before: index })"
+              ></div>
+              <div
+                class="rank-level-body"
+                [class.drop-target]="dropTarget() === 'into-' + index"
+                (dragover)="allowDrop($event, 'into-' + index)"
+                (dragleave)="dropTarget.set(null)"
+                (drop)="drop($event, { into: index })"
+              >
+                <span class="rank" [attr.aria-label]="levelLabel(index)">{{ index + 1 }}</span>
+                <ul class="rank-items">
+                  @for (id of level; track id) {
+                    <ng-container
+                      [ngTemplateOutlet]="row"
+                      [ngTemplateOutletContext]="{ id, value: valueText(id, index), ranked: true }"
+                    />
+                  }
+                </ul>
+              </div>
+            </li>
+          } @empty {
+            <li class="muted small rank-empty">{{ messages.emptyRanking }}</li>
+          }
+          <li
+            class="rank-gap rank-gap-end"
+            aria-hidden="true"
+            [class.drop-target]="dropTarget() === 'end'"
+            (dragover)="allowDrop($event, 'end')"
+            (dragleave)="dropTarget.set(null)"
+            (drop)="drop($event, { before: step().levels.length })"
+          ></li>
+        </ol>
+      </section>
+    </div>
+
+    <!-- Une ligne par fonctionnalité : titre sur une ligne (en entier au survol), boutons réduits à leur symbole. -->
     <ng-template #row let-id="id" let-value="value" let-ranked="ranked">
       @if (items().get(id); as item) {
         <li class="rank-item" [attr.data-id]="id" [class.dragging]="dragged() === id">
@@ -160,8 +173,11 @@ type Action = 'up' | 'down' | 'join' | 'last';
             >⠿</span
           >
           <span class="fid-text">{{ item.externalId }}</span>
-          <span class="rank-title">{{ item.title }}</span>
+          <span class="rank-title" [attr.title]="item.title">{{ item.title }}</span>
           <span class="rank-value">
+            @if (isOverridden(id)) {
+              <span class="badge review">{{ messages.overridden }}</span>
+            }
             <input
               class="input num-input"
               inputmode="numeric"
@@ -170,61 +186,63 @@ type Action = 'up' | 'down' | 'join' | 'last';
               [value]="value"
               (input)="override(id, $any($event.target).value)"
             />
-            @if (isOverridden(id)) {
-              <span class="badge review">{{ messages.overridden }}</span>
-            }
           </span>
           <span class="rank-actions">
             @if (ranked) {
               <button
                 type="button"
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-icon"
                 data-action="up"
                 [attr.aria-label]="actionLabel(messages.moveUp, item)"
+                [attr.title]="messages.moveUp"
                 [disabled]="!canUp(id)"
                 (click)="act(id, 'up')"
               >
-                ↑ {{ messages.moveUp }}
+                ↑
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-icon"
                 data-action="down"
                 [attr.aria-label]="actionLabel(messages.moveDown, item)"
+                [attr.title]="messages.moveDown"
                 [disabled]="!canDown(id)"
                 (click)="act(id, 'down')"
               >
-                ↓ {{ messages.moveDown }}
+                ↓
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-icon"
                 data-action="join"
                 [attr.aria-label]="actionLabel(messages.joinAbove, item)"
+                [attr.title]="messages.joinAbove"
                 [disabled]="!canJoin(id)"
                 (click)="act(id, 'join')"
               >
-                = {{ messages.joinAbove }}
+                =
               </button>
             } @else {
               <button
                 type="button"
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-icon"
                 data-action="last"
                 [attr.aria-label]="actionLabel(messages.rankLast, item)"
+                [attr.title]="messages.rankLast"
                 (click)="act(id, 'last')"
               >
-                ↑ {{ messages.rankLast }}
+                →
               </button>
               <button
                 type="button"
-                class="btn btn-ghost btn-sm"
+                class="btn btn-ghost btn-icon"
                 data-action="join"
                 [attr.aria-label]="actionLabel(messages.joinLast, item)"
+                [attr.title]="messages.joinLast"
                 [disabled]="step().levels.length === 0"
                 (click)="act(id, 'join')"
               >
-                = {{ messages.joinLast }}
+                =
               </button>
             }
           </span>
@@ -261,6 +279,10 @@ export class CriterionRankingComponent {
     }
     return invalid;
   });
+
+  protected readonly rankedCount = computed(() =>
+    this.step().levels.reduce((count, level) => count + level.length, 0),
+  );
 
   protected readonly hasOverrides = computed(() => Object.keys(this.step().overrides).length > 0);
 

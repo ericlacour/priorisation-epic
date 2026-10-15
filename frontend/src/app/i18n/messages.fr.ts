@@ -173,6 +173,19 @@ export const MESSAGES = {
     previous: 'Précédent',
     next: 'Critère suivant',
     finish: 'Terminer et enregistrer',
+    shortInstruction:
+      'Classez de la plus forte à la plus faible pour {code} ({label}) ; au même niveau, celles qui se valent.',
+    help: 'Aide',
+    helpTitle: 'Comment classer',
+    helpClose: 'Fermer l’aide',
+    helpSteps: [
+      'À gauche, les fonctionnalités sans valeur, à placer ; à droite, le classement, du niveau 1 (le plus fort) au dernier.',
+      'Glissez une fonctionnalité par sa poignée ⠿ : sur un niveau pour une égalité, entre deux niveaux pour un nouveau niveau, ou à gauche pour la retirer du classement.',
+      'Au clavier : → classe en dernier, ↑ monte, ↓ descend, = met à égalité avec le niveau au-dessus (ou avec le dernier niveau).',
+      'Saisir la valeur du premier niveau propose une valeur à chaque niveau : la valeur juste inférieure de l’échelle, niveau après niveau.',
+      'Chaque valeur reste modifiable à la main (« modifiée ») ; « Revenir aux valeurs proposées » annule ces saisies.',
+      'Rien n’est enregistré avant « Terminer et enregistrer ».',
+    ],
     instruction:
       'Classez les fonctionnalités de la plus forte à la plus faible pour {code} ({label}). Mettez au même niveau celles qui se valent. Les valeurs actuelles sont gardées : une fonctionnalité déplacée reçoit la valeur proposée pour son niveau, et saisir la valeur du premier niveau propose une valeur à tous les niveaux.',
     topLabel: 'Valeur du premier niveau ({code})',
@@ -191,7 +204,10 @@ export const MESSAGES = {
     joinAbove: 'Égalité avec au-dessus',
     unrankedTitle: 'Non classées (sans valeur)',
     unrankedHelp:
-      'Elles restent sans valeur tant qu’elles ne sont pas classées. Glissez ici une fonctionnalité pour la retirer du classement.',
+      'Sans valeur tant qu’elles ne sont pas classées. Glissez ici pour retirer du classement.',
+    allRanked: 'Toutes les fonctionnalités sont classées.',
+    rankedTitle: 'Classement',
+    rankedHint: 'du plus fort au plus faible',
     rankLast: 'Classer en dernier',
     joinLast: 'Égalité avec le dernier niveau',
     saving: 'Enregistrement…',
