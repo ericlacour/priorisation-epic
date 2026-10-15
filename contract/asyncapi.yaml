@@ -65,6 +65,8 @@ channels:
         $ref: '#/components/messages/updateFeature'
       deleteFeature:
         $ref: '#/components/messages/deleteFeature'
+      updateSettings:
+        $ref: '#/components/messages/updateSettings'
       sessionState:
         $ref: '#/components/messages/sessionState'
     x-close-codes:
@@ -113,6 +115,13 @@ operations:
     summary: Soft-delete a feature, facilitator only.
     messages:
       - $ref: '#/channels/session/messages/deleteFeature'
+  receiveUpdateSettings:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Rename the session or change its scale (FR-010, FR-011), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/updateSettings'
   sendSessionState:
     action: send
     channel:
@@ -179,6 +188,12 @@ components:
       summary: Soft-delete a feature, facilitator only.
       payload:
         $ref: './schemas/delete-feature.json'
+    updateSettings:
+      name: updateSettings
+      title: updateSettings
+      summary: Rename the session or change its scale (FR-010, FR-011), facilitator only.
+      payload:
+        $ref: './schemas/update-settings.json'
     sessionState:
       name: sessionState
       title: sessionState

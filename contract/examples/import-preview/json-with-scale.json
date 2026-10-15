@@ -1,0 +1,18 @@
+{
+  "previewId": "0b9d8c7e-6f5a-4b3c-8d2e-1f0a9b8c7d6e",
+  "sourceType": "JSON",
+  "expiresAt": "2026-10-11T14:15:00Z",
+  "validRows": [
+    {
+      "line": 1,
+      "externalId": "F-1",
+      "title": "Paiement en un clic",
+      "description": null,
+      "criteria": { "bv": 13, "tc": 5, "rrOe": 3, "js": 8 }
+    }
+  ],
+  "rejectedRows": [],
+  "warnings": [],
+  "ignoredColumns": [],
+  "scale": { "type": "FIBONACCI", "max": 20 }
+}

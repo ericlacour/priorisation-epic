@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "import-result.json",
+  "title": "Import result",
+  "description": "Summary shown after the confirmation (FR-008): the number of rows imported and rejected. A row valid in the preview but whose identifier was taken in the meantime is counted as rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["imported", "rejected"],
+  "properties": {
+    "imported": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rejected": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

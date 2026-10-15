@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Fichier refusé",
+  "status": 400,
+  "detail": "Le fichier n'a pas les colonnes obligatoires Identifiant et Titre. En-têtes attendus : Identifiant, Titre, Description, BV, TC, RR/OE, JS. Téléchargez le modèle pour partir d'un fichier conforme."
+}

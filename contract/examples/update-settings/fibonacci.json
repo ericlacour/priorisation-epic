@@ -1,0 +1,4 @@
+{
+  "type": "updateSettings",
+  "scale": { "type": "FIBONACCI", "max": 13 }
+}
