@@ -169,10 +169,10 @@ test.describe('prioriser par classement (FR-015a)', () => {
     expect(rowHeight).toBeLessThanOrEqual(40);
   });
 
-  test('fenêtre de 1280 × 620 : 15 fonctionnalités visibles, chacune à son niveau, sans défilement', async ({
+  test('fenêtre de 1280 × 560 : 15 fonctionnalités visibles, chacune à son niveau, sans défilement', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1280, height: 620 });
+    await page.setViewportSize({ width: 1280, height: 560 });
     const unvalued = (manyFeatures(15) as { criteria: object }[]).map((feature) => ({
       ...feature,
       criteria: { ...feature.criteria, bv: null },

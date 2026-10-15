@@ -204,10 +204,10 @@ test.describe('tableau de priorisation', () => {
   });
 
   for (const animate of [true, false]) {
-    test(`fenêtre de 1280 × 620 : 15 fonctionnalités visibles sans défilement (${animate ? 'animateur' : 'participant'})`, async ({
+    test(`fenêtre de 1280 × 560 : 15 fonctionnalités visibles sans défilement (${animate ? 'animateur' : 'participant'})`, async ({
       page,
     }) => {
-      await page.setViewportSize({ width: 1280, height: 620 });
+      await page.setViewportSize({ width: 1280, height: 560 });
       await open(page, animate);
       await push(page, sessionState(manyFeatures(15), { animate }));
       await expect(rows(page)).toHaveCount(15);
