@@ -59,7 +59,7 @@ test.describe('tableau de priorisation', () => {
     await expect(page.getByRole('button', { name: 'Liens' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Importer', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Échelle', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Exporter' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Exporter' })).toBeEnabled();
     await expect(page.getByRole('button', { name: 'Tours révélés' })).toBeDisabled();
     await expect(page.getByRole('cell', { name: '4,00' })).toBeVisible();
   });

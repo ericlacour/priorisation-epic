@@ -115,6 +115,53 @@ app-root > app-session-entry {
   user-select: all;
 }
 
+/* Menu « Exporter » de la barre de session : la liste et le message de résultat s'ouvrent sous le bouton, à droite. */
+.export-menu {
+  position: relative;
+  display: flex;
+}
+
+.export-list {
+  min-width: 260px;
+}
+
+.export-list .version {
+  margin-left: auto;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.export-notice {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+}
+
+.export-notice.error {
+  border-color: var(--danger);
+}
+
+.export-notice .panel-close {
+  flex: none;
+}
+
 /* Liens de l'animateur, à la demande : la liste s'ouvre sous le bouton, à droite. */
 .links-menu {
   position: relative;

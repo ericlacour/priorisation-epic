@@ -10,6 +10,7 @@ import { RouterLink } from '@angular/router';
 
 import { SessionStatus } from '../api/session-state';
 import { LinksMenuComponent } from '../board/links-menu.component';
+import { ExportMenuComponent } from '../import-export/export-menu.component';
 import { ParticipantsMenuComponent } from '../board/participants-menu.component';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
@@ -23,12 +24,18 @@ import { SessionRoomService } from './session-room.service';
  * Barre de session (FR-014c), sur une ligne, à la place de la barre de l'application : à gauche la pastille « PF »
  * (retour à l'accueil), le nom de la session tronqué (en entier au survol), son statut et une ligne d'information,
  * puis le lien « Comprendre le <méthode> » (FR-016a) ; à droite les outils, les mêmes pour tous : participants
- * (FR-005), « Tours révélés » et « Exporter » (places réservées, actives avec US4 et le vote masqué), les liens de
- * l'animateur (FR-014b) et le thème.
+ * (FR-005), « Tours révélés » (place réservée, active avec le vote masqué), le menu « Exporter » (FR-023, FR-024),
+ * les liens de l'animateur (FR-014b) et le thème.
  */
 @Component({
   selector: 'app-session-bar',
-  imports: [LinksMenuComponent, ParticipantsMenuComponent, RouterLink, ThemeMenuComponent],
+  imports: [
+    ExportMenuComponent,
+    LinksMenuComponent,
+    ParticipantsMenuComponent,
+    RouterLink,
+    ThemeMenuComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'session-bar' },
   template: `
@@ -58,9 +65,7 @@ import { SessionRoomService } from './session-room.service';
         <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
           {{ messages.revealedRounds }}
         </button>
-        <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-          {{ messages.export }}
-        </button>
+        <app-export-menu [sessionId]="state.sessionId" />
         @if (room.canAnimate()) {
           <app-links-menu
             [sessionId]="state.sessionId"

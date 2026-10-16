@@ -109,3 +109,39 @@ test('les actions de l’animateur gardent leur libellé, en groupes, dans la ba
     await expect(tools.getByRole('button', { name })).toBeVisible();
   }
 });
+
+test('le menu « Exporter » et son message se superposent au tableau sans le décaler (T105)', async ({
+  page,
+}) => {
+  await open(page, false, 'IN_PROGRESS');
+  await page.route('**/api/sessions/*/exports/csv', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/csv;charset=UTF-8',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Expose-Headers': 'Content-Disposition',
+        'Content-Disposition': 'attachment; filename="atelier-q4-tableau-v1.csv"',
+      },
+      body: '﻿Rang;Identifiant\r\n',
+    }),
+  );
+  const before = await page.locator('tbody tr').first().boundingBox();
+
+  await page.getByRole('button', { name: 'Exporter' }).click();
+  await expect(page.getByRole('menu', { name: 'Exporter' })).toBeVisible();
+  expect(await page.locator('tbody tr').first().boundingBox()).toEqual(before);
+  const { session } = await bars(page);
+  expect(session.height).toBeLessThanOrEqual(SESSION_BAR_MAX);
+
+  const download = page.waitForEvent('download');
+  await page.getByRole('menuitem', { name: /Tableau CSV/ }).click();
+  expect((await download).suggestedFilename()).toBe('atelier-q4-tableau-v1.csv');
+  await expect(page.locator('.export-notice')).toContainText(
+    'Fichier téléchargé : atelier-q4-tableau-v1.csv',
+  );
+  expect(await page.locator('tbody tr').first().boundingBox()).toEqual(before);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+  ).toBe(true);
+});

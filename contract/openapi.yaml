@@ -31,6 +31,8 @@ tags:
     description: Prioritization methods offered at creation.
   - name: imports
     description: Import features from Excel, CSV or JSON, with a preview (FR-007, FR-008).
+  - name: exports
+    description: Export the board (CSV, Confluence) or the whole session (JSON) (FR-023, FR-024).
 
 paths:
   /api/health:
@@ -235,6 +237,76 @@ paths:
                 contentMediaType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  /api/sessions/{sessionId}/exports/{format}:
+    parameters:
+      - $ref: '#/components/parameters/sessionId'
+      - name: format
+        in: path
+        required: true
+        description: |
+          `csv` (board, `tableau-v1`), `confluence-wiki` and `confluence-html` (`confluence-v1`),
+          `json` (whole session, `formatVersion: 1`). `csv-votes` comes with masked voting.
+        schema:
+          type: string
+          enum: [csv, confluence-wiki, confluence-html, json]
+    get:
+      tags: [exports]
+      operationId: exportSession
+      summary: Export the board or the whole session (FR-023, FR-024)
+      description: |
+        Open to every member, without a token: the export is built from the same view as
+        `getSession`, so features come in board order. The file is sent as an attachment whose
+        name carries the format version (`<session>-tableau-v1.csv`, `<session>-confluence-v1.txt`,
+        `<session>-confluence-v1.html`, `<session>-session-v1.json`). Columns come from the method
+        definition of the session. Formats are described in file-formats.md. An unknown format
+        gets 400.
+      responses:
+        '200':
+          description: 'The file, with `Content-Disposition: attachment` and `Cache-Control: no-store`.'
+          headers:
+            Content-Disposition:
+              description: '`attachment` with the versioned file name.'
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                description: UTF-8 with BOM, `;` separator, RFC 4180 quotes (`tableau-v1`).
+            text/plain:
+              schema:
+                type: string
+                description: Confluence wiki markup (`confluence-v1`).
+            text/html:
+              schema:
+                type: string
+                description: HTML fragment with a title, a legend and a `<table>` (`confluence-v1`).
+            application/json:
+              schema:
+                type: object
+                description: Whole session, `formatVersion` 1 (file-formats.md).
+                required: [formatVersion, exportedAt, session, features, rounds]
+                properties:
+                  formatVersion:
+                    const: 1
+                  exportedAt:
+                    type: string
+                    format: date-time
+                  session:
+                    type: object
+                  features:
+                    type: array
+                    items:
+                      type: object
+                  rounds:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/SessionNotFound'
 
 components:
   securitySchemes:

@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 
 import { SessionStatus } from '../api/session-state';
+import { APP_CONFIG } from '../config/app-config';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { FakeRoom } from '../testing/fake-room';
 import { state } from '../testing/fixtures';
@@ -21,6 +22,7 @@ describe('SessionBarComponent', () => {
         { provide: SessionRoomService, useValue: room },
         { provide: ScreenSizeService, useValue: { isPhone: signal(options.phone ?? false) } },
         memoryStorage().provider,
+        { provide: APP_CONFIG, useValue: { apiBaseUrl: 'https://api.example' } },
         provideRouter([]),
       ],
     });
@@ -72,24 +74,24 @@ describe('SessionBarComponent', () => {
     expect(asked).toBe(1);
   });
 
-  it('gives the facilitator the tools, with « Tours révélés » and « Exporter » reserved', () => {
+  it('gives the facilitator the tools, with « Tours révélés » reserved and « Exporter » active', () => {
     const { buttons } = render({ animate: true });
     expect(buttons()).toEqual([
       { text: 'Participants (2)', disabled: false },
       { text: 'Tours révélés', disabled: true },
-      { text: 'Exporter', disabled: true },
+      { text: 'Exporter', disabled: false },
       { text: 'Liens', disabled: false },
       { text: 'Thème', disabled: false },
     ]);
   });
 
-  it('gives a participant the same tools, without the links', () => {
+  it('gives a participant the same tools, without the links, « Exporter » included', () => {
     const { buttons } = render({ animate: false });
-    expect(buttons().map((b) => b.text)).toEqual([
-      'Participants (2)',
-      'Tours révélés',
-      'Exporter',
-      'Thème',
+    expect(buttons()).toEqual([
+      { text: 'Participants (2)', disabled: false },
+      { text: 'Tours révélés', disabled: true },
+      { text: 'Exporter', disabled: false },
+      { text: 'Thème', disabled: false },
     ]);
   });
 });

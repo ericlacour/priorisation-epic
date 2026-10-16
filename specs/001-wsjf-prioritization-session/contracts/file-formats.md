@@ -26,9 +26,13 @@ Chaque format d'export porte un **numéro de version documenté** :
 |--------|------------------|------------------------|
 | CSV tableau (`csv`) | `tableau-v1` | Nom du fichier : `<session>-tableau-v1.csv` |
 | CSV votes (`csv-votes`) | `votes-v1` | Nom du fichier : `<session>-votes-v1.csv` |
-| Confluence HTML (`confluence-html`) | `confluence-v1` | Ligne de légende : « Format confluence-v1 » |
+| Confluence HTML (`confluence-html`) | `confluence-v1` | Ligne de légende : « Format confluence-v1 » (et nom du fichier `<session>-confluence-v1.html`) |
 | Confluence wiki (`confluence-wiki`) | `confluence-v1` | Nom du fichier `<session>-confluence-v1.txt` et ligne de légende |
-| JSON (`json`) | `formatVersion: 1` | Champ `formatVersion` |
+| JSON (`json`) | `formatVersion: 1` | Champ `formatVersion` (et nom du fichier `<session>-session-v1.json`) |
+
+`<session>` est le nom de la session réduit à des lettres ASCII minuscules, des chiffres et
+des tirets (60 caractères au plus, `session` s'il ne reste rien) : « PI 27 – Epics » donne
+`pi-27-epics`. Le titre Confluence est daté du jour de l'export, à l'heure de Paris.
 
 **Règles de version** :
 - Ajouter une colonne ou un champ **à la fin** ne change pas la version.
@@ -92,6 +96,14 @@ Les formules sont lues par leur dernière valeur calculée.
   ligne d'en-tête.
 - Guillemets RFC 4180 pour les champs qui contiennent le séparateur, un guillemet ou un
   saut de ligne.
+- **Protection contre l'injection de formules** (recommandation de l'OWASP) : à l'export,
+  une cellule qui commence par `=`, `+`, `-`, `@`, une tabulation ou un retour chariot,
+  éventuellement précédés d'apostrophes, reçoit une apostrophe `'` en tête : le tableur
+  l'affiche comme du texte au lieu de l'évaluer. À l'import CSV, une apostrophe suivie de
+  ces mêmes caractères est retirée. Les deux règles sont exactement inverses, ce qui garde
+  l'aller-retour. L'apostrophe reste visible dans le tableur pour ces cellules (par exemple
+  `'-Refonte`). Les cellules d'un fichier Excel ne sont pas concernées : une cellule texte
+  n'y est jamais évaluée.
 - **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;<critères>;<calculées>;À revoir;Motif`.
   En WSJF : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF;À revoir;Motif`.
   - `À revoir` vaut `oui` ou reste vide (FR-006a), `Motif` contient le motif éventuel.
@@ -133,7 +145,10 @@ légende qui rappelle la méthode, sa formule et sa règle d'égalité (constitu
    ||Rang||Identifiant||Titre||Description||BV||TC||RR/OE||JS||CoD||WSJF||
    |1|F-1|Titre|Description|8|5|3|4|16|4,00|
    ```
-   Les caractères `|`, `{`, `}`, `[` et `]` contenus dans les textes sont échappés avec `\`.
+   Les caractères `|`, `{`, `}`, `[`, `]` et `!` contenus dans les textes sont échappés avec
+   `\` : un texte ne peut ouvrir ni macro, ni lien, ni image externe (`!url!`).
+   La barre oblique inverse `\` devient l'entité `&#92;` : laissée telle quelle en fin de
+   texte, elle échapperait le `|` qui suit, et doublée, elle deviendrait un saut de ligne.
    Les sauts de ligne d'une description sont remplacés par `\\`.
 
 ## JSON, en import et en export complet
