@@ -26,9 +26,13 @@ Chaque format d'export porte un **numéro de version documenté** :
 |--------|------------------|------------------------|
 | CSV tableau (`csv`) | `tableau-v1` | Nom du fichier : `<session>-tableau-v1.csv` |
 | CSV votes (`csv-votes`) | `votes-v1` | Nom du fichier : `<session>-votes-v1.csv` |
-| Confluence HTML (`confluence-html`) | `confluence-v1` | Ligne de légende : « Format confluence-v1 » |
+| Confluence HTML (`confluence-html`) | `confluence-v1` | Ligne de légende : « Format confluence-v1 » (et nom du fichier `<session>-confluence-v1.html`) |
 | Confluence wiki (`confluence-wiki`) | `confluence-v1` | Nom du fichier `<session>-confluence-v1.txt` et ligne de légende |
-| JSON (`json`) | `formatVersion: 1` | Champ `formatVersion` |
+| JSON (`json`) | `formatVersion: 1` | Champ `formatVersion` (et nom du fichier `<session>-session-v1.json`) |
+
+`<session>` est le nom de la session réduit à des lettres ASCII minuscules, des chiffres et
+des tirets (60 caractères au plus, `session` s'il ne reste rien) : « PI 27 – Epics » donne
+`pi-27-epics`. Le titre Confluence est daté du jour de l'export, à l'heure de Paris.
 
 **Règles de version** :
 - Ajouter une colonne ou un champ **à la fin** ne change pas la version.
