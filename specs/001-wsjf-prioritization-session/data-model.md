@@ -308,6 +308,6 @@ change vraiment.
 | `externalId` unique par session | FR-006 | Domaine, puis index unique `lower(external_id)` |
 | Pseudo unique par session | FR-003 | Domaine, puis index unique `lower(pseudo)` |
 | Un seul animateur par session | FR-002a | Service, sous transaction |
-| Une fonctionnalité dans un seul tour ouvert | FR-018 | Service, sous verrou sur la session |
+| Un seul tour ouvert à la fois par session (donc une fonctionnalité dans un seul tour ouvert) | FR-018 | Service, sous verrou sur la session, `error ROUND_OPEN` |
 | Écritures interdites en `CLOSED` | FR-026 | Service |
 | Seul l'animateur modifie les valeurs retenues, l'échelle et le statut, et pilote les tours | FR-004, FR-021 | Contrôle d'accès dans l'API, via le jeton d'animation |

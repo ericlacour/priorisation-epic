@@ -164,7 +164,7 @@ planning-poker est indiquée, sous la forme `PP : …`.
   - Verrouillage optimiste en base, avec `@Version` sur Session et Feature.
   - Les intentions sur une fonctionnalité portent `version`. En cas d'écart, le serveur
     renvoie `error STALE_VERSION` et ne modifie rien.
-  - La règle « une fonctionnalité dans un seul tour ouvert » est vérifiée sous ce verrou.
+  - La règle « un seul tour ouvert à la fois par session » (FR-018, décision du 2026-10-16) est vérifiée sous ce verrou.
 
 ## R8. Historique (FR-025, constitution III)
 
