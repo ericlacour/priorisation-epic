@@ -151,6 +151,14 @@ export const MESSAGES = {
     participantsList: 'Liste des participants',
     animator: 'animateur',
     offline: 'hors ligne',
+    home: "Retour à l'accueil",
+    actionsLabel: "Actions d'animation",
+    stateLabel: 'État de la session',
+    toolsLabel: 'Outils de la session',
+    groups: {
+      entry: 'Saisie',
+      preparation: 'Préparation',
+    },
   },
   editor: {
     newTitle: 'Nouvelle fonctionnalité',

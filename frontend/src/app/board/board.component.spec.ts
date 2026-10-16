@@ -1,10 +1,12 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 
 import { Feature } from '../api/session-state';
 import { APP_CONFIG } from '../config/app-config';
 import { ScreenSizeService } from '../layout/screen-size.service';
+import { SessionChromeService } from '../layout/session-chrome.service';
 import { SessionRoomService } from '../session/session-room.service';
 import { FakeRoom } from '../testing/fake-room';
 import {
@@ -41,6 +43,7 @@ describe('BoardComponent', () => {
         { provide: ScreenSizeService, useValue: { isPhone: signal(options.phone ?? false) } },
         { provide: APP_CONFIG, useValue: { apiBaseUrl: 'https://api.example' } },
         memoryStorage().provider,
+        provideRouter([]),
       ],
     });
     const fixture = TestBed.createComponent(BoardComponent);
@@ -61,6 +64,22 @@ describe('BoardComponent', () => {
     );
 
   // --- Colonnes tirées de methodDefinition -------------------------------------------------------
+
+  it('replaces the application bar with its session bar while it is shown (FR-014c)', () => {
+    const { fixture } = render();
+    const chrome = TestBed.inject(SessionChromeService);
+    expect(chrome.sessionBar()).toBe(true);
+    fixture.destroy();
+    expect(chrome.sessionBar()).toBe(false);
+  });
+
+  it('shows the participant status line, and no action bar for a facilitator on a phone', () => {
+    expect(
+      render({ animate: false }).element.querySelector('app-action-bar')?.textContent,
+    ).toContain('Aucun tour de vote en cours.');
+    TestBed.resetTestingModule();
+    expect(render({ phone: true }).element.querySelector('app-action-bar')).toBeNull();
+  });
 
   it('shows the rank, id, title, then one column per criterion and computed value of the definition', () => {
     const { element } = render();
@@ -176,7 +195,7 @@ describe('BoardComponent', () => {
     expect(element.querySelector('aside')).toBeNull();
     expect(element.textContent).not.toContain('CoD = BV + TC + RR/OE ; WSJF = CoD / JS');
 
-    const link = element.querySelector<HTMLButtonElement>('.board-name .link-button')!;
+    const link = element.querySelector<HTMLButtonElement>('.session-bar .session-help')!;
     expect(link.textContent?.trim()).toBe('Comprendre le WSJF');
     link.click();
     fixture.detectChanges();
@@ -581,7 +600,7 @@ describe('BoardComponent', () => {
   it('opens the method panel from the glossary', () => {
     const { fixture, element } = render();
 
-    element.querySelector<HTMLButtonElement>('.board-name .link-button')!.click();
+    element.querySelector<HTMLButtonElement>('.session-bar .session-help')!.click();
     fixture.detectChanges();
     element.querySelector<HTMLButtonElement>('app-method-glossary .link-button')!.click();
     fixture.detectChanges();
