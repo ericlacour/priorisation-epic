@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 
 import { APP_CONFIG } from '../config/app-config';
-import { FETCH, SessionApi, SessionApiError } from './session-api';
+import { FETCH, SessionApi, SessionApiError, fileNameOf } from './session-api';
 
 const ID = 'k3Jx9QvT2mLpZ8wR4nYb7A';
 
@@ -181,5 +181,45 @@ describe('SessionApi imports', () => {
     expect(apiWith(json(200, {})).templateUrl('WSJF', 2)).toBe(
       'https://api.example/api/import-template.xlsx?method=WSJF&methodVersion=2',
     );
+  });
+});
+
+describe('SessionApi exports', () => {
+  it('downloads an export without token, named by Content-Disposition', async () => {
+    const fetchFn = vi.fn(
+      async () =>
+        new Response('﻿Rang;Identifiant', {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/csv;charset=UTF-8',
+            'Content-Disposition': 'attachment; filename="atelier-tableau-v1.csv"',
+          },
+        }),
+    ) as unknown as typeof fetch;
+
+    const file = await apiWith(fetchFn).exportFile(ID, 'csv');
+
+    expect(file.fileName).toBe('atelier-tableau-v1.csv');
+    expect(await file.blob.text()).toContain('Rang;Identifiant');
+    const [url, init] = (fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe(`https://api.example/api/sessions/${ID}/exports/csv`);
+    expect(init.method).toBe('GET');
+    expect(init.headers).toBeUndefined();
+  });
+
+  it('falls back to a generic name, and maps errors', async () => {
+    const ok = vi.fn(async () => new Response('{}', { status: 200 })) as unknown as typeof fetch;
+    expect((await apiWith(ok).exportFile(ID, 'json')).fileName).toBe('export.json');
+    expect(await kindOf(apiWith(json(404, {})).exportFile(ID, 'csv'))).toBe('notFound');
+    expect(await kindOf(apiWith(json(500, {})).exportFile(ID, 'csv'))).toBe('network');
+    expect(await kindOf(apiWith(ok).exportFile('pas-un-id', 'csv'))).toBe('notFound');
+  });
+
+  it('reads both forms of Content-Disposition', () => {
+    expect(fileNameOf("attachment; filename*=UTF-8''%C3%A9t%C3%A9-v1.csv")).toBe('été-v1.csv');
+    expect(fileNameOf('attachment; filename="a.csv"; filename*=UTF-8\'\'b.csv')).toBe('b.csv');
+    expect(fileNameOf('attachment; filename=plain.txt')).toBe('plain.txt');
+    expect(fileNameOf('attachment')).toBeNull();
+    expect(fileNameOf(null)).toBeNull();
   });
 });

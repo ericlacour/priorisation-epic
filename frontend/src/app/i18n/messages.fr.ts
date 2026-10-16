@@ -116,7 +116,6 @@ export const MESSAGES = {
     noRound:
       "Aucun tour de vote en cours. Le tableau se met à jour en direct quand l'animateur modifie une valeur.",
     soon: 'Disponible dans une prochaine version.',
-    export: 'Exporter',
     revealedRounds: 'Tours révélés',
     addFeature: '+ Fonctionnalité',
     rank: 'Prioriser par classement',
@@ -136,6 +135,23 @@ export const MESSAGES = {
     importHint: 'Importer des fonctionnalités depuis un fichier Excel, CSV ou JSON',
     scale: 'Échelle',
     scaleHint: 'Choisir le type d’échelle et sa borne',
+    exportMenu: {
+      label: 'Exporter',
+      hint: 'Exporter le tableau ou la session complète',
+      csv: 'Tableau CSV',
+      csvVersion: 'tableau-v1',
+      confluence: 'Copier pour Confluence',
+      wiki: 'Confluence (wiki markup)',
+      json: 'Session complète JSON',
+      jsonVersion: 'v1',
+      downloaded: 'Fichier téléchargé : {file}',
+      copied: 'Tableau copié : collez-le dans une page Confluence.',
+      copyFailed:
+        'Ce navigateur n’a pas pu copier le tableau : téléchargez le wiki markup et collez-le dans Confluence.',
+      failed: 'L’export a échoué. Vérifiez la connexion, puis réessayez.',
+      notFound: 'Cette session n’existe plus : l’export est impossible.',
+      close: 'Fermer le message',
+    },
     links: {
       label: 'Liens',
       hint: 'Copier le lien d’invitation ou votre lien d’animation',

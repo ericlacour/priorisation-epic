@@ -233,7 +233,7 @@ describe('BoardComponent', () => {
     expect(button(element, 'Modifier')).toBeUndefined();
     expect(button(element, '+ Fonctionnalité')).toBeUndefined();
     expect(element.textContent).toContain('Aucun tour de vote en cours');
-    expect(button(element, 'Exporter')?.disabled).toBe(true);
+    expect(button(element, 'Exporter')?.disabled).toBe(false);
     expect(button(element, 'Tours révélés')?.disabled).toBe(true);
     expect(button(element, 'Liens')).toBeUndefined();
     expect(button(element, 'Importer')).toBeUndefined();

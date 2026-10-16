@@ -62,6 +62,23 @@ const IMPORT_KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
   413: 'tooLarge',
 };
 
+/** Les formats d'export (`GET /api/sessions/{sessionId}/exports/{format}`, FR-023, FR-024). */
+export type ExportFormat = 'csv' | 'confluence-wiki' | 'confluence-html' | 'json';
+
+/** L'extension de chaque format, pour le nom de repli d'un fichier exporté. */
+const EXPORT_EXTENSIONS: Readonly<Record<ExportFormat, string>> = {
+  csv: 'csv',
+  'confluence-wiki': 'txt',
+  'confluence-html': 'html',
+  json: 'json',
+};
+
+/** Un fichier exporté, avec le nom versionné donné par le serveur. */
+export interface ExportedFile {
+  readonly blob: Blob;
+  readonly fileName: string;
+}
+
 /** Les jetons d'un animateur, envoyés en en-têtes : jamais dans l'adresse. */
 export interface FacilitatorTokens {
   readonly participantToken: string;
@@ -148,6 +165,29 @@ export class SessionApi {
     throw await errorOf(response, IMPORT_KINDS);
   }
 
+  /**
+   * `GET /api/sessions/{sessionId}/exports/{format}` : le fichier exporté, ouvert à tout membre et sans jeton. Le nom
+   * vient de `Content-Disposition`, à défaut `export.<extension>`.
+   */
+  async exportFile(sessionId: string, format: ExportFormat): Promise<ExportedFile> {
+    assertWellFormedId(sessionId);
+    const response = await this.send(
+      `${sessionPath(sessionId)}/exports/${encodeURIComponent(format)}`,
+      'GET',
+    );
+    if (response.status !== 200) throw await errorOf(response);
+    try {
+      return {
+        blob: await response.blob(),
+        fileName:
+          fileNameOf(response.headers.get('Content-Disposition')) ??
+          `export.${EXPORT_EXTENSIONS[format]}`,
+      };
+    } catch {
+      throw new SessionApiError('network');
+    }
+  }
+
   /** L'adresse du modèle Excel d'une méthode (`GET /api/import-template.xlsx`), à télécharger par un lien. */
   templateUrl(method: string, methodVersion: number): string {
     const query = new URLSearchParams({ method, methodVersion: String(methodVersion) });
@@ -191,6 +231,22 @@ const tokenHeaders = (tokens: FacilitatorTokens): Record<string, string> => ({
   'X-Participant-Token': tokens.participantToken,
   'X-Animation-Token': tokens.animationToken,
 });
+
+/** Le nom de fichier d'un `Content-Disposition` (`filename*=UTF-8''…` d'abord, puis `filename="…"`). */
+export function fileNameOf(disposition: string | null): string | null {
+  if (!disposition) return null;
+  const extended = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition);
+  if (extended) {
+    try {
+      return decodeURIComponent(extended[1].trim());
+    } catch {
+      // Encodage invalide : on essaie le nom simple.
+    }
+  }
+  const plain = /filename\s*=\s*"([^"]*)"|filename\s*=\s*([^;]+)/i.exec(disposition);
+  const name = (plain?.[1] ?? plain?.[2])?.trim();
+  return name ? name : null;
+}
 
 async function parseOrNetwork<T>(response: Response, parse: (json: unknown) => T): Promise<T> {
   try {
