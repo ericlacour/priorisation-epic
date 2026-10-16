@@ -1,6 +1,6 @@
 # Maquettes : session de priorisation WSJF
 
-Maquettes cliquables des 15 écrans de la feature 001. Ouvrir `index.html` dans un navigateur.
+Maquettes cliquables des 15 écrans de la feature 001. Les écrans 4 et 4 quinquies ont un sélecteur « État simulé » (préparation, en cours, tour ouvert, tour révélé, clôturée) et simulent une fenêtre de 1280 × 560. Ouvrir `index.html` dans un navigateur.
 La barre du haut permet de basculer entre ordinateur et téléphone, et entre thème clair et
 thème sombre. Chaque écran rappelle les exigences de la spec qu'il illustre.
 
@@ -48,6 +48,30 @@ Les contrastes vérifiés sont tous au moins AA :
 | `#6B7079` sur blanc | 5,0:1 |
 | `#FF6B76` sur `#16181C` | 6,1:1 |
 
+## Barres de l'écran de session (T097a, 2026-10-16)
+
+Mesures des écrans 4 et 4 quinquies dans Chromium, fenêtre de 1280 × 560 :
+
+| Mesure | Valeur |
+|--------|--------|
+| Barre de session | 52 px, une ligne, nom de la session tronqué |
+| Barre d'actions | 46 px, une ligne, dans les six états |
+| Les deux barres | 98 px (budget : 105 px) |
+| Fonctionnalités entièrement visibles | 16 (exigence : 15) |
+| Place libre dans la barre d'actions de l'animateur | 60 px dans l'état le plus chargé (tour ouvert, animateur qui a voté : « Modifier mon vote » et « Révéler »), plus de 130 px ailleurs |
+
+Choix de détail faits dans la maquette :
+
+- Les lignes du tableau font 25 px, comme dans l'application. « Modifier » est un petit bouton de 21 px.
+- L'avancement du tour tient dans une puce : « Tour 2 · 3/5 votes ». Le détail par membre (« a voté », « n'a pas encore voté ») est dans le menu « Participants », avec « Transmettre le rôle » (désactivé pour un membre hors ligne).
+- Après la révélation, la zone des tours affiche « Tour 2 révélé » et « Résultats et consensus », jusqu'à l'ouverture du tour suivant.
+- « Clôturer la session » est désactivé pendant un tour ouvert (refus `ROUND_OPEN`), avec une infobulle.
+- « Échelle » est désactivé pendant un tour ouvert, « Ouvrir un tour de vote » en préparation et pendant un tour.
+- Le participant voit, à la place des actions, un bandeau d'état de même hauteur, avec « Voter », « Modifier mon vote » ou « Voir les résultats ».
+- Pendant un tour, chez le participant, les fonctionnalités du tour passent en fin de liste, masquées, et les rangs des autres se suivent.
+- Le message superposé (case « Message superposé ») couvre le haut du tableau sans le décaler.
+- Sur téléphone, les outils passent sur une deuxième ligne, et la barre d'actions devient le bandeau « Lecture seule ».
+
 ## Écrans
 
 | # | Écran | Exigences illustrées |
@@ -55,11 +79,11 @@ Les contrastes vérifiés sont tous au moins AA :
 | 1 | Accueil : sessions, créer une session avec le choix de la méthode | FR-001, FR-017d, FR-026 |
 | 2 | Session créée : lien d'invitation et lien d'animation privé | FR-002 |
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
-| 4 | Tableau, vue animateur, session en préparation *(à refaire : barre de session et barre d'actions, dans chaque état, revue du 2026-10-16, T097a)* | FR-014c, US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |
+| 4 | Tableau, vue animateur, avec les deux barres dans chaque état (refait le 2026-10-16, T097a) | FR-004, FR-014c, FR-018, US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |
 | 4 bis | Ouvrir un tour : choix des fonctionnalités *(à refaire : choix des critères et des fonctionnalités, comme l'écran 4 sexies, revue du 2026-10-15)* | FR-018 |
 | 4 ter | Descriptif d'une fonctionnalité (panneau ouvert au clic sur l'identifiant) | FR-016, FR-016b |
 | 4 quater | Méthode de la session, en lecture seule | FR-017a, FR-017c |
-| 4 quinquies | Tableau, vue participant, sans tour en cours *(à refaire avec les deux barres, T097a)* | FR-014a, FR-014b, FR-014c, FR-015 |
+| 4 quinquies | Tableau, vue participant, avec les deux barres dans chaque état (refait le 2026-10-16, T097a) | FR-014a, FR-014b, FR-014c, FR-015 |
 | 4 sexies | Prioriser par classement : choix des critères et des fonctionnalités | FR-015a |
 | 4 septies | Prioriser par classement : classement et valeurs d'un critère | FR-015a |
 | 5 | Tour en cours, vue participant *(à refaire : vote par classement sur l'écran 4 septies, départ « Non classées », « Envoyer mon vote », revue du 2026-10-15)* | US2, FR-019, FR-019a, SC-004 |

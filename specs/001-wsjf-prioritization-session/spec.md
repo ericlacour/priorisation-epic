@@ -458,8 +458,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     propre en-tête de navigation (FR-015a, FR-019, FR-020) ;
   - dans une fenêtre de **moins de 1280 px**, la barre d'actions peut passer sur deux
     lignes : c'est accepté, hors de la garantie de FR-014a, sans menu de repli ;
+  - l'avancement d'un tour tient dans une puce (« Tour N · 3/5 votes ») ; le détail par
+    membre (« a voté », « n'a pas encore voté ») est dans le menu « Participants (n) ▾ ».
+    Après la révélation, la zone des tours affiche « Tour N révélé » et « Résultats et
+    consensus » jusqu'à l'ouverture du tour suivant. « Clôturer la session » est désactivé
+    pendant un tour ouvert (maquettes, écrans 4 et 4 quinquies, T097a) ;
   - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état, et les
-    outils de la barre de session à « Participants », « Tours révélés » et « Exporter ».
+    outils de la barre de session à « Participants », « Tours révélés », « Exporter » et,
+    pour l'animateur, « Liens » (lien d'invitation seulement), sur une deuxième ligne.
 - **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
   le tableau complet, comme l'animateur : rang, identifiant, titre, critères, valeurs
   calculées, badges « à revoir » et « hors échelle », mis à jour en direct (FR-015). Il voit
