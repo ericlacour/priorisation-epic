@@ -17,6 +17,7 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { CLIPBOARD_HTML } from '../shared/clipboard';
 import { SAVE_FILE } from '../shared/download';
+import { menuTarget } from '../shared/menu-keys';
 
 const MESSAGES_EXPORT = MESSAGES.board.exportMenu;
 
@@ -172,7 +173,11 @@ export class ExportMenuComponent {
 
   protected async choose(choice: ExportChoice): Promise<void> {
     this.close();
-    if (this.busy()) return;
+    if (this.busy()) {
+      // Un seul export à la fois : le second choix est annoncé, jamais ignoré en silence.
+      this.show(this.messages.busy, false);
+      return;
+    }
     this.busy.set(true);
     try {
       if (choice.copy) {
@@ -221,23 +226,13 @@ export class ExportMenuComponent {
   protected onMenuKeydown(event: KeyboardEvent): void {
     const count = this.items().length;
     const index = this.items().findIndex((item) => item.nativeElement === event.target);
+    const target = menuTarget(event.key, index, count);
+    if (target !== null) {
+      event.preventDefault();
+      this.focusItem(target);
+      return;
+    }
     switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        this.focusItem((index + 1) % count);
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        this.focusItem((index - 1 + count) % count);
-        break;
-      case 'Home':
-        event.preventDefault();
-        this.focusItem(0);
-        break;
-      case 'End':
-        event.preventDefault();
-        this.focusItem(count - 1);
-        break;
       case 'Escape':
         event.preventDefault();
         this.close();

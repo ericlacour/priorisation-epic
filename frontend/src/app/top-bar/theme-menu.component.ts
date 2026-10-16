@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 
 import { MESSAGES } from '../i18n/messages.fr';
+import { menuTarget } from '../shared/menu-keys';
 import { Theme, ThemeService } from '../theme/theme';
 
 const THEMES: readonly { readonly value: Theme; readonly label: string }[] = [
@@ -107,23 +108,13 @@ export class ThemeMenuComponent {
   protected onMenuKeydown(event: KeyboardEvent): void {
     const count = this.items().length;
     const index = this.items().findIndex((item) => item.nativeElement === event.target);
+    const target = menuTarget(event.key, index, count);
+    if (target !== null) {
+      event.preventDefault();
+      this.focusItem(target);
+      return;
+    }
     switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        this.focusItem((index + 1) % count);
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        this.focusItem((index - 1 + count) % count);
-        break;
-      case 'Home':
-        event.preventDefault();
-        this.focusItem(0);
-        break;
-      case 'End':
-        event.preventDefault();
-        this.focusItem(count - 1);
-        break;
       case 'Escape':
         event.preventDefault();
         this.close();

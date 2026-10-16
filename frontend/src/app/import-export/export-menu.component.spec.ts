@@ -152,6 +152,39 @@ describe('ExportMenuComponent', () => {
     expect(gone.notice()?.textContent).toContain('Cette session n’existe plus');
   });
 
+  it('announces a second export asked while the first is still running', async () => {
+    let finish: (file: ExportedFile) => void = () => undefined;
+    const { open, element, fixture, exportFile, saveFile, notice } = render({
+      exportFile: () => new Promise((resolve) => (finish = resolve)),
+    });
+    await open();
+    element.querySelector<HTMLButtonElement>('[data-export="csv"]')!.click();
+    await open();
+
+    element.querySelector<HTMLButtonElement>('[data-export="json"]')!.click();
+    fixture.detectChanges();
+
+    expect(exportFile).toHaveBeenCalledTimes(1);
+    expect(notice()?.getAttribute('role')).toBe('status');
+    expect(notice()?.textContent).toContain('Un export est déjà en cours');
+    finish(FILES.csv);
+    await vi.waitFor(() =>
+      expect(saveFile).toHaveBeenCalledWith(FILES.csv.blob, FILES.csv.fileName),
+    );
+  });
+
+  it('moves to the last item with the up arrow when the menu itself has the focus', async () => {
+    const { open, items, element, fixture } = render();
+    await open();
+    const menu = element.querySelector<HTMLElement>('[role="menu"]')!;
+    menu.focus();
+
+    menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(document.activeElement).toBe(items()[3]);
+  });
+
   it('hides a success message after a few seconds; the close button hides any message', async () => {
     const { choose, notice, fixture } = render();
     vi.useFakeTimers({ shouldAdvanceTime: true });

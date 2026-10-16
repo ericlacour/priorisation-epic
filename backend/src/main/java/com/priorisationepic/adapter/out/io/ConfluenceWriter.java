@@ -15,8 +15,9 @@ import org.springframework.stereotype.Component;
  * (constitution I).
  *
  * <ul>
- *   <li>{@link #wiki} : du <i>wiki markup</i> ; {@code | { } [ ]} sont échappés avec {@code \}, les
- *       sauts de ligne deviennent {@code \\}, une cellule vide contient une espace.
+ *   <li>{@link #wiki} : du <i>wiki markup</i> ; {@code \} devient l'entité {@code &#92;}, {@code |
+ *       { } [ ]} sont échappés avec {@code \}, les sauts de ligne deviennent {@code \\}, une
+ *       cellule vide contient une espace.
  *   <li>{@link #html} : un fragment HTML sans style, copié dans le presse-papiers par « Copier pour
  *       Confluence » ; les sauts de ligne deviennent {@code <br>}.
  * </ul>
@@ -32,6 +33,9 @@ public class ConfluenceWriter {
   private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final Pattern LINE_BREAK = Pattern.compile("\r\n|\r|\n");
   private static final Pattern WIKI_SPECIAL = Pattern.compile("([|{}\\[\\]])");
+
+  /** La barre oblique inverse en entité : {@code \\} est un saut de ligne en wiki markup. */
+  private static final String WIKI_BACKSLASH = "&#92;";
 
   private final ImportTexts texts;
 
@@ -91,9 +95,13 @@ public class ConfluenceWriter {
         VERSION);
   }
 
-  /** Un texte en wiki markup : caractères spéciaux échappés, sauts de ligne en {@code \\}. */
+  /**
+   * Un texte en wiki markup : caractères spéciaux échappés, sauts de ligne en {@code \\}. La barre
+   * oblique inverse devient une entité : laissée telle quelle en fin de texte, elle échapperait le
+   * séparateur de cellule qui suit, et doublée, elle deviendrait un saut de ligne.
+   */
   static String wikiText(String text) {
-    String escaped = WIKI_SPECIAL.matcher(text).replaceAll("\\\\$1");
+    String escaped = WIKI_SPECIAL.matcher(text.replace("\\", WIKI_BACKSLASH)).replaceAll("\\\\$1");
     return LINE_BREAK.matcher(escaped).replaceAll("\\\\\\\\");
   }
 

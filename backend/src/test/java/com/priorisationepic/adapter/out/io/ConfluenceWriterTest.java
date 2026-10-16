@@ -57,6 +57,22 @@ class ConfluenceWriterTest {
   }
 
   @Test
+  void aBackslashIsEscapedSoThatItNeverEscapesTheCellSeparator() {
+    String wiki =
+        writer.wiki(
+            state(
+                WsjfMethod.version1(),
+                Scale.defaultScale(),
+                "Atelier",
+                List.of(row("F-1", "C:\\temp\\", "a\\[b]", 1, 1, 1, 1))),
+            EXPORTED_AT);
+
+    // Titre « C:\temp\ » et description « a\[b] » : chaque \ devient l'entité &#92; (doublé, ce
+    // serait un saut de ligne), [ et ] restent échappés.
+    assertThat(wiki).contains("|1|F-1|C:&#92;temp&#92;|a&#92;\\[b\\]|1|1|1|1|3|3,00| | |\n");
+  }
+
+  @Test
   void theHtmlFragmentIsATableWithoutExternalStyles() {
     String html = writer.html(wsjfBoard(), EXPORTED_AT);
 

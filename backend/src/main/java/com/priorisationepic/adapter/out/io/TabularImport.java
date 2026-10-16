@@ -7,6 +7,7 @@ import com.priorisationepic.domain.method.CriterionDefinition;
 import com.priorisationepic.domain.method.MethodDefinition;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,7 +26,13 @@ final class TabularImport {
   static final String ID = "Identifiant";
   static final String TITLE = "Titre";
   static final String DESCRIPTION = "Description";
-  private static final Set<String> EXPORT_COLUMNS = Set.of("rang", "à revoir", "motif");
+
+  /** Les colonnes propres à l'export du tableau, ignorées sans être signalées à l'import. */
+  private static final Set<String> EXPORT_COLUMNS =
+      Set.of(
+          normalize(ExportTable.RANK),
+          normalize(ExportTable.REVIEW),
+          normalize(ExportTable.REASON));
 
   private final ImportTexts texts;
   private final MethodDefinition method;
@@ -63,7 +70,7 @@ final class TabularImport {
     for (CriterionDefinition criterion : method.criteria()) {
       known.put(normalize(criterion.header()), criterion.key());
     }
-    Set<String> silent = new java.util.HashSet<>(EXPORT_COLUMNS);
+    Set<String> silent = new HashSet<>(EXPORT_COLUMNS);
     for (ComputedValueDefinition computed : method.computedValues()) {
       silent.add(normalize(computed.header()));
     }

@@ -149,6 +149,7 @@ export const MESSAGES = {
       copyFailed:
         'Ce navigateur n’a pas pu copier le tableau : téléchargez le wiki markup et collez-le dans Confluence.',
       failed: 'L’export a échoué. Vérifiez la connexion, puis réessayez.',
+      busy: 'Un export est déjà en cours : attendez qu’il se termine, puis réessayez.',
       notFound: 'Cette session n’existe plus : l’export est impossible.',
       close: 'Fermer le message',
     },
