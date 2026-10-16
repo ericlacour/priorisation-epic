@@ -145,7 +145,8 @@ légende qui rappelle la méthode, sa formule et sa règle d'égalité (constitu
    ||Rang||Identifiant||Titre||Description||BV||TC||RR/OE||JS||CoD||WSJF||
    |1|F-1|Titre|Description|8|5|3|4|16|4,00|
    ```
-   Les caractères `|`, `{`, `}`, `[` et `]` contenus dans les textes sont échappés avec `\`.
+   Les caractères `|`, `{`, `}`, `[`, `]` et `!` contenus dans les textes sont échappés avec
+   `\` : un texte ne peut ouvrir ni macro, ni lien, ni image externe (`!url!`).
    La barre oblique inverse `\` devient l'entité `&#92;` : laissée telle quelle en fin de
    texte, elle échapperait le `|` qui suit, et doublée, elle deviendrait un saut de ligne.
    Les sauts de ligne d'une description sont remplacés par `\\`.

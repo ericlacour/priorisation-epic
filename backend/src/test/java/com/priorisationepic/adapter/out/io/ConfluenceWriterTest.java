@@ -48,12 +48,16 @@ class ConfluenceWriterTest {
                 WsjfMethod.version1(),
                 Scale.defaultScale(),
                 "Atelier {1}",
-                List.of(row("F-1", "a{b}[c]|d", "un\r\ndeux\rtrois\nquatre", 1, 1, 1, 1))),
+                List.of(
+                    row("F-1", "a{b}[c]|d", "un\r\ndeux\rtrois\nquatre", 1, 1, 1, 1),
+                    row("F-2", "!http://pixel.example/p.png!", null, 1, 1, 1, 2))),
             EXPORTED_AT);
 
     assertThat(wiki)
         .startsWith("h2. Priorisation Fonctionnalités : Atelier \\{1\\} (16/10/2026)\n")
-        .contains("|1|F-1|a\\{b\\}\\[c\\]\\|d|un\\\\deux\\\\trois\\\\quatre|");
+        .contains("|1|F-1|a\\{b\\}\\[c\\]\\|d|un\\\\deux\\\\trois\\\\quatre|")
+        // Pas d'image externe (pixel de suivi) : les ! sont échappés.
+        .contains("|2|F-2|\\!http://pixel.example/p.png\\!| |");
   }
 
   @Test

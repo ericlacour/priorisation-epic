@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
  *
  * <ul>
  *   <li>{@link #wiki} : du <i>wiki markup</i> ; {@code \} devient l'entité {@code &#92;}, {@code |
- *       { } [ ]} sont échappés avec {@code \}, les sauts de ligne deviennent {@code \\}, une
- *       cellule vide contient une espace.
+ *       { } [ ] !} sont échappés avec {@code \} (pas de macro, de lien ni d'image externe), les
+ *       sauts de ligne deviennent {@code \\}, une cellule vide contient une espace.
  *   <li>{@link #html} : un fragment HTML sans style, copié dans le presse-papiers par « Copier pour
  *       Confluence » ; les sauts de ligne deviennent {@code <br>}.
  * </ul>
@@ -32,7 +32,9 @@ public class ConfluenceWriter {
 
   private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final Pattern LINE_BREAK = Pattern.compile("\r\n|\r|\n");
-  private static final Pattern WIKI_SPECIAL = Pattern.compile("([|{}\\[\\]])");
+
+  /** Séparateur de cellule, macros, liens et images ({@code !url!}) : échappés avec {@code \}. */
+  private static final Pattern WIKI_SPECIAL = Pattern.compile("([|{}\\[\\]!])");
 
   /** La barre oblique inverse en entité : {@code \\} est un saut de ligne en wiki markup. */
   private static final String WIKI_BACKSLASH = "&#92;";
