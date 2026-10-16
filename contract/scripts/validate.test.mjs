@@ -189,7 +189,7 @@ test('une opération OpenAPI 3.2 additionalOperations hors surface est refusée'
 
 test('la sonde de santé est obligatoire', async () => {
   const dir = copyContract();
-  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/sessions/{sessionId}/exports/{format}:');
+  editText(dir, 'openapi.yaml', '  /api/health:', '  /api/sante:');
   const { errors } = await validateContract(dir);
   assert.ok(hasError(errors, 'surface REST', 'GET /api/health'), errors.join('\n'));
 });

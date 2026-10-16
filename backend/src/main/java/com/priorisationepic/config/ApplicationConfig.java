@@ -5,6 +5,7 @@ import com.priorisationepic.application.ChangeLogRepository;
 import com.priorisationepic.application.ChangeLogWriter;
 import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.CreateSessionUseCase;
+import com.priorisationepic.application.ExportUseCase;
 import com.priorisationepic.application.FeatureRepository;
 import com.priorisationepic.application.FeatureUseCase;
 import com.priorisationepic.application.ImportFileReader;
@@ -13,6 +14,7 @@ import com.priorisationepic.application.ImportUseCase;
 import com.priorisationepic.application.JoinSessionUseCase;
 import com.priorisationepic.application.ParticipantRepository;
 import com.priorisationepic.application.SessionConnectionUseCase;
+import com.priorisationepic.application.SessionExporter;
 import com.priorisationepic.application.SessionLocks;
 import com.priorisationepic.application.SessionRepository;
 import com.priorisationepic.application.SessionStateAssembler;
@@ -171,6 +173,12 @@ public class ApplicationConfig {
         ids,
         clock,
         transactions);
+  }
+
+  @Bean
+  public ExportUseCase exportUseCase(
+      SessionStateAssembler states, SessionExporter exporter, ClockPort clock) {
+    return new ExportUseCase(states, exporter, clock);
   }
 
   /**

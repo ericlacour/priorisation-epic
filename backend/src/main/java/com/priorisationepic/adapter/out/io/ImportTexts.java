@@ -5,7 +5,10 @@ import java.util.Locale;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
-/** Les textes de l'import, lus dans {@code messages.properties} (catalogue unique, FR-027). */
+/**
+ * Les textes de l'import et des exports, lus dans {@code messages.properties} (catalogue unique,
+ * FR-027).
+ */
 @Component
 public class ImportTexts {
 
