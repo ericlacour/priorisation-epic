@@ -55,6 +55,24 @@ class CsvBoardWriterTest {
   }
 
   @Test
+  void aCellASpreadsheetWouldEvaluateIsPrefixedWithAnApostrophe() {
+    String text =
+        text(
+            writer.write(
+                state(
+                    com.priorisationepic.domain.method.WsjfMethod.version1(),
+                    Scale.defaultScale(),
+                    "Atelier",
+                    List.of(
+                        row("=1+1", "=HYPERLINK(\"http://x\";\"y\")", "-Refonte", 1, 1, 1, 1)
+                            .review("@moi")))));
+
+    assertThat(text)
+        .contains(
+            "1;'=1+1;\"'=HYPERLINK(\"\"http://x\"\";\"\"y\"\")\";'-Refonte;1;1;1;1;3;3,00;oui;'@moi\r\n");
+  }
+
+  @Test
   void anotherMethodGetsItsOwnColumns() {
     String text =
         text(

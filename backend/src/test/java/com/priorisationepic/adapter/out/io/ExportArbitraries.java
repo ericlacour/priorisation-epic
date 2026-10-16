@@ -60,9 +60,10 @@ final class ExportArbitraries {
 
   private static Arbitrary<List<ExportFixtures.Row>> rows(
       PrioritizationMethod method, Scale scale) {
-    Arbitrary<String> ids = text("abcxyzABC0123-_.;,é\"' ", 12);
-    Arbitrary<String> titles = text("abcdeéèàçÉ ;,\"'|{}[]=+-«»", 40);
-    Arbitrary<String> descriptions = text("abc éà;,\"'|{}[]\n", 80).injectNull(0.3);
+    // = + - @ et ' en tête de texte : la protection contre les formules doit rester réversible.
+    Arbitrary<String> ids = text("abcxyzABC0123-_.;,é\"'=+@ ", 12);
+    Arbitrary<String> titles = text("abcdeéèàçÉ ;,\"'|{}[]=+-@«»", 40);
+    Arbitrary<String> descriptions = text("abc éà;,\"'|{}[]=+-@\n", 80).injectNull(0.3);
     Arbitrary<String> reviews = Arbitraries.just("à compléter").injectNull(0.7);
     Arbitrary<ExportFixtures.Row> row =
         Combinators.combine(ids, titles, descriptions, criteria(method, scale), reviews)

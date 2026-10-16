@@ -42,7 +42,8 @@ public class CsvFeatureReader {
         int line = (int) previousEnd + 1;
         previousEnd = parser.getCurrentLineNumber();
         List<String> cells = new ArrayList<>(record.size());
-        record.forEach(cells::add);
+        // L'apostrophe ajoutée à l'export contre l'injection de formules est retirée.
+        record.forEach(cell -> cells.add(CsvFormulaGuard.unprotect(cell)));
         if (!table.hasHeader()) {
           if (cells.stream().anyMatch(cell -> !cell.isBlank())) {
             table.header(line, cells);

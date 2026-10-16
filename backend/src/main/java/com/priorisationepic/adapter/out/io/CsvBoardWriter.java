@@ -8,8 +8,9 @@ import org.springframework.stereotype.Component;
 /**
  * CSV tableau, format {@code tableau-v1} (contracts/file-formats.md) : UTF-8 avec BOM, séparateur
  * {@code ;}, fins de ligne {@code CRLF}, guillemets RFC 4180 pour un champ qui contient le
- * séparateur, un guillemet ou un saut de ligne. Il s'ouvre tel quel dans un tableur français et se
- * réimporte ({@link CsvFeatureReader}).
+ * séparateur, un guillemet ou un saut de ligne. Une cellule qu'un tableur évaluerait comme une
+ * formule est préfixée d'une apostrophe ({@link CsvFormulaGuard}). Il s'ouvre tel quel dans un
+ * tableur français et se réimporte ({@link CsvFeatureReader}).
  */
 @Component
 public class CsvBoardWriter {
@@ -43,7 +44,8 @@ public class CsvBoardWriter {
     out.append(END_OF_LINE);
   }
 
-  private static String field(String value) {
+  private static String field(String cell) {
+    String value = CsvFormulaGuard.protect(cell);
     boolean quoted =
         value.indexOf(SEPARATOR) >= 0
             || value.indexOf('"') >= 0

@@ -65,6 +65,18 @@ class CsvFeatureReaderTest {
   }
 
   @Test
+  void theApostropheAddedAgainstFormulasIsRemoved() {
+    ImportPreview preview =
+        read("Identifiant;Titre;Description\n'=1+1;'-Refonte;''@moi\nF-2;'citation';\n");
+
+    assertThat(ids(preview.validRows())).containsExactly("=1+1", "F-2");
+    assertThat(preview.validRows().getFirst().title()).isEqualTo("-Refonte");
+    assertThat(preview.validRows().getFirst().description()).isEqualTo("'@moi");
+    // Une apostrophe qui ne protège rien est gardée.
+    assertThat(preview.validRows().get(1).title()).isEqualTo("'citation'");
+  }
+
+  @Test
   void aFileWithoutIdentifierOrTitleIsRefusedWhole() {
     assertThatThrownBy(() -> reader.read(file("sans-titre.csv"), wsjf()))
         .isInstanceOf(ImportRefusedException.class)

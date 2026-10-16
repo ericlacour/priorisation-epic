@@ -96,6 +96,14 @@ Les formules sont lues par leur dernière valeur calculée.
   ligne d'en-tête.
 - Guillemets RFC 4180 pour les champs qui contiennent le séparateur, un guillemet ou un
   saut de ligne.
+- **Protection contre l'injection de formules** (recommandation de l'OWASP) : à l'export,
+  une cellule qui commence par `=`, `+`, `-`, `@`, une tabulation ou un retour chariot,
+  éventuellement précédés d'apostrophes, reçoit une apostrophe `'` en tête : le tableur
+  l'affiche comme du texte au lieu de l'évaluer. À l'import CSV, une apostrophe suivie de
+  ces mêmes caractères est retirée. Les deux règles sont exactement inverses, ce qui garde
+  l'aller-retour. L'apostrophe reste visible dans le tableur pour ces cellules (par exemple
+  `'-Refonte`). Les cellules d'un fichier Excel ne sont pas concernées : une cellule texte
+  n'y est jamais évaluée.
 - **Colonnes d'export**, dans l'ordre du tableau : `Rang;Identifiant;Titre;Description;<critères>;<calculées>;À revoir;Motif`.
   En WSJF : `Rang;Identifiant;Titre;Description;BV;TC;RR/OE;JS;CoD;WSJF;À revoir;Motif`.
   - `À revoir` vaut `oui` ou reste vide (FR-006a), `Motif` contient le motif éventuel.
