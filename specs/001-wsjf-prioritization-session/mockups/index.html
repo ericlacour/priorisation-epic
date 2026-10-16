@@ -500,7 +500,9 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 .v2 .row-actions { white-space: nowrap; }
 .v2 .overlay-msg { position: absolute; z-index: 10; top: 12px; left: 50%; transform: translateX(-50%); width: min(720px, 92%); box-shadow: var(--shadow); align-items: center; }
 .v2 .vp-modal { position: absolute; inset: 0; z-index: 40; background: rgba(22,24,28,.45); display: grid; place-items: center; }
-.v2 .vp-modal .modal { width: min(460px, 92%); }
+.v2 .vp-modal .modal { width: min(540px, 92%); }
+.v2 .vp-modal .modal > *, .v2 .secret { min-width: 0; }
+.v2 [data-transfer-done] { top: 110px; }
 .v2 .abar-info.phone-readonly { display: none; }
 @container (max-width: 600px) {
   .v2 .abar-info.phone-readonly { display: inline-flex; }
@@ -638,11 +640,12 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 </section>
 
 <!-- ======================= 4. TABLEAU ANIMATEUR (deux barres, FR-014c) ======================= -->
-<section class="screen v2" id="s4" data-state="prep" data-note="FR-014c, revue du 2026-10-16 : barre de session et barre d&#x27;actions, au plus 105 px à elles deux, chacune sur une ligne, dans tous les états (choisir l&#x27;état au-dessus). Au moins 15 fonctionnalités visibles dès 1280 × 560, seule la liste défile. Une action indisponible reste à sa place, désactivée, avec une infobulle. Un seul tour ouvert à la fois (FR-018). « Clôturer la session » demande une confirmation (FR-004). Les messages se superposent au tableau sans le décaler. Vue de l&#x27;animateur.">
+<section class="screen v2" id="s4" data-state="prep" data-note="FR-014c, revue du 2026-10-16 : barre de session et barre d&#x27;actions, au plus 105 px à elles deux, chacune sur une ligne, dans tous les états (choisir l&#x27;état au-dessus). Au moins 15 fonctionnalités visibles dès 1280 × 560, seule la liste défile. Une action indisponible reste à sa place, désactivée, avec une infobulle. Un seul tour ouvert à la fois (FR-018). « Clôturer la session » demande une confirmation (FR-004). Les messages se superposent au tableau sans le décaler. « Transmettre le rôle » (menu Participants) demande une confirmation (FR-002a) ; dans l&#x27;application, l&#x27;écran de l&#x27;ancien animateur passe ensuite en vue participant. Vue de l&#x27;animateur.">
   <div class="mock-states" role="group" aria-label="État simulé (hors produit)">
     <strong>État simulé :</strong>
     <span class="seg"><button type="button" data-state-btn="prep" aria-pressed="true">Préparation</button><button type="button" data-state-btn="live" aria-pressed="false">En cours</button><button type="button" data-state-btn="round" aria-pressed="false">Tour ouvert</button><button type="button" data-state-btn="voted" aria-pressed="false">Tour ouvert, j'ai voté</button><button type="button" data-state-btn="revealed" aria-pressed="false">Tour révélé</button><button type="button" data-state-btn="closed" aria-pressed="false">Clôturée</button></span>
     <label><input type="checkbox" data-toast-toggle> Message superposé</label>
+    
     <span class="help">Cliquez sur les menus ▾. Fenêtre simulée : 1280 × 560.</span>
   </div>
   <div class="vp">
@@ -660,9 +663,9 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
             <div class="menu" role="menu" hidden>
               <ul class="plist">
                 <li><span class="dot on"></span>eric (vous)<span class="role">animateur</span><span class="vote-state" data-st="round">n'a pas encore voté</span><span class="vote-state ok" data-st="voted">a voté</span></li>
-                <li><span class="dot on"></span>alice<span class="role">PO</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed">Transmettre le rôle</button></li>
-                <li><span class="dot on"></span>chloé<span class="role">Architecte</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed">Transmettre le rôle</button></li>
-                <li><span class="dot on"></span>david<span class="role">PM</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed">Transmettre le rôle</button></li>
+                <li><span class="dot on"></span>alice<span class="role">PO</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="alice">Transmettre le rôle</button></li>
+                <li><span class="dot on"></span>chloé<span class="role">Architecte</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="chloé">Transmettre le rôle</button></li>
+                <li><span class="dot on"></span>david<span class="role">PM</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="david">Transmettre le rôle</button></li>
                 <li><span class="dot off"></span>bob<span class="role">hors ligne</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span><button class="btn ghost xs" type="button" disabled title="Ce participant n'est pas connecté">Transmettre le rôle</button></li>
               </ul>
             </div>
@@ -763,16 +766,27 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
             <button class="btn primary" type="button" data-set-state="closed">Clôturer la session</button>
           </div>
         </div>
+      </div><div class="vp-modal" hidden data-transfer-dialog>
+        <div class="modal" role="alertdialog" aria-labelledby="tr-t" aria-describedby="tr-d">
+          <h2 id="tr-t">Transmettre le rôle d'animateur à <span data-transfer-name>alice</span> ?</h2>
+          <p id="tr-d" style="margin:0">Vous deviendrez participant, et votre lien d'animation ne fonctionnera plus. Seule <span data-transfer-name>alice</span> pourra vous rendre le rôle.</p>
+          <div class="actions" style="justify-content:flex-end">
+            <button class="btn" type="button" data-transfer-cancel>Annuler</button>
+            <button class="btn primary" type="button" data-transfer-ok>Transmettre le rôle</button>
+          </div>
+        </div>
       </div>
+      <div class="notice success overlay-msg" role="status" hidden data-transfer-done><span class="ico">✓</span><span>Vous avez transmis le rôle d'animateur à <b data-transfer-name>alice</b>. Vous êtes maintenant participant. <a href="#" data-go="s4e" data-handover-open>Voir l'écran d'alice</a></span></div>
   </div>
 </section>
 
 <!-- ======================= 4 quinquies. TABLEAU PARTICIPANT (deux barres, FR-014c) ======================= -->
-<section class="screen v2" id="s4e" data-state="live" data-note="FR-014b, FR-014c, revue du 2026-10-16 : mêmes deux barres pour un participant (alice). La barre d&#x27;actions devient un bandeau d&#x27;état, de même hauteur, avec « Voter », « Modifier mon vote » ou « Voir les résultats ». Pendant un tour, les fonctionnalités du tour passent en fin de liste, masquées (FR-019a). Aucune action d&#x27;animation. Sur téléphone, lecture seule.">
+<section class="screen v2" id="s4e" data-state="live" data-note="FR-014b, FR-014c, revue du 2026-10-16 : mêmes deux barres pour un participant (alice). La barre d&#x27;actions devient un bandeau d&#x27;état, de même hauteur, avec « Voter », « Modifier mon vote » ou « Voir les résultats ». Pendant un tour, les fonctionnalités du tour passent en fin de liste, masquées (FR-019a). Aucune action d&#x27;animation. Le bouton « Simuler : eric me transmet le rôle » montre la fenêtre que reçoit le nouvel animateur (FR-002a). Sur téléphone, lecture seule.">
   <div class="mock-states" role="group" aria-label="État simulé (hors produit)">
     <strong>État simulé :</strong>
     <span class="seg"><button type="button" data-state-btn="prep" aria-pressed="false">Préparation</button><button type="button" data-state-btn="live" aria-pressed="true">En cours, sans tour</button><button type="button" data-state-btn="round" aria-pressed="false">Tour ouvert</button><button type="button" data-state-btn="voted" aria-pressed="false">J'ai voté</button><button type="button" data-state-btn="revealed" aria-pressed="false">Tour révélé</button><button type="button" data-state-btn="closed" aria-pressed="false">Clôturée</button></span>
     <label><input type="checkbox" data-toast-toggle> Message superposé</label>
+    <button type="button" class="btn sm" data-handover-open>Simuler : eric me transmet le rôle</button>
     <span class="help">Cliquez sur les menus ▾. Fenêtre simulée : 1280 × 560.</span>
   </div>
   <div class="vp">
@@ -864,7 +878,20 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
           <div class="fcard"><div class="row1"><span class=rank>6</span><b>F-9 · Avis clients sur les produits</b><span class="wsjf-big">1,67</span></div><div class="crit"><span>BV 4</span><span>TC 3</span><span>RR/OE 3</span><span>JS 6</span></div></div>
         </div>
       </div>
-      
+      <div class="vp-modal" hidden data-handover-dialog>
+        <div class="modal" role="dialog" aria-labelledby="ho-t">
+          <h2 id="ho-t">Vous êtes maintenant animateur</h2>
+          <p style="margin:0">eric vous a transmis le rôle d'animateur de la session « PI 27 – Epics plateforme e-commerce ». Vous pouvez saisir les valeurs, ouvrir et révéler les tours, et clôturer la session.</p>
+          <div class="secret">
+            <b>Votre lien d'animation</b>
+            <div class="linkbox" style="margin-top:8px"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg/animer#Hk3…</code><button class="btn sm" type="button">Copier</button></div>
+            <p class="help" style="margin:8px 0 0">Gardez ce lien pour vous : il donne les droits d'animateur depuis n'importe quel poste. Vous le retrouverez dans le menu « Liens ».</p>
+          </div>
+          <div class="actions" style="justify-content:flex-end">
+            <button class="btn primary" type="button" data-handover-close>Compris</button>
+          </div>
+        </div>
+      </div>
   </div>
 </section>
 
@@ -1494,7 +1521,7 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
     });
     sec.querySelectorAll('[data-state-btn]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.stateBtn === st)); });
     sec.querySelectorAll('.menu').forEach(function (m) { m.hidden = true; });
-    var d = sec.querySelector('[data-close-dialog]'); if (d) d.hidden = true;
+    sec.querySelectorAll('.vp-modal, [data-transfer-done]').forEach(function (m) { m.hidden = true; });
   }
   document.querySelectorAll('.screen.v2').forEach(function (sec) {
     applyState(sec, sec.dataset.state);
@@ -1522,6 +1549,33 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
     });
     sec.addEventListener('click', function (e) {
       if (!e.target.closest('.menu')) sec.querySelectorAll('.menu').forEach(function (o) { o.hidden = true; });
+    });
+    sec.querySelectorAll('[data-transfer]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sec.querySelectorAll('.menu').forEach(function (o) { o.hidden = true; });
+        sec.querySelectorAll('[data-transfer-name]').forEach(function (n) { n.textContent = b.dataset.transfer; });
+        sec.querySelector('[data-transfer-dialog]').hidden = false;
+        sec.querySelector('[data-transfer-cancel]').focus();
+      });
+    });
+    sec.querySelectorAll('[data-transfer-cancel]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-transfer-dialog]').hidden = true; });
+    });
+    sec.querySelectorAll('[data-transfer-ok]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        sec.querySelector('[data-transfer-dialog]').hidden = true;
+        sec.querySelector('[data-transfer-done]').hidden = false;
+      });
+    });
+    sec.querySelectorAll('[data-handover-open]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var target = b.dataset.go ? document.getElementById(b.dataset.go) : sec;
+        setTimeout(function () { target.querySelector('[data-handover-dialog]').hidden = false; }, 0);
+      });
+    });
+    sec.querySelectorAll('[data-handover-close]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-handover-dialog]').hidden = true; });
     });
     var tt = sec.querySelector('[data-toast-toggle]');
     if (tt) tt.addEventListener('change', function () { sec.querySelector('[data-toast]').hidden = !tt.checked; });

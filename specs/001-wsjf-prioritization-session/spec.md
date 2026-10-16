@@ -314,7 +314,25 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   connecté : il ne pourrait pas recevoir son lien d'animation ». Le participant choisi devient animateur, l'ancien animateur devient simple
   participant, un nouveau lien d'animation est remis au nouvel animateur, et l'ancien lien
   cesse de donner les droits d'animateur. Il y a toujours exactement un animateur par
-  session.
+  session. Déroulé à l'écran (2026-10-16) :
+  - l'action « Transmettre le rôle » est dans le menu « Participants (n) ▾ » (FR-014c),
+    face à chaque participant, désactivée pour un participant hors ligne avec l'infobulle
+    « Ce participant n'est pas connecté » ;
+  - elle demande une **confirmation**, car l'animateur perd ses droits sans pouvoir
+    annuler : « Transmettre le rôle d'animateur à alice ? Vous deviendrez participant, et
+    votre lien d'animation ne fonctionnera plus. Seule alice pourra vous rendre le rôle. »,
+    avec « Annuler » et « Transmettre le rôle » ;
+  - l'**ancien animateur** voit un message « Vous avez transmis le rôle d'animateur à
+    alice. Vous êtes maintenant participant. », et son écran passe en vue participant
+    (FR-014b). Si le bénéficiaire s'est déconnecté entre-temps, rien ne change et le
+    message de refus ci-dessus s'affiche ;
+  - le **nouvel animateur** voit une fenêtre « Vous êtes maintenant animateur » : qui lui
+    a transmis le rôle, son nouveau lien d'animation avec « Copier », l'avertissement
+    « Gardez ce lien pour vous : il donne les droits d'animateur depuis n'importe quel
+    poste » et « Compris ». Son écran passe en vue animateur. Le lien reste copiable
+    ensuite par le menu « Liens » ;
+  - les autres membres voient le nouvel animateur dans la liste des participants et
+    dans la barre de session.
 - **FR-003**: Le système NE DOIT PAS exiger de mot de passe ni de compte. Un pseudo est
   unique au sein d'une session.
 - **FR-004**: Une session DOIT avoir l'un des statuts « en préparation », « en cours » ou

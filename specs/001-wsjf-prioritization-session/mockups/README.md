@@ -71,6 +71,7 @@ Choix de détail faits dans la maquette :
 - Pendant un tour, chez le participant, les fonctionnalités du tour passent en fin de liste, masquées, et les rangs des autres se suivent.
 - Le message superposé (case « Message superposé ») couvre le haut du tableau sans le décaler.
 - Sur téléphone, les outils passent sur une deuxième ligne, et la barre d'actions devient le bandeau « Lecture seule ».
+- « Transmettre le rôle » (menu « Participants ») ouvre une confirmation qui nomme le bénéficiaire. Après validation, l'ancien animateur voit « Vous avez transmis le rôle d'animateur à alice. Vous êtes maintenant participant. ». Chez le participant, le bouton « Simuler : eric me transmet le rôle » ouvre la fenêtre « Vous êtes maintenant animateur », avec le nouveau lien d'animation, « Copier » et « Compris » (FR-002a).
 
 ## Écrans
 
