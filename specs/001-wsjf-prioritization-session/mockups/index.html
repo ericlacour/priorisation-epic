@@ -101,7 +101,7 @@ a { color: var(--primary-ink); }
 /* ---------- Cadre PC / téléphone ---------- */
 .stage { padding: 16px; display: flex; justify-content: center; }
 .frame {
-  width: 100%; max-width: 1200px; container-type: inline-size;
+  width: 100%; max-width: 1280px; container-type: inline-size;
   background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -434,6 +434,85 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 .rank-unranked { padding: 8px; border: 1px dashed var(--border); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; }
 .rank-unranked h3 { margin: 0; font-size: 14px; }
 .rank-unranked p { margin: 0 0 4px; }
+/* ---------- Écrans 4 et 4 quinquies, revue du 2026-10-16 : deux barres (FR-014c) ---------- */
+.mock-states { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 8px 12px; font-size: 13px;
+  background: var(--surface-muted); border-bottom: 1px dashed var(--border); }
+.mock-states .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.mock-states .seg button { border: 0; border-right: 1px solid var(--border); background: var(--surface); padding: 4px 9px; cursor: pointer; font-size: 13px; }
+.mock-states .seg button:last-child { border-right: 0; }
+.mock-states .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.v2 [hidden] { display: none !important; }
+.v2 .vp { position: relative; display: flex; flex-direction: column; background: var(--bg); }
+@container (min-width: 601px) { .v2 .vp { height: 560px; overflow: hidden; } }
+.v2 .sbar { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 12px; flex: none;
+  background: var(--surface); border-bottom: 3px solid var(--primary); }
+.v2 .logo.sm { width: 28px; height: 28px; font-size: 12px; text-decoration: none; }
+.v2 .sbar-id { min-width: 0; flex: 0 1 auto; overflow: hidden; display: grid; line-height: 1.25; }
+.v2 .sbar-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2 .sbar-sub { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2 .sbar-sub .badge { font-size: 11px; padding: 0 8px; }
+.v2 .sbar-help { font-size: 13px; font-weight: 600; white-space: nowrap; flex: none; }
+.v2 .spacer { flex: 1 1 0; }
+.v2 .sbar-tools { display: flex; gap: 6px; align-items: center; flex: none; }
+.v2 .btn.sb { min-height: 32px; padding: 2px 10px; font-size: 13px; }
+.v2 .btn.sb.icon { width: 32px; min-width: 32px; padding: 0; flex: none; }
+.v2 .menu-wrap { position: relative; }
+.v2 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 260px; padding: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); display: grid; gap: 2px; }
+.v2 .menu .plist li { font-size: 14px; gap: 6px; white-space: nowrap; }
+.v2 .menu:has(.plist) { min-width: 400px; }
+.v2 .menu .plist .role { margin-left: 0; }
+.v2 .menu .plist .btn { margin-left: 4px; }
+.v2 .vote-state { margin-left: auto; font-size: 12px; color: var(--muted); }
+.v2 .vote-state.ok { color: var(--success); font-weight: 600; }
+.v2 .menu-item { text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; }
+.v2 .menu-item:hover, .v2 .menu-item:focus-visible { background: var(--surface-muted); }
+.v2 .menu .help { margin: 4px 10px 0; }
+.v2 .abar { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 12px; flex: none;
+  background: var(--surface); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.v2 .abar-group { display: flex; align-items: center; gap: 6px; padding-right: 8px; border-right: 1px solid var(--border); }
+.v2 .abar-group.last { border-right: 0; padding-right: 0; }
+.v2 .abar-group:has(+ .spacer) { border-right: 0; }
+.v2 .btn.ab { min-height: 34px; padding: 4px 9px; font-size: 14px; }
+.v2 .btn.vote { border-color: var(--primary-ink); color: var(--primary-ink); }
+.v2 .btn.xs { min-height: 0; height: 21px; line-height: 19px; padding: 0 7px; font-size: 13px; border-radius: 6px; }
+.v2 .round-chip { font-size: 13px; padding: 4px 8px; white-space: nowrap; border-radius: 999px; background: var(--primary-soft); color: var(--primary-ink); }
+.v2 .round-chip.done { background: var(--success-soft); color: var(--success); }
+.v2 .closed-note { font-size: 14px; color: var(--muted); }
+.v2 .abar-info { font-size: 14px; display: inline-flex; gap: 8px; align-items: center; overflow: hidden; text-overflow: ellipsis; }
+.v2 .abar-info .ico { font-weight: 800; }
+.v2 .abar-info.vote { color: var(--primary-ink); font-weight: 600; }
+.v2 .abar-info.ok { color: var(--success); font-weight: 600; }
+.v2 .vp-body { position: relative; flex: 1; min-height: 0; padding: 8px 12px; display: flex; flex-direction: column; }
+.v2 .table-wrap { flex: 1; min-height: 0; overflow: auto; }
+.v2 table { font-size: 14px; table-layout: auto; }
+.v2 th, .v2 td { padding: 2px 8px; height: 25px; line-height: 20px; }
+.v2 th { position: sticky; top: 0; z-index: 2; height: 28px; }
+.v2 td.title { max-width: 0; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.v2 .rank { width: 20px; height: 20px; font-size: 12px; background: var(--surface-muted); color: var(--fg); }
+.v2 .rank.first { background: var(--primary); color: var(--primary-fg); }
+.v2 tr:first-child .rank:not(.first) { background: var(--surface-muted); color: var(--fg); }
+.v2 .badge { font-size: 11px; padding: 0 7px; line-height: 18px; }
+.v2 tr.masked td.cell-mask { text-align: center; font-size: 12px; }
+.v2 .edit-row .input { min-height: 22px; height: 22px; width: 40px; padding: 0 4px; font-size: 13px; border-radius: 6px; }
+.v2 .edit-row .input.wide { width: 100%; }
+.v2 .edit-row td.title { overflow: visible; }
+.v2 .row-actions { white-space: nowrap; }
+.v2 .overlay-msg { position: absolute; z-index: 10; top: 12px; left: 50%; transform: translateX(-50%); width: min(720px, 92%); box-shadow: var(--shadow); align-items: center; }
+.v2 .vp-modal { position: absolute; inset: 0; z-index: 40; background: rgba(22,24,28,.45); display: grid; place-items: center; }
+.v2 .vp-modal .modal { width: min(540px, 92%); }
+.v2 .vp-modal .modal > *, .v2 .secret { min-width: 0; }
+.v2 [data-transfer-done] { top: 110px; }
+.v2 .abar-info.phone-readonly { display: none; }
+@container (max-width: 600px) {
+  .v2 .abar-info.phone-readonly { display: inline-flex; }
+  .v2 .sbar { height: auto; flex-wrap: wrap; padding: 8px 12px; row-gap: 6px; }
+  .v2 .sbar-id { flex: 1 1 calc(100% - 40px); }
+  .v2 .sbar .spacer { display: none; }
+  .v2 .sbar-tools { flex: 1 1 100%; flex-wrap: wrap; }
+  .v2 .abar { height: auto; padding: 8px 12px; white-space: normal; flex-wrap: wrap; }
+  .v2 .menu { right: auto; left: 0; }
+}
 </style>
 </head>
 <body>
@@ -560,162 +639,259 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
   </div>
 </section>
 
-<!-- ======================= 4. TABLEAU ANIMATEUR ======================= -->
-<section class="screen fit" id="s4" data-note="Tient dans une fenêtre de 1280 × 720 sans défilement de la page : seule la liste des fonctionnalités défile, avec en-tête figé. US1, FR-004, FR-005, FR-014 à FR-016b, FR-018 (pas de tour en préparation), FR-021, FR-027. Vue de l'animateur, session en préparation.">
-  <header class="topbar">
-    <div class="logo" aria-hidden="true">PF</div>
-    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Animateur : eric (vous) · Échelle 1 à 10</div></div>
-    <span class="spacer"></span>
-    <span class="badge prep">En préparation</span>
-  </header>
-  <div class="page">
-    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
-    <div class="actions no-phone">
-      <button class="btn primary" type="button">Démarrer la session</button>
-      <button class="btn" type="button">+ Fonctionnalité</button>
-      <button class="btn" type="button" data-go="s4f" title="Classer les fonctionnalités critère par critère, puis proposer les valeurs">Prioriser par classement</button>
-      <button class="btn" type="button" data-go="s7">Importer</button>
-      <button class="btn" type="button" data-go="s8">Échelle</button>
-      <button class="btn" type="button" data-go="s9">Exporter</button>
-      <button class="btn" type="button" disabled title="Démarrez la session pour ouvrir un tour de vote">Ouvrir un tour</button>
-      <span class="help">Démarrez la session pour ouvrir un tour de vote.</span>
-    </div>
-    <div class="layout-board">
-      <div style="display:grid;gap:12px">
+<!-- ======================= 4. TABLEAU ANIMATEUR (deux barres, FR-014c) ======================= -->
+<section class="screen v2" id="s4" data-state="prep" data-note="FR-014c, revue du 2026-10-16 : barre de session et barre d&#x27;actions, au plus 105 px à elles deux, chacune sur une ligne, dans tous les états (choisir l&#x27;état au-dessus). Au moins 15 fonctionnalités visibles dès 1280 × 560, seule la liste défile. Une action indisponible reste à sa place, désactivée, avec une infobulle. Un seul tour ouvert à la fois (FR-018). « Clôturer la session » demande une confirmation (FR-004). Les messages se superposent au tableau sans le décaler. « Transmettre le rôle » (menu Participants) demande une confirmation (FR-002a) ; dans l&#x27;application, l&#x27;écran de l&#x27;ancien animateur passe ensuite en vue participant. Vue de l&#x27;animateur.">
+  <div class="mock-states" role="group" aria-label="État simulé (hors produit)">
+    <strong>État simulé :</strong>
+    <span class="seg"><button type="button" data-state-btn="prep" aria-pressed="true">Préparation</button><button type="button" data-state-btn="live" aria-pressed="false">En cours</button><button type="button" data-state-btn="round" aria-pressed="false">Tour ouvert</button><button type="button" data-state-btn="voted" aria-pressed="false">Tour ouvert, j'ai voté</button><button type="button" data-state-btn="revealed" aria-pressed="false">Tour révélé</button><button type="button" data-state-btn="closed" aria-pressed="false">Clôturée</button></span>
+    <label><input type="checkbox" data-toast-toggle> Message superposé</label>
+    
+    <span class="help">Cliquez sur les menus ▾. Fenêtre simulée : 1280 × 560.</span>
+  </div>
+  <div class="vp">
+      <header class="sbar">
+        <a href="#" class="logo sm" data-go="s1" title="Retour à l'accueil" aria-label="Retour à l'accueil">PF</a>
+        <div class="sbar-id">
+          <div class="sbar-name" title="PI 27 – Epics plateforme e-commerce, atelier de priorisation du trimestre">PI 27 – Epics plateforme e-commerce, atelier de priorisation du trimestre</div>
+          <div class="sbar-sub"><span class="badge prep" data-st="prep">En préparation</span><span class="badge live" data-st="live round voted revealed">En cours</span><span class="badge closed" data-st="closed">Clôturée</span> <span class="muted">Animateur : eric (vous) · Échelle 1 à 10</span></div>
+        </div>
+        <a href="#" class="sbar-help no-phone">Comprendre le WSJF</a>
+        <span class="spacer"></span>
+        <div class="sbar-tools">
+          <div class="menu-wrap">
+            <button class="btn sb" type="button" data-menu aria-haspopup="menu">Participants (5) ▾</button>
+            <div class="menu" role="menu" hidden>
+              <ul class="plist">
+                <li><span class="dot on"></span>eric (vous)<span class="role">animateur</span><span class="vote-state" data-st="round">n'a pas encore voté</span><span class="vote-state ok" data-st="voted">a voté</span></li>
+                <li><span class="dot on"></span>alice<span class="role">PO</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="alice">Transmettre le rôle</button></li>
+                <li><span class="dot on"></span>chloé<span class="role">Architecte</span><span class="vote-state ok" data-st="round voted">a voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="chloé">Transmettre le rôle</button></li>
+                <li><span class="dot on"></span>david<span class="role">PM</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span><button class="btn ghost xs" type="button" data-st="prep live round voted revealed" data-transfer="david">Transmettre le rôle</button></li>
+                <li><span class="dot off"></span>bob<span class="role">hors ligne</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span><button class="btn ghost xs" type="button" disabled title="Ce participant n'est pas connecté">Transmettre le rôle</button></li>
+              </ul>
+            </div>
+          </div>
+          <button class="btn sb" type="button" data-go="s9"><span data-st="prep live round voted closed">Tours révélés (1)</span><span data-st="revealed">Tours révélés (2)</span></button>
+          <div class="menu-wrap">
+            <button class="btn sb" type="button" data-menu aria-haspopup="menu">Exporter ▾</button>
+            <div class="menu" role="menu" hidden>
+              <button class="menu-item" type="button">Tableau CSV <span class="version">tableau-v1</span></button>
+              <button class="menu-item" type="button">Copier pour Confluence</button>
+              <button class="menu-item" type="button">Confluence (wiki markup)</button>
+              <button class="menu-item" type="button">Votes des tours révélés CSV <span class="version">votes-v1</span></button>
+              <button class="menu-item" type="button">Session complète JSON <span class="version">v1</span></button>
+            </div>
+          </div>
+          <div class="menu-wrap">
+            <button class="btn sb" type="button" data-menu aria-haspopup="menu">Liens ▾</button>
+            <div class="menu" role="menu" hidden>
+              <button class="menu-item" type="button">Copier le lien d'invitation</button>
+              <button class="menu-item no-phone" type="button">Copier mon lien d'animation</button>
+              <p class="help">Les liens ne sont pas affichés : ils sont copiés dans le presse-papiers.</p>
+            </div>
+          </div>
+          <button class="btn sb no-phone" type="button" title="Thème : clair, sombre ou automatique">Thème ▾</button>
+        </div>
+      </header>
+      <div class="abar no-phone" role="toolbar" aria-label="Actions d'animation">
+        <div class="abar-group" data-st="prep live round voted revealed" aria-label="Saisie">
+          <button class="btn primary ab" type="button">+ Fonctionnalité</button>
+          <button class="btn ab" type="button" data-go="s4f" title="Classer les fonctionnalités critère par critère, puis proposer les valeurs">Prioriser par classement</button>
+        </div>
+        <div class="abar-group" data-st="prep live round voted revealed" aria-label="Préparation">
+          <button class="btn ab" type="button" data-go="s7">Importer</button>
+          <button class="btn ab" type="button" data-go="s8" data-dis="round voted" data-dis-title="Un tour de vote est en cours : révélez-le avant de changer l'échelle">Échelle</button>
+        </div>
+        <div class="abar-group" data-st="prep live round voted revealed" aria-label="Tours de vote">
+          <button class="btn ab" type="button" data-go="s4b" data-dis="prep round voted" data-dis-title-prep="Démarrez la session pour ouvrir un tour de vote" data-dis-title="Un tour de vote est déjà ouvert : révélez-le avant d'en ouvrir un autre">Ouvrir un tour de vote</button>
+          <span class="round-chip" data-st="round voted" title="Tour 2 sur BV et JS (F-3, F-5, F-9) : 3 membres sur 5 ont voté. Détail dans « Participants »">Tour 2 · <b>3/5</b> votes</span>
+          <button class="btn ab vote" type="button" data-go="s5" data-st="round">Voter</button>
+          <button class="btn ab vote" type="button" data-go="s5" data-st="voted">Modifier mon vote</button>
+          <button class="btn ab vote" type="button" data-go="s6" data-st="round voted">Révéler</button>
+          <span class="round-chip done" data-st="revealed">Tour 2 révélé</span>
+          <button class="btn ab vote" type="button" data-go="s6" data-st="revealed">Résultats et consensus</button>
+        </div>
+        <span class="spacer"></span>
+        <div class="abar-group last" aria-label="Cycle de vie">
+          <span class="closed-note" data-st="closed">Session clôturée : lecture seule pour tous.</span>
+          <button class="btn ab" type="button" data-st="prep" data-set-state="live">Démarrer la session</button>
+          <button class="btn ab" type="button" data-st="live round voted revealed" data-confirm-close data-dis="round voted" data-dis-title="Un tour de vote est en cours : révélez-le avant de clôturer la session">Clôturer la session</button>
+          <button class="btn primary ab" type="button" data-st="closed" data-set-state="live">Rouvrir la session</button>
+        </div>
+      </div>
+      <div class="abar phone-only" role="note"><span class="abar-info"><span class="ico">i</span> Lecture seule sur téléphone. Pour animer, utilisez un ordinateur.</span></div>
+      <div class="vp-body">
+        <div class="notice danger overlay-msg" role="alert" hidden data-toast><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn xs" type="button">Garder 5</button> <button class="btn primary xs" type="button">Remplacer par 3</button></span></div>
         <div class="table-wrap desktop-only">
           <table aria-label="Tableau WSJF">
-            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th><th></th></tr></thead>
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard, BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard, BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th><th data-st="prep live round voted revealed">Actions</th></tr></thead>
             <tbody>
-              <tr><td><span class="rank">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr class="edit-row"><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="actions"><button class="btn primary sm" type="button" title="Le tableau se retrie à l'enregistrement">Enregistrer</button></td></tr>
-              <tr><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title">Réservation de créneau de livraison</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">7</td><td class="num">12</td><td class="num wsjf">1,71</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">5</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title"><span class="badge review" title="À revoir : descriptif à compléter">à revoir</span> Avis clients sur les produits</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num wsjf">1,67</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a></td><td class="title">Tableau de bord des ventes</td><td class="num">5</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">8</td><td class="num wsjf">1,60</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">7</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a></td><td class="title">Comparateur de produits</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">5</td><td class="num">7</td><td class="num wsjf">1,40</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">8</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a></td><td class="title">Alertes de baisse de prix</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">6</td><td class="num">7</td><td class="num wsjf">1,17</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">9</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a></td><td class="title">Partage de liste de courses</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">5</td><td class="num wsjf">1,00</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td><span class="rank">10</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a></td><td class="title">Mode hors connexion</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">9</td><td class="num">7</td><td class="num wsjf">0,78</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Valeur hors échelle (1 à 10)">13</span></td><td class="num">—</td><td class="num"><span class="badge warn">hors échelle</span></td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
-              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td><td><button class="btn ghost sm" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank first">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title" title="Paiement en un clic">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title" title="Export comptable mensuel">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-15">F-15</a></td><td class="title" title="Programme de parrainage">Programme de parrainage</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">6</td><td class="num">12</td><td class="num wsjf">2,00</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr class="edit-row" data-st="prep"><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title"><input class="input wide" value="Notifications de livraison" aria-label="Titre"></td><td class="num"><input class="input" value="2" aria-label="BV"></td><td class="num"><input class="input" value="2" aria-label="TC"></td><td class="num"><input class="input" value="2" aria-label="RR/OE"></td><td class="num"><input class="input" value="3" aria-label="JS"></td><td class="num">6</td><td class="num wsjf">2,00</td><td class="row-actions"><button class="btn primary xs" type="button">Enregistrer</button> <button class="btn xs" type="button">Annuler</button></td></tr>
+              <tr data-st="live round voted revealed closed"><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title" title="Notifications de livraison">Notifications de livraison</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num wsjf">2,00</td><td data-st="live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">5</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title" title="Réservation de créneau de livraison à domicile et en point relais">Réservation de créneau de livraison à domicile et en point relais</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">7</td><td class="num">12</td><td class="num wsjf">1,71</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title" title="Avis clients sur les produits"><span class="badge vote" data-st="round voted">vote en cours</span> <span class="badge review" title="À revoir : descriptif à compléter" data-st="prep live round voted closed">à revoir</span> Avis clients sur les produits</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num wsjf">1,67</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button" data-dis="round voted" data-dis-title="Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs">Modifier</button></td></tr>
+              <tr><td><span class="rank">7</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a></td><td class="title" title="Tableau de bord des ventes">Tableau de bord des ventes</td><td class="num">5</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">8</td><td class="num wsjf">1,60</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">8</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-16">F-16</a></td><td class="title" title="Paiement fractionné en trois fois">Paiement fractionné en trois fois</td><td class="num">7</td><td class="num">3</td><td class="num">1</td><td class="num">7</td><td class="num">11</td><td class="num wsjf">1,57</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">9</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-18">F-18</a></td><td class="title" title="Historique de commandes enrichi">Historique de commandes enrichi</td><td class="num">2</td><td class="num">3</td><td class="num">1</td><td class="num">4</td><td class="num">6</td><td class="num wsjf">1,50</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">10</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a></td><td class="title" title="Comparateur de produits">Comparateur de produits</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">5</td><td class="num">7</td><td class="num wsjf">1,40</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">11</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-17">F-17</a></td><td class="title" title="Recherche vocale">Recherche vocale</td><td class="num">3</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num">8</td><td class="num wsjf">1,33</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">12</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a></td><td class="title" title="Alertes de baisse de prix">Alertes de baisse de prix</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">6</td><td class="num">7</td><td class="num wsjf">1,17</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">13</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-19">F-19</a></td><td class="title" title="Chat avec le service client">Chat avec le service client</td><td class="num">4</td><td class="num">2</td><td class="num">2</td><td class="num">8</td><td class="num">8</td><td class="num wsjf">1,00</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">14</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a></td><td class="title" title="Partage de liste de courses">Partage de liste de courses</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">5</td><td class="num wsjf">1,00</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">15</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-20">F-20</a></td><td class="title" title="Thème sombre de l&#x27;application">Thème sombre de l&#x27;application</td><td class="num">1</td><td class="num">1</td><td class="num">1</td><td class="num">3</td><td class="num">3</td><td class="num wsjf">1,00</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr><td><span class="rank">16</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a></td><td class="title" title="Mode hors connexion">Mode hors connexion</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">9</td><td class="num">7</td><td class="num wsjf">0,78</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title" title="Programme de fidélité"><span class="badge vote" data-st="round voted">vote en cours</span> Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num wsjf">non calculé</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button" data-dis="round voted" data-dis-title="Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs">Modifier</button></td></tr>
+              <tr><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title" title="Refonte de la recherche"><span class="badge vote" data-st="round voted">vote en cours</span> Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Valeur hors échelle (1 à 10)">13</span></td><td class="num">—</td><td class="num wsjf"><span class="badge warn">hors échelle</span></td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button" data-dis="round voted" data-dis-title="Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs">Modifier</button></td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-7">F-7</a></td><td class="title" title="Carte cadeau dématérialisée">Carte cadeau dématérialisée</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num wsjf">non calculé</td><td data-st="prep live round voted revealed"><button class="btn ghost xs" type="button">Modifier</button></td></tr>
             </tbody>
           </table>
-          <div class="legend">Cliquez sur un identifiant pour lire son descriptif. CoD = BV + TC + RR/OE ; WSJF = CoD / JS ; à égalité, CoD le plus élevé puis identifiant. Fonctionnalités incomplètes ou hors échelle en fin de liste.</div>
         </div>
         <div class="feature-cards">
-          <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span><span>CoD 16</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">2</span><b>F-4 · Export comptable</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span><span>CoD 13</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">3</span><b>F-2 · Notifications</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span><span>CoD 6</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">4</span><b>F-5 · Recherche</b><span class="badge warn" style="margin-left:auto">hors échelle</span></div><div class="crit"><span>BV 7</span><span>TC 2</span><span>RR/OE 4</span><span>JS <span class="review">13</span></span></div></div>
-          <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div><div class="crit"><span>BV 6</span><span>TC —</span><span>RR/OE —</span><span>JS —</span></div></div>
-          <p class="help">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</p>
+          <div class="fcard"><div class="row1"><span class=rank>1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>2</span><b>F-4 · Export comptable mensuel</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>3</span><b>F-15 · Programme de parrainage</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 6</span><span>TC 4</span><span>RR/OE 2</span><span>JS 6</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>4</span><b>F-2 · Notifications de livraison</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>5</span><b>F-8 · Réservation de créneau de livraison à domicile et en point relais</b><span class="wsjf-big">1,71</span></div><div class="crit"><span>BV 6</span><span>TC 4</span><span>RR/OE 2</span><span>JS 7</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>6</span><b>F-9 · Avis clients sur les produits</b><span class="wsjf-big">1,67</span></div><div class="crit"><span>BV 4</span><span>TC 3</span><span>RR/OE 3</span><span>JS 6</span></div></div>
         </div>
-        <div class="notice danger no-phone toast" role="alert"><span class="ico">!</span><span>La valeur a été modifiée par un autre onglet entre-temps : JS de F-2 vaut maintenant <b>5</b>. <button class="btn sm" type="button">Garder 5</button> <button class="btn sm" type="button">Remplacer par 3</button></span></div>
       </div>
-      <aside class="side">
-        <div class="card">
-          <h3>Participants (3)</h3>
-          <ul class="plist">
-            <li><span class="dot on"></span>eric<span class="role">animateur</span></li>
-            <li><span class="dot on"></span>alice<span class="role">PO</span></li>
-            <li><span class="dot off"></span>bob<span class="role">hors ligne</span></li>
-          </ul>
+      <div class="vp-modal" hidden data-close-dialog>
+        <div class="modal" role="alertdialog" aria-labelledby="cl-t" aria-describedby="cl-d">
+          <h2 id="cl-t">Clôturer la session ?</h2>
+          <p id="cl-d" style="margin:0">Elle passera en lecture seule pour tous. Vous pourrez la rouvrir.</p>
+          <div class="actions" style="justify-content:flex-end">
+            <button class="btn" type="button" data-close-cancel>Annuler</button>
+            <button class="btn primary" type="button" data-set-state="closed">Clôturer la session</button>
+          </div>
         </div>
-        <div class="card">
-          <h3>Inviter</h3>
-          <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
-          <button class="btn ghost sm no-phone" type="button" style="margin-top:8px;padding-left:0">Afficher mon lien d'animation</button>
+      </div><div class="vp-modal" hidden data-transfer-dialog>
+        <div class="modal" role="alertdialog" aria-labelledby="tr-t" aria-describedby="tr-d">
+          <h2 id="tr-t">Transmettre le rôle d'animateur à <span data-transfer-name>alice</span> ?</h2>
+          <p id="tr-d" style="margin:0">Vous deviendrez participant, et votre lien d'animation ne fonctionnera plus. Seule <span data-transfer-name>alice</span> pourra vous rendre le rôle.</p>
+          <div class="actions" style="justify-content:flex-end">
+            <button class="btn" type="button" data-transfer-cancel>Annuler</button>
+            <button class="btn primary" type="button" data-transfer-ok>Transmettre le rôle</button>
+          </div>
         </div>
-        <details class="card glossary-box" open>
-          <summary><h3>Comprendre le WSJF</h3></summary>
-          <dl class="glossary">
-            <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
-            <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
-            <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité.</dd>
-            <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire.</dd>
-            <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
-            <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
-          </dl>
-          <a href="#" class="small" data-go="s4d">Voir la méthode complète</a>
-        </details>
-      </aside>
-    </div>
+      </div>
+      <div class="notice success overlay-msg" role="status" hidden data-transfer-done><span class="ico">✓</span><span>Vous avez transmis le rôle d'animateur à <b data-transfer-name>alice</b>. Vous êtes maintenant participant. <a href="#" data-go="s4e" data-handover-open>Voir l'écran d'alice</a></span></div>
   </div>
 </section>
 
-<!-- ======================= 4 quinquies. TABLEAU PARTICIPANT HORS TOUR ======================= -->
-<section class="screen fit" id="s4e" data-note="Vue d'un participant (alice) quand aucun tour n'est ouvert. Tout le tableau est visible et se met à jour en direct (FR-015) : valeurs, CoD, WSJF, rang, badges « à revoir » et « hors échelle ». Aucune action d'animation : pas de « Modifier », « + Fonctionnalité », « Importer », « Échelle », « Ouvrir un tour » ni « Démarrer la session ». Le participant peut lire le descriptif (clic sur l'identifiant, en lecture seule), consulter la méthode, les tours révélés et exporter (FR-016b, FR-017c, FR-022 à FR-024). Tient dans 1280 × 720 sans défilement de la page (FR-014a).">
-  <header class="topbar">
-    <div class="logo" aria-hidden="true">PF</div>
-    <div><div class="title">PI 27 – Epics plateforme</div><div class="sub">Vous : alice · Animée par eric · Échelle 1 à 10</div></div>
-    <span class="spacer"></span>
-    <span class="badge live">En cours</span>
-  </header>
-  <div class="page">
-    <div class="notice info phone-readonly" role="note"><span class="ico">i</span><span>Lecture seule sur téléphone. Pour voter ou modifier, utilisez un ordinateur.</span></div>
-    <div class="notice info" role="note"><span class="ico">i</span><span>Aucun tour de vote en cours. Le tableau se met à jour en direct quand l'animateur modifie une valeur.</span></div>
-    <div class="actions">
-      <button class="btn" type="button" data-go="s9">Exporter</button>
-      <button class="btn" type="button" data-go="s9">Tours révélés</button>
-    </div>
-    <div class="layout-board">
-      <div style="display:grid;gap:12px">
+<!-- ======================= 4 quinquies. TABLEAU PARTICIPANT (deux barres, FR-014c) ======================= -->
+<section class="screen v2" id="s4e" data-state="live" data-note="FR-014b, FR-014c, revue du 2026-10-16 : mêmes deux barres pour un participant (alice). La barre d&#x27;actions devient un bandeau d&#x27;état, de même hauteur, avec « Voter », « Modifier mon vote » ou « Voir les résultats ». Pendant un tour, les fonctionnalités du tour passent en fin de liste, masquées (FR-019a). Aucune action d&#x27;animation. Le bouton « Simuler : eric me transmet le rôle » montre la fenêtre que reçoit le nouvel animateur (FR-002a). Sur téléphone, lecture seule.">
+  <div class="mock-states" role="group" aria-label="État simulé (hors produit)">
+    <strong>État simulé :</strong>
+    <span class="seg"><button type="button" data-state-btn="prep" aria-pressed="false">Préparation</button><button type="button" data-state-btn="live" aria-pressed="true">En cours, sans tour</button><button type="button" data-state-btn="round" aria-pressed="false">Tour ouvert</button><button type="button" data-state-btn="voted" aria-pressed="false">J'ai voté</button><button type="button" data-state-btn="revealed" aria-pressed="false">Tour révélé</button><button type="button" data-state-btn="closed" aria-pressed="false">Clôturée</button></span>
+    <label><input type="checkbox" data-toast-toggle> Message superposé</label>
+    <button type="button" class="btn sm" data-handover-open>Simuler : eric me transmet le rôle</button>
+    <span class="help">Cliquez sur les menus ▾. Fenêtre simulée : 1280 × 560.</span>
+  </div>
+  <div class="vp">
+      <header class="sbar">
+        <a href="#" class="logo sm" data-go="s1" title="Retour à l'accueil" aria-label="Retour à l'accueil">PF</a>
+        <div class="sbar-id">
+          <div class="sbar-name" title="PI 27 – Epics plateforme e-commerce, atelier de priorisation du trimestre">PI 27 – Epics plateforme e-commerce, atelier de priorisation du trimestre</div>
+          <div class="sbar-sub"><span class="badge prep" data-st="prep">En préparation</span><span class="badge live" data-st="live round voted revealed">En cours</span><span class="badge closed" data-st="closed">Clôturée</span> <span class="muted">Vous : alice · animée par eric · Échelle 1 à 10</span></div>
+        </div>
+        <a href="#" class="sbar-help no-phone">Comprendre le WSJF</a>
+        <span class="spacer"></span>
+        <div class="sbar-tools">
+          <div class="menu-wrap">
+            <button class="btn sb" type="button" data-menu aria-haspopup="menu">Participants (5) ▾</button>
+            <div class="menu" role="menu" hidden>
+              <ul class="plist">
+                <li><span class="dot on"></span>eric<span class="role">animateur</span><span class="vote-state" data-st="round">n'a pas encore voté</span><span class="vote-state ok" data-st="voted">a voté</span></li>
+                <li><span class="dot on"></span>alice (vous)<span class="role">PO</span><span class="vote-state ok" data-st="round voted">a voté</span></li>
+                <li><span class="dot on"></span>chloé<span class="role">Architecte</span><span class="vote-state ok" data-st="round voted">a voté</span></li>
+                <li><span class="dot on"></span>david<span class="role">PM</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span></li>
+                <li><span class="dot off"></span>bob<span class="role">hors ligne</span><span class="vote-state" data-st="round voted">n'a pas encore voté</span></li>
+              </ul>
+            </div>
+          </div>
+          <button class="btn sb" type="button" data-go="s9"><span data-st="prep live round voted closed">Tours révélés (1)</span><span data-st="revealed">Tours révélés (2)</span></button>
+          <div class="menu-wrap">
+            <button class="btn sb" type="button" data-menu aria-haspopup="menu">Exporter ▾</button>
+            <div class="menu" role="menu" hidden>
+              <button class="menu-item" type="button">Tableau CSV <span class="version">tableau-v1</span></button>
+              <button class="menu-item" type="button">Copier pour Confluence</button>
+              <button class="menu-item" type="button">Confluence (wiki markup)</button>
+              <button class="menu-item" type="button">Votes des tours révélés CSV <span class="version">votes-v1</span></button>
+              <button class="menu-item" type="button">Session complète JSON <span class="version">v1</span></button>
+            </div>
+          </div>
+          
+          <button class="btn sb no-phone" type="button" title="Thème : clair, sombre ou automatique">Thème ▾</button>
+        </div>
+      </header>
+      <div class="abar" role="status" aria-label="État de la session">
+        <span class="abar-info" data-st="prep"><span class="ico">i</span> La session n'a pas encore démarré. Le tableau se met à jour en direct.</span>
+        <span class="abar-info" data-st="live"><span class="ico">i</span> Aucun tour de vote en cours. Le tableau se met à jour en direct.</span>
+        <span class="abar-info vote" data-st="round"><span class="ico">●</span> Tour 2 ouvert sur BV et JS · 3 fonctionnalités · vous n'avez pas encore voté</span>
+        <button class="btn primary ab no-phone" type="button" data-go="s5" data-st="round">Voter</button>
+        <span class="abar-info ok" data-st="voted"><span class="ico">✓</span> Vote envoyé pour le tour 2. Vous pouvez le modifier jusqu'à la révélation.</span>
+        <button class="btn ab no-phone" type="button" data-go="s5" data-st="voted">Modifier mon vote</button>
+        <span class="abar-info" data-st="revealed"><span class="ico">i</span> Tour 2 révélé : l'animateur fixe les valeurs communes.</span>
+        <button class="btn ab" type="button" data-go="s6" data-st="revealed">Voir les résultats</button>
+        <span class="abar-info" data-st="closed"><span class="ico">i</span> Session clôturée : lecture seule.</span>
+        <span class="abar-info phone-readonly"><span class="ico">i</span> Pour voter ou modifier, utilisez un ordinateur.</span>
+      </div>
+      <div class="vp-body">
+        <div class="notice danger overlay-msg" role="status" hidden data-toast><span class="ico">!</span><span>Connexion perdue. Reconnexion en cours… Le tableau se remettra à jour tout seul.</span></div>
         <div class="table-wrap desktop-only">
           <table aria-label="Tableau WSJF">
-            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard : BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard : BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, Weighted Shortest Job First : CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th></tr></thead>
+            <thead><tr><th>Rang</th><th>Identifiant</th><th>Titre</th><th class="num"><button type="button" class="term" data-tip="Business Value : valeur apportée aux utilisateurs ou au business." aria-label="BV, Business Value : valeur apportée aux utilisateurs ou au business.">BV</button></th><th class="num"><button type="button" class="term" data-tip="Time Criticality : importance de réaliser rapidement la fonctionnalité." aria-label="TC, Time Criticality : importance de réaliser rapidement la fonctionnalité.">TC</button></th><th class="num"><button type="button" class="term" data-tip="Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité." aria-label="RR/OE, Risk Reduction / Opportunity Enablement : capacité à réduire un risque ou à permettre une opportunité.">RR/OE</button></th><th class="num"><button type="button" class="term" data-tip="Job Size : taille relative du travail nécessaire." aria-label="JS, Job Size : taille relative du travail nécessaire.">JS</button></th><th class="num"><button type="button" class="term" data-tip="Cost of Delay : coût du retard, BV + TC + RR/OE." aria-label="CoD, Cost of Delay : coût du retard, BV + TC + RR/OE.">CoD</button></th><th class="num"><button type="button" class="term" data-tip="CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire." aria-label="WSJF, CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.">WSJF</button></th></tr></thead>
             <tbody>
-              <tr><td><span class="rank">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td></tr>
-              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
-              <tr><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title">Notifications de livraison</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num wsjf">2,00</td></tr>
-              <tr><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title">Réservation de créneau de livraison</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">7</td><td class="num">12</td><td class="num wsjf">1,71</td></tr>
-              <tr><td><span class="rank">5</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title"><span class="badge review" title="À revoir : descriptif à compléter">à revoir</span> Avis clients sur les produits</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num wsjf">1,67</td></tr>
-              <tr><td><span class="rank">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a></td><td class="title">Tableau de bord des ventes</td><td class="num">5</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">8</td><td class="num wsjf">1,60</td></tr>
-              <tr><td><span class="rank">7</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a></td><td class="title">Comparateur de produits</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">5</td><td class="num">7</td><td class="num wsjf">1,40</td></tr>
-              <tr><td><span class="rank">8</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a></td><td class="title">Alertes de baisse de prix</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">6</td><td class="num">7</td><td class="num wsjf">1,17</td></tr>
-              <tr><td><span class="rank">9</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a></td><td class="title">Partage de liste de courses</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">5</td><td class="num wsjf">1,00</td></tr>
-              <tr><td><span class="rank">10</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a></td><td class="title">Mode hors connexion</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">9</td><td class="num">7</td><td class="num wsjf">0,78</td></tr>
-              <tr><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Valeur hors échelle (1 à 10)">13</span></td><td class="num">—</td><td class="num"><span class="badge warn">hors échelle</span></td></tr>
-              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">non calculé</td></tr>
+              <tr><td><span class="rank first">1</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-1">F-1</a></td><td class="title" title="Paiement en un clic">Paiement en un clic</td><td class="num">8</td><td class="num">5</td><td class="num">3</td><td class="num">4</td><td class="num">16</td><td class="num wsjf">4,00</td></tr>
+              <tr><td><span class="rank">2</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-4">F-4</a></td><td class="title" title="Export comptable mensuel">Export comptable mensuel</td><td class="num">5</td><td class="num">6</td><td class="num">2</td><td class="num">5</td><td class="num">13</td><td class="num wsjf">2,60</td></tr>
+              <tr><td><span class="rank">3</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-15">F-15</a></td><td class="title" title="Programme de parrainage">Programme de parrainage</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">6</td><td class="num">12</td><td class="num wsjf">2,00</td></tr>
+              <tr><td><span class="rank">4</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-2">F-2</a></td><td class="title" title="Notifications de livraison">Notifications de livraison</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num wsjf">2,00</td></tr>
+              <tr><td><span class="rank">5</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-8">F-8</a></td><td class="title" title="Réservation de créneau de livraison à domicile et en point relais">Réservation de créneau de livraison à domicile et en point relais</td><td class="num">6</td><td class="num">4</td><td class="num">2</td><td class="num">7</td><td class="num">12</td><td class="num wsjf">1,71</td></tr>
+              <tr data-st="prep live revealed closed"><td><span class="rank">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title" title="Avis clients sur les produits"><span class="badge review" title="À revoir : descriptif à compléter" data-st="prep live closed">à revoir</span> Avis clients sur les produits</td><td class="num">4</td><td class="num">3</td><td class="num">3</td><td class="num">6</td><td class="num">10</td><td class="num wsjf">1,67</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">7</span><span class="rank" data-st="round voted">6</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-10">F-10</a></td><td class="title" title="Tableau de bord des ventes">Tableau de bord des ventes</td><td class="num">5</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">8</td><td class="num wsjf">1,60</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">8</span><span class="rank" data-st="round voted">7</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-16">F-16</a></td><td class="title" title="Paiement fractionné en trois fois">Paiement fractionné en trois fois</td><td class="num">7</td><td class="num">3</td><td class="num">1</td><td class="num">7</td><td class="num">11</td><td class="num wsjf">1,57</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">9</span><span class="rank" data-st="round voted">8</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-18">F-18</a></td><td class="title" title="Historique de commandes enrichi">Historique de commandes enrichi</td><td class="num">2</td><td class="num">3</td><td class="num">1</td><td class="num">4</td><td class="num">6</td><td class="num wsjf">1,50</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">10</span><span class="rank" data-st="round voted">9</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-11">F-11</a></td><td class="title" title="Comparateur de produits">Comparateur de produits</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">5</td><td class="num">7</td><td class="num wsjf">1,40</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">11</span><span class="rank" data-st="round voted">10</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-17">F-17</a></td><td class="title" title="Recherche vocale">Recherche vocale</td><td class="num">3</td><td class="num">2</td><td class="num">3</td><td class="num">6</td><td class="num">8</td><td class="num wsjf">1,33</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">12</span><span class="rank" data-st="round voted">11</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-12">F-12</a></td><td class="title" title="Alertes de baisse de prix">Alertes de baisse de prix</td><td class="num">3</td><td class="num">3</td><td class="num">1</td><td class="num">6</td><td class="num">7</td><td class="num wsjf">1,17</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">13</span><span class="rank" data-st="round voted">12</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-19">F-19</a></td><td class="title" title="Chat avec le service client">Chat avec le service client</td><td class="num">4</td><td class="num">2</td><td class="num">2</td><td class="num">8</td><td class="num">8</td><td class="num wsjf">1,00</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">14</span><span class="rank" data-st="round voted">13</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-13">F-13</a></td><td class="title" title="Partage de liste de courses">Partage de liste de courses</td><td class="num">2</td><td class="num">2</td><td class="num">1</td><td class="num">5</td><td class="num">5</td><td class="num wsjf">1,00</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">15</span><span class="rank" data-st="round voted">14</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-20">F-20</a></td><td class="title" title="Thème sombre de l&#x27;application">Thème sombre de l&#x27;application</td><td class="num">1</td><td class="num">1</td><td class="num">1</td><td class="num">3</td><td class="num">3</td><td class="num wsjf">1,00</td></tr>
+              <tr><td><span class="rank" data-st="prep live revealed closed">16</span><span class="rank" data-st="round voted">15</span></td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-14">F-14</a></td><td class="title" title="Mode hors connexion">Mode hors connexion</td><td class="num">4</td><td class="num">1</td><td class="num">2</td><td class="num">9</td><td class="num">7</td><td class="num wsjf">0,78</td></tr>
+              <tr class="incomplete" data-st="prep live revealed closed"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title" title="Programme de fidélité">Programme de fidélité</td><td class="num">6</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num wsjf">non calculé</td></tr>
+              <tr data-st="prep live revealed closed"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title" title="Refonte de la recherche">Refonte de la recherche</td><td class="num">7</td><td class="num">2</td><td class="num">4</td><td class="num"><span class="review" title="Valeur hors échelle (1 à 10)">13</span></td><td class="num">—</td><td class="num wsjf"><span class="badge warn">hors échelle</span></td></tr>
+              <tr class="incomplete"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-7">F-7</a></td><td class="title" title="Carte cadeau dématérialisée">Carte cadeau dématérialisée</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num wsjf">non calculé</td></tr>
+              <tr class="masked" data-st="round voted"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-9">F-9</a></td><td class="title" title="Avis clients sur les produits"><span class="badge vote" data-st="round voted">vote en cours</span> <span class="badge review" title="À revoir : descriptif à compléter">à revoir</span> Avis clients sur les produits</td><td class="num cell-mask" colspan="6">vote en cours : valeurs masquées jusqu'à la révélation</td></tr>
+              <tr class="masked" data-st="round voted"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-3">F-3</a></td><td class="title" title="Programme de fidélité"><span class="badge vote" data-st="round voted">vote en cours</span> Programme de fidélité</td><td class="num cell-mask" colspan="6">vote en cours : valeurs masquées jusqu'à la révélation</td></tr>
+              <tr class="masked" data-st="round voted"><td>—</td><td><a href="#" class="fid" data-go="s4c" title="Voir le descriptif de F-5">F-5</a></td><td class="title" title="Refonte de la recherche"><span class="badge vote" data-st="round voted">vote en cours</span> Refonte de la recherche</td><td class="num cell-mask" colspan="6">vote en cours : valeurs masquées jusqu'à la révélation</td></tr>
             </tbody>
           </table>
-          <div class="legend">Cliquez sur un identifiant pour lire son descriptif. CoD = BV + TC + RR/OE ; WSJF = CoD / JS ; à égalité, CoD le plus élevé puis identifiant. Fonctionnalités incomplètes ou hors échelle en fin de liste.</div>
         </div>
         <div class="feature-cards">
-          <div class="fcard"><div class="row1"><span class="rank">1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span><span>CoD 16</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">2</span><b>F-4 · Export comptable</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span><span>CoD 13</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">3</span><b>F-2 · Notifications</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span><span>CoD 6</span></div></div>
-          <div class="fcard"><div class="row1"><span class="rank">4</span><b>F-5 · Recherche</b><span class="badge warn" style="margin-left:auto">hors échelle</span></div><div class="crit"><span>BV 7</span><span>TC 2</span><span>RR/OE 4</span><span>JS <span class="review">13</span></span></div></div>
-          <div class="fcard"><div class="row1"><b>F-3 · Fidélité</b><span class="muted small" style="margin-left:auto">non calculé</span></div><div class="crit"><span>BV 6</span><span>TC —</span><span>RR/OE —</span><span>JS —</span></div></div>
-          <p class="help">CoD = BV + TC + RR/OE ; WSJF = CoD / JS.</p>
+          <div class="fcard"><div class="row1"><span class=rank>1</span><b>F-1 · Paiement en un clic</b><span class="wsjf-big">4,00</span></div><div class="crit"><span>BV 8</span><span>TC 5</span><span>RR/OE 3</span><span>JS 4</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>2</span><b>F-4 · Export comptable mensuel</b><span class="wsjf-big">2,60</span></div><div class="crit"><span>BV 5</span><span>TC 6</span><span>RR/OE 2</span><span>JS 5</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>3</span><b>F-15 · Programme de parrainage</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 6</span><span>TC 4</span><span>RR/OE 2</span><span>JS 6</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>4</span><b>F-2 · Notifications de livraison</b><span class="wsjf-big">2,00</span></div><div class="crit"><span>BV 2</span><span>TC 2</span><span>RR/OE 2</span><span>JS 3</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>5</span><b>F-8 · Réservation de créneau de livraison à domicile et en point relais</b><span class="wsjf-big">1,71</span></div><div class="crit"><span>BV 6</span><span>TC 4</span><span>RR/OE 2</span><span>JS 7</span></div></div>
+          <div class="fcard"><div class="row1"><span class=rank>6</span><b>F-9 · Avis clients sur les produits</b><span class="wsjf-big">1,67</span></div><div class="crit"><span>BV 4</span><span>TC 3</span><span>RR/OE 3</span><span>JS 6</span></div></div>
         </div>
       </div>
-      <aside class="side">
-        <div class="card">
-          <h3>Participants (3)</h3>
-          <ul class="plist">
-            <li><span class="dot on"></span>eric<span class="role">animateur</span></li>
-            <li><span class="dot on"></span>alice (vous)<span class="role">PO</span></li>
-            <li><span class="dot off"></span>bob<span class="role">hors ligne</span></li>
-          </ul>
+      <div class="vp-modal" hidden data-handover-dialog>
+        <div class="modal" role="dialog" aria-labelledby="ho-t">
+          <h2 id="ho-t">Vous êtes maintenant animateur</h2>
+          <p style="margin:0">eric vous a transmis le rôle d'animateur de la session « PI 27 – Epics plateforme e-commerce ». Vous pouvez saisir les valeurs, ouvrir et révéler les tours, et clôturer la session.</p>
+          <div class="secret">
+            <b>Votre lien d'animation</b>
+            <div class="linkbox" style="margin-top:8px"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg/animer#Hk3…</code><button class="btn sm" type="button">Copier</button></div>
+            <p class="help" style="margin:8px 0 0">Gardez ce lien pour vous : il donne les droits d'animateur depuis n'importe quel poste. Vous le retrouverez dans le menu « Liens ».</p>
+          </div>
+          <div class="actions" style="justify-content:flex-end">
+            <button class="btn primary" type="button" data-handover-close>Compris</button>
+          </div>
         </div>
-        <div class="card">
-          <h3>Inviter</h3>
-          <div class="linkbox"><code>…/s/Qx7mK2pLr9TzA4bWcE1yNg</code><button class="btn sm" type="button">Copier</button></div>
-        </div>
-        <details class="card glossary-box" open>
-          <summary><h3>Comprendre le WSJF</h3></summary>
-          <dl class="glossary">
-            <dt>BV · Business Value</dt><dd>Valeur apportée aux utilisateurs ou au business.</dd>
-            <dt>TC · Time Criticality</dt><dd>Importance de réaliser rapidement la fonctionnalité.</dd>
-            <dt>RR/OE · Risk Reduction / Opportunity Enablement</dt><dd>Capacité à réduire un risque ou à permettre une opportunité.</dd>
-            <dt>JS · Job Size</dt><dd>Taille relative du travail nécessaire.</dd>
-            <dt>CoD · Cost of Delay</dt><dd>Coût du retard : BV + TC + RR/OE.</dd>
-            <dt>WSJF</dt><dd>CoD / JS. Plus il est élevé, plus la fonctionnalité est prioritaire.</dd>
-          </dl>
-          <a href="#" class="small" data-go="s4d">Voir la méthode complète</a>
-        </details>
-      </aside>
-    </div>
+      </div>
   </div>
 </section>
 
@@ -1330,6 +1506,79 @@ Hors périmètre : paiement fractionné, cartes cadeaux.</textarea>
         d.classList.remove('editing');
       }
     });
+  });
+  // Écrans « v2 » (FR-014c) : état simulé, menus, message superposé, confirmation de clôture.
+  function applyState(sec, st) {
+    sec.dataset.state = st;
+    sec.querySelectorAll('[data-st]').forEach(function (el) {
+      el.hidden = el.dataset.st.split(' ').indexOf(st) < 0;
+    });
+    sec.querySelectorAll('[data-dis]').forEach(function (el) {
+      var off = el.dataset.dis.split(' ').indexOf(st) >= 0;
+      el.disabled = off;
+      var t = el.dataset['disTitle' + st.charAt(0).toUpperCase() + st.slice(1)] || el.dataset.disTitle;
+      if (off) { el.title = t; } else if (el.dataset.go !== 's4f') { el.removeAttribute('title'); }
+    });
+    sec.querySelectorAll('[data-state-btn]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.stateBtn === st)); });
+    sec.querySelectorAll('.menu').forEach(function (m) { m.hidden = true; });
+    sec.querySelectorAll('.vp-modal, [data-transfer-done]').forEach(function (m) { m.hidden = true; });
+  }
+  document.querySelectorAll('.screen.v2').forEach(function (sec) {
+    applyState(sec, sec.dataset.state);
+    sec.querySelectorAll('[data-state-btn]').forEach(function (b) {
+      b.addEventListener('click', function () { applyState(sec, b.dataset.stateBtn); });
+    });
+    sec.querySelectorAll('[data-set-state]').forEach(function (b) {
+      b.addEventListener('click', function () { applyState(sec, b.dataset.setState); });
+    });
+    sec.querySelectorAll('[data-confirm-close]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-close-dialog]').hidden = false; sec.querySelector('[data-close-cancel]').focus(); });
+    });
+    sec.querySelectorAll('[data-close-cancel]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-close-dialog]').hidden = true; });
+    });
+    sec.querySelectorAll('[data-menu]').forEach(function (b) {
+      b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var m = b.nextElementSibling, open = m.hidden;
+        sec.querySelectorAll('.menu').forEach(function (o) { o.hidden = true; });
+        sec.querySelectorAll('[data-menu]').forEach(function (o) { o.setAttribute('aria-expanded', 'false'); });
+        m.hidden = !open; b.setAttribute('aria-expanded', String(open));
+      });
+    });
+    sec.addEventListener('click', function (e) {
+      if (!e.target.closest('.menu')) sec.querySelectorAll('.menu').forEach(function (o) { o.hidden = true; });
+    });
+    sec.querySelectorAll('[data-transfer]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sec.querySelectorAll('.menu').forEach(function (o) { o.hidden = true; });
+        sec.querySelectorAll('[data-transfer-name]').forEach(function (n) { n.textContent = b.dataset.transfer; });
+        sec.querySelector('[data-transfer-dialog]').hidden = false;
+        sec.querySelector('[data-transfer-cancel]').focus();
+      });
+    });
+    sec.querySelectorAll('[data-transfer-cancel]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-transfer-dialog]').hidden = true; });
+    });
+    sec.querySelectorAll('[data-transfer-ok]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        sec.querySelector('[data-transfer-dialog]').hidden = true;
+        sec.querySelector('[data-transfer-done]').hidden = false;
+      });
+    });
+    sec.querySelectorAll('[data-handover-open]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var target = b.dataset.go ? document.getElementById(b.dataset.go) : sec;
+        setTimeout(function () { target.querySelector('[data-handover-dialog]').hidden = false; }, 0);
+      });
+    });
+    sec.querySelectorAll('[data-handover-close]').forEach(function (b) {
+      b.addEventListener('click', function () { sec.querySelector('[data-handover-dialog]').hidden = true; });
+    });
+    var tt = sec.querySelector('[data-toast-toggle]');
+    if (tt) tt.addEventListener('change', function () { sec.querySelector('[data-toast]').hidden = !tt.checked; });
   });
   var start = 's1';
   try { start = localStorage.getItem('mock-screen') || 's1'; } catch (e) {}

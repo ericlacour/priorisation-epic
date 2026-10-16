@@ -41,6 +41,20 @@
 - Q : que vaut une fonctionnalité laissée dans « Non classées » pour un critère ? → A: « Sans avis » sur ce critère, comme un champ laissé vide auparavant.
 - Q : quand un participant a-t-il voté ? → A: Quand il a envoyé son classement (« Envoyer mon vote »). Il peut le reprendre et le renvoyer autant de fois qu'il veut jusqu'à la révélation ; chaque envoi remplace le précédent.
 
+### Session 2026-10-16 (revue de l'ergonomie de l'écran de l'animateur)
+
+- Q : les actions encore à réaliser tiennent-elles dans l'en-tête actuel du tableau ? → A: Non. Mesure du 2026-10-16 dans une fenêtre de 1280 px : l'en-tête est une ligne de 1 248 px, dont 564 px de boutons (« + Fonctionnalité », « Prioriser par classement », « Importer », « Échelle ») et 230 px d'outils (« Participants (n) », « Liens ») ; le nom de la session garde 422 px, dont environ 160 px pourraient encore être pris. Les actions prévues demandent environ 600 px de plus : « Exporter » (US4), « Démarrer la session », « Clôturer » ou « Rouvrir » (US5), « Ouvrir un tour de vote », « Voter », « Révéler » et l'avancement du vote (US2), « Tours révélés » (US2). L'en-tête passerait sur deux ou trois lignes, et la règle des 15 fonctionnalités visibles dès 1280 × 560 (FR-014a) tomberait. En hauteur, il ne reste qu'environ 30 px de marge : une ligne de plus sous l'en-tête actuel ferait aussi tomber cette règle.
+- Q : comment organiser les actions de l'animateur pour ne jamais faire défiler la page ? → A: En **deux barres de hauteur fixe**, qui remplacent la barre de l'application et l'en-tête du tableau sur l'écran de session, comme le montraient déjà les maquettes (écran 4) : une **barre de session** (identité de la session et outils communs, dans des menus) et une **barre d'actions** (actions d'animation directes, regroupées par usage). Elles tiennent ensemble dans la hauteur occupée aujourd'hui par la barre de l'application et l'en-tête (105 px). Voir FR-014c.
+- Q : faut-il regrouper « Importer » et « Échelle » dans un menu pour gagner de la place ? → A: Non. Ils restent deux boutons directs (choix du 2026-10-15). La place vient de la barre d'actions, qui a toute la largeur de la fenêtre.
+- Q : une action indisponible dans l'état courant est-elle masquée ou désactivée ? → A: Désactivée, à sa place, avec une infobulle qui dit pourquoi. Les boutons ne bougent pas d'un état à l'autre. Seule la session clôturée réduit la barre d'actions à « Rouvrir la session ».
+- Q : où vont les futures actions sur une seule fonctionnalité ? → A: Jamais dans une nouvelle colonne du tableau. La colonne « Actions » garde le seul bouton « Modifier » ; « Supprimer » est dans la ligne d'édition, « Marquer à revoir » et la modification du titre et du descriptif sont dans le panneau de détail (FR-016b).
+- Q : les messages (refus, conflit, connexion perdue) peuvent-ils décaler le tableau ? → A: Non. Ils s'affichent en superposition au-dessus du tableau, sans le pousser vers le bas.
+- Décisions du 2026-10-16 sur les points qui restaient à trancher :
+  1. Q : deux barres, ou une seule ligne avec des libellés raccourcis et plus de menus ? → A: **Deux barres** (FR-014c).
+  2. Q : plusieurs tours de vote ouverts à la fois ? → A: **Un seul tour ouvert à la fois en V1** (FR-018). « Ouvrir un tour de vote » est désactivé tant qu'un tour est ouvert, et la zone des tours de la barre d'actions reste un seul indicateur.
+  3. Q : faut-il confirmer avant de clôturer la session ? → A: **Oui** (FR-004) : « Clôturer la session ? Elle passera en lecture seule pour tous. Vous pourrez la rouvrir. »
+  4. Q : que se passe-t-il dans une fenêtre de moins de 1280 px (par exemple un portable de 1366 px avec un zoom de 125 %, soit environ 1 093 px utiles) ? → A: La barre d'actions **peut passer sur deux lignes**. C'est accepté : la garantie de FR-014a ne vaut qu'à partir de 1280 px, et aucun menu de repli n'est prévu.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Prioriser des fonctionnalités en saisie directe (Priority: P1)
@@ -300,7 +314,25 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   connecté : il ne pourrait pas recevoir son lien d'animation ». Le participant choisi devient animateur, l'ancien animateur devient simple
   participant, un nouveau lien d'animation est remis au nouvel animateur, et l'ancien lien
   cesse de donner les droits d'animateur. Il y a toujours exactement un animateur par
-  session.
+  session. Déroulé à l'écran (2026-10-16) :
+  - l'action « Transmettre le rôle » est dans le menu « Participants (n) ▾ » (FR-014c),
+    face à chaque participant, désactivée pour un participant hors ligne avec l'infobulle
+    « Ce participant n'est pas connecté » ;
+  - elle demande une **confirmation**, car l'animateur perd ses droits sans pouvoir
+    annuler : « Transmettre le rôle d'animateur à alice ? Vous deviendrez participant, et
+    votre lien d'animation ne fonctionnera plus. Seule alice pourra vous rendre le rôle. »,
+    avec « Annuler » et « Transmettre le rôle » ;
+  - l'**ancien animateur** voit un message « Vous avez transmis le rôle d'animateur à
+    alice. Vous êtes maintenant participant. », et son écran passe en vue participant
+    (FR-014b). Si le bénéficiaire s'est déconnecté entre-temps, rien ne change et le
+    message de refus ci-dessus s'affiche ;
+  - le **nouvel animateur** voit une fenêtre « Vous êtes maintenant animateur » : qui lui
+    a transmis le rôle, son nouveau lien d'animation avec « Copier », l'avertissement
+    « Gardez ce lien pour vous : il donne les droits d'animateur depuis n'importe quel
+    poste » et « Compris ». Son écran passe en vue animateur. Le lien reste copiable
+    ensuite par le menu « Liens » ;
+  - les autres membres voient le nouvel animateur dans la liste des participants et
+    dans la barre de session.
 - **FR-003**: Le système NE DOIT PAS exiger de mot de passe ni de compte. Un pseudo est
   unique au sein d'une session.
 - **FR-004**: Une session DOIT avoir l'un des statuts « en préparation », « en cours » ou
@@ -310,7 +342,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     peuvent rejoindre et voir le tableau, mais **aucun tour de vote** ne peut être ouvert ;
   - **en cours** : tout est permis, y compris les tours de vote. L'import et le changement
     d'échelle restent possibles ;
-  - **clôturée** : lecture seule, sauf la réouverture par l'animateur.
+  - **clôturée** : lecture seule, sauf la réouverture par l'animateur. La clôture demande
+    une confirmation : « Clôturer la session ? Elle passera en lecture seule pour tous.
+    Vous pourrez la rouvrir. » (revue du 2026-10-16).
 - **FR-005**: Le système DOIT afficher, pour tous les membres, la liste des participants
   présents dans la session. Elle s'ouvre à la demande, par un bouton « Participants (n) »
   en haut à droite du tableau (retour d'usage du 2026-10-14).
@@ -383,7 +417,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   permanence. Quand les fonctionnalités sont nombreuses, **seule la liste du tableau
   défile**, avec un en-tête de colonnes figé. **Au moins 15 fonctionnalités** sont visibles
   sans défilement ni zoom, dès une fenêtre de 1280 × 560 (retours d'usage du 2026-10-15) :
-  l'en-tête (nom de la session, actions, outils) tient sur une ligne et chaque
+  la barre de session et la barre d'actions tiennent chacune sur une ligne, quel que soit
+  l'état de la session (FR-014c, revue du 2026-10-16), et chaque
   fonctionnalité sur une ligne, le titre tronqué et affiché en entier au survol et dans le
   panneau de détail. Quand l'animateur modifie une
   ligne, la ligne d'édition tient dans la largeur du tableau : aucun défilement n'est
@@ -392,6 +427,63 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   reprend la mise en page de l'écran de classement (FR-015a, FR-019), et à l'écran de
   **révélation et consensus**, où seule la liste des fonctionnalités révélées défile et
   où la barre d'actions (« Relancer un tour sur la sélection ») reste visible.
+- **FR-014c**: Sur ordinateur, l'écran de session DOIT répartir ses commandes en **deux
+  barres de hauteur fixe**, qui remplacent la barre de l'application et l'en-tête du
+  tableau (revue de l'ergonomie du 2026-10-16) :
+  1. la **barre de session**, en haut, sur une ligne : à gauche, la marque réduite (retour
+     à l'accueil), le nom de la session (tronqué, en entier au survol), son badge de statut
+     et le lien « Comprendre le WSJF » (FR-016a) ; à droite, les outils, les mêmes pour
+     tous les membres : « Participants (n) ▾ » (FR-005, avec « Transmettre le rôle
+     d'animateur », FR-002a), « Tours révélés (n) » (FR-022, avec le vote masqué),
+     « Exporter ▾ » (FR-023, FR-024), « Liens ▾ » (animateur seulement, FR-014b) et le
+     choix du thème ;
+  2. la **barre d'actions**, juste en dessous, sur une ligne, avec des groupes séparés
+     d'un filet :
+     - pour l'animateur : **saisie** (« + Fonctionnalité », action principale, et
+       « Prioriser par classement ») ; **préparation** (« Importer » et « Échelle »,
+       boutons directs) ; **tours** (« Ouvrir un tour de vote », puis, pour le tour ouvert,
+       un indicateur compact « Tour N · 3 / 5 ont voté » avec « Voter » ou « Modifier mon
+       vote », et « Révéler » ; un seul tour est ouvert à la fois, FR-018) ; à droite, le **cycle de vie**, un seul bouton selon le
+       statut : « Démarrer la session », « Clôturer la session » (après confirmation,
+       FR-004) ou « Rouvrir la session » ;
+     - pour un participant : le bandeau d'état (« Aucun tour de vote en cours », « Tour N
+       ouvert : Voter », « Vote envoyé · Modifier mon vote », « Session clôturée : lecture
+       seule »).
+
+  Règles de la mise en page :
+  - les deux barres réunies ne dépassent pas **105 px** de haut, la hauteur occupée le
+    2026-10-16 par la barre de l'application et l'en-tête du tableau : la règle des
+    15 fonctionnalités visibles dès 1280 × 560 (FR-014a) tient dans tous les états
+    (préparation, en cours, tour ouvert, tour révélé, clôturée) ;
+  - une action indisponible dans l'état courant reste **à sa place, désactivée**, avec une
+    infobulle qui dit pourquoi (par exemple « Démarrez la session pour ouvrir un tour de
+    vote », « Un tour de vote est en cours : révélez-le avant de changer l'échelle »). Les
+    boutons ne bougent pas d'un état à l'autre. Seule la session **clôturée** réduit la
+    barre d'actions de l'animateur à « Rouvrir la session » et au bandeau de lecture
+    seule ;
+  - une seule **action principale** (bouton rouge) par barre ;
+  - aucune nouvelle action **par ligne** du tableau : la colonne « Actions » garde le seul
+    bouton « Modifier ». Les autres actions sur une fonctionnalité vont dans la ligne
+    d'édition (« Supprimer ») ou dans le panneau de détail (« Marquer à revoir », titre et
+    descriptif, FR-006a, FR-016b) ;
+  - une action **rare** ou commune à tous va dans un menu de la barre de session. Un
+    nouveau bouton direct n'entre dans la barre d'actions que si elle tient encore sur une
+    ligne à 1280 px, ce que vérifie un test automatique (budget de largeur) ;
+  - les **messages** (refus, conflit de modification, connexion perdue, confirmation
+    d'enregistrement) s'affichent en superposition au-dessus du tableau et ne le décalent
+    pas ;
+  - les écrans plein écran (classement, vote, révélation, ouverture d'un tour) gardent leur
+    propre en-tête de navigation (FR-015a, FR-019, FR-020) ;
+  - dans une fenêtre de **moins de 1280 px**, la barre d'actions peut passer sur deux
+    lignes : c'est accepté, hors de la garantie de FR-014a, sans menu de repli ;
+  - l'avancement d'un tour tient dans une puce (« Tour N · 3/5 votes ») ; le détail par
+    membre (« a voté », « n'a pas encore voté ») est dans le menu « Participants (n) ▾ ».
+    Après la révélation, la zone des tours affiche « Tour N révélé » et « Résultats et
+    consensus » jusqu'à l'ouverture du tour suivant. « Clôturer la session » est désactivé
+    pendant un tour ouvert (maquettes, écrans 4 et 4 quinquies, T097a) ;
+  - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état, et les
+    outils de la barre de session à « Participants », « Tours révélés », « Exporter » et,
+    pour l'animateur, « Liens » (lien d'invitation seulement), sur une deuxième ligne.
 - **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
   le tableau complet, comme l'animateur : rang, identifiant, titre, critères, valeurs
   calculées, badges « à revoir » et « hors échelle », mis à jour en direct (FR-015). Il voit
@@ -568,11 +660,12 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   (bouton « Ouvrir un tour de vote », sur ordinateur), avec la **même étape de choix que
   « Prioriser par classement »** (FR-015a, étape 1) : les **critères** à évaluer (au moins
   un, par défaut tous, dans l'ordre de la définition de la méthode, FR-017b) et les
-  **fonctionnalités** (une, plusieurs ou toutes ; celles déjà dans un tour ouvert sont
-  exclues, avec la mention « déjà dans le tour N »). Des sélections rapides aident au
+  **fonctionnalités** (une, plusieurs ou toutes). Des sélections rapides aident au
   choix : « Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir »
-  (FR-006a), « Tout désélectionner ». Une fonctionnalité ne peut appartenir qu'à un seul
-  tour ouvert à la fois. Un tour ne peut être ouvert que si la session est **en cours**
+  (FR-006a), « Tout désélectionner ». **Un seul tour peut être ouvert à la fois** (décision
+  du 2026-10-16) : tant qu'un tour est ouvert, « Ouvrir un tour de vote » est désactivé,
+  avec l'infobulle « Un tour de vote est déjà ouvert : révélez-le avant d'en ouvrir un
+  autre », et le serveur refuse un second tour. Un tour ne peut être ouvert que si la session est **en cours**
   (FR-004). Le vote masqué est facultatif : les valeurs peuvent toujours être saisies
   directement ou par classement, **sauf pour une fonctionnalité qui est dans un tour
   ouvert**. Tant que ce tour n'est pas révélé, ses valeurs retenues (tous critères) ne

@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DOCUMENT,
+  DestroyRef,
   computed,
   effect,
   inject,
@@ -18,7 +18,7 @@ import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
 import { SettingsDialogComponent } from '../session/settings-dialog.component';
 import { CriterionTermComponent } from '../shared/criterion-term.component';
-import { MethodGlossaryComponent, glossaryTitle } from '../shared/method-glossary.component';
+import { MethodGlossaryComponent } from '../shared/method-glossary.component';
 import { MethodInfoComponent } from '../shared/method-info.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
 import {
@@ -27,8 +27,9 @@ import {
   TextEdit,
 } from './feature-detail-panel.component';
 import { FeatureEdit, FeatureEditorComponent } from './feature-editor.component';
-import { ParticipantsMenuComponent } from './participants-menu.component';
-import { LinksMenuComponent } from './links-menu.component';
+import { SessionBarComponent } from '../session/session-bar.component';
+import { SessionChromeService } from '../layout/session-chrome.service';
+import { ActionBarComponent } from './action-bar.component';
 import { scaleLabel } from '../shared/scale';
 
 /** Ce que le dernier envoi voulait faire, pour proposer « Remplacer par les miennes » après un conflit. */
@@ -49,10 +50,11 @@ const NEW_ROW = 'new';
  * Tableau de priorisation (US1) : les fonctionnalités dans l'ordre reçu du serveur, avec une colonne par critère puis
  * par valeur calculée de `methodDefinition` (aucune colonne écrite en dur, FR-017b). Il ne calcule et ne trie rien.
  * L'animateur ajoute, modifie et supprime ; un participant voit le même tableau sans aucune action d'animation
- * (FR-014b). Tient dans la fenêtre sans défilement de la page : seule la liste défile, en-tête figé ; une ligne par
- * fonctionnalité, titre tronqué et en entier au survol, pour voir au moins 15 fonctionnalités (FR-014a). Les
- * définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur (FR-016a).
- * Participants à la demande (FR-005) ; liens d'invitation et d'animation copiés sans être affichés.
+ * (FR-014b). Au-dessus, la barre de session et la barre d'actions, d'une ligne chacune (FR-014c). Tient dans la
+ * fenêtre sans défilement de la page : seule la liste défile, en-tête figé ; une ligne par fonctionnalité, titre
+ * tronqué et en entier au survol, pour voir au moins 15 fonctionnalités (FR-014a). Les messages se superposent au
+ * tableau sans le décaler. Les définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur
+ * (FR-016a).
  * Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
 @Component({
@@ -65,114 +67,49 @@ const NEW_ROW = 'new';
     MethodGlossaryComponent,
     MethodInfoComponent,
     MethodPanelComponent,
-    ParticipantsMenuComponent,
-    LinksMenuComponent,
+    SessionBarComponent,
+    ActionBarComponent,
     SettingsDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'board-page', role: 'main' },
+  host: { class: 'board-page board-screen', role: 'main' },
   template: `
     @if (state(); as state) {
-      <!-- Une seule ligne d'en-tête (titre, actions, outils) : toute la hauteur restante va au tableau (FR-014a). -->
-      <div class="board-head">
-        <div class="board-title">
-          <div class="board-name">
-            <h1 [attr.title]="state.name">{{ state.name }}</h1>
-            <button type="button" class="link-button small" (click)="showGlossary.set(true)">
-              {{ glossaryTitle() }}
-            </button>
-          </div>
-          <p class="board-info muted small">
-            <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
-            <span class="board-info-text" [attr.title]="infoLine()">{{ infoLine() }}</span>
-          </p>
-        </div>
-        @if (!canAnimate()) {
-          <p class="notice info board-notice" role="note">{{ messages.noRound }}</p>
-        }
-        @if (canAnimate() && !screen.isPhone()) {
-          <div class="board-actions">
-            <button
-              type="button"
-              class="btn btn-primary"
-              [disabled]="editing() !== null"
-              (click)="startNew()"
-            >
-              {{ messages.addFeature }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [attr.title]="messages.rankHint"
-              [disabled]="editing() !== null || state.features.length === 0"
-              (click)="rankingRequested.emit()"
-            >
-              {{ messages.rank }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [attr.title]="messages.importHint"
-              [disabled]="editing() !== null"
-              (click)="openImport()"
-            >
-              {{ messages.import }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [attr.title]="messages.scaleHint"
-              [disabled]="editing() !== null"
-              (click)="openSettings()"
-            >
-              {{ messages.scale }}
-            </button>
-          </div>
-        } @else if (!canAnimate()) {
-          <div class="board-actions">
-            <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-              {{ messages.export }}
-            </button>
-            <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-              {{ messages.revealedRounds }}
-            </button>
-          </div>
-        }
-        <div class="board-tools">
-          <app-participants-menu
-            [participants]="state.participants"
-            [meId]="state.me?.participantId ?? null"
-          />
-          @if (canAnimate()) {
-            <app-links-menu
-              [sessionId]="state.sessionId"
-              [inviteUrl]="inviteUrl()"
-              [withAnimation]="!screen.isPhone()"
-            />
-          }
-        </div>
-      </div>
-
-      @if (room.connection() === 'lost') {
-        <p class="notice danger" role="status">{{ connectionMessage }}</p>
-      }
-
-      @if (refusalText(); as text) {
-        <p class="notice danger" role="alert">{{ text }}</p>
-      }
-      @if (conflict(); as conflict) {
-        <div class="notice danger toast" role="alert">
-          <span> {{ conflictTitle(conflict) }} {{ conflictCurrent(conflict) }} </span>
-          <button type="button" class="btn btn-secondary btn-sm" (click)="keepCurrentValues()">
-            {{ conflictMessages.keep }}
-          </button>
-          <button type="button" class="btn btn-primary btn-sm" (click)="replaceWithMine()">
-            {{ conflictMessages.replace }}
-          </button>
-        </div>
+      <!-- Deux barres d'une ligne (FR-014c) ; toute la hauteur restante va au tableau (FR-014a). -->
+      <app-session-bar (glossaryRequested)="showGlossary.set(true)" />
+      @if (!(canAnimate() && screen.isPhone())) {
+        <app-action-bar
+          [animate]="canAnimate()"
+          [editing]="editing() !== null"
+          [hasFeatures]="state.features.length > 0"
+          (add)="startNew()"
+          (rank)="rankingRequested.emit()"
+          (import)="openImport()"
+          (scale)="openSettings()"
+        />
       }
 
       <div class="layout-board">
+        <!-- Messages en superposition : ils ne décalent pas le tableau (FR-014c). -->
+        <div class="board-messages">
+          @if (room.connection() === 'lost') {
+            <p class="notice danger" role="status">{{ connectionMessage }}</p>
+          }
+          @if (refusalText(); as text) {
+            <p class="notice danger" role="alert">{{ text }}</p>
+          }
+          @if (conflict(); as conflict) {
+            <div class="notice danger toast" role="alert">
+              <span> {{ conflictTitle(conflict) }} {{ conflictCurrent(conflict) }} </span>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="keepCurrentValues()">
+                {{ conflictMessages.keep }}
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" (click)="replaceWithMine()">
+                {{ conflictMessages.replace }}
+              </button>
+            </div>
+          }
+        </div>
         <div class="board-main">
           @if (screen.isPhone()) {
             <div class="feature-cards">
@@ -406,7 +343,6 @@ export class BoardComponent {
 
   protected readonly room = inject(SessionRoomService);
   protected readonly screen = inject(ScreenSizeService);
-  private readonly document = inject(DOCUMENT);
 
   protected readonly messages = MESSAGES.board;
   protected readonly conflictMessages = MESSAGES.conflict;
@@ -485,16 +421,11 @@ export class BoardComponent {
     );
   });
 
-  protected readonly glossaryTitle = computed(() => {
-    const definition = this.state()?.methodDefinition;
-    return definition ? glossaryTitle(definition) : '';
-  });
-
-  protected readonly inviteUrl = computed(
-    () => `${this.document.location.origin}/s/${this.state()?.sessionId ?? ''}`,
-  );
-
   constructor() {
+    // La barre de session remplace la barre de l'application tant que le tableau est affiché (FR-014c).
+    const chrome = inject(SessionChromeService);
+    chrome.show();
+    inject(DestroyRef).onDestroy(() => chrome.hide());
     // Un nouvel état confirme l'enregistrement ou la suppression en attente : la ligne en édition se referme.
     effect(() => {
       const state = this.state();
@@ -534,28 +465,6 @@ export class BoardComponent {
         this.stopEditing();
       }
     });
-  }
-
-  protected statusLabel(): string {
-    return this.messages.status[this.state()?.status ?? 'PREPARATION'];
-  }
-
-  protected statusClass(): string {
-    return this.state()?.status === 'IN_PROGRESS'
-      ? 'badge live'
-      : this.state()?.status === 'CLOSED'
-        ? 'badge closed'
-        : 'badge prep';
-  }
-
-  protected infoLine(): string {
-    const state = this.state();
-    if (!state) return '';
-    const facilitator = state.participants.find((p) => p.role === 'FACILITATOR')?.pseudo ?? '';
-    const me = state.me?.pseudo ?? '';
-    return this.canAnimate()
-      ? format(this.messages.facilitatorLine, { facilitator, me, scale: scaleLabel(state.scale) })
-      : format(this.messages.participantLine, { facilitator, me, scale: scaleLabel(state.scale) });
   }
 
   protected rankOf(feature: Feature): number | null {

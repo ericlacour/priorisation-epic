@@ -52,13 +52,13 @@ channels:
 
       Error codes (`error.code`): `INVALID_MESSAGE`, `FORBIDDEN`, `SESSION_CLOSED`,
       `STALE_VERSION`, `INVALID_VALUE` (value outside the scale), `DUPLICATE_EXTERNAL_ID`,
-      `FEATURE_IN_OPEN_ROUND` (`openRound` on a feature already in an open round, or
-      `updateFeature` changing criteria / `deleteFeature` on a feature in an open round),
+      `FEATURE_IN_OPEN_ROUND` (`updateFeature` changing criteria / `deleteFeature` on a
+      feature in an open round),
       `ROUND_REVEALED`, `SCALE_IMPACT` (with `impactedValues`),
       `UNKNOWN_PARTICIPANT`, `UNKNOWN_CRITERION` (a criterion key the session's method does
       not declare), `SESSION_NOT_STARTED` (`openRound` while in PREPARATION),
-      `ROUND_OPEN` (`changeStatus CLOSE` or a scale change in `updateSettings` while a
-      round is open), `PARTICIPANT_OFFLINE`
+      `ROUND_OPEN` (`openRound`, `changeStatus CLOSE` or a scale change in `updateSettings`
+      while a round is open: only one open round per session in V1), `PARTICIPANT_OFFLINE`
       (`transferFacilitator` to a participant with no open connection).
     parameters:
       sessionId:
@@ -472,6 +472,8 @@ components:
           items: { $ref: '#/components/schemas/feature' }
         openRounds:
           type: array
+          description: At most one round in V1 (one open round per session, FR-018)
+          maxItems: 1
           items: { $ref: '#/components/schemas/round' }
         lastRevealedRounds:
           type: array

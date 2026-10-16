@@ -35,7 +35,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 - **[P]** : la tâche peut être faite en parallèle (fichiers différents, aucune dépendance
   vers une tâche non terminée).
-- **[Story]** : le parcours utilisateur concerné (US1 à US5).
+- **[Story]** : le parcours utilisateur concerné (US1 à US5), ou **[UX]** pour une tâche d'ergonomie commune à plusieurs parcours.
 - Chaque description indique le chemin exact du fichier.
 
 ## Conventions de chemins
@@ -395,6 +395,36 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ---
 
+## Phase 5 bis : Ergonomie de l'écran de l'animateur (avant US4)
+
+> **Revue du 2026-10-16** : à 1280 px, l'en-tête actuel du tableau n'a plus la place des
+> actions à venir (« Exporter », « Démarrer la session », « Clôturer », « Ouvrir un tour de
+> vote », « Voter », « Révéler », « Tours révélés »), soit environ 600 px de boutons pour
+> environ 160 px libres. Sans réorganisation, l'en-tête passerait sur plusieurs lignes et la
+> règle des 15 fonctionnalités visibles dès 1280 × 560 (FR-014a) tomberait. Cette phase pose
+> la mise en page de FR-014c **avant** d'ajouter le premier nouveau bouton (T105).
+> Décisions du 2026-10-16 : deux barres ; un seul tour ouvert à la fois ; confirmation
+> avant de clôturer ; sous 1280 px, la barre d'actions peut passer sur deux lignes (non
+> testé, hors garantie).
+
+**Objectif** : une barre de session et une barre d'actions, chacune sur une ligne, au plus 105 px à elles deux, dans tous les états de la session, avec des emplacements réservés pour les actions de US4, US5 et US2.
+
+**Test indépendant** : dans une fenêtre de 1280 × 560, pour l'animateur et pour un participant, chaque barre tient sur une ligne, 15 fonctionnalités sont visibles et la page ne défile pas ; l'apparition d'un message ne déplace pas la première ligne du tableau.
+
+- [X] T097a [UX] Refaire les écrans 4 et 4 quinquies des maquettes `specs/001-wsjf-prioritization-session/mockups/index.html` avec les deux barres de FR-014c, dans chaque état : préparation, en cours, tour ouvert (animateur qui a voté ou non ; participant), tour révélé, clôturée, et téléphone. Mettre à jour `mockups/README.md`, puis les faire valider **avant d'écrire le code**
+  - Réalisé le 2026-10-16 : sélecteur « État simulé », fenêtre de 1280 × 560, menus ouvrables, message superposé et confirmation de clôture. Mesures dans `mockups/README.md` : 98 px pour les deux barres, 16 fonctionnalités visibles, 60 px libres dans l'état le plus chargé. Validé le 2026-10-16
+- [X] T097b [P] [UX] Test e2e du budget de place `frontend/e2e/board-layout.spec.ts` (faux socket, Chromium, Firefox et WebKit), écrit d'abord : dans une fenêtre de 1280 × 560, pour l'animateur et pour un participant, la barre de session et la barre d'actions ont chacune la hauteur d'une ligne, leur hauteur totale est d'au plus 105 px, 15 fonctionnalités sont entièrement visibles et `document.documentElement.scrollHeight <= innerHeight`. Un refus (`refusal`) et la perte de connexion ne déplacent pas la première ligne du tableau. Chaque tâche qui ajoute une action à une barre (T105, T113, T078, T079, T081, T083) ajoute à ce test l'état qui la montre
+- [X] T097c [UX] Front, mise en page de FR-014c :
+  - `frontend/src/app/session/session-bar.component.ts` : barre de session, qui remplace `top-bar` sur l'écran de session (marque réduite avec retour à l'accueil, nom tronqué avec titre au survol, badge de statut, « Comprendre le WSJF » ; à droite `participants-menu`, `links-menu` et `theme-menu`, avec les emplacements de « Tours révélés » et « Exporter ») ; `top-bar` reste sur l'accueil ;
+  - `frontend/src/app/board/action-bar.component.ts` : barre d'actions en groupes (saisie, préparation, tours, cycle de vie), avec le bandeau d'état du participant ; les boutons actuels y passent sans changer de libellé ; une action indisponible reste désactivée à sa place avec son infobulle, tirée de `messages.fr.ts` ;
+  - les messages de `board.component.ts` (connexion perdue, refus, conflit) passent en superposition au-dessus du tableau ;
+  - mettre à jour `frontend/src/styles/board.css`, `top-bar.css`, les tests Vitest et e2e existants (`board.spec.ts`, `import-scale.spec.ts`, `ranking.spec.ts`) et les parcours qui cherchent ces boutons. T097b passe au vert
+  - Réalisé le 2026-10-16 : `layout/session-chrome.service.ts` cache `top-bar` tant que le tableau est affiché (l'écran de classement garde la barre de l'application) ; « Tours révélés » et « Exporter » sont des places réservées, désactivées (« Disponible dans une prochaine version »), pour tous ; sur téléphone, pas de barre d'actions pour l'animateur (lecture seule). Mesures dans Chromium à 1280 × 560 : barre de session 52 px, barre d'actions 46 px, 16 fonctionnalités visibles. Tests Vitest `session-bar.component.spec.ts` et `action-bar.component.spec.ts`
+
+**Checkpoint** : l'écran du tableau a les deux barres, sans régression de US1 et US3 ; les nouvelles actions ont une place réservée.
+
+---
+
 ## Phase 6 : User Story 4 — Exporter le tableau (Priority: P4)
 
 **Objectif** : exporter le tableau en CSV et au format Confluence, et la session complète en JSON, dont les données de priorisation sont réimportables. L'export des votes en CSV dépend des tours : il est réalisé avec le vote masqué (T082).
@@ -422,7 +452,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T102 [P] [US4] Implémenter `adapter/out/io/ConfluenceWriter.java` (sorties `confluence-html` et `confluence-wiki`)
 - [ ] T103 [P] [US4] Implémenter `adapter/out/io/JsonSessionWriter.java` (`rounds` vide ; les tours et leurs votes s'ajoutent en T082)
 - [ ] T104 [US4] Implémenter `adapter/in/rest/ExportController.java` (`GET /api/sessions/{sessionId}/exports/{format}` avec `format` parmi `csv`, `confluence-wiki`, `confluence-html` et `json`, et le nom de fichier versionné ; `csv-votes` et le filtrage `Visibility` s'ajoutent en T082) et ajouter l'opération à `contract/openapi.yaml`
-- [ ] T105 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : téléchargement du CSV tableau et du JSON (le CSV des votes s'ajoute en T082), bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
+- [ ] T105 [US4] Front, `frontend/src/app/import-export/export-menu.component.ts` : menu « Exporter ▾ » de la barre de session (FR-014c), le même pour tous les membres, qui remplace le bouton « Exporter » désactivé du participant ; ajouter son état à T097b. Téléchargement du CSV tableau et du JSON (le CSV des votes s'ajoute en T082), bouton « Copier pour Confluence » (copie HTML dans le presse-papiers avec `ClipboardItem`) et téléchargement du *wiki markup*
 - [ ] T106 [US4] Écrire le parcours e2e `frontend/e2e-journeys/us4-exports.spec.ts` (quickstart V11 et V12). Étape manuelle (SC-007) : coller l'export « Copier pour Confluence » et le *wiki markup* dans une page Confluence de test, puis cocher le résultat dans la description de la PR (« rendu Confluence vérifié le JJ/MM/AAAA »)
 
 **Checkpoint** : US1, US3 et US4 fonctionnent indépendamment.
@@ -446,7 +476,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T110 [US5] Implémenter `adapter/in/rest/SessionListController.java`, avec le schéma `session-summary.json` et ses exemples dans `contract/`
 - [ ] T111 [P] [US5] Front, liste des sessions dans `frontend/src/app/home/session-list.component.ts` (nom, animateur, date au format JJ/MM/AAAA, méthode, statut ; de la plus récente à la plus ancienne). Une session clôturée s'ouvre en lecture seule, à partir de `GET /api/sessions/{id}`
 - T112 : déplacée avec le vote masqué (T083, tours révélés), car elle dépend des tours.
-- [ ] T113 [US5] Front, boutons « Démarrer la session », « Clôturer » et « Rouvrir » pour l'animateur, et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`
+- [ ] T113 [US5] Front, boutons « Démarrer la session », « Clôturer la session » et « Rouvrir la session » pour l'animateur, et mode lecture seule, dans `frontend/src/app/session/session-status.component.ts`. Un seul bouton à la fois, selon le statut, dans le groupe « cycle de vie » à droite de la barre d'actions (FR-014c) ; « Clôturer la session » demande une confirmation (« Clôturer la session ? Elle passera en lecture seule pour tous. Vous pourrez la rouvrir. », FR-004) ; « Annuler » ne change rien. Session clôturée : la barre d'actions de l'animateur se réduit à « Rouvrir la session » et au bandeau « Session clôturée : lecture seule », le badge de statut de la barre de session est à jour pour tous. Ajouter les états « en cours » et « clôturée » à T097b
 - [ ] T114 [US5] Écrire le parcours e2e `frontend/e2e-journeys/us5-consultation.spec.ts` (quickstart V13)
 
 **Checkpoint** : US1, US3, US4 et US5 fonctionnent indépendamment. Il ne reste que le bonus du vote masqué (phase 9).
@@ -457,7 +487,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 - [ ] T115 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
 - [ ] T116 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
-- [ ] T117 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier (y compris l'affichage des définitions WSJF au focus), rendu sur un écran de portable de 1280 px, sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
+- [ ] T117 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier (y compris l'affichage des définitions WSJF au focus), rendu sur un écran de portable de 1280 px (avec le budget de place de T097b dans tous les états), sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
 - [ ] T118 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
 - [ ] T119 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
 - [ ] T120 Dérouler `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V18 sauf V5 à V8, déroulés avec le vote masqué en T083b, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
@@ -487,7 +517,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Conception de User Story 2
 
 - [ ] T064 [US2] Mettre à jour les maquettes `specs/001-wsjf-prioritization-session/mockups/index.html` et `mockups/README.md`, puis les faire valider **avant d'écrire le code** :
-  - écran 4 bis « Ouvrir un tour de vote » : même étape de choix que l'écran 4 sexies (critères, au moins un, tous par défaut ; fonctionnalités), avec les sélections rapides « Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner », les fonctionnalités déjà dans un tour ouvert désactivées (« déjà dans le tour N ») et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) », désactivé tant que rien n'est choisi ;
+  - écran 4 bis « Ouvrir un tour de vote » : même étape de choix que l'écran 4 sexies (critères, au moins un, tous par défaut ; fonctionnalités), avec les sélections rapides « Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner », et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) », désactivé tant que rien n'est choisi ; sur le tableau, « Ouvrir un tour de vote » désactivé tant qu'un tour est ouvert (un seul tour à la fois, FR-018) ;
   - écran 5 « Voter » : l'écran 4 septies sans étape de choix, toutes les fonctionnalités au départ dans « Non classées (sans valeur) », en-tête « Tour N · critère 1 / 2 », bouton final « Envoyer mon vote » ; sur le tableau, bandeau « Tour N ouvert : Voter » puis « Vote envoyé · Modifier mon vote », et progression « a voté / n'a pas encore voté » par membre ;
   - écran 6 « Révélation et consensus » : colonnes limitées aux critères du tour.
 
@@ -495,7 +525,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 - [ ] T065 [P] [US2] Test unitaire `backend/src/test/java/com/priorisationepic/domain/round/VotingRoundTest.java` :
   - au moins un critère et une fonctionnalité par tour ; les critères sont des clés de la méthode (`UNKNOWN_CRITERION` sinon), rangés dans l'ordre de la définition ; un cas avec la méthode fictive de T038a ;
-  - une fonctionnalité ne peut être que dans un seul tour `OPEN` (`FEATURE_IN_OPEN_ROUND`) ;
+  - un seul tour `OPEN` par session : ouvrir un second tour est refusé (`ROUND_OPEN`, FR-018) ; après révélation, un nouveau tour peut s'ouvrir ;
   - `OPEN → REVEALED` est la seule transition possible ; un tour `REVEALED` est immuable (`ROUND_REVEALED`) ;
   - un vote envoyé contient une entrée par fonctionnalité du tour, avec les seuls critères du tour (`UNKNOWN_CRITERION` pour un critère hors du tour, refus d'une fonctionnalité hors du tour), valeurs validées par `Scale` ; un nouvel envoi **remplace** le précédent ;
   - relance à partir de `previousRoundId` sur une sélection des fonctionnalités du tour précédent, avec ses critères par défaut ;
@@ -510,7 +540,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - l'animateur voit les valeurs retenues, mais pas les votes en cours ;
   - `progress` (a voté ou non) est toujours visible.
 - [ ] T067 [P] [US2] Tests de cas d'usage `backend/src/test/java/com/priorisationepic/application/RoundUseCaseTest.java`, `VoteUseCaseTest.java` et `TransferFacilitatorUseCaseTest.java` :
-  - `openRound` en `PREPARATION` renvoie `SESSION_NOT_STARTED` (FR-004, FR-018) ; `openRound` sans critère ou sans fonctionnalité est refusé ;
+  - `openRound` en `PREPARATION` renvoie `SESSION_NOT_STARTED` (FR-004, FR-018) ; `openRound` sans critère ou sans fonctionnalité est refusé ; `openRound` alors qu'un tour est ouvert renvoie `ROUND_OPEN` (un seul tour à la fois) ;
   - pendant un tour ouvert, `updateFeature` qui change **un critère quelconque** d'une fonctionnalité du tour, ou `deleteFeature` sur elle, renvoie `FEATURE_IN_OPEN_ROUND` sans rien modifier ; un changement de titre ou de description reste accepté ; après révélation, la saisie redevient possible ;
   - `castVote` : tout membre peut voter, l'animateur compris ; refus après révélation (`ROUND_REVEALED`) ;
   - la révélation retire la marque « à revoir » des fonctionnalités du tour (FR-006a) ;
@@ -522,7 +552,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 ### Contrat de User Story 2
 
 - [ ] T070 [US2] Ajouter au contrat :
-  - les schémas `contract/schemas/open-round.json` (`criterionKeys`, `featureIds`, `previousRoundId`), `cast-vote.json` (`roundId` et `votes` indexé par `featureId`), `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json` et `round.json` (`criterionKeys`, `progress` avec `voted`), les codes d'erreur `SESSION_NOT_STARTED`, `ROUND_OPEN` et `PARTICIPANT_OFFLINE` dans `error.json`, et compléter `session-state.json` avec `openRounds`, `lastRevealedRounds` et `revealedRounds` ;
+  - les schémas `contract/schemas/open-round.json` (`criterionKeys`, `featureIds`, `previousRoundId`), `cast-vote.json` (`roundId` et `votes` indexé par `featureId`), `reveal-round.json`, `transfer-facilitator.json`, `facilitator-handover.json` et `round.json` (`criterionKeys`, `progress` avec `voted`), les codes d'erreur `SESSION_NOT_STARTED`, `ROUND_OPEN` et `PARTICIPANT_OFFLINE` dans `error.json`, et compléter `session-state.json` avec `openRounds` (au plus un tour, `maxItems: 1`), `lastRevealedRounds` et `revealedRounds` ;
   - leurs exemples, dont `examples/session-state/open-round-participant.json`, `open-round-facilitator.json` et `revealed-with-non-voter.json`.
 
   Étendre `contract/scripts/validate.mjs` avec les règles de masquage, et `validate.test.mjs` avec des cas falsifiés qui doivent échouer. Règles à vérifier :
@@ -536,19 +566,23 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [ ] T071 [P] [US2] Implémenter dans `backend/src/main/java/com/priorisationepic/domain/round/` : `VotingRound.java` (critères et fonctionnalités du tour), `Ballot.java` (vote envoyé d'un membre, remplacé à chaque envoi), `Vote.java` et `RoundResults.java` (minimum, maximum, `largeSpread`, `unanimous`, par critère du tour)
 - [ ] T072 [P] [US2] Implémenter `domain/round/Visibility.java` : les règles de masquage par destinataire, utilisées par `SessionStateAssembler`, par `GET /api/sessions/{id}` et par les exports
 - [ ] T073 [US2] Écrire la migration `backend/src/main/resources/db/migration/V<n>__round_criteria_and_ballots.sql` (`round_criterion`, `round_ballot`, `data-model.md`), puis implémenter la persistance des tours dans `backend/src/main/java/com/priorisationepic/adapter/out/persistence/` : entités `voting_round`, `round_feature`, `round_criterion`, `round_ballot`, `vote` et `vote_criterion_value`, et réalisation de `RoundRepository` (remplacement d'un vote en une transaction)
-- [ ] T074 [US2] Dans `application/FeatureUseCase.java`, refuser avec `FEATURE_IN_OPEN_ROUND` toute modification des critères et toute suppression d'une fonctionnalité qui est dans un tour `OPEN` (FR-018). Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session ; `openRound` refusé en `PREPARATION` avec `SESSION_NOT_STARTED` ; `revealRound` retire la marque « à revoir » des fonctionnalités du tour, FR-006a) et `application/VoteUseCase.java` (intention `castVote` : tout le classement du membre en une fois, qui remplace le précédent ; valeurs validées par `Scale`). Ajouter le refus `ROUND_OPEN` dans `UpdateSettingsUseCase` (changement d'échelle) et dans `ChangeStatusUseCase` (`CLOSE`)
+- [ ] T074 [US2] Dans `application/FeatureUseCase.java`, refuser avec `FEATURE_IN_OPEN_ROUND` toute modification des critères et toute suppression d'une fonctionnalité qui est dans un tour `OPEN` (FR-018). Implémenter `application/RoundUseCase.java` (intentions `openRound` et `revealRound`, réservées à l'animateur, sous verrou de session ; `openRound` refusé en `PREPARATION` avec `SESSION_NOT_STARTED`, et avec `ROUND_OPEN` si un tour est déjà ouvert ; `revealRound` retire la marque « à revoir » des fonctionnalités du tour, FR-006a) et `application/VoteUseCase.java` (intention `castVote` : tout le classement du membre en une fois, qui remplace le précédent ; valeurs validées par `Scale`). Ajouter le refus `ROUND_OPEN` dans `UpdateSettingsUseCase` (changement d'échelle) et dans `ChangeStatusUseCase` (`CLOSE`)
 - [ ] T075 [US2] Implémenter `application/TransferFacilitatorUseCase.java` : refus avec `PARTICIPANT_OFFLINE` si le bénéficiaire n'a aucune connexion ouverte (FR-002a) ; sinon `transferFacilitator`, puis envoi de `facilitatorHandover` aux seules connexions du bénéficiaire, puis mise à jour du `sessionState` de tous
 - [ ] T076 [US2] Étendre `application/SessionStateAssembler.java` avec `Visibility`, `openRounds` (`criterionKeys`, `progress`, `myVotes`, `results`), `lastRevealedRounds` et `revealedRounds`. Brancher les intentions de tour, de vote et de transmission dans `adapter/in/ws/SessionSocketHandler.java`
 - [ ] T077 [P] [US2] Front, réutilisation du classement (T060a) pour le vote : dans `frontend/src/app/ranking/ranking.ts`, ajouter un départ **vide** (toutes les fonctionnalités dans « Non classées », valeur du premier niveau préremplie avec le maximum de l'échelle) et une reprise à partir de valeurs envoyées (groupées par valeur décroissante). Extraire de `ranking-screen.component.ts` l'étape de choix (`ranking/selection-step.component.ts`) et l'enchaînement des critères (`ranking/ranking-steps.component.ts`), pour qu'ils servent tels quels à l'ouverture d'un tour et au vote, sans changer le comportement de « Prioriser par classement » (ses tests T060a restent verts)
-- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/open-round-screen.component.ts` (écran 4 bis, FR-018) : bouton « Ouvrir un tour de vote » sur le tableau de l'animateur (ordinateur), désactivé en préparation avec l'explication « Démarrez la session pour ouvrir un tour de vote ». Il reprend `selection-step` (critères et fonctionnalités) avec les sélections rapides (« Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner »), le badge « à revoir », les fonctionnalités déjà dans un tour ouvert désactivées (« déjà dans le tour N ») et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) ». Il envoie une seule intention `openRound`. L'identifiant de chaque fonctionnalité ouvre `feature-detail-panel` (FR-016b)
-- [ ] T079 [P] [US2] Front, `frontend/src/app/rounds/vote-screen.component.ts` (écran 5, FR-019) : `ranking-steps` et `criterion-ranking.component.ts` sur les critères et les fonctionnalités du tour, sans étape de choix, avec un départ vide. Bouton final « Envoyer mon vote » : une seule intention `castVote` avec toutes les fonctionnalités du tour ; l'écran attend que l'état reçu indique « a voté », puis revient au tableau ; sur un refus (`ROUND_REVEALED`, coupure), il le dit et garde le classement. « Annuler » n'envoie rien. Sur le tableau : bandeau « Tour N ouvert : Voter » puis « Vote envoyé · Modifier mon vote » (reprise à partir des valeurs envoyées), progression « a voté / n'a pas encore voté » par membre, fonctionnalités du tour marquées « vote en cours » ; pour l'animateur, l'édition des valeurs, la suppression et « Prioriser par classement » sont désactivées sur ces lignes, avec l'infobulle « Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs ». Même mise en page sans défilement que le classement (FR-014a, FR-015a)
+- [ ] T078 [P] [US2] Front, `frontend/src/app/rounds/open-round-screen.component.ts` (écran 4 bis, FR-018) : bouton « Ouvrir un tour de vote » dans le groupe « tours » de la barre d'actions de l'animateur (ordinateur, FR-014c), désactivé en préparation avec l'explication « Démarrez la session pour ouvrir un tour de vote », et tant qu'un tour est ouvert avec « Un tour de vote est déjà ouvert : révélez-le avant d'en ouvrir un autre » (FR-018). Il reprend `selection-step` (critères et fonctionnalités) avec les sélections rapides (« Tout sélectionner », « Non évaluées », « Hors échelle », « À revoir », « Tout désélectionner »), le badge « à revoir » et le bouton « Ouvrir le tour (2 critères, 3 fonctionnalités) ». Il envoie une seule intention `openRound`. L'identifiant de chaque fonctionnalité ouvre `feature-detail-panel` (FR-016b)
+- [ ] T079 [P] [US2] Front, `frontend/src/app/rounds/vote-screen.component.ts` (écran 5, FR-019) : `ranking-steps` et `criterion-ranking.component.ts` sur les critères et les fonctionnalités du tour, sans étape de choix, avec un départ vide. Bouton final « Envoyer mon vote » : une seule intention `castVote` avec toutes les fonctionnalités du tour ; l'écran attend que l'état reçu indique « a voté », puis revient au tableau ; sur un refus (`ROUND_REVEALED`, coupure), il le dit et garde le classement. « Annuler » n'envoie rien. Sur le tableau, dans la barre d'actions (FR-014c), sans ligne supplémentaire : pour le participant, bandeau « Tour N ouvert : Voter » puis « Vote envoyé · Modifier mon vote » (reprise à partir des valeurs envoyées) ; pour l'animateur, indicateur compact « Tour N · 3 / 5 ont voté » avec « Voter » (ou « Modifier mon vote ») et « Révéler » dans le groupe « tours » ; progression « a voté / n'a pas encore voté » par membre dans le menu « Participants (n) ▾ » ; ajouter l'état « tour ouvert » à T097b ; fonctionnalités du tour marquées « vote en cours » ; pour l'animateur, l'édition des valeurs, la suppression et « Prioriser par classement » sont désactivées sur ces lignes, avec l'infobulle « Cette fonctionnalité est en cours de vote : révélez le tour avant de modifier ses valeurs ». Même mise en page sans défilement que le classement (FR-014a, FR-015a)
 - [ ] T080 [P] [US2] Front, `frontend/src/app/rounds/reveal-results.component.ts` (écran 6). Mise en page sans défilement de la page dans une fenêtre de 1280 × 720 (FR-014a) : seule la liste des fonctionnalités révélées défile, la barre d'actions reste visible.
   - votes par membre, avec « sans avis » pour une fonctionnalité non classée, minimum et maximum par critère calculés sans les « sans avis », et « n'a pas voté » ; une colonne par **critère du tour**, en-têtes avec `criterion-term` (FR-016a) ;
   - badge « écart important » sur les critères de `largeSpread` (maximum moins minimum > 3, FR-020) ;
   - l'animateur saisit les valeurs communes des critères du tour (intention `updateFeature`, les autres critères inchangés). Les champs sont **vides**, sauf ceux préremplis par `unanimous` (FR-021) ;
   - bouton « Relancer un tour sur la sélection », qui ouvre `open-round-screen` avec les fonctionnalités choisies et les critères du tour ;
   - l'identifiant de chaque fonctionnalité est un lien qui ouvre `feature-detail-panel` (FR-016b).
-- [ ] T081 [US2] Front, liste des participants avec l'action « Transmettre le rôle d'animateur » dans `frontend/src/app/session/participants.component.ts`. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Gérer `facilitatorHandover` : enregistrer le jeton et afficher le nouveau lien d'animation au bénéficiaire
+- [ ] T081 [US2] Front, action « Transmettre le rôle d'animateur » dans le menu « Participants (n) ▾ » de la barre de session (`frontend/src/app/board/participants-menu.component.ts`, FR-014c), sans nouveau bouton dans la barre d'actions. L'action est désactivée pour les participants hors ligne, avec l'infobulle « Ce participant n'est pas connecté ». Déroulé de FR-002a (maquette, écran 4 et écran 4 quinquies, état « Rôle reçu ») :
+  - confirmation « Transmettre le rôle d'animateur à alice ? Vous deviendrez participant, et votre lien d'animation ne fonctionnera plus. Seule alice pourra vous rendre le rôle. », avec « Annuler » (rien n'est envoyé) et « Transmettre le rôle » (une seule intention `transferFacilitator`) ;
+  - chez l'ancien animateur, message « Vous avez transmis le rôle d'animateur à alice. Vous êtes maintenant participant. » et passage en vue participant à la réception du `sessionState` ; sur `PARTICIPANT_OFFLINE`, message « Ce participant n'est pas connecté : il ne pourrait pas recevoir son lien d'animation » et rien ne change ;
+  - chez le bénéficiaire, sur `facilitatorHandover` : enregistrer le jeton dans `storage` (`pe.animation.{sessionId}`), puis ouvrir la fenêtre « Vous êtes maintenant animateur » (qui a transmis le rôle, nouveau lien avec « Copier », avertissement « Gardez ce lien pour vous », bouton « Compris ») ; l'écran passe en vue animateur et le lien reste copiable par « Liens » ;
+  - tests Vitest de `participants-menu.component.spec.ts` (confirmation, annulation, action désactivée hors ligne) et du traitement de `facilitatorHandover` (jeton enregistré, fenêtre affichée), et l'état « après transmission » dans T097b
 - [ ] T082 [US2] Exports des tours (repris de US4, FR-024, SC-004) :
   - **CSV des votes** `votes-v1` : `backend/src/main/java/com/priorisationepic/adapter/out/io/CsvVotesWriter.java` et son test `CsvVotesWriterTest.java` (colonnes `Tour;Identifiant;Titre;Pseudo;A voté;BV;TC;RR/OE;JS`, critères de la méthode, vides pour un critère hors du tour ; une ligne par tour, fonctionnalité et participant attendu, triée par tour, identifiant puis pseudo ; **tours révélés uniquement** ; nom de fichier `-votes-v1.csv`) ;
   - format `csv-votes` dans `ExportController.java` et `contract/openapi.yaml` ;
@@ -556,7 +590,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
   - `ExportControllerTest.java` : le **même masquage que la vue de l'appelant** pendant un tour ouvert, pour tous les formats ;
   - bouton « CSV des votes » dans `frontend/src/app/import-export/export-menu.component.ts`.
 - [ ] T083 [US2] Front, tours révélés et échelle (repris de US5 et US3) :
-  - `frontend/src/app/rounds-history/revealed-rounds.component.ts` : liste des tours révélés (numéro, critères, fonctionnalités, date de révélation) avec, pour chacun, l'affichage de ses votes, comme sur l'écran 9 des maquettes. Les données viennent de `sessionState.revealedRounds` (T076). Pas d'historique des modifications de valeurs (FR-025) ;
+  - `frontend/src/app/rounds-history/revealed-rounds.component.ts`, ouvert par « Tours révélés (n) » dans la barre de session (FR-014c), qui remplace le bouton désactivé du participant : liste des tours révélés (numéro, critères, fonctionnalités, date de révélation) avec, pour chacun, l'affichage de ses votes, comme sur l'écran 9 des maquettes. Les données viennent de `sessionState.revealedRounds` (T076). Pas d'historique des modifications de valeurs (FR-025) ;
   - dans `frontend/src/app/session/settings-dialog.component.ts`, tant qu'un tour est ouvert, le choix de l'échelle est désactivé, avec l'explication « Un tour de vote est en cours : révélez-le avant de changer l'échelle ».
 - [ ] T083a [US2] Compléter `backend/src/test/java/com/priorisationepic/MethodPluggabilityIT.java` (T099a) avec le vote de la méthode fictive : tour sur un critère, vote avec « sans avis », révélation (min – max, écart important, unanimité), consensus et CSV des votes
 - [ ] T083b [US2] Écrire les tests e2e `frontend/e2e/rounds.spec.ts` (faux socket et axe-core, sur Chromium, Firefox et WebKit) et le parcours `frontend/e2e-journeys/us2-vote-masque.spec.ts` (quickstart V4 à V8, trois contextes de navigateur, vérification SC-004). Vérifier aussi, dans une fenêtre de 1280 × 720 avec un tour de 10 fonctionnalités, que les écrans de vote et de révélation ne font pas défiler la page (FR-014a), et ajouter un tour ouvert au test de charge `deploy/load-test.mjs` (T115)
@@ -574,6 +608,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **US1 (phase 3, MVP)** : dépend des fondations.
 - **Déploiement (phase 4)** : dépend de US1. On peut le faire plus tard, à tout moment.
 - **US3 (phase 5)** : dépend des fondations et de `Scale` et de l'édition de US1.
+- **Ergonomie de l'écran de l'animateur (phase 5 bis)** : dépend de US1 et US3 (décisions du 2026-10-16 prises). Elle **précède toute tâche front qui ajoute une action** aux barres : T105 (US4), T113 (US5), T078, T079, T081 et T083 (US2).
 - **US4 (phase 6)** : l'export dépend de US1. **L'aller-retour JSON (T099) dépend de T093 (lecteur JSON, US3). L'aller-retour CSV dépend de T092 (lecteur CSV, US3).** Le test de généricité T099a dépend aussi de US3 (lecteurs).
 - **US5 (phase 7)** : dépend des fondations et de `change_log` (T029). Elle porte désormais le démarrage de session (`START`). Elle est indépendante de US3 et US4.
 - **Finitions (phase 8)** : après US3, US4 et US5.
@@ -615,7 +650,7 @@ T045 Scale · T046 PrioritizationMethod, MethodRegistry, WsjfMethod, Score, Rank
 
 ### Livraison incrémentale
 
-Après le MVP, on ajoute US3 (import et échelle), puis US4 (exports), puis US5 (démarrage, clôture et consultation), puis les finitions. Le vote masqué par classement (US2, bonus) vient **en dernier**. Chaque parcours se teste et se déploie seul (étiquette `v*`), en dehors des ateliers.
+Après le MVP, on ajoute US3 (import et échelle), puis la mise en page des deux barres (phase 5 bis), puis US4 (exports), puis US5 (démarrage, clôture et consultation), puis les finitions. Le vote masqué par classement (US2, bonus) vient **en dernier**. Chaque parcours se teste et se déploie seul (étiquette `v*`), en dehors des ateliers.
 
 ### Notes
 
