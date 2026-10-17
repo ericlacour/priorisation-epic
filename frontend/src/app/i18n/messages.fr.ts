@@ -208,6 +208,20 @@ export const MESSAGES = {
     error: 'La liste des sessions est indisponible.',
     retry: 'Réessayer',
     open: 'Ouvrir la session {name}',
+    filters: {
+      label: 'Filtrer les sessions',
+      name: 'Nom',
+      namePlaceholder: 'Rechercher dans les noms',
+      facilitator: 'Animateur',
+      facilitatorPlaceholder: "Pseudo de l'animateur",
+      facilitatorUnknown:
+        "Aucune session n'est animée par « {pseudo} ». Choisissez un animateur dans la liste proposée.",
+      status: 'Statut',
+      count: '{shown} sessions sur {total}',
+      countOne: '{shown} session sur {total}',
+      noMatch: 'Aucune session ne correspond aux filtres.',
+      clear: 'Effacer les filtres',
+    },
   },
   editor: {
     newTitle: 'Nouvelle fonctionnalité',

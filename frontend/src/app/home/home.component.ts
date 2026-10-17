@@ -19,8 +19,9 @@ import { BrowserStorage } from '../storage/browser-storage';
 import { SessionListComponent } from './session-list.component';
 
 /**
- * Accueil : création d'une session (FR-001, FR-017d), puis la liste de toutes les sessions (FR-026). La méthode se choisit parmi `GET /api/methods` (WSJF par
- * défaut) et ne pourra plus changer. Après la création, les jetons sont rangés dans ce navigateur et les deux liens
+ * Accueil : création d'une session (FR-001, FR-017d) à gauche, liste de toutes les sessions (FR-026) à droite ; sur
+ * ordinateur, la page ne défile pas, seule la liste défile (FR-026a). La méthode se choisit parmi `GET /api/methods`
+ * (WSJF par défaut) et ne pourra plus changer. Après la création, les jetons sont rangés dans ce navigateur et les deux liens
  * s'affichent : l'invitation, et le lien d'animation privé « à garder pour vous ».
  */
 @Component({
@@ -53,74 +54,78 @@ import { SessionListComponent } from './session-list.component';
         </div>
       </main>
     } @else {
-      <main class="page narrow">
-        <h1>{{ messages.title }}</h1>
-        <p class="lead">{{ messages.lead }}</p>
+      <main class="page home">
+        <div class="home-head">
+          <h1>{{ messages.title }}</h1>
+          <p class="lead">{{ messages.lead }}</p>
+        </div>
         <p class="notice" role="note">{{ messages.notice }}</p>
-        <form class="card" (submit)="submit($event)" novalidate>
-          <h2>{{ messages.createTitle }}</h2>
-          <div class="field">
-            <label for="create-name">{{ messages.nameLabel }}</label>
-            <input
-              id="create-name"
-              class="input"
-              maxlength="120"
-              [value]="name()"
-              (input)="name.set($any($event.target).value)"
-            />
-          </div>
-          <div class="field">
-            <label for="create-pseudo">{{ messages.pseudoLabel }}</label>
-            <input
-              id="create-pseudo"
-              class="input"
-              maxlength="40"
-              autocomplete="nickname"
-              [value]="pseudo()"
-              (input)="pseudo.set($any($event.target).value)"
-            />
-            <span class="help">{{ messages.pseudoHelp }}</span>
-          </div>
-          <div class="field">
-            <label for="create-method">{{ messages.methodLabel }}</label>
-            @if (methods().length > 0) {
-              <select
-                id="create-method"
+        <div class="home-columns">
+          <form class="card home-create" (submit)="submit($event)" novalidate>
+            <h2>{{ messages.createTitle }}</h2>
+            <div class="field">
+              <label for="create-name">{{ messages.nameLabel }}</label>
+              <input
+                id="create-name"
                 class="input"
-                aria-describedby="create-method-help"
-                (change)="methodKey.set($any($event.target).value)"
-              >
-                @for (method of methods(); track method.key) {
-                  <option [value]="method.key" [selected]="method.key === selectedMethod()?.key">
-                    {{ method.name }} (version {{ method.version }}) : {{ method.formula }}
-                  </option>
-                }
-              </select>
-            } @else if (methodsFailed()) {
-              <span class="err" role="alert">{{ messages.methodsError }}</span>
-              <button type="button" class="btn btn-secondary btn-sm" (click)="loadMethods()">
-                {{ messages.methodsRetry }}
-              </button>
-            } @else {
-              <span class="muted" role="status">{{ messages.methodsLoading }}</span>
-            }
-            <span class="help" id="create-method-help">
-              {{ messages.methodHelp }}
-              @if (selectedMethod()) {
-                <button type="button" class="link-button" (click)="showMethod.set(true)">
-                  {{ messages.methodDetail }}
+                maxlength="120"
+                [value]="name()"
+                (input)="name.set($any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="create-pseudo">{{ messages.pseudoLabel }}</label>
+              <input
+                id="create-pseudo"
+                class="input"
+                maxlength="40"
+                autocomplete="nickname"
+                [value]="pseudo()"
+                (input)="pseudo.set($any($event.target).value)"
+              />
+              <span class="help">{{ messages.pseudoHelp }}</span>
+            </div>
+            <div class="field">
+              <label for="create-method">{{ messages.methodLabel }}</label>
+              @if (methods().length > 0) {
+                <select
+                  id="create-method"
+                  class="input"
+                  aria-describedby="create-method-help"
+                  (change)="methodKey.set($any($event.target).value)"
+                >
+                  @for (method of methods(); track method.key) {
+                    <option [value]="method.key" [selected]="method.key === selectedMethod()?.key">
+                      {{ method.name }} (version {{ method.version }}) : {{ method.formula }}
+                    </option>
+                  }
+                </select>
+              } @else if (methodsFailed()) {
+                <span class="err" role="alert">{{ messages.methodsError }}</span>
+                <button type="button" class="btn btn-secondary btn-sm" (click)="loadMethods()">
+                  {{ messages.methodsRetry }}
                 </button>
+              } @else {
+                <span class="muted" role="status">{{ messages.methodsLoading }}</span>
               }
-            </span>
-          </div>
-          @if (error(); as text) {
-            <p class="err" role="alert">{{ text }}</p>
-          }
-          <button type="submit" class="btn btn-primary" [disabled]="busy() || !selectedMethod()">
-            {{ busy() ? messages.submitting : messages.submit }}
-          </button>
-        </form>
-        <app-session-list />
+              <span class="help" id="create-method-help">
+                {{ messages.methodHelp }}
+                @if (selectedMethod()) {
+                  <button type="button" class="link-button" (click)="showMethod.set(true)">
+                    {{ messages.methodDetail }}
+                  </button>
+                }
+              </span>
+            </div>
+            @if (error(); as text) {
+              <p class="err" role="alert">{{ text }}</p>
+            }
+            <button type="submit" class="btn btn-primary" [disabled]="busy() || !selectedMethod()">
+              {{ busy() ? messages.submitting : messages.submit }}
+            </button>
+          </form>
+          <app-session-list />
+        </div>
       </main>
       @if (showMethod() && selectedMethod(); as method) {
         <app-method-panel [definition]="method" (closed)="showMethod.set(false)" />

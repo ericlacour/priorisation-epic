@@ -551,42 +551,47 @@ textarea.input { resize: vertical; line-height: 1.5; font: inherit; }
 <div class="frame" id="frame">
 
 <!-- ======================= 1. ACCUEIL ======================= -->
-<section class="screen" id="s1" data-note="US5, FR-001, FR-017d, FR-026. Toutes les sessions sont visibles par tous. Le bandeau rappelle la consigne de la V1. La méthode est choisie à la création (WSJF seule en V1, choisie par défaut) puis figée ; « Voir le détail » ouvre le panneau de la méthode (FR-017c).">
+<section class="screen" id="s1" data-note="US5, FR-001, FR-017d, FR-026, FR-026a, FR-026b (revue du 2026-10-17). Sur ordinateur, la page ne défile pas : création à gauche, liste des sessions à droite ; seule la liste défile, en-tête figé. Filtres combinés, dans le navigateur : nom (contient, sans majuscules ni accents, passage surligné), animateur (suggestions ; refus d'un pseudo inconnu), statut (cases, toutes cochées par défaut). Sous 900 px, les deux blocs s'empilent.">
   <header class="topbar">
     <div class="logo" aria-hidden="true">PF</div>
     <div><div class="title">Priorisation Fonctionnalités</div><div class="sub">Sessions de priorisation d'équipe</div></div>
   </header>
   <div class="page">
     <div class="notice" role="note"><span class="ico">!</span><span>Version temporaire : ne saisissez pas de données confidentielles.</span></div>
-    <div>
-      <div class="card" style="max-width:560px">
+    <div style="display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;align-items:start">
+      <div class="card">
         <h2>Créer une session</h2>
         <div class="field"><label for="n1">Nom de la session</label><input id="n1" class="input" value="PI 27 – Epics plateforme"></div>
         <div class="field"><label for="p1">Votre pseudo</label><input id="p1" class="input" value="eric"><span class="help">Vous serez l'animateur de la session.</span></div>
         <div class="field">
           <label for="m1">Méthode de priorisation</label>
           <select id="m1" class="input" aria-describedby="m1-help"><option selected>WSJF (version 1) : CoD = BV + TC + RR/OE ; WSJF = CoD / JS</option></select>
-          <span class="help" id="m1-help">Seule méthode disponible pour l'instant. Elle ne pourra plus être changée après la création. <a href="#" data-go="s4d">Voir le détail de la méthode</a></span>
+          <span class="help" id="m1-help">Elle ne pourra plus être changée après la création. <a href="#" data-go="s4d">Voir le détail de la méthode</a></span>
         </div>
         <button class="btn primary" type="button" data-go="s2">Créer la session</button>
       </div>
-    </div>
-    <div class="card">
-      <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Sessions</h2><span class="muted small">Les plus récentes d'abord</span></div>
-      <div class="table-wrap desktop-only">
-        <table>
-          <thead><tr><th>Nom</th><th>Animateur</th><th>Créée le</th><th>Méthode</th><th>Statut</th><th></th></tr></thead>
-          <tbody>
-            <tr><td>PI 27 – Epics plateforme</td><td>eric</td><td>11/10/2026</td><td>WSJF</td><td><span class="badge live">En cours</span></td><td><button class="btn sm" type="button" data-go="s3">Rejoindre</button></td></tr>
-            <tr><td>Roadmap paiement T1</td><td>sophie</td><td>08/10/2026</td><td>WSJF</td><td><span class="badge prep">En préparation</span></td><td><button class="btn sm" type="button">Rejoindre</button></td></tr>
-            <tr><td>PI 26 – Epics plateforme</td><td>eric</td><td>02/07/2026</td><td>WSJF</td><td><span class="badge closed">Clôturée</span></td><td><button class="btn sm" type="button">Consulter</button></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="feature-cards">
-        <div class="fcard"><div class="row1"><b>PI 27 – Epics plateforme</b><span class="badge live" style="margin-left:auto">En cours</span></div><div class="crit">eric · 11/10/2026 · WSJF</div><button class="btn sm" type="button" data-go="s3">Rejoindre</button></div>
-        <div class="fcard"><div class="row1"><b>Roadmap paiement T1</b><span class="badge prep" style="margin-left:auto">En préparation</span></div><div class="crit">sophie · 08/10/2026 · WSJF</div></div>
-        <div class="fcard"><div class="row1"><b>PI 26 – Epics plateforme</b><span class="badge closed" style="margin-left:auto">Clôturée</span></div><div class="crit">eric · 02/07/2026 · WSJF</div></div>
+      <div class="card">
+        <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Sessions</h2><span class="muted small" aria-live="polite">2 sessions sur 3</span></div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px;align-items:start">
+          <div class="field" style="margin:0"><label for="f-name">Nom</label><input id="f-name" class="input" type="search" value="epic" placeholder="Rechercher dans les noms"></div>
+          <div class="field" style="margin:0"><label for="f-anim">Animateur</label><input id="f-anim" class="input" list="f-anim-list" value="eric" placeholder="Pseudo de l'animateur"><datalist id="f-anim-list"><option value="eric"></option><option value="sophie"></option></datalist></div>
+          <fieldset style="grid-column:1/-1;border:0;padding:0;margin:0;display:flex;gap:16px;flex-wrap:wrap;align-items:center"><legend class="small" style="font-weight:600;float:left;margin-right:8px">Statut</legend>
+            <label class="small"><input type="checkbox" checked> En préparation</label>
+            <label class="small"><input type="checkbox" checked> En cours</label>
+            <label class="small"><input type="checkbox" checked> Clôturée</label>
+          </fieldset>
+        </div>
+        <p class="err small" style="margin:6px 0 0">Exemple de refus (animateur « marc ») : Aucune session n'est animée par « marc ». Choisissez un animateur dans la liste proposée.</p>
+        <div class="table-wrap" style="margin-top:10px;max-height:340px;overflow:auto">
+          <table>
+            <thead style="position:sticky;top:0;background:var(--surface)"><tr><th>Nom</th><th>Animateur</th><th>Créée le</th><th>Méthode</th><th>Statut</th></tr></thead>
+            <tbody>
+              <tr><td>PI 27 – <mark>Epic</mark>s plateforme</td><td>eric</td><td>11/10/2026</td><td>WSJF</td><td><span class="badge live">En cours</span></td></tr>
+              <tr><td>PI 26 – <mark>Epic</mark>s plateforme</td><td>eric</td><td>02/07/2026</td><td>WSJF</td><td><span class="badge closed">Clôturée</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted small" style="margin:10px 0 0">Liste filtrée vide : « Aucune session ne correspond aux filtres. » et le bouton « Effacer les filtres ».</p>
       </div>
     </div>
   </div>
