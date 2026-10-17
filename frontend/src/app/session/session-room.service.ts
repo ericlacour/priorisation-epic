@@ -5,6 +5,7 @@ import {
   DeleteFeatureMessage,
   ErrorCode,
   ImpactedValue,
+  StatusAction,
   UpdateFeatureMessage,
   UpdateSettingsMessage,
   isErrorMessage,
@@ -42,6 +43,10 @@ export class SessionRoomService {
   readonly end = this.socket.end;
   /** Les droits d'animateur sont ceux de la connexion : `me.role` vaut `FACILITATOR` avec un jeton d'animation valide. */
   readonly canAnimate = computed(() => this.stateSignal()?.me?.role === 'FACILITATOR');
+  /** Une session clôturée est en lecture seule pour tous, animateur compris, sauf « Rouvrir » (FR-004, FR-026). */
+  readonly closed = computed(() => this.stateSignal()?.status === 'CLOSED');
+  /** L'animateur peut modifier le tableau : il anime une session qui n'est pas clôturée. */
+  readonly canEdit = computed(() => this.canAnimate() && !this.closed());
 
   constructor() {
     const subscription = this.socket.messages.subscribe((message) => {
@@ -60,6 +65,15 @@ export class SessionRoomService {
     this.socket.connect(sessionId);
   }
 
+  /**
+   * Montre l'état lu par `GET /api/sessions/{sessionId}`, sans connexion : la consultation d'une session clôturée
+   * depuis la liste des sessions, sans la rejoindre (FR-026).
+   */
+  showReadOnly(state: SessionState): void {
+    this.sessionId = state.sessionId;
+    this.stateSignal.set(state);
+  }
+
   addFeature(message: Omit<AddFeatureMessage, 'type'>): boolean {
     return this.send({ type: 'addFeature', ...message });
   }
@@ -75,6 +89,11 @@ export class SessionRoomService {
   /** Renomme la session ou change son échelle ; sans `confirm`, un changement impactant revient en `SCALE_IMPACT`. */
   updateSettings(message: Omit<UpdateSettingsMessage, 'type'>): boolean {
     return this.send({ type: 'updateSettings', ...message });
+  }
+
+  /** Démarre, clôture ou rouvre la session (animateur, FR-004). */
+  changeStatus(action: StatusAction): boolean {
+    return this.send({ type: 'changeStatus', action });
   }
 
   /** Les jetons de l'animateur de cette session rangés dans ce navigateur, pour l'import ; `null` sans eux. */

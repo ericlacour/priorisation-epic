@@ -24,6 +24,7 @@ final class ClientMessages {
           "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
   private static final Set<String> SCALE_TYPES = Set.of("CONTINUOUS", "FIBONACCI");
+  private static final Set<String> STATUS_ACTIONS = Set.of("START", "CLOSE", "REOPEN");
 
   private ClientMessages() {}
 
@@ -72,6 +73,9 @@ final class ClientMessages {
   record UpdateSettingsMessage(String name, String scaleType, Integer scaleMax, boolean confirm)
       implements ClientMessage {}
 
+  /** {@code change-status.json} : {@code START}, {@code CLOSE} ou {@code REOPEN}. */
+  record ChangeStatusMessage(String action) implements ClientMessage {}
+
   /** JSON invalide, {@code type} inconnu ou message hors schéma. */
   record Invalid() implements ClientMessage {}
 
@@ -92,6 +96,7 @@ final class ClientMessages {
       case "updateFeature" -> updateFeature(node);
       case "deleteFeature" -> deleteFeature(node);
       case "updateSettings" -> updateSettings(node);
+      case "changeStatus" -> changeStatus(node);
       default -> new Invalid();
     };
   }
@@ -213,6 +218,15 @@ final class ClientMessages {
         scaleType,
         scaleMax,
         node.has("confirm") && node.get("confirm").asBoolean());
+  }
+
+  private static ClientMessage changeStatus(JsonNode node) {
+    if (node.size() != 2
+        || !node.path("action").isString()
+        || !STATUS_ACTIONS.contains(node.get("action").asString())) {
+      return new Invalid();
+    }
+    return new ChangeStatusMessage(node.get("action").asString());
   }
 
   /** Valeurs par clé de critère : entiers ≥ 1 ou {@code null}. {@code null} si hors schéma. */

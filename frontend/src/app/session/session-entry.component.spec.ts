@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
@@ -17,14 +17,22 @@ class FakeRoom {
   readonly refusal = signal(null);
   readonly connection = signal('open');
   readonly canAnimate = signal(false);
+  readonly closed = signal(false);
+  readonly canEdit = computed(() => this.canAnimate() && !this.closed());
+  readonly showReadOnly = vi.fn();
   clearRefusal = vi.fn();
 }
 
 describe('SessionEntryComponent', () => {
-  async function render(options: { token?: boolean; routes?: Parameters<typeof fakeFetch>[0] }) {
+  async function render(options: {
+    token?: boolean;
+    animationToken?: boolean;
+    routes?: Parameters<typeof fakeFetch>[0];
+  }) {
     const http = fakeFetch(options.routes ?? {});
     const storage = memoryStorage();
     if (options.token) storage.data.set(`pe.token.${SESSION_ID}`, 'tok');
+    if (options.animationToken) storage.data.set(`pe.animation.${SESSION_ID}`, 'anim');
     const room = new FakeRoom();
     TestBed.configureTestingModule({
       providers: [provideRouter([]), ...pageProviders(http.fn, storage.provider)],
@@ -59,6 +67,43 @@ describe('SessionEntryComponent', () => {
 
     expect(http.calls[0].key).toBe(`GET /api/sessions/${SESSION_ID}`);
     expect(room.open).not.toHaveBeenCalled();
+    expect(element.querySelector('app-join')).not.toBeNull();
+  });
+
+  it('shows a closed session read-only, without joining it nor opening a connection (FR-026)', async () => {
+    const closed = state({ status: 'CLOSED', me: null });
+    const { room, element } = await render({
+      routes: { [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, closed) },
+    });
+
+    expect(room.showReadOnly).toHaveBeenCalledWith(closed);
+    expect(room.open).not.toHaveBeenCalled();
+    expect(element.querySelector('app-join')).toBeNull();
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('lets the facilitator come with the animation link join a closed session, to reopen it', async () => {
+    const { room, element } = await render({
+      animationToken: true,
+      routes: {
+        [`GET /api/sessions/${SESSION_ID}`]: () =>
+          reply(200, state({ status: 'CLOSED', me: null })),
+      },
+    });
+
+    expect(room.showReadOnly).not.toHaveBeenCalled();
+    expect(element.querySelector('app-join')).not.toBeNull();
+  });
+
+  it('shows the join screen for a session that is not closed', async () => {
+    const { room, element } = await render({
+      routes: {
+        [`GET /api/sessions/${SESSION_ID}`]: () =>
+          reply(200, state({ status: 'IN_PROGRESS', me: null })),
+      },
+    });
+
+    expect(room.showReadOnly).not.toHaveBeenCalled();
     expect(element.querySelector('app-join')).not.toBeNull();
   });
 

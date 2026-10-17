@@ -64,6 +64,20 @@ paths:
                 $ref: './schemas/method-list.json'
 
   /api/sessions:
+    get:
+      tags: [sessions]
+      operationId: listSessions
+      summary: List all sessions, newest first (FR-026)
+      description: Open to anyone with access to the tool, without token. Each line gives the name, the current facilitator, the creation date, the status and the method of a session. A closed session is then read with `GET /api/sessions/{sessionId}`.
+      responses:
+        '200':
+          description: All sessions, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/session-summary.json'
     post:
       tags: [sessions]
       operationId: createSession
@@ -96,7 +110,7 @@ paths:
       tags: [sessions]
       operationId: getSession
       summary: Read-only view of a session (FR-026)
-      description: Returns the same payload as the WebSocket `sessionState`, filtered as for a non-facilitator participant with no votes of its own (`me` is null). Used to show the session name on the join screen.
+      description: Returns the same payload as the WebSocket `sessionState`, filtered as for a non-facilitator participant with no votes of its own (`me` is null). Used to show the session name on the join screen, and to read a closed session from the session list without joining it (FR-026).
       responses:
         '200':
           description: The session.

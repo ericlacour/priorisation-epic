@@ -75,10 +75,34 @@ describe('SessionApi', () => {
 
   it('checks a session and refuses a malformed id without calling the server', async () => {
     const ok = json(200, {});
-    await expect(apiWith(ok).checkSession(ID)).resolves.toBeUndefined();
+    await expect(apiWith(ok).checkSession(ID)).resolves.toBeNull();
+    const { state } = await import('../testing/fixtures');
+    const read = await apiWith(json(200, state({ status: 'CLOSED' }))).checkSession(ID);
+    expect(read?.status).toBe('CLOSED');
     const never = vi.fn() as unknown as typeof fetch;
     expect(await kindOf(apiWith(never).checkSession('x'))).toBe('notFound');
     expect(never).not.toHaveBeenCalled();
+  });
+
+  it('lists the sessions, newest first as received (FR-026)', async () => {
+    const line = {
+      sessionId: ID,
+      name: 'PI 28',
+      facilitatorPseudo: 'Camille',
+      createdAt: '2026-10-14T13:30:00Z',
+      status: 'CLOSED',
+      method: 'WSJF',
+      methodVersion: 2,
+    };
+    const fetchFn = json(200, [line]);
+    expect(await apiWith(fetchFn).listSessions()).toEqual([line]);
+    const [url, init] = (fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(url).toBe('https://api.example/api/sessions');
+    expect(init.method).toBe('GET');
+    expect(await kindOf(apiWith(json(200, [{ ...line, status: 'ARCHIVED' }])).listSessions())).toBe(
+      'network',
+    );
+    expect(await kindOf(apiWith(json(500, {})).listSessions())).toBe('network');
   });
 
   it('joins a session', async () => {

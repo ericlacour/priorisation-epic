@@ -67,6 +67,8 @@ channels:
         $ref: '#/components/messages/deleteFeature'
       updateSettings:
         $ref: '#/components/messages/updateSettings'
+      changeStatus:
+        $ref: '#/components/messages/changeStatus'
       sessionState:
         $ref: '#/components/messages/sessionState'
     x-close-codes:
@@ -122,6 +124,13 @@ operations:
     summary: Rename the session or change its scale (FR-010, FR-011), facilitator only.
     messages:
       - $ref: '#/channels/session/messages/updateSettings'
+  receiveChangeStatus:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Start, close or reopen the session (FR-004, FR-026), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/changeStatus'
   sendSessionState:
     action: send
     channel:
@@ -194,6 +203,12 @@ components:
       summary: Rename the session or change its scale (FR-010, FR-011), facilitator only.
       payload:
         $ref: './schemas/update-settings.json'
+    changeStatus:
+      name: changeStatus
+      title: changeStatus
+      summary: Start, close or reopen the session (FR-004, FR-026), facilitator only.
+      payload:
+        $ref: './schemas/change-status.json'
     sessionState:
       name: sessionState
       title: sessionState

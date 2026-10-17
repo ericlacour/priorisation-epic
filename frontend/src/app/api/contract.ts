@@ -1,4 +1,4 @@
-import { SessionState, parseSessionState } from './session-state';
+import { SessionState, SessionStatus, parseSessionState } from './session-state';
 
 /**
  * Types du contrat (`contract/`) écrits à la main, et lecture stricte des réponses : aucun champ hors contrat ne
@@ -133,6 +133,29 @@ export interface UpdateSettingsMessage {
   readonly name?: string;
   readonly scale?: { readonly type: ScaleType; readonly max: number };
   readonly confirm?: boolean;
+}
+
+/** Action de `changeStatus` : démarrer, clôturer ou rouvrir la session (FR-004). */
+export type StatusAction = 'START' | 'CLOSE' | 'REOPEN';
+
+/**
+ * `changeStatus` (animateur). En `CLOSED`, seule `REOPEN` est acceptée (`error SESSION_CLOSED` sinon) ; `CLOSE` en
+ * `PREPARATION` reçoit `error SESSION_NOT_STARTED`.
+ */
+export interface ChangeStatusMessage {
+  readonly type: 'changeStatus';
+  readonly action: StatusAction;
+}
+
+/** Une ligne de la liste des sessions (`session-summary.json`, FR-026). */
+export interface SessionSummary {
+  readonly sessionId: string;
+  readonly name: string;
+  readonly facilitatorPseudo: string;
+  readonly createdAt: string;
+  readonly status: SessionStatus;
+  readonly method: string;
+  readonly methodVersion: number;
 }
 
 /** Une ligne valide de l'aperçu d'import (`import-preview.json`). */
@@ -327,4 +350,34 @@ export function parseImportResult(json: unknown): ImportResult {
     throw new Error('import-result: unexpected shape');
   }
   return { imported: json['imported'], rejected: json['rejected'] };
+}
+
+const SESSION_STATUSES: readonly string[] = ['PREPARATION', 'IN_PROGRESS', 'CLOSED'];
+
+const isSessionSummary = (value: unknown): value is SessionSummary =>
+  isObject(value) &&
+  typeof value['sessionId'] === 'string' &&
+  isSessionId(value['sessionId']) &&
+  isText(value['name']) &&
+  typeof value['facilitatorPseudo'] === 'string' &&
+  isText(value['createdAt']) &&
+  !Number.isNaN(Date.parse(value['createdAt'])) &&
+  SESSION_STATUSES.includes(value['status'] as string) &&
+  isText(value['method']) &&
+  isInt(value['methodVersion']);
+
+/** Lit la liste des sessions (`GET /api/sessions`), ou lève une erreur si elle ne respecte pas le contrat. */
+export function parseSessionSummaries(json: unknown): SessionSummary[] {
+  if (!Array.isArray(json) || !json.every(isSessionSummary)) {
+    throw new Error('session-summary: unexpected shape');
+  }
+  return json.map((line: SessionSummary) => ({
+    sessionId: line.sessionId,
+    name: line.name,
+    facilitatorPseudo: line.facilitatorPseudo,
+    createdAt: line.createdAt,
+    status: line.status,
+    method: line.method,
+    methodVersion: line.methodVersion,
+  }));
 }

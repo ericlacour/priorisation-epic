@@ -144,6 +144,29 @@ describe('SessionRoomService', () => {
     expect(room.refusal()).toEqual({ code: 'SCALE_IMPACT', impactedValues });
   });
 
+  it('sends changeStatus and derives the read-only mode of a closed session (FR-004)', () => {
+    const { room, messages, socket } = setup();
+    expect(room.changeStatus('CLOSE')).toBe(true);
+    expect(socket.send).toHaveBeenLastCalledWith({ type: 'changeStatus', action: 'CLOSE' });
+
+    messages.next(state({ status: 'IN_PROGRESS' }));
+    expect(room.closed()).toBe(false);
+    expect(room.canEdit()).toBe(true);
+    messages.next(state({ status: 'CLOSED' }));
+    expect(room.closed()).toBe(true);
+    expect(room.canAnimate()).toBe(true);
+    expect(room.canEdit()).toBe(false);
+  });
+
+  it('shows a state read without connection, for the consultation of a closed session (FR-026)', () => {
+    const { room, socket } = setup();
+    room.showReadOnly(state({ status: 'CLOSED', me: null }));
+
+    expect(room.state()?.status).toBe('CLOSED');
+    expect(room.canAnimate()).toBe(false);
+    expect(socket.send).not.toHaveBeenCalled();
+  });
+
   it('gives the facilitator tokens stored for the session, or null', () => {
     const { room, storage } = setup();
     expect(room.facilitatorTokens()).toBeNull();

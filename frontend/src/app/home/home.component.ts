@@ -16,15 +16,16 @@ import { MESSAGES } from '../i18n/messages.fr';
 import { LinkBoxComponent } from '../shared/link-box.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
 import { BrowserStorage } from '../storage/browser-storage';
+import { SessionListComponent } from './session-list.component';
 
 /**
- * Accueil : création d'une session (FR-001, FR-017d). La méthode se choisit parmi `GET /api/methods` (WSJF par
+ * Accueil : création d'une session (FR-001, FR-017d), puis la liste de toutes les sessions (FR-026). La méthode se choisit parmi `GET /api/methods` (WSJF par
  * défaut) et ne pourra plus changer. Après la création, les jetons sont rangés dans ce navigateur et les deux liens
  * s'affichent : l'invitation, et le lien d'animation privé « à garder pour vous ».
  */
 @Component({
   selector: 'app-home',
-  imports: [LinkBoxComponent, MethodPanelComponent],
+  imports: [LinkBoxComponent, MethodPanelComponent, SessionListComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (created(); as created) {
@@ -119,6 +120,7 @@ import { BrowserStorage } from '../storage/browser-storage';
             {{ busy() ? messages.submitting : messages.submit }}
           </button>
         </form>
+        <app-session-list />
       </main>
       @if (showMethod() && selectedMethod(); as method) {
         <app-method-panel [definition]="method" (closed)="showMethod.set(false)" />

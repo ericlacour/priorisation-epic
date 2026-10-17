@@ -3,6 +3,7 @@ package com.priorisationepic.config;
 import com.priorisationepic.application.Broadcaster;
 import com.priorisationepic.application.ChangeLogRepository;
 import com.priorisationepic.application.ChangeLogWriter;
+import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.CreateSessionUseCase;
 import com.priorisationepic.application.ExportUseCase;
@@ -12,6 +13,7 @@ import com.priorisationepic.application.ImportFileReader;
 import com.priorisationepic.application.ImportPreviewRepository;
 import com.priorisationepic.application.ImportUseCase;
 import com.priorisationepic.application.JoinSessionUseCase;
+import com.priorisationepic.application.ListSessionsUseCase;
 import com.priorisationepic.application.ParticipantRepository;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.SessionExporter;
@@ -144,6 +146,20 @@ public class ApplicationConfig {
       Transactions transactions) {
     return new UpdateSettingsUseCase(
         sessions, participants, features, changeLog, methods, broadcaster, locks, transactions);
+  }
+
+  @Bean
+  public ChangeStatusUseCase changeStatusUseCase(
+      SessionRepository sessions,
+      Broadcaster broadcaster,
+      SessionLocks locks,
+      Transactions transactions) {
+    return new ChangeStatusUseCase(sessions, broadcaster, locks, transactions);
+  }
+
+  @Bean
+  public ListSessionsUseCase listSessionsUseCase(SessionRepository sessions) {
+    return new ListSessionsUseCase(sessions);
   }
 
   @Bean

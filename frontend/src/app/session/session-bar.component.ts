@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { SessionStatus } from '../api/session-state';
 import { LinksMenuComponent } from '../board/links-menu.component';
 import { ExportMenuComponent } from '../import-export/export-menu.component';
 import { ParticipantsMenuComponent } from '../board/participants-menu.component';
@@ -16,6 +15,7 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { scaleLabel } from '../shared/scale';
+import { statusBadge } from '../shared/status-badge';
 import { glossaryTitle } from '../shared/method-glossary.component';
 import { ThemeMenuComponent } from '../top-bar/theme-menu.component';
 import { SessionRoomService } from './session-room.service';
@@ -114,15 +114,4 @@ export class SessionBarComponent {
   protected readonly inviteUrl = computed(
     () => `${this.document.location.origin}/s/${this.state()?.sessionId ?? ''}`,
   );
-}
-
-function statusBadge(status: SessionStatus | undefined): string {
-  switch (status) {
-    case 'IN_PROGRESS':
-      return 'badge live';
-    case 'CLOSED':
-      return 'badge closed';
-    default:
-      return 'badge prep';
-  }
 }

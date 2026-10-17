@@ -209,3 +209,33 @@ textarea.input {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* Liste des sessions de l'accueil (FR-026) : défile en largeur sur téléphone plutôt que la page. */
+.session-list-wrap {
+  overflow-x: auto;
+}
+
+.session-list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.session-list th,
+.session-list td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.session-list td.title {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-list a {
+  color: var(--primary-ink);
+  font-weight: 600;
+}

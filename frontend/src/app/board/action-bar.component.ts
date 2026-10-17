@@ -1,15 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { MESSAGES } from '../i18n/messages.fr';
+import { SessionStatusComponent } from '../session/session-status.component';
 
 /**
  * Barre d'actions (FR-014c), sur une ligne, sous la barre de session. Pour l'animateur, les actions directes en
  * groupes : saisie (« + Fonctionnalité », action principale, et « Prioriser par classement »), puis préparation
- * (« Importer », « Échelle ») ; les groupes « tours » et « cycle de vie » s'ajoutent avec US5 et le vote masqué. Une
- * action indisponible reste à sa place, désactivée. Pour un participant, un bandeau d'état de même hauteur.
+ * (« Importer », « Échelle ») et, à droite, le cycle de vie (« Démarrer », « Clôturer » ou « Rouvrir la session ») ;
+ * le groupe « tours » s'ajoute avec le vote masqué. Une action indisponible reste à sa place, désactivée. Session
+ * clôturée : la barre de l'animateur se réduit au bandeau de lecture seule et à « Rouvrir la session ». Pour un
+ * participant, un bandeau d'état de même hauteur.
  */
 @Component({
   selector: 'app-action-bar',
+  imports: [SessionStatusComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'action-bar',
@@ -17,7 +21,9 @@ import { MESSAGES } from '../i18n/messages.fr';
     '[attr.aria-label]': 'label()',
   },
   template: `
-    @if (animate()) {
+    @if (animate() && closed()) {
+      <app-session-status />
+    } @else if (animate()) {
       <div class="action-group" role="group" [attr.aria-label]="messages.groups.entry">
         <button type="button" class="btn btn-primary" [disabled]="editing()" (click)="add.emit()">
           {{ messages.addFeature }}
@@ -52,10 +58,11 @@ import { MESSAGES } from '../i18n/messages.fr';
           {{ messages.scale }}
         </button>
       </div>
+      <app-session-status />
     } @else {
       <p class="action-info">
         <span class="ico" aria-hidden="true">i</span>
-        <span>{{ messages.noRound }}</span>
+        <span>{{ closed() ? messages.closedBanner : messages.noRound }}</span>
       </p>
     }
   `,
@@ -67,6 +74,8 @@ export class ActionBarComponent {
   readonly editing = input(false);
   /** « Prioriser par classement » demande au moins une fonctionnalité. */
   readonly hasFeatures = input(false);
+  /** Session clôturée : lecture seule (FR-004). */
+  readonly closed = input(false);
 
   readonly add = output<void>();
   readonly rank = output<void>();

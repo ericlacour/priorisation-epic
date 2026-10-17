@@ -8,14 +8,21 @@ import {
   ImportResult,
   JoinSessionRequest,
   JoinSessionResponse,
+  SessionSummary,
   isSessionId,
   parseCreateSessionResponse,
   parseImportPreview,
   parseImportResult,
   parseJoinSessionResponse,
   parseProblem,
+  parseSessionSummaries,
 } from './contract';
-import { MethodDefinition, parseMethodList } from './session-state';
+import {
+  MethodDefinition,
+  SessionState,
+  parseMethodList,
+  parseSessionState,
+} from './session-state';
 
 /** `fetch` du navigateur, remplaçable dans les tests. */
 export const FETCH = new InjectionToken<typeof fetch>('FETCH', {
@@ -112,12 +119,26 @@ export class SessionApi {
     throw await errorOf(response);
   }
 
-  /** `GET /api/sessions/{sessionId}` : résout si la session existe, sinon `notFound` ou `network`. */
-  async checkSession(sessionId: string): Promise<void> {
+  /** `GET /api/sessions` : toutes les sessions, de la plus récente à la plus ancienne (FR-026). */
+  async listSessions(): Promise<SessionSummary[]> {
+    const response = await this.send('/api/sessions', 'GET');
+    if (response.status === 200) return parseOrNetwork(response, parseSessionSummaries);
+    throw await errorOf(response);
+  }
+
+  /**
+   * `GET /api/sessions/{sessionId}` : la vue en lecture seule de la session si elle existe (`null` si son corps est
+   * illisible), sinon `notFound` ou `network`.
+   */
+  async checkSession(sessionId: string): Promise<SessionState | null> {
     assertWellFormedId(sessionId);
     const response = await this.send(sessionPath(sessionId), 'GET');
-    if (response.status === 200) return;
-    throw await errorOf(response);
+    if (response.status !== 200) throw await errorOf(response);
+    try {
+      return parseSessionState(await response.json());
+    } catch {
+      return null;
+    }
   }
 
   /** `POST /api/sessions/{sessionId}/participants` */

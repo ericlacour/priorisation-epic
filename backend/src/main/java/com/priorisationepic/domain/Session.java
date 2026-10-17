@@ -59,9 +59,15 @@ public record Session(
         id, newName, status, method, methodVersion, newScale, createdAt, createdBy, version);
   }
 
+  /** La même session, dans le statut donné. */
+  public Session withStatus(SessionStatus newStatus) {
+    return new Session(
+        id, name, newStatus, method, methodVersion, scale, createdAt, createdBy, version);
+  }
+
   /** Les écritures sont refusées en {@code CLOSED}, sauf « rouvrir » (FR-026). */
   public boolean isWritable() {
-    return status != SessionStatus.CLOSED;
+    return status.allowsWrites();
   }
 
   private static void requireName(String name) {

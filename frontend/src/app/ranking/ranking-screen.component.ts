@@ -313,7 +313,7 @@ export class RankingScreenComponent {
   constructor() {
     // Plus de droits d'animateur (jeton refusé, rôle transmis) : retour au tableau.
     effect(() => {
-      if (!this.room.canAnimate()) this.closed.emit();
+      if (!this.room.canEdit()) this.closed.emit();
     });
     // Pendant l'enregistrement : tout est confirmé, on rend la main ; un refus ou une coupure, on le dit.
     effect(() => {

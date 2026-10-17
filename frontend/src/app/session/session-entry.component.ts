@@ -22,8 +22,10 @@ import { SessionSocketService } from './session-socket.service';
 type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
 
 /**
- * Lien de session `/s/:sessionId`. Sans jeton rangé dans ce navigateur, l'écran d'entrée ; avec un jeton, la
- * connexion à la session et le tableau. La connexion (`4401`) ou la session (`4404`) perdue ramène à l'entrée ou à
+ * Lien de session `/s/:sessionId`. Sans jeton rangé dans ce navigateur, l'écran d'entrée, ou, pour une session
+ * clôturée, son tableau en lecture seule lu par `GET /api/sessions/{sessionId}`, sans la rejoindre (FR-026) ; seul
+ * l'animateur venu par son lien d'animation la rejoint, pour pouvoir la rouvrir. Avec un jeton, la connexion à la
+ * session et le tableau. La connexion (`4401`) ou la session (`4404`) perdue ramène à l'entrée ou à
  * « Session introuvable ». L'animateur passe du tableau à l'écran « Prioriser par classement » et en revient. Le
  * socket et l'état de la session vivent et meurent avec la page.
  */
@@ -96,7 +98,15 @@ export class SessionEntryComponent implements OnInit {
     }
     this.phase.set('checking');
     this.api.checkSession(this.sessionId()).then(
-      () => this.phase.set('join'),
+      (state) => {
+        if (state?.status === 'CLOSED' && !this.storage.readAnimationToken(this.sessionId())) {
+          this.ranking.set(false);
+          this.room.showReadOnly(state);
+          this.phase.set('room');
+        } else {
+          this.phase.set('join');
+        }
+      },
       (e: unknown) =>
         this.phase.set(
           e instanceof SessionApiError && e.kind === 'notFound' ? 'notFound' : 'unavailable',

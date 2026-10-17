@@ -243,6 +243,30 @@ describe('BoardComponent', () => {
     );
   });
 
+  it('shows a closed session read-only, even to its facilitator (FR-004, FR-026)', () => {
+    const { element } = render({ state: state({ status: 'CLOSED' }) });
+
+    expect(headers(element)).not.toContain('Actions');
+    expect(button(element, 'Modifier')).toBeUndefined();
+    expect(button(element, '+ Fonctionnalité')).toBeUndefined();
+    expect(button(element, 'Importer')).toBeUndefined();
+    expect(button(element, 'Rouvrir la session')?.disabled).toBe(false);
+    expect(element.textContent).toContain('Session clôturée : lecture seule');
+    expect(element.querySelector('.session-sub .badge')?.textContent).toBe('Clôturée');
+    expect(button(element, 'Exporter')?.disabled).toBe(false);
+  });
+
+  it('closes the line being edited when the session gets closed', () => {
+    const { fixture, room, element } = render();
+    button(element, 'Modifier')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('tr input')).not.toBeNull();
+
+    room.state.set(state({ status: 'CLOSED' }));
+    fixture.detectChanges();
+    expect(element.querySelector('tr input')).toBeNull();
+  });
+
   it('shows the participants with their presence on demand (FR-005)', () => {
     const { fixture, element } = render();
     const toggle = button(element, 'Participants (2)')!;

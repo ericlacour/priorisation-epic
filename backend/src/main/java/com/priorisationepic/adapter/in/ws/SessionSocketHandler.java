@@ -1,12 +1,14 @@
 package com.priorisationepic.adapter.in.ws;
 
 import com.priorisationepic.adapter.in.ws.ClientMessages.AddFeatureMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.ChangeStatusMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ClientMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.DeleteFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateSettingsMessage;
+import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.ConnectResult;
 import com.priorisationepic.application.ErrorCode;
 import com.priorisationepic.application.FeatureUseCase;
@@ -14,6 +16,7 @@ import com.priorisationepic.application.IntentRejectedException;
 import com.priorisationepic.application.Patch;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.UpdateSettingsUseCase;
+import com.priorisationepic.domain.SessionStatus;
 import com.priorisationepic.domain.scale.ScaleType;
 import java.io.IOException;
 import java.net.URI;
@@ -66,6 +69,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   private final SessionConnectionUseCase connections;
   private final FeatureUseCase featureIntents;
   private final UpdateSettingsUseCase settingsIntents;
+  private final ChangeStatusUseCase statusIntents;
   private final WebSocketBroadcaster broadcaster;
   private final Duration helloTimeout;
   private final ScheduledExecutorService timer =
@@ -78,12 +82,14 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       SessionConnectionUseCase connections,
       FeatureUseCase featureIntents,
       UpdateSettingsUseCase settingsIntents,
+      ChangeStatusUseCase statusIntents,
       WebSocketBroadcaster broadcaster,
       @Value("${priorisation-epic.hello-timeout:5s}") Duration helloTimeout) {
     this.jsonMapper = jsonMapper;
     this.connections = connections;
     this.featureIntents = featureIntents;
     this.settingsIntents = settingsIntents;
+    this.statusIntents = statusIntents;
     this.broadcaster = broadcaster;
     this.helloTimeout = helloTimeout;
   }
@@ -181,6 +187,14 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
                               : ScaleType.valueOf(settings.scaleType()),
                           settings.scaleMax(),
                           settings.confirm())));
+      case ChangeStatusMessage status ->
+          intent(
+              session,
+              (at) ->
+                  statusIntents.change(
+                      at.sessionId(),
+                      at.facilitator(),
+                      SessionStatus.Action.valueOf(status.action())));
       default -> broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }

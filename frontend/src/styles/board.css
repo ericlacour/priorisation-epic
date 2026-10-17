@@ -625,6 +625,19 @@ app-method-info {
   border-right: 0;
 }
 
+/* Cycle de vie, calé à droite ; session clôturée : le bandeau de lecture seule à gauche, « Rouvrir » à droite. */
+.session-status {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.session-status .action-info {
+  margin-right: auto;
+}
+
 .action-bar .btn {
   min-height: 34px;
   padding: 0 12px;
