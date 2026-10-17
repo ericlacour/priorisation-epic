@@ -9,6 +9,7 @@ import {
   findFacilitator,
   matchName,
   normalize,
+  prepareSessions,
 } from './session-filter';
 
 const session = (
@@ -30,6 +31,10 @@ describe('normalize', () => {
     expect(normalize('PI 28 – Épics Ça')).toBe('pi 28 – epics ca');
     expect([...normalize('Éè😀ß')]).toHaveLength(4);
   });
+
+  it('drops the accents written apart from their letter (NFD, text pasted from macOS)', () => {
+    expect(normalize('E\u0301pics')).toBe('epics');
+  });
 });
 
 describe('matchName', () => {
@@ -40,6 +45,25 @@ describe('matchName', () => {
       after: 's',
     });
     expect(matchName('Roadmap', ' ROAD ')).toEqual({ before: '', match: 'Road', after: 'map' });
+  });
+
+  it('matches names and queries whose accents are written apart from their letter (NFD)', () => {
+    expect(matchName('PI 28 – E\u0301pics', 'epic')).toEqual({
+      before: 'PI 28 – ',
+      match: 'E\u0301pic',
+      after: 's',
+    });
+    expect(matchName('PI 28 – Épics', 'e\u0301pic')).toEqual({
+      before: 'PI 28 – ',
+      match: 'Épic',
+      after: 's',
+    });
+    // L'accent qui suit le passage trouvé reste avec sa lettre.
+    expect(matchName('Cafe\u0301 noir', 'cafe')).toEqual({
+      before: '',
+      match: 'Cafe\u0301',
+      after: ' noir',
+    });
   });
 
   it('keeps positions right after characters outside the basic plane', () => {
@@ -78,7 +102,7 @@ describe('filterSessions', () => {
 
   it('combines the name, facilitator and status filters, in the order received', () => {
     const names = (filter: Parameters<typeof filterSessions>[1]) =>
-      filterSessions(sessions, filter).map((s) => s.name);
+      filterSessions(prepareSessions(sessions), filter).map((row) => row.session.name);
 
     expect(names({ name: '', facilitator: null, statuses: all })).toEqual([
       'PI 28 – Épics',
@@ -94,5 +118,20 @@ describe('filterSessions', () => {
       names({ name: 'epic', facilitator: 'Camille', statuses: new Set(['IN_PROGRESS']) }),
     ).toEqual(['PI 28 – Épics']);
     expect(names({ name: '', facilitator: null, statuses: new Set() })).toEqual([]);
+  });
+
+  it('returns the name cut around the match, and the whole name without a name filter', () => {
+    const rows = filterSessions(prepareSessions(sessions), {
+      name: 'epic',
+      facilitator: null,
+      statuses: all,
+    });
+    expect(rows[0].name).toEqual({ before: 'PI 28 – ', match: 'Épic', after: 's' });
+    const unfiltered = filterSessions(prepareSessions(sessions), {
+      name: ' ',
+      facilitator: null,
+      statuses: all,
+    });
+    expect(unfiltered[2].name).toEqual({ before: 'Roadmap', match: '', after: '' });
   });
 });

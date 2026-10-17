@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+import { WSJF } from './state-fixtures';
+
 test('la page d’accueil se charge avec le nom de l’application', async ({ page }) => {
   // Le webservice est simulé : `/api/health` répond 200, l'écran de réveil laisse la place à l'accueil.
   await page.route('**/api/health', (route) => route.fulfill({ json: { status: 'UP' } }));
@@ -131,4 +133,54 @@ test('la liste des sessions se filtre par nom, animateur et statut (FR-026b, qui
   await page.getByRole('button', { name: 'Effacer les filtres' }).click();
   await expect(rows).toHaveCount(25);
   await expect(count).toHaveText('25 sessions sur 25');
+});
+
+test('fenêtre basse : le formulaire de création défile dans sa colonne, son bouton reste atteignable', async ({
+  page,
+}) => {
+  await page.route('**/api/health', (route) => route.fulfill({ json: { status: 'UP' } }));
+  await page.route('**/api/methods', (route) => route.fulfill({ json: [WSJF] }));
+  await page.route('**/api/sessions', (route) => route.fulfill({ json: MANY_SESSIONS }));
+  await page.setViewportSize({ width: 1280, height: 420 });
+  await page.goto('/');
+  await expect(page.locator('#create-method')).toBeVisible();
+
+  const form = page.locator('form.home-create');
+  expect(await form.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  const submit = page.getByRole('button', { name: 'Créer la session' });
+  await expect(submit).not.toBeInViewport();
+  // À la molette, comme l'utilisateur : un défilement par script passerait même un `overflow: hidden`.
+  const box = (await form.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + 40);
+  await page.mouse.wheel(0, 2000);
+  await expect(submit).toBeInViewport();
+});
+
+test('l’écran qui suit la création défile dans une fenêtre basse', async ({ page }) => {
+  await page.route('**/api/health', (route) => route.fulfill({ json: { status: 'UP' } }));
+  await page.route('**/api/methods', (route) => route.fulfill({ json: [WSJF] }));
+  await page.route('**/api/sessions', (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({
+          status: 201,
+          json: {
+            sessionId: 'Qm7tY2wR9pLk4XcV8bNz3D',
+            participantToken: 'participant-token',
+            animationToken: 'animation-token',
+          },
+        })
+      : route.fulfill({ json: [] }),
+  );
+  await page.setViewportSize({ width: 1280, height: 420 });
+  await page.goto('/');
+  await page.getByLabel('Nom de la session').fill('PI 29');
+  await page.getByLabel('Votre pseudo').fill('Camille');
+  await page.getByRole('button', { name: 'Créer la session' }).click();
+
+  const go = page.getByRole('button', { name: 'Aller à la session' });
+  await expect(go).toBeAttached();
+  await expect(go).not.toBeInViewport();
+  await page.mouse.move(640, 200);
+  await page.mouse.wheel(0, 2000);
+  await expect(go).toBeInViewport();
 });

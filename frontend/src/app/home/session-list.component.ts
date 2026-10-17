@@ -19,7 +19,7 @@ import {
   facilitators,
   filterSessions,
   findFacilitator,
-  matchName,
+  prepareSessions,
 } from './session-filter';
 
 const DATE = new Intl.DateTimeFormat('fr-FR', {
@@ -78,6 +78,7 @@ const DATE = new Intl.DateTimeFormat('fr-FR', {
                 [value]="facilitatorInput()"
                 (input)="typeFacilitator($any($event.target).value)"
                 (change)="facilitatorTouched.set(true)"
+                (blur)="facilitatorTouched.set(true)"
               />
               <datalist id="filter-facilitator-list">
                 @for (pseudo of knownFacilitators(); track pseudo) {
@@ -104,7 +105,7 @@ const DATE = new Intl.DateTimeFormat('fr-FR', {
               {{ facilitatorErrorText() }}
             </p>
           }
-          @if (filtered().length === 0) {
+          @if (rows().length === 0) {
             <div class="session-list-empty">
               <p class="muted">{{ filters.noMatch }}</p>
               <button type="button" class="btn btn-secondary btn-sm" (click)="clearFilters()">
@@ -188,22 +189,18 @@ export class SessionListComponent implements OnInit {
     format(this.filters.facilitatorUnknown, { pseudo: this.facilitatorInput().trim() }),
   );
 
-  protected readonly filtered = computed(() =>
-    filterSessions(this.sessions() ?? [], {
+  /** Forme comparable des noms et des pseudos, calculée une fois par chargement de la liste. */
+  private readonly prepared = computed(() => prepareSessions(this.sessions() ?? []));
+  /** Les sessions affichées, avec leur nom découpé autour du passage trouvé. */
+  protected readonly rows = computed(() =>
+    filterSessions(this.prepared(), {
       name: this.name(),
       facilitator: this.facilitator(),
       statuses: this.statuses(),
     }),
   );
-  /** Les sessions affichées, avec leur nom découpé autour du passage trouvé. */
-  protected readonly rows = computed(() =>
-    this.filtered().map((session) => ({
-      session,
-      name: matchName(session.name, this.name()) ?? { before: session.name, match: '', after: '' },
-    })),
-  );
   protected readonly count = computed(() => {
-    const shown = this.filtered().length;
+    const shown = this.rows().length;
     const template = shown <= 1 ? this.filters.countOne : this.filters.count;
     return format(template, { shown, total: this.sessions()?.length ?? 0 });
   });

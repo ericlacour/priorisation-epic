@@ -19,14 +19,71 @@ export interface NameParts {
   readonly after: string;
 }
 
+/** Un texte sous sa forme comparable, avec, pour chaque unité de cette forme, le caractère d'origine dont elle vient. */
+export interface Folded {
+  readonly text: string;
+  /** `owners[i]` : indice, en caractères du texte d'origine, du caractère qui a donné l'unité `i` de `text`. */
+  readonly owners: readonly number[];
+}
+
 /**
- * Forme comparable d'un texte, sans majuscules ni accents (« Épics » devient « epics »). Chaque caractère du
- * texte d'origine donne exactement un caractère, pour que les positions restent valables dans le texte d'origine.
+ * Forme comparable d'un texte, sans majuscules ni accents (« Épics » devient « epics »), que ses accents soient
+ * précomposés (« É ») ou séparés de leur lettre (« E » suivi de l'accent, forme NFD d'un texte collé depuis macOS) : un
+ * accent séparé ne laisse rien. Les positions restent rattachées aux caractères du texte d'origine.
  */
+function fold(text: string): Folded {
+  let folded = '';
+  const owners: number[] = [];
+  [...text].forEach((char, index) => {
+    const piece = char.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    folded += piece;
+    // Une entrée par unité UTF-16 de `piece`, comme les positions de `indexOf` sur `text`.
+    owners.push(...Array<number>(piece.length).fill(index));
+  });
+  return { text: folded, owners };
+}
+
+/** Forme comparable d'un texte, sans majuscules ni accents (« Épics » devient « epics »). */
 export function normalize(text: string): string {
-  return [...text]
-    .map((char) => [...char.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()][0] ?? char)
-    .join('');
+  return fold(text).text;
+}
+
+/** Une session prête à filtrer : sa forme comparable est calculée une fois, au chargement de la liste. */
+export interface PreparedSession {
+  readonly session: SessionSummary;
+  readonly name: Folded;
+  readonly facilitatorKey: string;
+}
+
+/** Une ligne de la liste filtrée : la session et son nom découpé autour du passage trouvé. */
+export interface SessionRow {
+  readonly session: SessionSummary;
+  readonly name: NameParts;
+}
+
+export function prepareSessions(sessions: readonly SessionSummary[]): readonly PreparedSession[] {
+  return sessions.map((session) => ({
+    session,
+    name: fold(session.name),
+    facilitatorKey: normalize(session.facilitatorPseudo),
+  }));
+}
+
+/** Découpe `name` autour de la première occurrence de `needle` (déjà normalisé, non vide), ou `null`. */
+function cut(name: string, folded: Folded, needle: string): NameParts | null {
+  const start = folded.text.indexOf(needle);
+  if (start < 0) return null;
+  const chars = [...name];
+  const first = folded.owners[start];
+  let end = folded.owners[start + needle.length - 1] + 1;
+  // Les accents séparés qui suivent le passage n'ont rien laissé dans la forme comparable : ils restent surlignés
+  // avec leur lettre.
+  while (end < chars.length && normalize(chars[end]) === '') end++;
+  return {
+    before: chars.slice(0, first).join(''),
+    match: chars.slice(first, end).join(''),
+    after: chars.slice(end).join(''),
+  };
 }
 
 /**
@@ -36,18 +93,7 @@ export function normalize(text: string): string {
 export function matchName(name: string, query: string): NameParts | null {
   const needle = normalize(query.trim());
   if (needle === '') return { before: name, match: '', after: '' };
-  const haystack = normalize(name);
-  const start = haystack.indexOf(needle);
-  if (start < 0) return null;
-  // `normalize` garde un caractère pour un caractère : la position se convertit en caractères du nom d'origine.
-  const chars = [...name];
-  const startChar = [...haystack.slice(0, start)].length;
-  const length = [...needle].length;
-  return {
-    before: chars.slice(0, startChar).join(''),
-    match: chars.slice(startChar, startChar + length).join(''),
-    after: chars.slice(startChar + length).join(''),
-  };
+  return cut(name, fold(name), needle);
 }
 
 /** Pseudos des animateurs des sessions, sans doublon (majuscules et accents ignorés), dans l'ordre alphabétique. */
@@ -67,16 +113,23 @@ export function findFacilitator(known: readonly string[], input: string): string
   return known.find((pseudo) => normalize(pseudo) === key) ?? null;
 }
 
-/** Les sessions qui passent les trois filtres, dans l'ordre reçu. */
+/** Les lignes des sessions qui passent les trois filtres, dans l'ordre reçu, avec le passage trouvé dans le nom. */
 export function filterSessions(
-  sessions: readonly SessionSummary[],
+  sessions: readonly PreparedSession[],
   filter: SessionFilter,
-): readonly SessionSummary[] {
+): readonly SessionRow[] {
   const facilitator = filter.facilitator === null ? null : normalize(filter.facilitator);
-  return sessions.filter(
-    (session) =>
-      filter.statuses.has(session.status) &&
-      (facilitator === null || normalize(session.facilitatorPseudo) === facilitator) &&
-      matchName(session.name, filter.name) !== null,
-  );
+  const needle = normalize(filter.name.trim());
+  const rows: SessionRow[] = [];
+  for (const prepared of sessions) {
+    const { session } = prepared;
+    if (!filter.statuses.has(session.status)) continue;
+    if (facilitator !== null && prepared.facilitatorKey !== facilitator) continue;
+    const name =
+      needle === ''
+        ? { before: session.name, match: '', after: '' }
+        : cut(session.name, prepared.name, needle);
+    if (name !== null) rows.push({ session, name });
+  }
+  return rows;
 }

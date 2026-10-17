@@ -265,6 +265,12 @@ textarea.input {
     margin: 0;
   }
 
+  /* Fenêtre basse ou zoomée : le formulaire défile dans sa colonne plutôt que d'être coupé. */
+  .home-columns > .home-create {
+    max-height: 100%;
+    overflow: auto;
+  }
+
   app-session-list {
     display: flex;
     max-height: 100%;
@@ -339,6 +345,8 @@ textarea.input {
 }
 
 .status-filter legend {
+  /* Une légende flottante n'est plus la légende dessinée dans le cadre du fieldset : elle devient un élément du flex,
+     sur la ligne des cases (le flottement lui-même est ignoré dans un flex). */
   float: left;
   margin-right: 4px;
   padding: 0;

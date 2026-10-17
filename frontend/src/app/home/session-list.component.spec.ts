@@ -184,6 +184,23 @@ describe('SessionListComponent', () => {
       expect(element.querySelector('#filter-facilitator-error')).toBeNull();
     });
 
+    it('refuses an unknown facilitator on leaving the field even when its value did not change', async () => {
+      const { fixture, element } = await render({ 'GET /api/sessions': () => reply(200, MORE) });
+
+      const input = type(fixture, '#filter-facilitator', 'Marc');
+      input.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      // Retour dans le champ, une lettre effacée puis retapée : la valeur finale est la même, aucun `change`.
+      type(fixture, '#filter-facilitator', 'Mar');
+      type(fixture, '#filter-facilitator', 'Marc');
+      expect(element.querySelector('#filter-facilitator-error')).toBeNull();
+      input.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      expect(element.querySelector('#filter-facilitator-error')).not.toBeNull();
+      expect(names(element)).toHaveLength(4);
+    });
+
     it('shows only the checked statuses, and none when no status is checked', async () => {
       const { fixture, element } = await render({ 'GET /api/sessions': () => reply(200, MORE) });
 
