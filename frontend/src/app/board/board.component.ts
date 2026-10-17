@@ -7,6 +7,7 @@ import {
   inject,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { CriteriaChanges } from '../api/contract';
@@ -77,17 +78,17 @@ const NEW_ROW = 'new';
     @if (state(); as state) {
       <!-- Deux barres d'une ligne (FR-014c) ; toute la hauteur restante va au tableau (FR-014a). -->
       <app-session-bar (glossaryRequested)="showGlossary.set(true)" />
-      @if (!(canAnimate() && screen.isPhone())) {
-        <app-action-bar
-          [animate]="canAnimate()"
-          [editing]="editing() !== null"
-          [hasFeatures]="state.features.length > 0"
-          (add)="startNew()"
-          (rank)="rankingRequested.emit()"
-          (import)="openImport()"
-          (scale)="openSettings()"
-        />
-      }
+      <!-- Sur téléphone (lecture seule), la barre se réduit au bandeau d'état, animateur compris (FR-014c). -->
+      <app-action-bar
+        [animate]="canAnimate() && !screen.isPhone()"
+        [editing]="editing() !== null"
+        [hasFeatures]="state.features.length > 0"
+        [closed]="state.status === 'CLOSED'"
+        (add)="startNew()"
+        (rank)="rankingRequested.emit()"
+        (import)="openImport()"
+        (scale)="openSettings()"
+      />
 
       <div class="layout-board">
         <!-- Messages en superposition : ils ne décalent pas le tableau (FR-014c). -->
@@ -186,7 +187,7 @@ const NEW_ROW = 'new';
                         }
                       </th>
                     }
-                    @if (canAnimate()) {
+                    @if (canEdit()) {
                       <th>{{ messages.columns.actions }}</th>
                     }
                   </tr>
@@ -267,7 +268,7 @@ const NEW_ROW = 'new';
                             }
                           </td>
                         }
-                        @if (canAnimate()) {
+                        @if (canEdit()) {
                           <td>
                             <button
                               type="button"
@@ -286,7 +287,7 @@ const NEW_ROW = 'new';
                       <tr>
                         <td [attr.colspan]="columnCount()" class="muted">
                           {{ messages.empty }}
-                          @if (canAnimate()) {
+                          @if (canEdit()) {
                             {{ messages.emptyFacilitator }}
                           }
                         </td>
@@ -304,7 +305,7 @@ const NEW_ROW = 'new';
         <app-feature-detail-panel
           [feature]="feature"
           [definition]="state.methodDefinition"
-          [canAnimate]="canAnimate()"
+          [canAnimate]="canEdit()"
           [stale]="detailStale()"
           (closed)="selectedId.set(null)"
           (methodRequested)="showMethod.set(true)"
@@ -351,6 +352,8 @@ export class BoardComponent {
 
   protected readonly state = this.room.state;
   protected readonly canAnimate = this.room.canAnimate;
+  /** L'animateur d'une session qui n'est pas clôturée : en lecture seule, ni édition, ni import, ni échelle. */
+  protected readonly canEdit = this.room.canEdit;
   /** Identifiant de la ligne en édition, ou `'new'` pour l'ajout. */
   protected readonly editing = signal<string | null>(null);
   protected readonly selectedId = signal<string | null>(null);
@@ -417,7 +420,7 @@ export class BoardComponent {
       3 +
       (definition?.criteria.length ?? 0) +
       (definition?.computedValues.length ?? 0) +
-      (this.canAnimate() ? 1 : 0)
+      (this.canEdit() ? 1 : 0)
     );
   });
 
@@ -448,6 +451,15 @@ export class BoardComponent {
         this.awaiting = null;
         this.stopEditing();
       }
+    });
+    // La session passe en lecture seule (clôture, perte des droits) : l'édition et les fenêtres d'animation se ferment.
+    effect(() => {
+      if (this.canEdit()) return;
+      untracked(() => {
+        if (this.editing() !== null) this.stopEditing();
+        this.showImport.set(false);
+        this.showSettings.set(false);
+      });
     });
     // Une fonctionnalité supprimée par un autre poste ferme son panneau de détail et sa ligne en édition.
     effect(() => {

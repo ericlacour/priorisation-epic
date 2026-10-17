@@ -119,6 +119,47 @@ public final class InMemoryStore
     sessions.put(sessionId, sessions.get(sessionId).withSettings(name, scale));
   }
 
+  @Override
+  public void updateStatus(SessionId sessionId, com.priorisationepic.domain.SessionStatus status) {
+    Session s = sessions.get(sessionId);
+    sessions.put(
+        sessionId,
+        new Session(
+            s.id(),
+            s.name(),
+            status,
+            s.method(),
+            s.methodVersion(),
+            s.scale(),
+            s.createdAt(),
+            s.createdBy(),
+            s.version()));
+  }
+
+  @Override
+  public List<SessionSummary> listSummaries() {
+    return sessions.values().stream()
+        .sorted(
+            java.util.Comparator.comparing(Session::createdAt)
+                .reversed()
+                .thenComparing(s -> s.id().value()))
+        .map(
+            s ->
+                new SessionSummary(
+                    s.id(),
+                    s.name(),
+                    list(s.id()).stream()
+                        .filter(p -> p.role() == com.priorisationepic.domain.Role.FACILITATOR)
+                        .map(p -> p.pseudo().value())
+                        .findFirst()
+                        .orElse(s.createdBy().value()),
+                    s.createdAt(),
+                    s.status(),
+                    s.method(),
+                    s.methodVersion()))
+        .toList();
+  }
+
   /** Remplace la session telle quelle (préparation d'un test). */
   public void put(Session session) {
     sessions.put(session.id(), session);

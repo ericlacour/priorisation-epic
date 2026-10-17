@@ -61,7 +61,7 @@ public record Session(
 
   /** Les écritures sont refusées en {@code CLOSED}, sauf « rouvrir » (FR-026). */
   public boolean isWritable() {
-    return status != SessionStatus.CLOSED;
+    return status.allowsWrites();
   }
 
   private static void requireName(String name) {

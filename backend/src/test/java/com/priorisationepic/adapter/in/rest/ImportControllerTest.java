@@ -283,6 +283,20 @@ class ImportControllerTest extends PostgresTestBase {
   }
 
   @Test
+  void aClosedSessionRefusesTheImport() throws Exception {
+    String previewId =
+        upload("a.csv", csv("Identifiant;Titre\nF-1;Un\n"), true)
+            .json()
+            .get("previewId")
+            .asString();
+    jdbc.update("update session set status = 'CLOSED'");
+
+    assertThat(upload("a.csv", csv("Identifiant;Titre\nF-1;Un\n"), true).status()).isEqualTo(403);
+    assertThat(confirm(previewId, true).status()).isEqualTo(403);
+    assertThat(count("select count(*) from feature")).isZero();
+  }
+
+  @Test
   void anUnknownSessionIsNotFound() throws Exception {
     Response response =
         upload(

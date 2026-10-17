@@ -51,7 +51,11 @@ PREPARATION ──démarrer──▶ IN_PROGRESS ──clôturer──▶ CLOSED
                                └──────rouvrir─────────┘
 ```
 
-- En statut `CLOSED`, toute écriture est refusée (lecture seule), sauf « rouvrir ».
+- En statut `CLOSED`, toute écriture est refusée (lecture seule) avec `error SESSION_CLOSED`,
+  sauf « rouvrir ». L'import (REST) y répond 403.
+- Une action sans effet (`START` sur une session en cours, `REOPEN` sur une session qui n'est
+  pas clôturée) est acceptée et ne change rien. `CLOSE` sur une session en `PREPARATION` est
+  refusé : `error SESSION_NOT_STARTED`.
 - Les fonctionnalités, les valeurs et l'échelle sont modifiables en `PREPARATION` comme en
   `IN_PROGRESS`. L'import est possible dans les deux statuts.
 - Une fonctionnalité qui est dans un tour `OPEN` ne peut pas voir ses valeurs retenues

@@ -32,7 +32,7 @@ class MigrationTest extends PostgresTestBase {
         jdbc.queryForObject(
             "select version from flyway_schema_history where success order by installed_rank desc limit 1",
             String.class);
-    assertThat(version).isEqualTo("3");
+    assertThat(version).isEqualTo("4");
   }
 
   @Test
@@ -53,6 +53,14 @@ class MigrationTest extends PostgresTestBase {
             "vote_criterion_value",
             "change_log",
             "import_preview");
+  }
+
+  @Test
+  void indexesTheSessionList() {
+    List<String> indexes =
+        jdbc.queryForList(
+            "select indexname from pg_indexes where schemaname = current_schema()", String.class);
+    assertThat(indexes).contains("session_created_at_idx", "participant_facilitator_idx");
   }
 
   @Test

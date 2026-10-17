@@ -56,7 +56,7 @@ channels:
       feature in an open round),
       `ROUND_REVEALED`, `SCALE_IMPACT` (with `impactedValues`),
       `UNKNOWN_PARTICIPANT`, `UNKNOWN_CRITERION` (a criterion key the session's method does
-      not declare), `SESSION_NOT_STARTED` (`openRound` while in PREPARATION),
+      not declare), `SESSION_NOT_STARTED` (`openRound` or `changeStatus CLOSE` while in PREPARATION),
       `ROUND_OPEN` (`openRound`, `changeStatus CLOSE` or a scale change in `updateSettings`
       while a round is open: only one open round per session in V1), `PARTICIPANT_OFFLINE`
       (`transferFacilitator` to a participant with no open connection).

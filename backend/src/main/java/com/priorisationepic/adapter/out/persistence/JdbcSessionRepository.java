@@ -1,6 +1,7 @@
 package com.priorisationepic.adapter.out.persistence;
 
 import com.priorisationepic.application.SessionRepository;
+import com.priorisationepic.application.SessionSummary;
 import com.priorisationepic.domain.Pseudo;
 import com.priorisationepic.domain.Session;
 import com.priorisationepic.domain.SessionId;
@@ -9,6 +10,7 @@ import com.priorisationepic.domain.Tokens;
 import com.priorisationepic.domain.scale.Scale;
 import com.priorisationepic.domain.scale.ScaleType;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -102,5 +104,34 @@ class JdbcSessionRepository implements SessionRepository {
         .param("scaleType", scale.type().name())
         .param("scaleMax", scale.max())
         .update();
+  }
+
+  @Override
+  public void updateStatus(SessionId sessionId, SessionStatus status) {
+    jdbc.sql("update session set status = :status where session_id = :id")
+        .param("id", sessionId.value())
+        .param("status", status.name())
+        .update();
+  }
+
+  @Override
+  public List<SessionSummary> listSummaries() {
+    return jdbc.sql(
+            "select s.session_id, s.name, s.status, s.method, s.method_version, s.created_at,"
+                + " coalesce((select p.pseudo from participant p where p.session_id = s.session_id"
+                + " and p.role = 'FACILITATOR' order by p.joined_at limit 1),"
+                + " s.created_by_pseudo) as facilitator_pseudo"
+                + " from session s order by s.created_at desc, s.session_id")
+        .query(
+            (rs, row) ->
+                new SessionSummary(
+                    new SessionId(rs.getString("session_id")),
+                    rs.getString("name"),
+                    rs.getString("facilitator_pseudo"),
+                    rs.getTimestamp("created_at").toInstant(),
+                    SessionStatus.valueOf(rs.getString("status")),
+                    rs.getString("method"),
+                    rs.getInt("method_version")))
+        .list();
   }
 }

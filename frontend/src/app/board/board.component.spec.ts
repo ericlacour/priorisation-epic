@@ -73,12 +73,27 @@ describe('BoardComponent', () => {
     expect(chrome.sessionBar()).toBe(false);
   });
 
-  it('shows the participant status line, and no action bar for a facilitator on a phone', () => {
+  it('shows the participant status line, and only that line for a facilitator on a phone', () => {
     expect(
       render({ animate: false }).element.querySelector('app-action-bar')?.textContent,
     ).toContain('Aucun tour de vote en cours.');
     TestBed.resetTestingModule();
-    expect(render({ phone: true }).element.querySelector('app-action-bar')).toBeNull();
+    const phone = render({ phone: true }).element.querySelector('app-action-bar');
+    expect(phone?.textContent).toContain('Aucun tour de vote en cours.');
+    expect(phone?.querySelector('button')).toBeNull();
+  });
+
+  it('shows the read-only banner to a facilitator on a phone when the session is closed', () => {
+    const { element } = render({
+      phone: true,
+      state: state({
+        status: 'CLOSED',
+        me: { participantId: 'p1', pseudo: 'Éric', role: 'FACILITATOR' },
+      }),
+    });
+    const bar = element.querySelector('app-action-bar');
+    expect(bar?.textContent).toContain('Session clôturée : lecture seule');
+    expect(bar?.querySelector('button')).toBeNull();
   });
 
   it('shows the rank, id, title, then one column per criterion and computed value of the definition', () => {
@@ -241,6 +256,30 @@ describe('BoardComponent', () => {
     expect(element.querySelector('.board-info-text')?.textContent).toBe(
       'Vous : Éric · Animée par Éric · Échelle 1 à 10',
     );
+  });
+
+  it('shows a closed session read-only, even to its facilitator (FR-004, FR-026)', () => {
+    const { element } = render({ state: state({ status: 'CLOSED' }) });
+
+    expect(headers(element)).not.toContain('Actions');
+    expect(button(element, 'Modifier')).toBeUndefined();
+    expect(button(element, '+ Fonctionnalité')).toBeUndefined();
+    expect(button(element, 'Importer')).toBeUndefined();
+    expect(button(element, 'Rouvrir la session')?.disabled).toBe(false);
+    expect(element.textContent).toContain('Session clôturée : lecture seule');
+    expect(element.querySelector('.session-sub .badge')?.textContent).toBe('Clôturée');
+    expect(button(element, 'Exporter')?.disabled).toBe(false);
+  });
+
+  it('closes the line being edited when the session gets closed', () => {
+    const { fixture, room, element } = render();
+    button(element, 'Modifier')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('tr input')).not.toBeNull();
+
+    room.state.set(state({ status: 'CLOSED' }));
+    fixture.detectChanges();
+    expect(element.querySelector('tr input')).toBeNull();
   });
 
   it('shows the participants with their presence on demand (FR-005)', () => {

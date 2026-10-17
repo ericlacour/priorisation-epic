@@ -98,7 +98,10 @@ class WsContractRoundTripTest extends PostgresTestBase {
       {"delete-feature", "delete"},
       {"update-settings", "rename"},
       {"update-settings", "fibonacci"},
-      {"update-settings", "confirmed-scale-change"}
+      {"update-settings", "confirmed-scale-change"},
+      {"change-status", "start"},
+      {"change-status", "close"},
+      {"change-status", "reopen"}
     };
     for (String[] example : examples) {
       facilitator.send(ContractExamples.read(example[0], example[1]));

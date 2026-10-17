@@ -1,14 +1,28 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 
+import { SessionRoomService } from '../session/session-room.service';
+import { FakeRoom } from '../testing/fake-room';
+import { state } from '../testing/fixtures';
 import { ActionBarComponent } from './action-bar.component';
 
 describe('ActionBarComponent', () => {
-  function render(inputs: { animate: boolean; editing?: boolean; hasFeatures?: boolean }) {
+  function render(inputs: {
+    animate: boolean;
+    editing?: boolean;
+    hasFeatures?: boolean;
+    closed?: boolean;
+  }) {
+    const room = new FakeRoom();
+    room.state.set(state({ status: inputs.closed ? 'CLOSED' : 'PREPARATION' }));
+    TestBed.configureTestingModule({
+      providers: [{ provide: SessionRoomService, useValue: room }],
+    });
     const fixture = TestBed.createComponent(ActionBarComponent);
     fixture.componentRef.setInput('animate', inputs.animate);
     fixture.componentRef.setInput('editing', inputs.editing ?? false);
     fixture.componentRef.setInput('hasFeatures', inputs.hasFeatures ?? true);
+    fixture.componentRef.setInput('closed', inputs.closed ?? false);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     const button = (text: string) =>
@@ -18,7 +32,7 @@ describe('ActionBarComponent', () => {
     return { fixture, element, button };
   }
 
-  it('gives the facilitator a toolbar with the entry and preparation groups (FR-014c)', () => {
+  it('gives the facilitator a toolbar with the entry, preparation and lifecycle groups (FR-014c)', () => {
     const { element } = render({ animate: true });
     expect(element.getAttribute('role')).toBe('toolbar');
     expect(element.getAttribute('aria-label')).toBe("Actions d'animation");
@@ -29,6 +43,7 @@ describe('ActionBarComponent', () => {
     expect(groups).toEqual([
       { label: 'Saisie', buttons: ['+ Fonctionnalité', 'Prioriser par classement'] },
       { label: 'Préparation', buttons: ['Importer', 'Échelle'] },
+      { label: 'Cycle de vie', buttons: ['Démarrer la session'] },
     ]);
     // Une seule action principale.
     expect(element.querySelectorAll('.btn-primary')).toHaveLength(1);
@@ -51,7 +66,9 @@ describe('ActionBarComponent', () => {
 
   it('keeps the actions in place but disabled while a line is being edited', () => {
     const { element } = render({ animate: true, editing: true });
-    const buttons = [...element.querySelectorAll<HTMLButtonElement>('button')];
+    const buttons = [
+      ...element.querySelectorAll<HTMLButtonElement>('[role="group"]:not(.lifecycle) button'),
+    ];
     expect(buttons).toHaveLength(4);
     expect(buttons.every((b) => b.disabled)).toBe(true);
   });
@@ -68,5 +85,20 @@ describe('ActionBarComponent', () => {
     expect(element.getAttribute('aria-label')).toBe('État de la session');
     expect(element.querySelectorAll('button')).toHaveLength(0);
     expect(element.textContent).toContain('Aucun tour de vote en cours.');
+  });
+
+  it('reduces the facilitator bar of a closed session to the read-only banner and « Rouvrir la session »', () => {
+    const { element } = render({ animate: true, closed: true });
+    expect([...element.querySelectorAll('button')].map((b) => b.textContent?.trim())).toEqual([
+      'Rouvrir la session',
+    ]);
+    expect(element.textContent).toContain('Session clôturée : lecture seule');
+    expect(element.querySelectorAll('.btn-primary')).toHaveLength(1);
+  });
+
+  it('tells a participant that a closed session is read-only', () => {
+    const { element } = render({ animate: false, closed: true });
+    expect(element.querySelectorAll('button')).toHaveLength(0);
+    expect(element.textContent).toContain('Session clôturée : lecture seule');
   });
 });

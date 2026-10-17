@@ -1,6 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { SESSION_ID, installFakeSocket, push, storeTokens } from './fake-session-socket';
+import {
+  SESSION_ID,
+  installFakeSocket,
+  push,
+  sentOfType,
+  storeTokens,
+} from './fake-session-socket';
 import { manyFeatures, sessionState } from './state-fixtures';
 
 /**
@@ -8,7 +14,7 @@ import { manyFeatures, sessionState } from './state-fixtures';
  * barre d'actions tiennent chacune sur une ligne, 105 px au plus à elles deux, quel que soit l'état ; 15
  * fonctionnalités restent entièrement visibles et la page ne défile pas. Les messages se superposent au tableau sans
  * le décaler. Chaque tâche qui ajoute une action à une barre (T105, T113, T078, T079, T081, T083) ajoute ici l'état
- * qui la montre.
+ * qui la montre : les trois statuts (préparation, en cours, clôturée) y sont depuis T113.
  */
 
 /** Hauteur d'une barre d'une seule ligne : au-delà, un bouton est passé à la ligne. */
@@ -108,6 +114,56 @@ test('les actions de l’animateur gardent leur libellé, en groupes, dans la ba
   for (const name of [/^Participants \(2\)/, /^Liens/, 'Exporter', 'Tours révélés', /thème$/]) {
     await expect(tools.getByRole('button', { name })).toBeVisible();
   }
+});
+
+test('le cycle de vie : un seul bouton selon le statut, à droite de la barre d’actions (T113)', async ({
+  page,
+}) => {
+  const labels = {
+    PREPARATION: 'Démarrer la session',
+    IN_PROGRESS: 'Clôturer la session',
+    CLOSED: 'Rouvrir la session',
+  } as const;
+  for (const status of STATUSES) {
+    await open(page, true, status);
+    const lifecycle = page.getByRole('group', { name: 'Cycle de vie' });
+    await expect(lifecycle.getByRole('button')).toHaveText([labels[status]]);
+    const bar = await page.locator('.action-bar').boundingBox();
+    const group = await lifecycle.boundingBox();
+    // Calé à droite de la barre (16 px de marge intérieure).
+    expect(Math.abs(bar!.x + bar!.width - 16 - (group!.x + group!.width))).toBeLessThanOrEqual(1);
+  }
+  // Session clôturée : le bandeau de lecture seule et « Rouvrir la session », rien d’autre.
+  await expect(page.locator('.action-bar').getByRole('button')).toHaveText(['Rouvrir la session']);
+  await expect(page.locator('.action-bar')).toContainText('Session clôturée : lecture seule');
+  await expect(page.getByRole('button', { name: 'Modifier' })).toHaveCount(0);
+});
+
+test('la confirmation de clôture se superpose au tableau sans le décaler (T113)', async ({
+  page,
+}) => {
+  await open(page, true, 'IN_PROGRESS');
+  const before = await page.locator('tbody tr').first().boundingBox();
+
+  await page.getByRole('button', { name: 'Clôturer la session' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Clôturer la session ?' });
+  await expect(dialog).toContainText(
+    'Elle passera en lecture seule pour tous. Vous pourrez la rouvrir.',
+  );
+  expect(await page.locator('tbody tr').first().boundingBox()).toEqual(before);
+
+  await dialog.getByRole('button', { name: 'Annuler' }).click();
+  await expect(dialog).toHaveCount(0);
+  expect(await sentOfType(page, 'changeStatus')).toEqual([]);
+
+  await page.getByRole('button', { name: 'Clôturer la session' }).click();
+  await page
+    .getByRole('dialog', { name: 'Clôturer la session ?' })
+    .getByRole('button', { name: 'Clôturer la session' })
+    .click();
+  expect(await sentOfType(page, 'changeStatus')).toEqual([
+    { type: 'changeStatus', action: 'CLOSE' },
+  ]);
 });
 
 test('le menu « Exporter » et son message se superposent au tableau sans le décaler (T105)', async ({

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "change-status.json",
+  "title": "changeStatus (client → server)",
+  "description": "Facilitator only (FR-004, FR-026). START: PREPARATION → IN_PROGRESS. CLOSE: IN_PROGRESS → CLOSED, the session becomes read-only for everyone. REOPEN: CLOSED → IN_PROGRESS. An action that changes nothing (START while in progress, REOPEN on a session that is not closed) is accepted without effect. While CLOSED, every intent but REOPEN gets error SESSION_CLOSED; CLOSE on a session in PREPARATION gets error SESSION_NOT_STARTED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "action"],
+  "properties": {
+    "type": {
+      "const": "changeStatus"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["START", "CLOSE", "REOPEN"]
+    }
+  }
+}

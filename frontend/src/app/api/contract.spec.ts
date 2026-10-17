@@ -10,6 +10,7 @@ import {
   parseJoinSessionResponse,
   parseProblem,
   parseServerMessage,
+  parseSessionSummaries,
 } from './contract';
 
 describe('contract', () => {
@@ -138,5 +139,34 @@ describe('import and scale messages', () => {
   it('reads an import result', () => {
     expect(parseImportResult({ imported: 18, rejected: 2 })).toEqual({ imported: 18, rejected: 2 });
     expect(() => parseImportResult({ imported: '18' })).toThrow();
+  });
+});
+
+describe('contract: session list', () => {
+  const line = {
+    sessionId: 'k3Jx9QvT2mLpZ8wR4nYb7A',
+    name: 'Atelier Q4',
+    facilitatorPseudo: 'Éric',
+    createdAt: '2026-10-12T09:00:00Z',
+    status: 'PREPARATION',
+    method: 'WSJF',
+    methodVersion: 2,
+  };
+
+  it('reads the lines of the session list and keeps only the fields of the contract', () => {
+    expect(parseSessionSummaries([{ ...line, extra: 1 }])).toEqual([line]);
+    expect(parseSessionSummaries([])).toEqual([]);
+  });
+
+  it('refuses a list out of contract', () => {
+    for (const bad of [
+      {},
+      [{ ...line, sessionId: 'x' }],
+      [{ ...line, status: 'ARCHIVED' }],
+      [{ ...line, createdAt: 'hier' }],
+      [{ ...line, methodVersion: '2' }],
+    ]) {
+      expect(() => parseSessionSummaries(bad)).toThrow();
+    }
   });
 });

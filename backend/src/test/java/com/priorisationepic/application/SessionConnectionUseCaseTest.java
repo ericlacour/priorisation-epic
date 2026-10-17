@@ -57,6 +57,16 @@ class SessionConnectionUseCaseTest {
             SessionId id, String name, com.priorisationepic.domain.scale.Scale scale) {
           throw new UnsupportedOperationException();
         }
+
+        @Override
+        public void updateStatus(SessionId id, com.priorisationepic.domain.SessionStatus status) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public java.util.List<SessionSummary> listSummaries() {
+          throw new UnsupportedOperationException();
+        }
       };
 
   private final ParticipantRepository participants =
