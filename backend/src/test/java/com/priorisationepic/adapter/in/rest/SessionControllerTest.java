@@ -133,6 +133,18 @@ class SessionControllerTest extends PostgresTestBase {
   }
 
   @Test
+  void aNameAlreadyTakenIsRefusedWith409AndTheProblemOfTheContract() throws Exception {
+    createSession();
+
+    RestClient.Response response =
+        rest.post("/api/sessions", "{\"name\":\"  atelier q4 \",\"pseudo\":\"Camille\"}");
+
+    assertThat(response.status()).isEqualTo(409);
+    assertThat(response.json()).isEqualTo(problemExample("session-name-taken", "/api/sessions"));
+    assertThat(jdbc.queryForObject("select count(*) from session", Integer.class)).isOne();
+  }
+
+  @Test
   void anUnknownMethodIsRefusedWith400() throws Exception {
     RestClient.Response response =
         rest.post("/api/sessions", "{\"name\":\"A\",\"pseudo\":\"Éric\",\"method\":\"RICE\"}");

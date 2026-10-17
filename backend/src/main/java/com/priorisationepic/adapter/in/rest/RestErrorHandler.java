@@ -4,6 +4,7 @@ import com.priorisationepic.application.ForbiddenException;
 import com.priorisationepic.application.ImportPreviewNotFoundException;
 import com.priorisationepic.application.ImportRefusedException;
 import com.priorisationepic.application.PseudoTakenException;
+import com.priorisationepic.application.SessionNameTakenException;
 import com.priorisationepic.application.SessionNotFoundException;
 import com.priorisationepic.domain.InvalidPseudoException;
 import com.priorisationepic.domain.method.UnknownMethodException;
@@ -87,6 +88,13 @@ public class RestErrorHandler extends ResponseEntityExceptionHandler {
   ProblemDetail importPreviewNotFound(Locale locale) {
     ProblemDetail problem = problem(HttpStatus.NOT_FOUND, "error.import-preview-not-found", locale);
     problem.setTitle(messages.getMessage("title.import-preview-not-found", null, locale));
+    return problem;
+  }
+
+  @ExceptionHandler(SessionNameTakenException.class)
+  ProblemDetail sessionNameTaken(Locale locale) {
+    ProblemDetail problem = problem(HttpStatus.CONFLICT, "error.session-name-taken", locale);
+    problem.setTitle(messages.getMessage("title.session-name-taken", null, locale));
     return problem;
   }
 

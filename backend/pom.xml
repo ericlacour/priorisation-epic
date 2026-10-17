@@ -59,8 +59,8 @@
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
+      <!-- Compilation : JdbcSessionRepository lit le nom de la contrainte violée (PSQLException). -->
       <artifactId>postgresql</artifactId>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>

@@ -257,4 +257,29 @@ class UpdateSettingsUseCaseTest {
     assertThat(e.code()).isEqualTo(ErrorCode.SCALE_IMPACT);
     assertThat(current().name()).isEqualTo("Atelier");
   }
+
+  private static UpdateSettingsUseCase.Command rename(String name) {
+    return new UpdateSettingsUseCase.Command(name, null, null, false);
+  }
+
+  @Test
+  void renamingToTheNameOfAnotherSessionIsRefused() {
+    new CreateSessionUseCase(store, store, methods, ids, clock::instant, store)
+        .create(new CreateSessionUseCase.Command("PI26T7_TEST", "Bob", null, null));
+    broadcaster.published.clear();
+
+    IntentRejectedException e =
+        rejection(() -> settings.update(session, facilitator, true, rename(" pi26t7_test")));
+
+    assertThat(e.code()).isEqualTo(ErrorCode.SESSION_NAME_TAKEN);
+    assertThat(current().name()).isEqualTo("Atelier");
+    assertThat(broadcaster.published).isEmpty();
+  }
+
+  @Test
+  void renamingItsOwnSessionChangingOnlyTheCaseIsAccepted() {
+    settings.update(session, facilitator, true, rename("ATELIER"));
+
+    assertThat(current().name()).isEqualTo("ATELIER");
+  }
 }

@@ -511,6 +511,26 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ---
 
+## Phase 7 ter : Nom de session unique (FR-001a)
+
+> **Retour du 2026-10-17** : deux sessions ont pu être créées sous le même nom
+> (« PI26T7_TEST »), et la liste de l'accueil ne permet plus de les distinguer. Décision :
+> le nom est unique parmi toutes les sessions, sans tenir compte des majuscules ni des
+> espaces autour (FR-001a).
+
+**Objectif** : aucune création ni aucun renommage ne peut produire deux sessions du même nom.
+
+**Test indépendant** : créer « PI26T7_TEST » puis « pi26t7_test » : la seconde création est refusée avec le message de FR-001a (quickstart V13b).
+
+- [X] T114f [US5] Documents : FR-001a, clarifications et cas limite dans `spec.md`, `data-model.md`, quickstart V13b ; contrat : réponse `409 SessionNameTaken` de `createSession` et exemple `problem/session-name-taken.json` dans `contract/openapi.yaml`, code `SESSION_NAME_TAKEN` dans `contract/schemas/error.json`, `contract/asyncapi.yaml` et `specs/001-wsjf-prioritization-session/contracts/`, avec son exemple
+- [X] T114g [P] [US5] Tests backend, écrits d'abord : `SessionNameTest` (clé sans casse ni espaces autour, accents gardés), `CreateSessionUseCaseTest` et `SessionControllerTest` (`409` sur un nom pris, à la casse près ; rien n'est créé), `SettingsIntentsTest` (`SESSION_NAME_TAKEN` au renommage vers le nom d'une autre session ; renommer sa propre session en changeant la casse est accepté), `MigrationTest` (index unique sur `name_key`, même clé en SQL et dans le domaine, renommage des doublons existants en « (2) », « (3) »), `SessionNameBeforeLimitTest` (409 avant 429), `SessionPersistenceTest` (index à la création et au renommage)
+- [X] T114h [US5] Backend : migration `V5__session_name_unique.sql` (fonction `session_name_key`, doublons renommés « (2) », « (3) »… avec leur compteur avancé, colonne générée `name_key` et index unique), `SessionNameTakenException` ; nom refusé avant la limite de créations par adresse (`checkNameAvailable`, 409 jamais 429) et au renommage avant l'examen de l'échelle ; l'index unique tranche entre deux créations simultanées (contrainte lue dans l'erreur PostgreSQL) ; `Session.nameKey` donne la même définition aux doubles de test
+- [X] T114i [US5] Front : `409` de `createSession` lu comme `nameTaken`, message de FR-001a sous le champ « Nom de la session », saisie gardée (`home.component.ts`, `session-api.ts`, `messages.fr.ts`), avec ses tests Vitest ; texte du refus `SESSION_NAME_TAKEN`
+
+**Checkpoint** : le nom d'une session est unique.
+
+---
+
 ## Phase 8 : Finitions et sujets transverses
 
 - [ ] T115 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
@@ -640,7 +660,8 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **US4 (phase 6)** : l'export dépend de US1. **L'aller-retour JSON (T099) dépend de T093 (lecteur JSON, US3). L'aller-retour CSV dépend de T092 (lecteur CSV, US3).** Le test de généricité T099a dépend aussi de US3 (lecteurs).
 - **US5 (phase 7)** : dépend des fondations et de `change_log` (T029). Elle porte désormais le démarrage de session (`START`). Elle est indépendante de US3 et US4.
 - **Accueil et filtres (phase 7 bis)** : après T111 (liste des sessions). Indépendante de US3 et US4.
-- **Finitions (phase 8)** : après US3, US4, US5 et la phase 7 bis.
+- **Nom de session unique (phase 7 ter)** : après la création de session (US1) et la liste des sessions (T111).
+- **Finitions (phase 8)** : après US3, US4, US5 et les phases 7 bis et 7 ter.
 - **US2, vote masqué (phase 9, bonus)** : **en dernier**. Elle dépend de l'écran de classement (T060a), du démarrage de session (T109), de l'échelle (T090, T096), des exports (T101 à T105), de la généricité (T099a) et de la liste des sessions (US5). La conception (T064, maquettes) se valide avant toute autre tâche de la phase.
 
 ### À l'intérieur de chaque parcours

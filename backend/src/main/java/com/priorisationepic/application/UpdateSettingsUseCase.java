@@ -77,6 +77,19 @@ public class UpdateSettingsUseCase {
             broadcaster.publish(sessionId);
             return null;
           }
+          if (!after.name().equals(before.name())) {
+            // Avant l'examen de l'échelle : un nom pris est refusé tel quel, jamais en
+            // SCALE_IMPACT.
+            // Sous le verrou de cette session seulement : l'index unique couvre une autre session
+            // renommée ou créée au même moment (SessionNameTakenException, plus bas).
+            sessions
+                .findIdByName(after.name())
+                .filter(other -> !other.equals(sessionId))
+                .ifPresent(
+                    other -> {
+                      throw new IntentRejectedException(ErrorCode.SESSION_NAME_TAKEN);
+                    });
+          }
           boolean scaleChanged = !after.scale().equals(before.scale());
           if (scaleChanged && !command.confirm()) {
             MethodDefinition method =
@@ -87,20 +100,24 @@ public class UpdateSettingsUseCase {
               throw IntentRejectedException.scaleImpact(impacts);
             }
           }
-          transactions.run(
-              () -> {
-                sessions.updateSettings(sessionId, after.name(), after.scale());
-                if (scaleChanged) {
-                  changeLog.scaleChanged(
-                      sessionId,
-                      author.pseudo(),
-                      before.scale().type().name(),
-                      before.scale().max(),
-                      after.scale().type().name(),
-                      after.scale().max());
-                }
-                sessions.incrementVersion(sessionId);
-              });
+          try {
+            transactions.run(
+                () -> {
+                  sessions.updateSettings(sessionId, after.name(), after.scale());
+                  if (scaleChanged) {
+                    changeLog.scaleChanged(
+                        sessionId,
+                        author.pseudo(),
+                        before.scale().type().name(),
+                        before.scale().max(),
+                        after.scale().type().name(),
+                        after.scale().max());
+                  }
+                  sessions.incrementVersion(sessionId);
+                });
+          } catch (SessionNameTakenException e) {
+            throw new IntentRejectedException(ErrorCode.SESSION_NAME_TAKEN);
+          }
           broadcaster.publish(sessionId);
           return null;
         });

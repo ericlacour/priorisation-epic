@@ -55,6 +55,7 @@ export const ERROR_CODES = [
   'ROUND_OPEN',
   'PARTICIPANT_OFFLINE',
   'UNKNOWN_CRITERION',
+  'SESSION_NAME_TAKEN',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

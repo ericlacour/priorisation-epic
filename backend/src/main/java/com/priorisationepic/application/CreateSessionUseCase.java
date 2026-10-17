@@ -53,9 +53,23 @@ public class CreateSessionUseCase {
   }
 
   /**
+   * Refuse d'avance un nom déjà pris, avant que la création ne compte dans la limite par adresse :
+   * un nom pris reçoit 409, jamais 429. La création elle-même reste protégée par l'index unique.
+   *
+   * @throws SessionNameTakenException une autre session porte déjà ce nom (FR-001a)
+   */
+  public void checkNameAvailable(String name) {
+    if (sessions.findIdByName(name).isPresent()) {
+      throw new SessionNameTakenException();
+    }
+  }
+
+  /**
    * @throws com.priorisationepic.domain.InvalidPseudoException pseudo invalide
    * @throws com.priorisationepic.domain.method.UnknownMethodException méthode inconnue
    * @throws IllegalArgumentException nom invalide
+   * @throws SessionNameTakenException une autre session porte déjà ce nom (FR-001a) : l'index
+   *     unique tranche, y compris entre deux créations simultanées
    */
   public Created create(Command command) {
     Pseudo pseudo = Pseudo.of(command.pseudo());

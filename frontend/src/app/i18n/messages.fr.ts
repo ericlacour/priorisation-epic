@@ -97,6 +97,7 @@ export const MESSAGES = {
   apiErrors: {
     invalid: 'Les valeurs saisies sont invalides. Corrigez-les et réessayez.',
     pseudoTaken: 'Ce pseudo est déjà utilisé dans cette session.',
+    nameTaken: 'Une session porte déjà ce nom. Choisissez-en un autre.',
     notFound: "Cette session n'existe pas.",
     tooManyRequests: 'Trop de sessions créées depuis cette adresse. Réessayez dans une minute.',
     forbidden: "Seul l'animateur peut faire cette action.",
@@ -385,6 +386,7 @@ export const MESSAGES = {
     ROUND_OPEN: 'Un tour de vote est ouvert : révélez-le d’abord.',
     PARTICIPANT_OFFLINE: "Ce participant n'est pas connecté.",
     UNKNOWN_CRITERION: "Ce critère n'existe pas dans la méthode de la session.",
+    SESSION_NAME_TAKEN: 'Une session porte déjà ce nom. Choisissez-en un autre.',
     NOT_CONNECTED:
       'Connexion perdue : votre modification n’a pas été envoyée. Réessayez dans un instant.',
   },

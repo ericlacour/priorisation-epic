@@ -50,6 +50,8 @@ public class SessionController {
   ResponseEntity<CreateSessionResponse> createSession(
       @RequestBody CreateSessionRequest request, HttpServletRequest http) {
     CreateSessionUseCase.Command command = command(request);
+    // Un nom déjà pris est refusé en 409 avant de compter dans la limite par adresse (429).
+    create.checkNameAvailable(command.name());
     CreationRateLimiter.Slot slot = limiter.acquire(ClientAddress.of(http, proxySecret));
     try {
       CreateSessionUseCase.Created created = create.create(command);

@@ -26,7 +26,8 @@
         "SESSION_NOT_STARTED",
         "ROUND_OPEN",
         "PARTICIPANT_OFFLINE",
-        "UNKNOWN_CRITERION"
+        "UNKNOWN_CRITERION",
+        "SESSION_NAME_TAKEN"
       ]
     },
     "featureId": {

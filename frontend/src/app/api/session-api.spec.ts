@@ -105,6 +105,12 @@ describe('SessionApi', () => {
     expect(await kindOf(apiWith(json(500, {})).listSessions())).toBe('network');
   });
 
+  it('reads a 409 on creation as a session name already taken (FR-001a)', async () => {
+    expect(
+      await kindOf(apiWith(json(409, {})).createSession({ name: 'PI26T7_TEST', pseudo: 'Eric' })),
+    ).toBe('nameTaken');
+  });
+
   it('joins a session', async () => {
     const api = apiWith(json(201, { participantToken: 'p' }));
     await expect(api.joinSession(ID, { pseudo: 'Eric' })).resolves.toEqual({

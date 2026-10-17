@@ -1,0 +1,6 @@
+{
+  "type": "about:blank",
+  "title": "Nom de session déjà pris",
+  "status": 409,
+  "detail": "Une session porte déjà ce nom. Choisissez-en un autre."
+}

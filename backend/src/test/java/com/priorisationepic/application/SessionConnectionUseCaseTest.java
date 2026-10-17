@@ -43,6 +43,11 @@ class SessionConnectionUseCaseTest {
         }
 
         @Override
+        public Optional<SessionId> findIdByName(String name) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Optional<com.priorisationepic.domain.Session> find(SessionId id) {
           throw new UnsupportedOperationException();
         }

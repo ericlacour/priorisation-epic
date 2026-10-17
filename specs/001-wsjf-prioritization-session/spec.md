@@ -284,6 +284,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   (par exemple par l'animateur depuis deux onglets), la seconde modification est prévenue que la valeur a changé et voit la nouvelle valeur avant de
   confirmer ou d'annuler sa propre saisie.
 - **Pseudo déjà utilisé** dans la session : l'utilisateur est invité à en choisir un autre.
+- **Nom de session déjà pris** (FR-001a) : la création est refusée et le formulaire invite à
+  choisir un autre nom. Deux créations simultanées sous le même nom : une seule réussit.
 - **Lien d'animation perdu** : l'animateur ne peut plus reprendre la main depuis un autre
   poste. S'il est encore connecté quelque part, il peut retrouver le lien ou transmettre
   son rôle. Sinon, la session reste consultable et votable, mais ses actions d'animation
@@ -312,6 +314,13 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 
 ## Requirements *(mandatory)*
 
+### Session 2026-10-17 (unicité du nom de session)
+
+- Q : deux sessions peuvent-elles porter le même nom ? → A: Non. Le nom d'une session est **unique parmi toutes les sessions**, clôturées comprises : la liste de l'accueil (FR-026) les montre toutes, et deux lignes au même nom ne se distinguent pas. Deux noms sont « le même » sans tenir compte des majuscules ni des espaces autour (« PI26T7_TEST » et « pi26t7_test  » sont le même nom). Les accents comptent : « Epics » et « Épics » sont deux noms différents, comme pour les pseudos (FR-003).
+- Q : que voit l'utilisateur qui crée une session sous un nom déjà pris ? → A: La session n'est pas créée. Le formulaire garde sa saisie et affiche sous le nom : « Une session porte déjà ce nom. Choisissez-en un autre. »
+- Q : et un renommage (`updateSettings`) vers un nom déjà pris ? → A: Il est refusé (`SESSION_NAME_TAKEN`) et la session garde son nom. Renommer une session sous son propre nom, en changeant seulement les majuscules, est accepté.
+- Q : que deviennent les sessions déjà créées sous le même nom ? → A: La migration qui pose la règle les renomme : la plus ancienne garde son nom, les suivantes reçoivent « (2) », « (3) »… à la fin du nom, dans l'ordre de création. Rien n'est supprimé.
+
 ### Functional Requirements
 
 **Sessions et participants**
@@ -319,6 +328,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 - **FR-001**: Le système DOIT permettre à toute personne, après saisie d'un pseudo, de créer
   une session nommée dont elle devient l'animateur. Le formulaire de création propose la
   **méthode de priorisation** (FR-017d).
+- **FR-001a**: Le nom d'une session DOIT être unique parmi toutes les sessions, clôturées
+  comprises, sans tenir compte des majuscules ni des espaces autour. Une création ou un
+  renommage vers un nom déjà pris est refusé, avec le message « Une session porte déjà ce
+  nom. Choisissez-en un autre. » ; rien n'est créé ni modifié.
 - **FR-002**: À la création, le système DOIT fournir deux liens distincts :
   - un **lien d'invitation**, à partager : toute personne qui l'ouvre et saisit un pseudo
     devient participant ;

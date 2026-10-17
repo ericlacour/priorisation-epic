@@ -2,6 +2,8 @@ import { resolve } from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { namePattern, uniqueName } from './session-name';
+
 /**
  * US3 : préparer la session par import et régler l'échelle, contre le vrai webservice (quickstart V9 et V10).
  * Le fichier de 20 lignes dont 2 invalides est celui des tests du webservice. SC-001 : une session de
@@ -17,15 +19,18 @@ const rows = (page: Page) => page.locator('tbody tr');
 const rowTexts = async (page: Page) =>
   (await rows(page).allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
 
+/** Le nom de la session de chaque parcours : « Import » suivi d'un suffixe propre au parcours. */
+const IMPORT = namePattern('Import');
+
 async function createSession(page: Page): Promise<string> {
   await page.goto('/');
-  await page.getByLabel('Nom de la session').fill('Import');
+  await page.getByLabel('Nom de la session').fill(uniqueName('Import'));
   await page.getByLabel('Votre pseudo').fill('anim');
   await page.getByRole('button', { name: 'Créer la session' }).click();
   await expect(page.getByRole('heading', { name: 'Session créée' })).toBeVisible();
   const [invitation] = await page.locator('code').allInnerTexts();
   await page.getByRole('button', { name: 'Aller à la session' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Import' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: IMPORT })).toBeVisible();
   return invitation;
 }
 
@@ -42,7 +47,7 @@ async function openParticipant(context: BrowserContext, invitation: string): Pro
   await page.goto(invitation);
   await page.getByLabel('Votre pseudo').fill('alice');
   await page.getByRole('button', { name: 'Rejoindre' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Import' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: IMPORT })).toBeVisible();
   return page;
 }
 

@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   DOCUMENT,
+  ElementRef,
   OnInit,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -66,12 +68,19 @@ import { SessionListComponent } from './session-list.component';
             <div class="field">
               <label for="create-name">{{ messages.nameLabel }}</label>
               <input
+                #nameInput
                 id="create-name"
                 class="input"
                 maxlength="120"
+                [class.error]="nameError()"
+                [attr.aria-invalid]="nameError() ? 'true' : null"
+                [attr.aria-describedby]="nameError() ? 'create-name-error' : null"
                 [value]="name()"
-                (input)="name.set($any($event.target).value)"
+                (input)="typeName($any($event.target).value)"
               />
+              @if (nameError(); as text) {
+                <span class="err" id="create-name-error" role="alert">{{ text }}</span>
+              }
             </div>
             <div class="field">
               <label for="create-pseudo">{{ messages.pseudoLabel }}</label>
@@ -150,6 +159,9 @@ export class HomeComponent implements OnInit {
   protected readonly showMethod = signal(false);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** Refus du nom lui-même (déjà pris, FR-001a), affiché sous le champ « Nom de la session ». */
+  protected readonly nameError = signal<string | null>(null);
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   protected readonly created = signal<CreateSessionResponse | null>(null);
 
   /** WSJF est choisie par défaut : la première méthode proposée tant que rien n'est choisi. */
@@ -193,6 +205,7 @@ export class HomeComponent implements OnInit {
     const method = this.selectedMethod();
     if (!method) return;
     this.error.set(null);
+    this.nameError.set(null);
     this.busy.set(true);
     try {
       const response = await this.api.createSession({ name, pseudo, method: method.key });
@@ -202,10 +215,21 @@ export class HomeComponent implements OnInit {
       this.created.set(response);
     } catch (e) {
       const kind = e instanceof SessionApiError ? e.kind : 'network';
+      if (kind === 'nameTaken') {
+        // La saisie reste ; le champ du nom est à corriger.
+        this.nameError.set(MESSAGES.apiErrors.nameTaken);
+        this.nameInput()?.nativeElement.focus();
+        return;
+      }
       this.error.set((e instanceof SessionApiError ? e.detail : null) ?? MESSAGES.apiErrors[kind]);
     } finally {
       this.busy.set(false);
     }
+  }
+
+  protected typeName(value: string): void {
+    this.name.set(value);
+    this.nameError.set(null);
   }
 
   protected goToSession(sessionId: string): void {

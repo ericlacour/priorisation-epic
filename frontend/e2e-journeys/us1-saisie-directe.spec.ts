@@ -1,19 +1,24 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { namePattern, uniqueName } from './session-name';
+
 /**
  * US1 : prioriser en saisie directe, contre le vrai webservice (quickstart V1, V1a, V2, V3, V14, V16).
  * L'animateur crée la session et saisit ses fonctionnalités dans un premier navigateur ; un participant, dans un
  * second navigateur, voit le même tableau se mettre à jour en direct.
  */
 
+/** Le nom de la session de chaque parcours : « Démo » suivi d'un suffixe propre au parcours. */
+const DEMO = namePattern('Démo');
+
 const rows = (page: Page) => page.locator('tbody tr');
 const rowTexts = async (page: Page) =>
   (await rows(page).allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
 
-/** Crée la session « Démo » avec le pseudo « anim » et arrive sur son tableau. Renvoie le lien d'invitation. */
+/** Crée une session « Démo … » avec le pseudo « anim » et arrive sur son tableau. Renvoie le lien d'invitation. */
 async function createSession(page: Page): Promise<string> {
   await page.goto('/');
-  await page.getByLabel('Nom de la session').fill('Démo');
+  await page.getByLabel('Nom de la session').fill(uniqueName('Démo'));
   await page.getByLabel('Votre pseudo').fill('anim');
   await page.getByRole('button', { name: 'Créer la session' }).click();
 
@@ -24,7 +29,7 @@ async function createSession(page: Page): Promise<string> {
   await expect(page.getByText('À garder pour vous.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Aller à la session' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Démo' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: DEMO })).toBeVisible();
   return invitation;
 }
 
@@ -44,7 +49,7 @@ async function openParticipant(context: BrowserContext, invitation: string): Pro
   await page.goto(invitation);
   await page.getByLabel('Votre pseudo').fill('alice');
   await page.getByRole('button', { name: 'Rejoindre' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Démo' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: DEMO })).toBeVisible();
   return page;
 }
 
@@ -163,7 +168,7 @@ test('V14 : deux onglets d’animateur modifient la même valeur, le second voit
   await addFeature(page, 'F-1', 'Paiement en un clic', { BV: '8', TC: '5', 'RR/OE': '3', JS: '4' });
   const second = await context.newPage();
   await second.goto(page.url());
-  await expect(second.getByRole('heading', { level: 1, name: 'Démo' })).toBeVisible();
+  await expect(second.getByRole('heading', { level: 1, name: DEMO })).toBeVisible();
   await expect(second.getByRole('button', { name: 'Modifier', exact: true })).toBeVisible();
 
   // Les deux onglets ouvrent la ligne avant que l'un des deux n'enregistre.
@@ -263,7 +268,7 @@ test('FR-002 : le lien d’animation ouvre les droits d’animateur dans un autr
   await other.getByLabel('Votre pseudo').fill('relève');
   await other.getByRole('button', { name: 'Rejoindre' }).click();
   // Une fois dans la session, sans le jeton d'animation : un participant ordinaire.
-  await expect(other.getByRole('heading', { level: 1, name: 'Démo' })).toBeVisible();
+  await expect(other.getByRole('heading', { level: 1, name: DEMO })).toBeVisible();
   await expect(other.getByRole('button', { name: '+ Fonctionnalité' })).toHaveCount(0);
   await other.goto(animation);
   await expect(other.getByRole('button', { name: '+ Fonctionnalité' })).toBeVisible();
