@@ -140,6 +140,25 @@ class SettingsIntentsTest extends PostgresTestBase {
   }
 
   @Test
+  void renamingToTheNameOfAnotherSessionIsRefusedAndTheNameIsKept() throws Exception {
+    jdbc.update(
+        "insert into session (session_id, animation_token_hash, name, status, method,"
+            + " method_version, scale_type, scale_max, created_at, created_by_pseudo)"
+            + " values ('BBBBBBBBBBBBBBBBBBBBBB', 'x', 'PI26T7_TEST', 'PREPARATION', 'WSJF', 1,"
+            + " 'CONTINUOUS', 10, now(), 'Carole')");
+
+    alice.send("{\"type\":\"updateSettings\",\"name\":\" pi26t7_test \"}");
+
+    assertThat(error(alice).get("code").asString()).isEqualTo("SESSION_NAME_TAKEN");
+    assertThat(
+            jdbc.queryForObject(
+                "select name from session where session_id = ?",
+                String.class,
+                SessionFixtures.SESSION_ID))
+        .isEqualTo("Atelier");
+  }
+
+  @Test
   void anOutOfContractMessageIsInvalid() throws Exception {
     alice.send("{\"type\":\"updateSettings\"}");
     assertThat(error(alice).get("code").asString()).isEqualTo("INVALID_MESSAGE");

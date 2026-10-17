@@ -56,6 +56,7 @@ public class CreateSessionUseCase {
    * @throws com.priorisationepic.domain.InvalidPseudoException pseudo invalide
    * @throws com.priorisationepic.domain.method.UnknownMethodException méthode inconnue
    * @throws IllegalArgumentException nom invalide
+   * @throws SessionNameTakenException une autre session porte déjà ce nom (FR-001a)
    */
   public Created create(Command command) {
     Pseudo pseudo = Pseudo.of(command.pseudo());
@@ -67,6 +68,11 @@ public class CreateSessionUseCase {
     String participantToken = ids.newToken();
     String animationToken = ids.newToken();
     Session session = Session.create(sessionId, command.name(), method, scale, pseudo, now);
+    // Contrôle avant l'insertion, pour un refus net ; l'index unique couvre deux créations
+    // simultanées.
+    if (sessions.findIdByNameKey(Session.nameKey(session.name())).isPresent()) {
+      throw new SessionNameTakenException();
+    }
     Participant facilitator =
         Participant.facilitator(
             ids.newUuid(), sessionId, pseudo, Tokens.hash(participantToken), now);

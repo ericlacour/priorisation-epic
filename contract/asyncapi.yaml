@@ -203,6 +203,7 @@ components:
       summary: Rename the session or change its scale (FR-010, FR-011), facilitator only.
       payload:
         $ref: './schemas/update-settings.json'
+      description: A new name already used by another session, ignoring case and surrounding spaces, is refused with `error SESSION_NAME_TAKEN` (FR-001a).
     changeStatus:
       name: changeStatus
       title: changeStatus

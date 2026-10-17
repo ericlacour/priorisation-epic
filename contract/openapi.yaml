@@ -82,7 +82,7 @@ paths:
       tags: [sessions]
       operationId: createSession
       summary: Create a session; the creator becomes facilitator (FR-001, FR-002)
-      description: The session gets the requested method (WSJF by default) in its latest version, frozen for the session (FR-017). An unknown method is refused with 400.
+      description: The session gets the requested method (WSJF by default) in its latest version, frozen for the session (FR-017). An unknown method is refused with 400. The name is unique among all sessions, ignoring case and surrounding spaces (FR-001a); a name already taken is refused with 409 and nothing is created.
       requestBody:
         required: true
         content:
@@ -98,6 +98,8 @@ paths:
                 $ref: './schemas/create-session-response.json'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/SessionNameTaken'
         '413':
           $ref: '#/components/responses/PayloadTooLarge'
         '429':
@@ -368,6 +370,12 @@ components:
             $ref: './schemas/problem.json'
     PseudoTaken:
       description: Pseudo already used in this session.
+      content:
+        application/problem+json:
+          schema:
+            $ref: './schemas/problem.json'
+    SessionNameTaken:
+      description: Another session already has this name, ignoring case and surrounding spaces (FR-001a).
       content:
         application/problem+json:
           schema:

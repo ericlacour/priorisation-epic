@@ -1,5 +1,6 @@
 package com.priorisationepic.adapter.out.persistence;
 
+import com.priorisationepic.application.SessionNameTakenException;
 import com.priorisationepic.application.SessionRepository;
 import com.priorisationepic.application.SessionSummary;
 import com.priorisationepic.domain.Pseudo;
@@ -12,12 +13,16 @@ import com.priorisationepic.domain.scale.ScaleType;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 /** Les sessions en SQL. */
 @Repository
 class JdbcSessionRepository implements SessionRepository {
+
+  /** Index unique du nom de session (V5__session_name_unique.sql). */
+  private static final String NAME_INDEX = "session_name_key_uq";
 
   private final JdbcClient jdbc;
 
@@ -46,23 +51,43 @@ class JdbcSessionRepository implements SessionRepository {
 
   @Override
   public void insert(Session session, String animationTokenHash) {
-    jdbc.sql(
-            "insert into session (session_id, animation_token_hash, name, status, method,"
-                + " method_version, scale_type, scale_max, created_at, created_by_pseudo, version)"
-                + " values (:id, :hash, :name, :status, :method, :methodVersion, :scaleType,"
-                + " :scaleMax, :createdAt, :createdBy, :version)")
-        .param("id", session.id().value())
-        .param("hash", animationTokenHash)
-        .param("name", session.name())
-        .param("status", session.status().name())
-        .param("method", session.method())
-        .param("methodVersion", session.methodVersion())
-        .param("scaleType", session.scale().type().name())
-        .param("scaleMax", session.scale().max())
-        .param("createdAt", Timestamp.from(session.createdAt()))
-        .param("createdBy", session.createdBy().value())
-        .param("version", session.version())
-        .update();
+    try {
+      jdbc.sql(
+              "insert into session (session_id, animation_token_hash, name, name_key, status,"
+                  + " method, method_version, scale_type, scale_max, created_at,"
+                  + " created_by_pseudo, version)"
+                  + " values (:id, :hash, :name, :nameKey, :status, :method, :methodVersion,"
+                  + " :scaleType, :scaleMax, :createdAt, :createdBy, :version)")
+          .param("id", session.id().value())
+          .param("hash", animationTokenHash)
+          .param("name", session.name())
+          .param("nameKey", Session.nameKey(session.name()))
+          .param("status", session.status().name())
+          .param("method", session.method())
+          .param("methodVersion", session.methodVersion())
+          .param("scaleType", session.scale().type().name())
+          .param("scaleMax", session.scale().max())
+          .param("createdAt", Timestamp.from(session.createdAt()))
+          .param("createdBy", session.createdBy().value())
+          .param("version", session.version())
+          .update();
+    } catch (DuplicateKeyException e) {
+      throw nameTakenOr(e);
+    }
+  }
+
+  @Override
+  public Optional<SessionId> findIdByNameKey(String nameKey) {
+    return jdbc.sql("select session_id from session where name_key = :key")
+        .param("key", nameKey)
+        .query((rs, row) -> new SessionId(rs.getString("session_id")))
+        .optional();
+  }
+
+  /** Une autre session a pris ce nom entre le contrôle et l'écriture ; toute autre clé remonte. */
+  private static RuntimeException nameTakenOr(DuplicateKeyException e) {
+    String message = e.getMessage();
+    return message != null && message.contains(NAME_INDEX) ? new SessionNameTakenException() : e;
   }
 
   @Override
@@ -96,14 +121,19 @@ class JdbcSessionRepository implements SessionRepository {
 
   @Override
   public void updateSettings(SessionId sessionId, String name, Scale scale) {
-    jdbc.sql(
-            "update session set name = :name, scale_type = :scaleType, scale_max = :scaleMax"
-                + " where session_id = :id")
-        .param("id", sessionId.value())
-        .param("name", name)
-        .param("scaleType", scale.type().name())
-        .param("scaleMax", scale.max())
-        .update();
+    try {
+      jdbc.sql(
+              "update session set name = :name, name_key = :nameKey, scale_type = :scaleType,"
+                  + " scale_max = :scaleMax where session_id = :id")
+          .param("id", sessionId.value())
+          .param("name", name)
+          .param("nameKey", Session.nameKey(name))
+          .param("scaleType", scale.type().name())
+          .param("scaleMax", scale.max())
+          .update();
+    } catch (DuplicateKeyException e) {
+      throw nameTakenOr(e);
+    }
   }
 
   @Override

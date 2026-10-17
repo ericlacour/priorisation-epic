@@ -61,6 +61,11 @@ components:
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
+    SessionNameTaken:
+      description: Another session already has this name, ignoring case and surrounding spaces (FR-001a)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
     PayloadTooLarge:
       description: Request body above the limit (5 MB for imports, small elsewhere)
       content:
@@ -226,6 +231,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/CreateSessionResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/SessionNameTaken' }
         '413': { $ref: '#/components/responses/PayloadTooLarge' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
 

@@ -110,6 +110,18 @@ class CreateSessionUseCaseTest {
   }
 
   @Test
+  void aNameAlreadyTakenIgnoringCaseAndSpacesIsRefusedAndNothingIsStored() {
+    useCase.create(new CreateSessionUseCase.Command("PI26T7_TEST", "Éric", null, null));
+
+    assertThatThrownBy(
+            () ->
+                useCase.create(
+                    new CreateSessionUseCase.Command(" pi26t7_test ", "Camille", null, null)))
+        .isInstanceOf(SessionNameTakenException.class);
+    assertThat(store.listSummaries()).hasSize(1);
+  }
+
+  @Test
   void theSessionAndItsFacilitatorAreWrittenInOneTransaction() {
     store.rollbackOnFailure = true;
     CreateSessionUseCase failing =

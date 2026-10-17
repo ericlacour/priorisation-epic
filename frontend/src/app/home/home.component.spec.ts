@@ -129,6 +129,37 @@ describe('HomeComponent', () => {
     expect(element.querySelector('form')).not.toBeNull();
   });
 
+  it('refuses a name already taken under the name field, keeps the input and focuses it (FR-001a)', async () => {
+    const { fixture, element, storage } = await render({
+      'POST /api/sessions': () =>
+        reply(409, {
+          title: 'Nom de session déjà pris',
+          status: 409,
+          detail: 'Une session porte déjà ce nom. Choisissez-en un autre.',
+        }),
+    });
+    type(element, '#create-name', 'PI26T7_TEST');
+    type(element, '#create-pseudo', 'Éric');
+
+    await submit(fixture);
+
+    const name = element.querySelector<HTMLInputElement>('#create-name')!;
+    expect(element.querySelector('#create-name-error')?.textContent).toBe(
+      'Une session porte déjà ce nom. Choisissez-en un autre.',
+    );
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    expect(name.getAttribute('aria-describedby')).toBe('create-name-error');
+    expect(name.value).toBe('PI26T7_TEST');
+    expect(document.activeElement).toBe(name);
+    expect(element.querySelector('h1')?.textContent).not.toBe('Session créée');
+    expect(storage.data.size).toBe(0);
+
+    type(element, '#create-name', 'PI26T7_TEST bis');
+    fixture.detectChanges();
+    expect(element.querySelector('#create-name-error')).toBeNull();
+    expect(name.getAttribute('aria-invalid')).toBeNull();
+  });
+
   it('shows a network message when the service does not answer', async () => {
     const { fixture, element } = await render({
       'POST /api/sessions': () => reply(500, {}),

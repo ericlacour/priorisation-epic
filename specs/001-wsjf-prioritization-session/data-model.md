@@ -33,7 +33,7 @@ du contrat.
 |-------|------|--------|
 | sessionId | texte (22 car.) | Clé primaire, aléatoire sur 128 bits, en base64url sans remplissage (comme dans planning-poker). Forme le lien d'invitation `/s/{sessionId}` |
 | animationTokenHash | texte | Empreinte SHA-256 du jeton d'animation. Le jeton lui-même n'est jamais stocké |
-| name | texte (1 à 120 car.) | Obligatoire |
+| name | texte (1 à 120 car.) | Obligatoire. Unique parmi toutes les sessions, sans tenir compte de la casse ni des espaces autour (FR-001a) : la colonne `name_key` (NFKC, espaces retirés aux extrémités, minuscules) porte un index unique |
 | status | enum `PREPARATION`, `IN_PROGRESS`, `CLOSED` | Vaut `PREPARATION` à la création |
 | method | texte (≤ 20 car.) | Identifiant de la méthode, choisi à la création parmi les méthodes de `MethodRegistry`, `WSJF` par défaut (FR-017d). Figé ensuite (FR-017) |
 | methodVersion | entier | La dernière version de la méthode au moment de la création (1 en V1). Une nouvelle version d'une méthode s'ajoute à côté de l'ancienne : une session garde toujours sa version |
@@ -311,6 +311,7 @@ change vraiment.
 | Diviseur jamais nul (JS en WSJF) | Spec, FR-010 | Garanti par la plus petite valeur de l'échelle, qui vaut 1 |
 | `externalId` unique par session | FR-006 | Domaine, puis index unique `lower(external_id)` |
 | Pseudo unique par session | FR-003 | Domaine, puis index unique `lower(pseudo)` |
+| Nom de session unique | FR-001a | Service (création et `updateSettings`), puis index unique sur `name_key` ; `409` à la création, `error SESSION_NAME_TAKEN` au renommage |
 | Un seul animateur par session | FR-002a | Service, sous transaction |
 | Un seul tour ouvert à la fois par session (donc une fonctionnalité dans un seul tour ouvert) | FR-018 | Service, sous verrou sur la session, `error ROUND_OPEN` |
 | Écritures interdites en `CLOSED` | FR-026 | Service |

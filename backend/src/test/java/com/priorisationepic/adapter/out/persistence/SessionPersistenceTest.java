@@ -8,6 +8,7 @@ import com.priorisationepic.application.ChangeLogWriter;
 import com.priorisationepic.application.FeatureRepository;
 import com.priorisationepic.application.ParticipantRepository;
 import com.priorisationepic.application.PseudoTakenException;
+import com.priorisationepic.application.SessionNameTakenException;
 import com.priorisationepic.application.SessionRepository;
 import com.priorisationepic.domain.Feature;
 import com.priorisationepic.domain.Participant;
@@ -64,6 +65,42 @@ class SessionPersistenceTest extends PostgresTestBase {
             Pseudo.of("Alice"),
             0),
         Tokens.hash("animation"));
+  }
+
+  private static Session session(SessionId id, String name) {
+    return new Session(
+        id,
+        name,
+        SessionStatus.PREPARATION,
+        "WSJF",
+        1,
+        new Scale(ScaleType.CONTINUOUS, 12),
+        NOW,
+        Pseudo.of("Bob"),
+        0);
+  }
+
+  @Test
+  void theUniqueIndexRefusesASecondSessionUnderTheSameName() {
+    // Deux créations simultanées : le contrôle du cas d'usage est passé, l'index unique tranche.
+    SessionId other = new SessionId("BBBBBBBBBBBBBBBBBBBBBB");
+    assertThat(sessions.findIdByNameKey(Session.nameKey(" ATELIER q4 "))).contains(ID);
+
+    assertThatThrownBy(() -> sessions.insert(session(other, "atelier Q4"), Tokens.hash("a")))
+        .isInstanceOf(SessionNameTakenException.class);
+    assertThat(sessions.exists(other)).isFalse();
+  }
+
+  @Test
+  void theUniqueIndexRefusesARenameToTheNameOfAnotherSession() {
+    SessionId other = new SessionId("BBBBBBBBBBBBBBBBBBBBBB");
+    sessions.insert(session(other, "Roadmap"), Tokens.hash("a"));
+
+    assertThatThrownBy(
+            () -> sessions.updateSettings(other, "ATELIER Q4", new Scale(ScaleType.CONTINUOUS, 12)))
+        .isInstanceOf(SessionNameTakenException.class);
+    sessions.updateSettings(other, "Roadmap 2", new Scale(ScaleType.CONTINUOUS, 12));
+    assertThat(sessions.findIdByNameKey("roadmap 2")).contains(other);
   }
 
   private Feature feature(String externalId, Map<String, Integer> values) {

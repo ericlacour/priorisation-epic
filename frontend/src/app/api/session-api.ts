@@ -35,7 +35,8 @@ export const REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * - `invalid` : 400, `detail` porte le message français du serveur ;
- * - `pseudoTaken` : 409 ;
+ * - `pseudoTaken` : 409 (arrivée dans une session) ;
+ * - `nameTaken` : 409 à la création, le nom est déjà pris par une autre session (FR-001a) ;
  * - `notFound` : 404 ;
  * - `tooManyRequests` : 429 ;
  * - `forbidden` : 403 (import : droits d'animateur absents, ou session clôturée) ;
@@ -43,7 +44,14 @@ export const REQUEST_TIMEOUT_MS = 15_000;
  * - `network` : échec réseau, délai dépassé, 5xx, 413 hors import, ou toute réponse inattendue.
  */
 export type SessionApiErrorKind =
-  'invalid' | 'pseudoTaken' | 'notFound' | 'tooManyRequests' | 'forbidden' | 'tooLarge' | 'network';
+  | 'invalid'
+  | 'pseudoTaken'
+  | 'nameTaken'
+  | 'notFound'
+  | 'tooManyRequests'
+  | 'forbidden'
+  | 'tooLarge'
+  | 'network';
 
 export class SessionApiError extends Error {
   constructor(
@@ -60,6 +68,12 @@ const KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
   404: 'notFound',
   409: 'pseudoTaken',
   429: 'tooManyRequests',
+};
+
+/** Les statuts propres à la création : 409, le nom de session est déjà pris (FR-001a). */
+const CREATE_KINDS: Readonly<Record<number, SessionApiErrorKind>> = {
+  ...KINDS,
+  409: 'nameTaken',
 };
 
 /** Les statuts propres à l'import. */
@@ -116,7 +130,7 @@ export class SessionApi {
   async createSession(request: CreateSessionRequest): Promise<CreateSessionResponse> {
     const response = await this.send('/api/sessions', 'POST', request);
     if (response.status === 201) return parseOrNetwork(response, parseCreateSessionResponse);
-    throw await errorOf(response);
+    throw await errorOf(response, CREATE_KINDS);
   }
 
   /** `GET /api/sessions` : toutes les sessions, de la plus récente à la plus ancienne (FR-026). */

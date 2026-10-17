@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.priorisationepic.PostgresTestBase;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ class MigrationTest extends PostgresTestBase {
   private static final String SESSION_ID = "AAAAAAAAAAAAAAAAAAAAAA";
 
   @Autowired JdbcTemplate jdbc;
+  @Autowired DataSource dataSource;
 
   @BeforeEach
   void cleanDatabase() {
@@ -32,7 +35,7 @@ class MigrationTest extends PostgresTestBase {
         jdbc.queryForObject(
             "select version from flyway_schema_history where success order by installed_rank desc limit 1",
             String.class);
-    assertThat(version).isEqualTo("4");
+    assertThat(version).isEqualTo("5");
   }
 
   @Test
@@ -53,6 +56,68 @@ class MigrationTest extends PostgresTestBase {
             "vote_criterion_value",
             "change_log",
             "import_preview");
+  }
+
+  private void insertSession(String id, String name, String createdAt) {
+    jdbc.update(
+        "insert into session (session_id, animation_token_hash, name, method, method_version,"
+            + " created_at, created_by_pseudo) values (?, 'h', ?, 'WSJF', 1, ?::timestamptz, 'A')",
+        id,
+        name,
+        createdAt);
+  }
+
+  @Test
+  void theSessionNameIsUniqueIgnoringCaseAndSurroundingSpaces() {
+    insertSession(SESSION_ID, "PI26T7_TEST", "2026-10-17T08:00:00Z");
+
+    assertThatThrownBy(
+            () -> insertSession("BBBBBBBBBBBBBBBBBBBBBB", " pi26t7_test ", "2026-10-17T09:00:00Z"))
+        .isInstanceOf(DataIntegrityViolationException.class)
+        .hasMessageContaining("session_name_key_uq");
+  }
+
+  @Test
+  void aRenameWithoutItsKeyRecomputesTheKey() {
+    insertSession(SESSION_ID, "PI26T7_TEST", "2026-10-17T08:00:00Z");
+    jdbc.update("update session set name = 'PI26T7_TEST (2)' where session_id = ?", SESSION_ID);
+
+    assertThat(jdbc.queryForObject("select name_key from session", String.class))
+        .isEqualTo("pi26t7_test (2)");
+  }
+
+  @Test
+  void theMigrationRenamesTheSessionsAlreadyCreatedUnderTheSameName() {
+    String schema = "migration_v5";
+    Flyway.configure().dataSource(dataSource).schemas(schema).cleanDisabled(false).load().clean();
+    Flyway.configure().dataSource(dataSource).schemas(schema).target("4").load().migrate();
+    String insert =
+        "insert into "
+            + schema
+            + ".session (session_id, animation_token_hash, name, method, method_version,"
+            + " created_at, created_by_pseudo) values (?, 'h', ?, 'WSJF', 1, ?::timestamptz, 'A')";
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA1", "PI26T7_TEST", "2026-10-17T08:00:00Z");
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA2", "pi26t7_test", "2026-10-17T09:00:00Z");
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA3", "PI26T7_TEST ", "2026-10-17T10:00:00Z");
+    // Le premier suffixe libre : « (2) » est déjà pris par une autre session.
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA4", "Roadmap (2)", "2026-10-17T07:00:00Z");
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA5", "Roadmap", "2026-10-17T06:00:00Z");
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA6", "ROADMAP", "2026-10-17T11:00:00Z");
+
+    Flyway.configure().dataSource(dataSource).schemas(schema).load().migrate();
+
+    List<String> names =
+        jdbc.queryForList(
+            "select name from " + schema + ".session order by session_id", String.class);
+    assertThat(names)
+        .containsExactly(
+            "PI26T7_TEST",
+            "pi26t7_test (2)",
+            "PI26T7_TEST (3)",
+            "Roadmap (2)",
+            "Roadmap",
+            "ROADMAP (3)");
+    Flyway.configure().dataSource(dataSource).schemas(schema).cleanDisabled(false).load().clean();
   }
 
   @Test
