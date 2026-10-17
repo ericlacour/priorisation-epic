@@ -127,18 +127,19 @@ export class SessionApi {
   }
 
   /**
-   * `GET /api/sessions/{sessionId}` : la vue en lecture seule de la session si elle existe (`null` si son corps est
-   * illisible), sinon `notFound` ou `network`.
+   * `GET /api/sessions/{sessionId}` : la vue en lecture seule de la session si elle existe, sinon `notFound` ou
+   * `network`. Un corps illisible est une rupture de contrat, signalée en `network` : le statut de la session est alors
+   * inconnu, et une session clôturée ne doit pas s'ouvrir comme une session à rejoindre.
    */
-  async checkSession(sessionId: string): Promise<SessionState | null> {
+  async checkSession(sessionId: string): Promise<SessionState> {
     assertWellFormedId(sessionId);
     const response = await this.send(sessionPath(sessionId), 'GET');
     if (response.status !== 200) throw await errorOf(response);
-    try {
-      return parseSessionState(await response.json());
-    } catch {
-      return null;
-    }
+    return parseOrNetwork(response, (json) => {
+      const state = parseSessionState(json);
+      if (state === null) throw new SessionApiError('network');
+      return state;
+    });
   }
 
   /** `POST /api/sessions/{sessionId}/participants` */

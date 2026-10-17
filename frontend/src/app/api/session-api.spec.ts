@@ -74,8 +74,8 @@ describe('SessionApi', () => {
   });
 
   it('checks a session and refuses a malformed id without calling the server', async () => {
-    const ok = json(200, {});
-    await expect(apiWith(ok).checkSession(ID)).resolves.toBeNull();
+    const unreadable = json(200, {});
+    expect(await kindOf(apiWith(unreadable).checkSession(ID))).toBe('network');
     const { state } = await import('../testing/fixtures');
     const read = await apiWith(json(200, state({ status: 'CLOSED' }))).checkSession(ID);
     expect(read?.status).toBe('CLOSED');

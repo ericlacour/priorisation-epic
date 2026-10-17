@@ -5,7 +5,7 @@ import { Router, RouterOutlet, provideRouter, withComponentInputBinding } from '
 import { describe, expect, it } from 'vitest';
 
 import { routes } from './app.routes';
-import { SESSION_ID, WSJF } from './testing/fixtures';
+import { SESSION_ID, WSJF, state } from './testing/fixtures';
 import { fakeFetch, memoryStorage, pageProviders, reply, settle } from './testing/helpers';
 
 @Component({ selector: 'app-host', imports: [RouterOutlet], template: '<router-outlet />' })
@@ -15,7 +15,7 @@ describe('routes', () => {
   async function visit(url: string) {
     const http = fakeFetch({
       'GET /api/methods': () => reply(200, [JSON.parse(JSON.stringify(WSJF))]),
-      [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, {}),
+      [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, state({ me: null })),
     });
     const storage = memoryStorage();
     TestBed.configureTestingModule({

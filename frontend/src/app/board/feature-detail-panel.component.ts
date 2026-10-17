@@ -6,6 +6,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { Feature, MethodDefinition } from '../api/session-state';
@@ -233,11 +234,20 @@ export class FeatureDetailPanelComponent {
     });
     effect(() => {
       // Le serveur a refusé l'enregistrement : la saisie reste à l'écran, avec la version actuelle à côté.
-      if (this.stale()) {
+      if (this.stale() && untracked(this.canAnimate)) {
         this.sentVersion = null;
         this.savedMessage.set(false);
         this.editing.set(true);
       }
+    });
+    // Plus de droit de modifier (clôture, perte des droits) : le texte et la marque « à revoir » se referment.
+    effect(() => {
+      if (this.canAnimate()) return;
+      untracked(() => {
+        this.cancelEdit();
+        this.marking.set(false);
+        this.reason.set('');
+      });
     });
   }
 

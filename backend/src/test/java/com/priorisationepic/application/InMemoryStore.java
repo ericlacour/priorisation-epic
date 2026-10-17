@@ -121,7 +121,19 @@ public final class InMemoryStore
 
   @Override
   public void updateStatus(SessionId sessionId, com.priorisationepic.domain.SessionStatus status) {
-    sessions.put(sessionId, sessions.get(sessionId).withStatus(status));
+    Session s = sessions.get(sessionId);
+    sessions.put(
+        sessionId,
+        new Session(
+            s.id(),
+            s.name(),
+            status,
+            s.method(),
+            s.methodVersion(),
+            s.scale(),
+            s.createdAt(),
+            s.createdBy(),
+            s.version()));
   }
 
   @Override

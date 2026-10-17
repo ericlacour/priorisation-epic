@@ -73,12 +73,27 @@ describe('BoardComponent', () => {
     expect(chrome.sessionBar()).toBe(false);
   });
 
-  it('shows the participant status line, and no action bar for a facilitator on a phone', () => {
+  it('shows the participant status line, and only that line for a facilitator on a phone', () => {
     expect(
       render({ animate: false }).element.querySelector('app-action-bar')?.textContent,
     ).toContain('Aucun tour de vote en cours.');
     TestBed.resetTestingModule();
-    expect(render({ phone: true }).element.querySelector('app-action-bar')).toBeNull();
+    const phone = render({ phone: true }).element.querySelector('app-action-bar');
+    expect(phone?.textContent).toContain('Aucun tour de vote en cours.');
+    expect(phone?.querySelector('button')).toBeNull();
+  });
+
+  it('shows the read-only banner to a facilitator on a phone when the session is closed', () => {
+    const { element } = render({
+      phone: true,
+      state: state({
+        status: 'CLOSED',
+        me: { participantId: 'p1', pseudo: 'Éric', role: 'FACILITATOR' },
+      }),
+    });
+    const bar = element.querySelector('app-action-bar');
+    expect(bar?.textContent).toContain('Session clôturée : lecture seule');
+    expect(bar?.querySelector('button')).toBeNull();
   });
 
   it('shows the rank, id, title, then one column per criterion and computed value of the definition', () => {

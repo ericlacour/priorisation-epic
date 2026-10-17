@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   effect,
   inject,
@@ -17,6 +18,9 @@ import { RankingScreenComponent } from '../ranking/ranking-screen.component';
 import { JoinComponent } from './join/join.component';
 import { SessionRoomService } from './session-room.service';
 import { SessionSocketService } from './session-socket.service';
+
+/** Intervalle de relecture d'une session clôturée vue en lecture seule : sa réouverture finit par se voir. */
+export const READ_ONLY_REFRESH_MS = 30_000;
 
 /** Ce que la page montre : la recherche de la session, l'écran d'entrée, la session ouverte ou « introuvable ». */
 type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
@@ -82,8 +86,11 @@ export class SessionEntryComponent implements OnInit {
   protected readonly phase = signal<Phase>('checking');
   /** Dans la session : l'écran « Prioriser par classement » à la place du tableau (FR-015a). */
   protected readonly ranking = signal(false);
+  /** La relecture de la session clôturée montrée sans connexion (pas de socket pour en recevoir les changements). */
+  private refreshTimer: ReturnType<typeof setInterval> | undefined;
 
   constructor() {
+    inject(DestroyRef).onDestroy(() => this.stopRefresh());
     effect(() => {
       const end = this.room.end();
       if (end === 'notFound') this.phase.set('notFound');
@@ -92,6 +99,7 @@ export class SessionEntryComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.stopRefresh();
     if (this.storage.readToken(this.sessionId())) {
       this.open();
       return;
@@ -99,10 +107,11 @@ export class SessionEntryComponent implements OnInit {
     this.phase.set('checking');
     this.api.checkSession(this.sessionId()).then(
       (state) => {
-        if (state?.status === 'CLOSED' && !this.storage.readAnimationToken(this.sessionId())) {
+        if (state.status === 'CLOSED' && !this.storage.readAnimationToken(this.sessionId())) {
           this.ranking.set(false);
           this.room.showReadOnly(state);
           this.phase.set('room');
+          this.refreshTimer = setInterval(() => this.refresh(), READ_ONLY_REFRESH_MS);
         } else {
           this.phase.set('join');
         }
@@ -114,8 +123,39 @@ export class SessionEntryComponent implements OnInit {
     );
   }
 
+  /**
+   * Relit la session clôturée montrée en lecture seule : rouverte, elle propose de la rejoindre ; supprimée,
+   * « Session introuvable ». Un échec réseau garde la dernière vue, la relecture suivante réessaie.
+   */
+  private refresh(): void {
+    this.api.checkSession(this.sessionId()).then(
+      (state) => {
+        if (this.refreshTimer === undefined) return;
+        if (state.status === 'CLOSED') {
+          this.room.showReadOnly(state);
+        } else {
+          this.stopRefresh();
+          this.phase.set('join');
+        }
+      },
+      (e: unknown) => {
+        if (this.refreshTimer === undefined) return;
+        if (e instanceof SessionApiError && e.kind === 'notFound') {
+          this.stopRefresh();
+          this.phase.set('notFound');
+        }
+      },
+    );
+  }
+
+  private stopRefresh(): void {
+    clearInterval(this.refreshTimer);
+    this.refreshTimer = undefined;
+  }
+
   /** Ouvre la connexion avec les jetons rangés. */
   protected open(): void {
+    this.stopRefresh();
     // Une session rouverte (après une reconnexion ou un retour à l'entrée) commence toujours sur le tableau.
     this.ranking.set(false);
     this.phase.set('room');

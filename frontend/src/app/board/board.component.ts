@@ -78,18 +78,17 @@ const NEW_ROW = 'new';
     @if (state(); as state) {
       <!-- Deux barres d'une ligne (FR-014c) ; toute la hauteur restante va au tableau (FR-014a). -->
       <app-session-bar (glossaryRequested)="showGlossary.set(true)" />
-      @if (!(canAnimate() && screen.isPhone())) {
-        <app-action-bar
-          [animate]="canAnimate()"
-          [editing]="editing() !== null"
-          [hasFeatures]="state.features.length > 0"
-          [closed]="state.status === 'CLOSED'"
-          (add)="startNew()"
-          (rank)="rankingRequested.emit()"
-          (import)="openImport()"
-          (scale)="openSettings()"
-        />
-      }
+      <!-- Sur téléphone (lecture seule), la barre se réduit au bandeau d'état, animateur compris (FR-014c). -->
+      <app-action-bar
+        [animate]="canAnimate() && !screen.isPhone()"
+        [editing]="editing() !== null"
+        [hasFeatures]="state.features.length > 0"
+        [closed]="state.status === 'CLOSED'"
+        (add)="startNew()"
+        (rank)="rankingRequested.emit()"
+        (import)="openImport()"
+        (scale)="openSettings()"
+      />
 
       <div class="layout-board">
         <!-- Messages en superposition : ils ne décalent pas le tableau (FR-014c). -->

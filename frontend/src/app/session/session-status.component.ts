@@ -68,11 +68,19 @@ import { SessionRoomService } from './session-room.service';
       <app-modal labelledBy="close-session-title" (closed)="confirming.set(false)">
         <h2 id="close-session-title">{{ messages.confirmTitle }}</h2>
         <p>{{ messages.confirmText }}</p>
+        @if (disabled()) {
+          <p class="notice danger" role="status">{{ reconnecting }}</p>
+        }
         <div class="actions end">
           <button type="button" class="btn btn-secondary" (click)="confirming.set(false)">
             {{ messages.cancel }}
           </button>
-          <button type="button" class="btn btn-primary" (click)="confirmClose()">
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="disabled()"
+            (click)="confirmClose()"
+          >
             {{ messages.confirmYes }}
           </button>
         </div>
@@ -84,18 +92,20 @@ export class SessionStatusComponent {
   protected readonly room = inject(SessionRoomService);
   protected readonly messages = MESSAGES.sessionStatus;
   protected readonly boardMessages = MESSAGES.board;
+  protected readonly reconnecting = MESSAGES.connection.reconnecting;
 
-  protected readonly status = computed(() => this.room.state()?.status ?? 'PREPARATION');
+  /** Statut inconnu tant qu'aucun état n'est reçu : aucun bouton, plutôt qu'un « Démarrer » peut-être faux. */
+  protected readonly status = computed(() => this.room.state()?.status ?? null);
   /** Sans connexion, rien ne peut partir : le bouton attend la reconnexion. */
   protected readonly disabled = computed(() => this.room.connection() !== 'open');
   protected readonly confirming = signal(false);
 
+  /** La confirmation ne se ferme que si la clôture est partie : sinon elle reste ouverte, avec la reconnexion. */
   protected confirmClose(): void {
-    this.confirming.set(false);
-    this.send('CLOSE');
+    if (this.send('CLOSE')) this.confirming.set(false);
   }
 
-  protected send(action: StatusAction): void {
-    this.room.changeStatus(action);
+  protected send(action: StatusAction): boolean {
+    return this.room.changeStatus(action);
   }
 }

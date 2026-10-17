@@ -270,6 +270,28 @@ describe('FeatureDetailPanelComponent', () => {
 
   // --- Marque « à revoir » -------------------------------------------------------------------------
 
+  it('closes the text edit and the review form when editing is no longer allowed (session closed)', () => {
+    const { fixture, element, button } = render({ animate: true });
+    button('Modifier le titre et le descriptif')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('#detail-title-input')).not.toBeNull();
+
+    fixture.componentRef.setInput('canAnimate', false);
+    fixture.detectChanges();
+    expect(element.querySelector('#detail-title-input')).toBeNull();
+    expect(button('Enregistrer')).toBeUndefined();
+
+    fixture.componentRef.setInput('canAnimate', true);
+    fixture.detectChanges();
+    button('Marquer à revoir')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('#detail-reason')).not.toBeNull();
+
+    fixture.componentRef.setInput('canAnimate', false);
+    fixture.detectChanges();
+    expect(element.querySelector('#detail-reason')).toBeNull();
+  });
+
   it('marks the feature for review with an optional reason of at most 200 characters', () => {
     const { fixture, reviews, button, type } = render({ animate: true });
 

@@ -8,9 +8,9 @@ import { SessionRoomService } from './session-room.service';
 import { SessionStatusComponent } from './session-status.component';
 
 describe('SessionStatusComponent', () => {
-  function render(status: SessionStatus) {
+  function render(status: SessionStatus | null) {
     const room = new FakeRoom();
-    room.state.set(state({ status }));
+    room.state.set(status === null ? null : state({ status }));
     TestBed.configureTestingModule({
       providers: [{ provide: SessionRoomService, useValue: room }],
     });
@@ -78,6 +78,39 @@ describe('SessionStatusComponent', () => {
 
     expect(element.querySelector('[role="dialog"]')).toBeNull();
     expect(room.changeStatus).not.toHaveBeenCalled();
+  });
+
+  it('offers no lifecycle button while the status is unknown', () => {
+    expect(render(null).buttons()).toEqual([]);
+  });
+
+  it('keeps the confirmation open, with its button disabled, while the connection is lost', () => {
+    const { fixture, room, element, button } = render('IN_PROGRESS');
+    button('Clôturer la session').click();
+    fixture.detectChanges();
+    room.connection.set('lost');
+    fixture.detectChanges();
+
+    const dialog = element.querySelector('[role="dialog"]')!;
+    const confirm = [...dialog.querySelectorAll<HTMLButtonElement>('button')].find(
+      (b) => b.textContent?.trim() === 'Clôturer la session',
+    )!;
+    expect(confirm.disabled).toBe(true);
+    expect(dialog.querySelector('[role="status"]')).not.toBeNull();
+  });
+
+  it('keeps the confirmation open when the close could not be sent', () => {
+    const { fixture, room, element, button } = render('IN_PROGRESS');
+    room.changeStatus.mockReturnValue(false);
+    button('Clôturer la session').click();
+    fixture.detectChanges();
+    [...element.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
+      .find((b) => b.textContent?.trim() === 'Clôturer la session')!
+      .click();
+    fixture.detectChanges();
+
+    expect(room.changeStatus).toHaveBeenCalledWith('CLOSE');
+    expect(element.querySelector('[role="dialog"]')).not.toBeNull();
   });
 
   it('waits for the connection before allowing a change', () => {

@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { SESSION_ID, state } from '../testing/fixtures';
 import { fakeFetch, memoryStorage, pageProviders, reply, settle } from '../testing/helpers';
-import { SessionEntryComponent } from './session-entry.component';
+import { READ_ONLY_REFRESH_MS, SessionEntryComponent } from './session-entry.component';
 import { SessionRoomService } from './session-room.service';
 import { SessionSocketService } from './session-socket.service';
 
@@ -62,7 +62,7 @@ describe('SessionEntryComponent', () => {
 
   it('shows the join screen when the session exists and no token is stored', async () => {
     const { room, element, http } = await render({
-      routes: { [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, {}) },
+      routes: { [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, state({ me: null })) },
     });
 
     expect(http.calls[0].key).toBe(`GET /api/sessions/${SESSION_ID}`);
@@ -80,6 +80,35 @@ describe('SessionEntryComponent', () => {
     expect(room.open).not.toHaveBeenCalled();
     expect(element.querySelector('app-join')).toBeNull();
     expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('refreshes a closed session shown read-only, and offers to join it once reopened', async () => {
+    // Seul l'intervalle est simulé : `settle` attend sur de vrais `setTimeout`.
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      let status: 'CLOSED' | 'IN_PROGRESS' = 'CLOSED';
+      const { fixture, room, element, http } = await render({
+        routes: {
+          [`GET /api/sessions/${SESSION_ID}`]: () => reply(200, state({ status, me: null })),
+        },
+      });
+      expect(room.showReadOnly).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(READ_ONLY_REFRESH_MS);
+      await settle(fixture);
+      expect(http.calls).toHaveLength(2);
+      expect(room.showReadOnly).toHaveBeenCalledTimes(2);
+
+      status = 'IN_PROGRESS';
+      vi.advanceTimersByTime(READ_ONLY_REFRESH_MS);
+      await settle(fixture);
+      expect(element.querySelector('app-join')).not.toBeNull();
+
+      vi.advanceTimersByTime(READ_ONLY_REFRESH_MS * 2);
+      expect(http.calls).toHaveLength(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('lets the facilitator come with the animation link join a closed session, to reopen it', async () => {
@@ -124,7 +153,7 @@ describe('SessionEntryComponent', () => {
     const { fixture, element } = await render({
       routes: {
         [`GET /api/sessions/${SESSION_ID}`]: () =>
-          ++attempts === 1 ? reply(500, {}) : reply(200, {}),
+          ++attempts === 1 ? reply(500, {}) : reply(200, state({ me: null })),
       },
     });
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
