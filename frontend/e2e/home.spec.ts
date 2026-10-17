@@ -54,3 +54,81 @@ test('la liste des sessions de l’accueil : la plus récente d’abord, accessi
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+
+/** 25 sessions, trois animateurs et les trois statuts, de la plus récente à la plus ancienne. */
+const MANY_SESSIONS = Array.from({ length: 25 }, (_, i) => ({
+  sessionId: `Sess${String(i).padStart(2, '0')}xxxxxxxxxxxxxxxx`,
+  name: i % 3 === 0 ? `PI ${40 - i} – Épics plateforme` : `Roadmap ${i}`,
+  facilitatorPseudo: ['Camille', 'Éric', 'Sophie'][i % 3],
+  createdAt: new Date(Date.UTC(2026, 9, 14 - i, 12)).toISOString(),
+  status: (['IN_PROGRESS', 'PREPARATION', 'CLOSED'] as const)[i % 3 === 0 ? i % 2 : 2],
+  method: 'WSJF',
+  methodVersion: 2,
+}));
+
+async function homeWithManySessions(page: import('@playwright/test').Page) {
+  await page.route('**/api/health', (route) => route.fulfill({ json: { status: 'UP' } }));
+  await page.route('**/api/methods', (route) => route.fulfill({ json: [] }));
+  await page.route('**/api/sessions', (route) => route.fulfill({ json: MANY_SESSIONS }));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+  await expect(
+    page.getByRole('table', { name: 'Liste des sessions' }).locator('tbody tr'),
+  ).toHaveCount(25);
+}
+
+test('l’accueil tient dans 1280 × 720 : création à gauche, liste à droite, seule la liste défile (FR-026a)', async ({
+  page,
+}) => {
+  await homeWithManySessions(page);
+
+  expect(
+    await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
+  ).toBe(true);
+  const form = (await page.locator('form.home-create').boundingBox())!;
+  const list = (await page.locator('.session-list').boundingBox())!;
+  expect(form.x + form.width).toBeLessThanOrEqual(list.x);
+  expect(list.y + list.height).toBeLessThanOrEqual(720);
+  const wrap = page.locator('.session-list-wrap');
+  expect(await wrap.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+
+  // L'en-tête du tableau reste visible quand la liste défile.
+  await wrap.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  await expect(page.getByRole('columnheader', { name: 'Nom' })).toBeInViewport();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test('la liste des sessions se filtre par nom, animateur et statut (FR-026b, quickstart V13a)', async ({
+  page,
+}) => {
+  await homeWithManySessions(page);
+  const rows = page.getByRole('table', { name: 'Liste des sessions' }).locator('tbody tr');
+  const count = page.locator('.session-list-head [role="status"]');
+
+  await page.getByLabel('Nom', { exact: true }).fill('epic');
+  await expect(rows).toHaveCount(9);
+  await expect(rows.first().locator('mark')).toHaveText('Épic');
+  await expect(count).toHaveText('9 sessions sur 25');
+
+  const facilitator = page.getByLabel('Animateur', { exact: true });
+  await facilitator.fill('camille');
+  await expect(rows).toHaveCount(9);
+  await page.getByRole('checkbox', { name: 'Clôturée' }).uncheck();
+  await page.getByRole('checkbox', { name: 'En préparation' }).uncheck();
+  await expect(rows).toHaveCount(5);
+  await expect(rows.locator('.badge')).toHaveText(Array(5).fill('En cours'));
+
+  await facilitator.fill('Inconnu');
+  await facilitator.blur();
+  await expect(page.locator('#filter-facilitator-error')).toHaveText(
+    "Aucune session n'est animée par « Inconnu ». Choisissez un animateur dans la liste proposée.",
+  );
+  await expect(facilitator).toHaveAttribute('aria-invalid', 'true');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByLabel('Nom', { exact: true }).fill('zzz');
+  await expect(page.getByText('Aucune session ne correspond aux filtres.')).toBeVisible();
+  await page.getByRole('button', { name: 'Effacer les filtres' }).click();
+  await expect(rows).toHaveCount(25);
+  await expect(count).toHaveText('25 sessions sur 25');
+});

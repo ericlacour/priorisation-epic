@@ -55,6 +55,15 @@
   3. Q : faut-il confirmer avant de clôturer la session ? → A: **Oui** (FR-004) : « Clôturer la session ? Elle passera en lecture seule pour tous. Vous pourrez la rouvrir. »
   4. Q : que se passe-t-il dans une fenêtre de moins de 1280 px (par exemple un portable de 1366 px avec un zoom de 125 %, soit environ 1 093 px utiles) ? → A: La barre d'actions **peut passer sur deux lignes**. C'est accepté : la garantie de FR-014a ne vaut qu'à partir de 1280 px, et aucun menu de repli n'est prévu.
 
+### Session 2026-10-17 (revue de l'écran d'accueil)
+
+- Q : l'accueil peut-il faire défiler la page ? → A: Non, sur ordinateur (fenêtre d'au moins 1280 × 720). La création de session passe **à gauche** et la liste des sessions **à droite**, côte à côte ; seule la liste des sessions défile, à l'intérieur de son cadre, avec son en-tête figé. Sur une fenêtre étroite (téléphone), les deux blocs s'empilent et la page défile. Voir FR-026a.
+- Q : comment retrouver une session dans une liste qui grandit ? → A: Par trois filtres au-dessus de la liste, combinés entre eux (une session doit passer les trois) : le **nom**, l'**animateur** et le **statut**. Voir FR-026b.
+- Q : comment fonctionne le filtre par nom ? → A: Saisie libre, appliquée à chaque frappe, sans bouton : la liste ne garde que les sessions dont le nom **contient** le texte saisi, sans tenir compte des majuscules ni des accents (« epic » trouve « PI 28 – Épics »). Le passage trouvé est surligné dans le nom.
+- Q : comment fonctionne le filtre par animateur ? → A: Saisie avec suggestions : les animateurs des sessions existantes sont proposés pendant la frappe. Le filtre ne s'applique que si le texte est le pseudo d'un animateur existant (majuscules et accents ignorés). Sinon, en quittant le champ, le message « Aucune session n'est animée par « X ». Choisissez un animateur dans la liste proposée. » s'affiche sous le champ, et la liste n'est pas filtrée par animateur.
+- Q : comment fonctionne le filtre par statut ? → A: Trois cases à cocher, « En préparation », « En cours » et « Clôturée », toutes cochées par défaut. Seules les sessions des statuts cochés sont affichées ; aucune case cochée n'affiche aucune session.
+- Q : les filtres sont-ils traités par le serveur ? → A: Non. `GET /api/sessions` renvoie déjà toutes les sessions ; le filtrage se fait dans le navigateur, sans changer le contrat. Les filtres ne sont pas conservés d'une visite à l'autre.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Prioriser des fonctionnalités en saisie directe (Priority: P1)
@@ -248,10 +257,19 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
 1. **Given** plusieurs sessions existantes, **When** un utilisateur ouvre la liste des
    sessions, **Then** il voit pour chacune le nom, l'animateur, la date et le statut
    (en préparation, en cours, clôturée), triées de la plus récente à la plus ancienne.
+   Sur ordinateur, la liste est à droite de la création de session, et la page ne défile
+   pas (FR-026a).
 2. **Given** une session clôturée, **When** un utilisateur l'ouvre, **Then** il voit le
    tableau final en lecture seule, ainsi que les tours révélés et leurs votes.
 3. **Given** une session clôturée, **When** son animateur l'ouvre via son lien d'animation
    et la rouvre, **Then** elle repasse au statut « en cours » et redevient modifiable.
+4. **Given** plusieurs sessions existantes, **When** un utilisateur saisit « epic » dans
+   le filtre par nom, choisit « Camille » dans le filtre par animateur et ne coche que
+   « En cours », **Then** seules les sessions en cours animées par Camille dont le nom
+   contient « epic » (ou « Épic ») restent affichées (FR-026b).
+5. **Given** le filtre par animateur, **When** un utilisateur saisit un pseudo qu'aucune
+   session n'a pour animateur et quitte le champ, **Then** un message lui dit qu'aucune
+   session n'est animée par ce pseudo, et la liste n'est pas filtrée par animateur.
 
 ---
 
@@ -747,6 +765,22 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   sessions, visible par toute personne ayant accès à l'outil, permettant de les ouvrir.
   Une session clôturée est consultable en lecture seule, et son animateur peut la
   rouvrir.
+- **FR-026a**: Sur un écran d'ordinateur (fenêtre d'au moins 1280 × 720), l'accueil DOIT
+  tenir dans la fenêtre sans faire défiler la page : la création de session à gauche, la
+  liste des sessions à droite. Seule la liste des sessions défile, dans son cadre, avec un
+  en-tête figé. Sur une fenêtre plus étroite que 900 px, les deux blocs s'empilent
+  (création d'abord) et la page peut défiler.
+- **FR-026b**: La liste des sessions DOIT pouvoir être filtrée, dans le navigateur, par :
+  le **nom** (la session est gardée si son nom contient le texte saisi, sans tenir compte
+  des majuscules ni des accents ; appliqué à chaque frappe ; passage trouvé surligné) ;
+  l'**animateur** (suggestions des animateurs existants pendant la frappe ; filtre appliqué
+  seulement si le texte correspond au pseudo d'un animateur existant, sinon message
+  « Aucune session n'est animée par « X ». Choisissez un animateur dans la liste
+  proposée. » en quittant le champ) ; le **statut** (cases « En préparation », « En
+  cours » et « Clôturée », toutes cochées par défaut, une ou plusieurs). Les filtres se
+  combinent. Le nombre de sessions affichées est annoncé (« 3 sessions sur 12 »), et une
+  liste filtrée vide affiche « Aucune session ne correspond aux filtres. » avec le bouton
+  « Effacer les filtres », qui remet les trois filtres à leur état initial.
 - **FR-027**: Les messages d'erreur DOIVENT indiquer ce qui ne va pas et comment corriger
   (par exemple : « Le JS doit être un nombre entier entre 1 et 10 »).
 

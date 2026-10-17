@@ -73,11 +73,19 @@ Choix de détail faits dans la maquette :
 - Sur téléphone, les outils passent sur une deuxième ligne, et la barre d'actions devient le bandeau « Lecture seule ».
 - « Transmettre le rôle » (menu « Participants ») ouvre une confirmation qui nomme le bénéficiaire. Après validation, l'ancien animateur voit « Vous avez transmis le rôle d'animateur à alice. Vous êtes maintenant participant. ». Chez le participant, le bouton « Simuler : eric me transmet le rôle » ouvre la fenêtre « Vous êtes maintenant animateur », avec le nouveau lien d'animation, « Copier » et « Compris » (FR-002a).
 
+## Accueil (écran 1, revue du 2026-10-17)
+
+- Sur ordinateur, la page ne défile pas : la création de session est à gauche (380 px au plus), la liste des sessions à droite. Seule la liste défile, avec l'en-tête du tableau figé (FR-026a).
+- Les filtres sont au-dessus de la liste, sur deux lignes : « Nom » et « Animateur » côte à côte, puis les cases du statut. Le compteur « n sessions sur N » est à droite du titre « Sessions » (FR-026b).
+- « Nom » filtre à chaque frappe et surligne le passage trouvé. « Animateur » propose les animateurs existants et refuse un pseudo inconnu par un message sous le champ.
+- La colonne de boutons « Rejoindre » / « Consulter » de l'ancienne maquette n'est pas reprise : le nom de la session est le lien.
+- Sous 900 px, les deux blocs s'empilent (création d'abord) et la page défile ; sur téléphone, la liste garde le tableau, qui défile en largeur.
+
 ## Écrans
 
 | # | Écran | Exigences illustrées |
 |---|-------|----------------------|
-| 1 | Accueil : sessions, créer une session avec le choix de la méthode | FR-001, FR-017d, FR-026 |
+| 1 | Accueil sans défilement : créer une session (à gauche), liste des sessions filtrable par nom, animateur et statut (à droite) (refait le 2026-10-17) | FR-001, FR-017d, FR-026, FR-026a, FR-026b |
 | 2 | Session créée : lien d'invitation et lien d'animation privé | FR-002 |
 | 3 | Rejoindre : pseudo déjà utilisé | FR-002, FR-003, reprise du pseudo |
 | 4 | Tableau, vue animateur, avec les deux barres dans chaque état (refait le 2026-10-16, T097a) | FR-004, FR-014c, FR-018, US1, FR-004, FR-005, FR-014 à FR-016, FR-018, FR-021, FR-027 |

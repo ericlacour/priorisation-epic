@@ -179,9 +179,10 @@ textarea.input {
   color: var(--warning);
 }
 
+/* Texte en `--fg` : `--muted` sur `--info-soft` n'atteint que 4,35:1 (axe, WCAG AA 4,5:1). */
 .badge.closed {
   background: var(--info-soft);
-  color: var(--muted);
+  color: var(--fg);
 }
 
 .btn-sm {
@@ -210,7 +211,158 @@ textarea.input {
   cursor: not-allowed;
 }
 
+/*
+ * Accueil (FR-026a). À partir de 900 px : création à gauche, liste des sessions à droite, la page tient dans la
+ * fenêtre et seule la liste défile, avec l'en-tête du tableau figé. En dessous, les blocs s'empilent et la page défile.
+ */
+.home-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.page.home .lead {
+  margin: 0;
+}
+
+.home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 16px;
+}
+
+@media (min-width: 900px) {
+  app-root > app-home {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .page.home {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1280px;
+    min-height: 0;
+    padding: 24px 16px 16px;
+  }
+
+  .page.home .notice {
+    margin: 12px 0;
+  }
+
+  .home-columns {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .home-columns > .card {
+    margin: 0;
+  }
+
+  app-session-list {
+    display: flex;
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  .session-list {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+  }
+
+  .session-list-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .session-list thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+  }
+}
+
 /* Liste des sessions de l'accueil (FR-026) : défile en largeur sur téléphone plutôt que la page. */
+.session-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.session-list-head h2 {
+  margin: 0;
+}
+
+.session-list > p.muted.small {
+  margin: 4px 0 8px;
+}
+
+/* Filtres de la liste (FR-026b) : nom et animateur côte à côte, puis les statuts. */
+.session-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+@media (max-width: 599.98px) {
+  .session-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.session-filters .field {
+  margin-bottom: 8px;
+}
+
+.status-filter {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+}
+
+.status-filter legend {
+  float: left;
+  margin-right: 4px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.status-filter label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.session-list .err {
+  margin: 0 0 8px;
+}
+
+.session-list-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
 .session-list-wrap {
   overflow-x: auto;
 }
@@ -238,4 +390,11 @@ textarea.input {
 .session-list a {
   color: var(--primary-ink);
   font-weight: 600;
+}
+
+.session-list mark {
+  padding: 0 1px;
+  border-radius: 2px;
+  background: var(--warning-soft);
+  color: inherit;
 }

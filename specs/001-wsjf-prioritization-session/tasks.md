@@ -485,6 +485,32 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 
 ---
 
+## Phase 7 bis : Accueil sans défilement et filtres de la liste des sessions (US5)
+
+> **Revue du 2026-10-17** : l'accueil empile le formulaire de création et la liste des
+> sessions, et la page défile dès quelques sessions. La liste, qui grandit avec le temps,
+> n'a aucun moyen de retrouver une session. Décisions : création à gauche, liste à droite,
+> seule la liste défile (FR-026a) ; filtres par nom, animateur et statut, dans le
+> navigateur, sans changer le contrat (FR-026b).
+
+**Objectif** : sur ordinateur, l'accueil tient dans la fenêtre, et la liste des sessions se filtre par nom, par animateur et par statut.
+
+**Test indépendant** : dans une fenêtre de 1280 × 720 avec 25 sessions, la page ne défile pas, la liste défile dans son cadre ; les trois filtres réduisent la liste et se combinent (quickstart V13a).
+
+- [X] T114a [UX] Refaire l'écran 1 des maquettes `specs/001-wsjf-prioritization-session/mockups/index.html` (création à gauche, liste filtrable à droite, message de refus de l'animateur, liste filtrée vide) et compléter `mockups/README.md`
+- [X] T114b [P] [US5] Tests Vitest, écrits d'abord, dans `frontend/src/app/home/session-filter.spec.ts` (fonctions pures) et `frontend/src/app/home/session-list.component.spec.ts` :
+  - nom : « epic » garde « PI 28 – Épics » (majuscules et accents ignorés), à chaque frappe ; le passage trouvé est dans un `<mark>` ;
+  - animateur : les animateurs existants, sans doublon et triés, sont proposés (`<datalist>`) ; « camille » filtre sur « Camille » ; un pseudo inconnu ne filtre pas et, au `change`, affiche « Aucune session n'est animée par « X ». Choisissez un animateur dans la liste proposée. » avec `aria-invalid` ;
+  - statut : trois cases cochées par défaut ; décocher « Clôturée » retire les sessions clôturées ; aucune case cochée, aucune session ;
+  - combinaison des trois filtres, compteur « n sessions sur N », liste filtrée vide avec « Effacer les filtres », qui remet tout à l'état initial
+- [X] T114c [US5] Front, `frontend/src/app/home/session-filter.ts` (normalisation sans majuscules ni accents, correspondance du nom avec la position du passage trouvé, animateurs distincts, filtrage combiné) et filtres dans `frontend/src/app/home/session-list.component.ts`. Textes dans `frontend/src/app/i18n/messages.fr.ts` (constitution V)
+- [X] T114d [US5] Front, mise en page de FR-026a dans `frontend/src/app/home/home.component.ts` et `frontend/src/styles/forms.css` : à partir de 900 px, deux colonnes (création à gauche, liste à droite), page à la hauteur de la fenêtre, seule la liste défile avec l'en-tête du tableau figé ; en dessous, blocs empilés. L'écran « Session créée » ne change pas
+- [X] T114e [US5] Tests e2e `frontend/e2e/home.spec.ts` (Chromium, Firefox et WebKit, axe-core) : dans une fenêtre de 1280 × 720 avec 25 sessions, `document.documentElement.scrollHeight <= innerHeight`, création à gauche de la liste, la liste défile dans son cadre ; parcours des trois filtres (quickstart V13a)
+
+**Checkpoint** : l'accueil tient dans la fenêtre sur ordinateur, et la liste des sessions se filtre.
+
+---
+
 ## Phase 8 : Finitions et sujets transverses
 
 - [ ] T115 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
@@ -613,7 +639,8 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - **Ergonomie de l'écran de l'animateur (phase 5 bis)** : dépend de US1 et US3 (décisions du 2026-10-16 prises). Elle **précède toute tâche front qui ajoute une action** aux barres : T105 (US4), T113 (US5), T078, T079, T081 et T083 (US2).
 - **US4 (phase 6)** : l'export dépend de US1. **L'aller-retour JSON (T099) dépend de T093 (lecteur JSON, US3). L'aller-retour CSV dépend de T092 (lecteur CSV, US3).** Le test de généricité T099a dépend aussi de US3 (lecteurs).
 - **US5 (phase 7)** : dépend des fondations et de `change_log` (T029). Elle porte désormais le démarrage de session (`START`). Elle est indépendante de US3 et US4.
-- **Finitions (phase 8)** : après US3, US4 et US5.
+- **Accueil et filtres (phase 7 bis)** : après T111 (liste des sessions). Indépendante de US3 et US4.
+- **Finitions (phase 8)** : après US3, US4, US5 et la phase 7 bis.
 - **US2, vote masqué (phase 9, bonus)** : **en dernier**. Elle dépend de l'écran de classement (T060a), du démarrage de session (T109), de l'échelle (T090, T096), des exports (T101 à T105), de la généricité (T099a) et de la liste des sessions (US5). La conception (T064, maquettes) se valide avant toute autre tâche de la phase.
 
 ### À l'intérieur de chaque parcours
