@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 
 import { expect, test, type Download, type Page } from '@playwright/test';
 
+import { namePattern, uniqueName } from './session-name';
+
 /**
  * US4 : exporter le tableau, contre le vrai webservice (quickstart V11 et V12). Le collage dans une vraie page
  * Confluence (SC-007) reste une étape manuelle, notée dans la description de la PR.
@@ -20,15 +22,16 @@ const rows = (page: Page) => page.locator('tbody tr');
 const rowTexts = async (page: Page) =>
   (await rows(page).allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
 
-async function createSession(page: Page, name: string): Promise<string> {
+/** Crée une session « <base> … », au nom propre au parcours, et arrive sur son tableau. */
+async function createSession(page: Page, base: string): Promise<string> {
   await page.goto('/');
-  await page.getByLabel('Nom de la session').fill(name);
+  await page.getByLabel('Nom de la session').fill(uniqueName(base));
   await page.getByLabel('Votre pseudo').fill('anim');
   await page.getByRole('button', { name: 'Créer la session' }).click();
   await expect(page.getByRole('heading', { name: 'Session créée' })).toBeVisible();
   const [invitation] = await page.locator('code').allInnerTexts();
   await page.getByRole('button', { name: 'Aller à la session' }).click();
-  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: namePattern(base) })).toBeVisible();
   return invitation;
 }
 
@@ -107,7 +110,7 @@ test('V11 : CSV tableau, copie pour Confluence et wiki markup, dans l’ordre du
   await expect(rows(alice)).toHaveCount(5);
 
   const csv = await exportFile(alice, 'Tableau CSV');
-  expect(csv.suggestedFilename()).toBe('export-tableau-v1.csv');
+  expect(csv.suggestedFilename()).toMatch(/^export-[a-z0-9]+-tableau-v1\.csv$/);
   const text = await contentOf(csv);
   expect(text.startsWith('﻿')).toBe(true);
   expect(text.split('\r\n').slice(0, 2)).toEqual([
@@ -119,7 +122,7 @@ test('V11 : CSV tableau, copie pour Confluence et wiki markup, dans l’ordre du
   );
   expect(text).toContain('\r\n;F-5;Incomplète;;6;;;;;;;\r\n');
   await expect(alice.locator('.export-notice')).toContainText(
-    'Fichier téléchargé : export-tableau-v1.csv',
+    /Fichier téléchargé : export-[a-z0-9]+-tableau-v1\.csv/,
   );
 
   // Copier pour Confluence : un tableau HTML, avec sa version texte.
@@ -130,7 +133,7 @@ test('V11 : CSV tableau, copie pour Confluence et wiki markup, dans l’ordre du
     () => (window as unknown as { copied: Record<string, string>[] }).copied,
   );
   expect(copied['text/html']).toMatch(
-    /^<h2>Priorisation Fonctionnalités : Export \(\d\d\/\d\d\/\d{4}\)<\/h2>/,
+    /^<h2>Priorisation Fonctionnalités : Export [a-z0-9]+ \(\d\d\/\d\d\/\d{4}\)<\/h2>/,
   );
   expect(copied['text/html']).toContain('Format confluence-v1');
   expect(copied['text/html']).toContain('<td>1</td><td>F-3</td><td>Recherche | filtres</td>');
@@ -138,7 +141,7 @@ test('V11 : CSV tableau, copie pour Confluence et wiki markup, dans l’ordre du
 
   // Wiki markup.
   const wiki = await exportFile(alice, 'Confluence (wiki markup)');
-  expect(wiki.suggestedFilename()).toBe('export-confluence-v1.txt');
+  expect(wiki.suggestedFilename()).toMatch(/^export-[a-z0-9]+-confluence-v1\.txt$/);
   const markup = await contentOf(wiki);
   expect(markup).toContain(
     '||Rang||Identifiant||Titre||Description||BV||TC||RR/OE||JS||CoD||WSJF||',
@@ -160,7 +163,7 @@ test('V12 : le JSON et le CSV tableau se réimportent dans une session vide', as
   const board = await rowTexts(page);
 
   const json = await exportFile(page, 'Session complète JSON');
-  expect(json.suggestedFilename()).toBe('origine-session-v1.json');
+  expect(json.suggestedFilename()).toMatch(/^origine-[a-z0-9]+-session-v1\.json$/);
   const exported = JSON.parse(await contentOf(json)) as { formatVersion: number; rounds: [] };
   expect(exported.formatVersion).toBe(1);
   expect(exported.rounds).toEqual([]);
