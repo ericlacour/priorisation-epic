@@ -33,7 +33,7 @@ du contrat.
 |-------|------|--------|
 | sessionId | texte (22 car.) | Clé primaire, aléatoire sur 128 bits, en base64url sans remplissage (comme dans planning-poker). Forme le lien d'invitation `/s/{sessionId}` |
 | animationTokenHash | texte | Empreinte SHA-256 du jeton d'animation. Le jeton lui-même n'est jamais stocké |
-| name | texte (1 à 120 car.) | Obligatoire. Unique parmi toutes les sessions, sans tenir compte de la casse ni des espaces autour (FR-001a) : la colonne `name_key` (NFKC, espaces retirés aux extrémités, minuscules) porte un index unique |
+| name | texte (1 à 120 car.) | Obligatoire. Unique parmi toutes les sessions, sans tenir compte de la casse ni des espaces autour (FR-001a) : la colonne générée `name_key` (fonction SQL `session_name_key` : NFKC, espaces retirés aux extrémités, minuscules selon la collation de la base) porte un index unique. Seule la base calcule cette clé, pour l'index comme pour les recherches de l'application |
 | status | enum `PREPARATION`, `IN_PROGRESS`, `CLOSED` | Vaut `PREPARATION` à la création |
 | method | texte (≤ 20 car.) | Identifiant de la méthode, choisi à la création parmi les méthodes de `MethodRegistry`, `WSJF` par défaut (FR-017d). Figé ensuite (FR-017) |
 | methodVersion | entier | La dernière version de la méthode au moment de la création (1 en V1). Une nouvelle version d'une méthode s'ajoute à côté de l'ancienne : une session garde toujours sa version |

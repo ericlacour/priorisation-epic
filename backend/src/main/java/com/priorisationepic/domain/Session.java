@@ -63,8 +63,9 @@ public record Session(
 
   /**
    * Clé d'unicité d'un nom de session (FR-001a) : sans tenir compte de la casse ni des espaces
-   * autour, formes de compatibilité repliées (NFKC), accents gardés. La base l'impose telle quelle
-   * (colonne {@code name_key}, index unique).
+   * autour, formes de compatibilité repliées (NFKC), accents gardés. En base, c'est la fonction SQL
+   * {@code session_name_key} qui fait foi (colonne générée {@code name_key}, index unique) ; ce
+   * calcul en donne la même définition hors base, pour les doubles de test.
    */
   public static String nameKey(String name) {
     return Normalizer.normalize(name, Normalizer.Form.NFKC).strip().toLowerCase(Locale.ROOT);

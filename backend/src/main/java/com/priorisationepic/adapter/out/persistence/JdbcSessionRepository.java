@@ -13,6 +13,8 @@ import com.priorisationepic.domain.scale.ScaleType;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.ServerErrorMessage;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -53,15 +55,13 @@ class JdbcSessionRepository implements SessionRepository {
   public void insert(Session session, String animationTokenHash) {
     try {
       jdbc.sql(
-              "insert into session (session_id, animation_token_hash, name, name_key, status,"
-                  + " method, method_version, scale_type, scale_max, created_at,"
-                  + " created_by_pseudo, version)"
-                  + " values (:id, :hash, :name, :nameKey, :status, :method, :methodVersion,"
+              "insert into session (session_id, animation_token_hash, name, status, method,"
+                  + " method_version, scale_type, scale_max, created_at, created_by_pseudo,"
+                  + " version) values (:id, :hash, :name, :status, :method, :methodVersion,"
                   + " :scaleType, :scaleMax, :createdAt, :createdBy, :version)")
           .param("id", session.id().value())
           .param("hash", animationTokenHash)
           .param("name", session.name())
-          .param("nameKey", Session.nameKey(session.name()))
           .param("status", session.status().name())
           .param("method", session.method())
           .param("methodVersion", session.methodVersion())
@@ -77,17 +77,31 @@ class JdbcSessionRepository implements SessionRepository {
   }
 
   @Override
-  public Optional<SessionId> findIdByNameKey(String nameKey) {
-    return jdbc.sql("select session_id from session where name_key = :key")
-        .param("key", nameKey)
+  public Optional<SessionId> findIdByName(String name) {
+    // La clé est calculée par la base, avec la fonction de la colonne générée : un seul calcul.
+    return jdbc.sql("select session_id from session where name_key = session_name_key(:name)")
+        .param("name", name)
         .query((rs, row) -> new SessionId(rs.getString("session_id")))
         .optional();
   }
 
-  /** Une autre session a pris ce nom entre le contrôle et l'écriture ; toute autre clé remonte. */
+  /**
+   * Une autre session a pris ce nom entre le contrôle et l'écriture : la contrainte violée est lue
+   * dans l'erreur PostgreSQL, jamais dans le texte du message. Toute autre clé remonte telle
+   * quelle.
+   */
   private static RuntimeException nameTakenOr(DuplicateKeyException e) {
-    String message = e.getMessage();
-    return message != null && message.contains(NAME_INDEX) ? new SessionNameTakenException() : e;
+    return NAME_INDEX.equals(violatedConstraint(e)) ? new SessionNameTakenException() : e;
+  }
+
+  private static String violatedConstraint(Throwable error) {
+    for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+      if (cause instanceof PSQLException psql) {
+        ServerErrorMessage server = psql.getServerErrorMessage();
+        return server == null ? null : server.getConstraint();
+      }
+    }
+    return null;
   }
 
   @Override
@@ -123,11 +137,10 @@ class JdbcSessionRepository implements SessionRepository {
   public void updateSettings(SessionId sessionId, String name, Scale scale) {
     try {
       jdbc.sql(
-              "update session set name = :name, name_key = :nameKey, scale_type = :scaleType,"
-                  + " scale_max = :scaleMax where session_id = :id")
+              "update session set name = :name, scale_type = :scaleType, scale_max = :scaleMax"
+                  + " where session_id = :id")
           .param("id", sessionId.value())
           .param("name", name)
-          .param("nameKey", Session.nameKey(name))
           .param("scaleType", scale.type().name())
           .param("scaleMax", scale.max())
           .update();

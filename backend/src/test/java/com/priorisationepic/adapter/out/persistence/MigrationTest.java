@@ -78,7 +78,17 @@ class MigrationTest extends PostgresTestBase {
   }
 
   @Test
-  void aRenameWithoutItsKeyRecomputesTheKey() {
+  void theSqlKeyMatchesTheDomainDefinition() {
+    for (String name :
+        new String[] {"PI26T7_TEST", "  pi26t7_test ", "Épics", "E\u0301pics", "ＰＩ 28", "Équipe"}) {
+      assertThat(jdbc.queryForObject("select session_name_key(?)", String.class, name))
+          .as(name)
+          .isEqualTo(com.priorisationepic.domain.Session.nameKey(name));
+    }
+  }
+
+  @Test
+  void aRenameInTheSqlConsoleRecomputesTheGeneratedKey() {
     insertSession(SESSION_ID, "PI26T7_TEST", "2026-10-17T08:00:00Z");
     jdbc.update("update session set name = 'PI26T7_TEST (2)' where session_id = ?", SESSION_ID);
 
@@ -100,9 +110,13 @@ class MigrationTest extends PostgresTestBase {
     jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA2", "pi26t7_test", "2026-10-17T09:00:00Z");
     jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA3", "PI26T7_TEST ", "2026-10-17T10:00:00Z");
     // Le premier suffixe libre : « (2) » est déjà pris par une autre session.
+    String longName = "x".repeat(115) + " yyyy";
     jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA4", "Roadmap (2)", "2026-10-17T07:00:00Z");
     jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA5", "Roadmap", "2026-10-17T06:00:00Z");
     jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA6", "ROADMAP", "2026-10-17T11:00:00Z");
+    // Raccourci pour tenir en 120 caractères, sans espace laissée avant le suffixe.
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA7", longName, "2026-10-17T12:00:00Z");
+    jdbc.update(insert, "AAAAAAAAAAAAAAAAAAAAA8", longName, "2026-10-17T13:00:00Z");
 
     Flyway.configure().dataSource(dataSource).schemas(schema).load().migrate();
 
@@ -116,7 +130,14 @@ class MigrationTest extends PostgresTestBase {
             "PI26T7_TEST (3)",
             "Roadmap (2)",
             "Roadmap",
-            "ROADMAP (3)");
+            "ROADMAP (3)",
+            longName,
+            "x".repeat(115) + " (2)");
+    // Le compteur des sessions renommées avance, comme pour un renommage.
+    assertThat(
+            jdbc.queryForList(
+                "select version from " + schema + ".session order by session_id", Integer.class))
+        .containsExactly(0, 1, 1, 0, 0, 1, 0, 1);
     Flyway.configure().dataSource(dataSource).schemas(schema).cleanDisabled(false).load().clean();
   }
 

@@ -43,7 +43,7 @@ class SessionConnectionUseCaseTest {
         }
 
         @Override
-        public Optional<SessionId> findIdByNameKey(String nameKey) {
+        public Optional<SessionId> findIdByName(String name) {
           throw new UnsupportedOperationException();
         }
 

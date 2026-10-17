@@ -84,7 +84,7 @@ class SessionPersistenceTest extends PostgresTestBase {
   void theUniqueIndexRefusesASecondSessionUnderTheSameName() {
     // Deux créations simultanées : le contrôle du cas d'usage est passé, l'index unique tranche.
     SessionId other = new SessionId("BBBBBBBBBBBBBBBBBBBBBB");
-    assertThat(sessions.findIdByNameKey(Session.nameKey(" ATELIER q4 "))).contains(ID);
+    assertThat(sessions.findIdByName(" ATELIER q4 ")).contains(ID);
 
     assertThatThrownBy(() -> sessions.insert(session(other, "atelier Q4"), Tokens.hash("a")))
         .isInstanceOf(SessionNameTakenException.class);
@@ -100,7 +100,7 @@ class SessionPersistenceTest extends PostgresTestBase {
             () -> sessions.updateSettings(other, "ATELIER Q4", new Scale(ScaleType.CONTINUOUS, 12)))
         .isInstanceOf(SessionNameTakenException.class);
     sessions.updateSettings(other, "Roadmap 2", new Scale(ScaleType.CONTINUOUS, 12));
-    assertThat(sessions.findIdByNameKey("roadmap 2")).contains(other);
+    assertThat(sessions.findIdByName("ROADMAP 2")).contains(other);
   }
 
   private Feature feature(String externalId, Map<String, Integer> values) {

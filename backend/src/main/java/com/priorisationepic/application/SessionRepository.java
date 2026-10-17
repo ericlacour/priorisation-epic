@@ -22,8 +22,11 @@ public interface SessionRepository {
    */
   void insert(Session session, String animationTokenHash);
 
-  /** La session dont le nom a cette {@linkplain Session#nameKey(String) clé}, s'il y en a une. */
-  Optional<SessionId> findIdByNameKey(String nameKey);
+  /**
+   * La session qui porte déjà ce nom, sans tenir compte de la casse ni des espaces autour
+   * (FR-001a), s'il y en a une.
+   */
+  Optional<SessionId> findIdByName(String name);
 
   Optional<Session> find(SessionId sessionId);
 

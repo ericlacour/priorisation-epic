@@ -78,10 +78,12 @@ public class UpdateSettingsUseCase {
             return null;
           }
           if (!after.name().equals(before.name())) {
+            // Avant l'examen de l'échelle : un nom pris est refusé tel quel, jamais en
+            // SCALE_IMPACT.
             // Sous le verrou de cette session seulement : l'index unique couvre une autre session
-            // renommée ou créée au même moment.
+            // renommée ou créée au même moment (SessionNameTakenException, plus bas).
             sessions
-                .findIdByNameKey(Session.nameKey(after.name()))
+                .findIdByName(after.name())
                 .filter(other -> !other.equals(sessionId))
                 .ifPresent(
                     other -> {

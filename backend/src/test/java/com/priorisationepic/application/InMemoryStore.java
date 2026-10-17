@@ -88,7 +88,7 @@ public final class InMemoryStore
   @Override
   public void insert(Session session, String animationTokenHash) {
     // Comme l'index unique sur name_key.
-    if (findIdByNameKey(Session.nameKey(session.name())).isPresent()) {
+    if (findIdByName(session.name()).isPresent()) {
       throw new SessionNameTakenException();
     }
     sessions.put(session.id(), session);
@@ -96,7 +96,8 @@ public final class InMemoryStore
   }
 
   @Override
-  public Optional<SessionId> findIdByNameKey(String nameKey) {
+  public Optional<SessionId> findIdByName(String name) {
+    String nameKey = Session.nameKey(name);
     return sessions.values().stream()
         .filter(s -> Session.nameKey(s.name()).equals(nameKey))
         .map(Session::id)
@@ -128,7 +129,7 @@ public final class InMemoryStore
   @Override
   public void updateSettings(
       SessionId sessionId, String name, com.priorisationepic.domain.scale.Scale scale) {
-    findIdByNameKey(Session.nameKey(name))
+    findIdByName(name)
         .filter(other -> !other.equals(sessionId))
         .ifPresent(
             other -> {
