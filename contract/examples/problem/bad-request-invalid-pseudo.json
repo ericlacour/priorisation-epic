@@ -6,7 +6,7 @@
   "errors": [
     {
       "field": "pseudo",
-      "message": "Le pseudo est obligatoire."
+      "message": "Le pseudo est obligatoire : saisissez-en un de 40 caractères au plus."
     }
   ]
 }

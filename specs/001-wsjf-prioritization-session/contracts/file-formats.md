@@ -191,7 +191,8 @@ critères et les valeurs calculées sont des objets indexés par les clés de la
   calcul.
 - **Méthode** : un JSON dont `method` ou `methodVersion` diffère de la méthode de la
   session est **refusé en entier**, avec le message « Ce fichier a été produit avec la
-  méthode <méthode du fichier> ; cette session utilise <méthode de la session> »
+  méthode <méthode du fichier> ; cette session utilise <méthode de la session>. Importez-le
+  dans une session qui utilise <méthode du fichier>. »
   (FR-017b). Une clé de `criteria` inconnue de la méthode est ignorée, avec un
   avertissement.
 - **Importer un JSON** (`POST /api/sessions/{id}/imports`) : seules les `features` sont

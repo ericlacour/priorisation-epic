@@ -159,9 +159,15 @@ describe('ImportDialogComponent', () => {
 
   it('explains a file too large, a missing right and a network failure', async () => {
     for (const [error, message] of [
-      [new SessionApiError('tooLarge'), 'Le fichier dépasse 5 Mo.'],
+      [
+        new SessionApiError('tooLarge'),
+        'Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.',
+      ],
       [new SessionApiError('forbidden'), 'Seul l’animateur peut importer'],
-      [new SessionApiError('notFound'), "Cette session n'existe pas."],
+      [
+        new SessionApiError('notFound'),
+        "Cette session n'existe pas : vérifiez le lien auprès de l'animateur.",
+      ],
       [new Error('boom'), 'Le service ne répond pas.'],
     ] as const) {
       TestBed.resetTestingModule();

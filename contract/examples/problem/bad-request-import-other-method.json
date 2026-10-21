@@ -2,5 +2,5 @@
   "type": "about:blank",
   "title": "Fichier refusé",
   "status": 400,
-  "detail": "Ce fichier a été produit avec la méthode RICE v1 ; cette session utilise WSJF v1."
+  "detail": "Ce fichier a été produit avec la méthode RICE v1 ; cette session utilise WSJF v1. Importez-le dans une session qui utilise RICE v1."
 }

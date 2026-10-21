@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import { CreateSessionResponse } from '../api/contract';
 import { SessionApi, SessionApiError } from '../api/session-api';
 import { MethodDefinition } from '../api/session-state';
+import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { LinkBoxComponent } from '../shared/link-box.component';
 import { MethodPanelComponent } from '../shared/method-panel.component';
@@ -105,7 +106,7 @@ import { SessionListComponent } from './session-list.component';
                 >
                   @for (method of methods(); track method.key) {
                     <option [value]="method.key" [selected]="method.key === selectedMethod()?.key">
-                      {{ method.name }} (version {{ method.version }}) : {{ method.formula }}
+                      {{ methodOption(method) }}
                     </option>
                   }
                 </select>
@@ -179,6 +180,15 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMethods();
+  }
+
+  /** Le libellé d'une méthode dans la liste : nom, version et formule. */
+  protected methodOption(method: MethodDefinition): string {
+    return format(this.messages.methodOption, {
+      name: method.name,
+      version: method.version,
+      formula: method.formula,
+    });
   }
 
   protected loadMethods(): void {

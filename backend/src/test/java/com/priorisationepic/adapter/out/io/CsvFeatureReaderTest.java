@@ -146,7 +146,7 @@ class CsvFeatureReaderTest {
         .hasMessageStartingWith("Le fichier dépasse 1 000 lignes");
     assertThatThrownBy(() -> reader.read(new byte[5 * 1024 * 1024 + 1], wsjf()))
         .isInstanceOf(ImportRefusedException.class)
-        .hasMessage("Le fichier dépasse 5 Mo.");
+        .hasMessage("Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.");
   }
 
   @Test

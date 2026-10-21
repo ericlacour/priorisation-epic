@@ -148,7 +148,7 @@ for (const scheme of SCHEMES) {
             type: 'about:blank',
             title: 'Pseudo déjà utilisé',
             status: 409,
-            detail: 'Ce pseudo est déjà utilisé dans cette session.',
+            detail: 'Ce pseudo est déjà utilisé dans cette session. Choisissez-en un autre.',
           },
         }),
       );
@@ -168,7 +168,7 @@ for (const scheme of SCHEMES) {
             type: 'about:blank',
             title: 'Session introuvable',
             status: 404,
-            detail: "Cette session n'existe pas.",
+            detail: "Cette session n'existe pas : vérifiez le lien auprès de l'animateur.",
           },
         }),
       );

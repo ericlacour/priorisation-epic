@@ -536,7 +536,7 @@ méthodes de scoring et les fonctionnalités avancées de SAFe.
 - [X] T115 [P] Test de charge `deploy/load-test.mjs`, sur le modèle de PP : 10 participants et 50 fonctionnalités. Il vérifie une propagation en moins de 2 s et une ouverture de session (premier `sessionState` reçu après `hello`) en moins de 3 s, soit SC-002 et SC-005
 - [X] T116 [P] Parcours de reconnexion `frontend/e2e-journeys/reconnexion.spec.ts` (quickstart V15)
 - [X] T117 [P] Passe d'accessibilité : axe-core sur tous les écrans, navigation au clavier (y compris l'affichage des définitions WSJF au focus), rendu sur un écran de portable de 1280 px (avec le budget de place de T097b dans tous les états), sur **Chromium, Firefox et WebKit**, dans `frontend/e2e/accessibility.spec.ts` (constitution IV)
-- [ ] T118 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
+- [X] T118 [P] Relire `frontend/src/app/i18n/messages.fr.ts` et `backend/src/main/resources/messages.properties` : aucun texte d'interface ne doit être codé en dur ailleurs (constitution V), et chaque code d'erreur du contrat doit avoir son message français actionnable (FR-027)
 - [ ] T119 Vérifier qu'aucun jeton ni aucun contenu de message WebSocket n'apparaît dans les journaux. Ajouter le test `backend/src/test/java/com/priorisationepic/NoSecretInLogsTest.java`
 - [ ] T120 Dérouler `specs/001-wsjf-prioritization-session/quickstart.md` (V1 à V18 sauf V5 à V8, déroulés avec le vote masqué en T083b, plus les vérifications de sécurité) et mettre à jour `README.md` (lancement local, tests, déploiement)
 
