@@ -41,8 +41,10 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
   template: `
     @switch (phase()) {
       @case ('checking') {
-        <main class="state-screen" role="status">
-          <h1>{{ messages.loading }}</h1>
+        <main class="state-screen">
+          <div class="state-screen-body" role="status">
+            <h1>{{ messages.loading }}</h1>
+          </div>
         </main>
       }
       @case ('join') {
@@ -56,18 +58,22 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
         }
       }
       @case ('notFound') {
-        <main class="state-screen" role="alert">
-          <h1 class="state-error">{{ messages.notFound }}</h1>
-          <p class="lead">{{ messages.notFoundLead }}</p>
-          <a class="btn btn-primary" routerLink="/">{{ messages.home }}</a>
+        <main class="state-screen">
+          <div class="state-screen-body" role="alert">
+            <h1 class="state-error">{{ messages.notFound }}</h1>
+            <p class="lead">{{ messages.notFoundLead }}</p>
+            <a class="btn btn-primary" routerLink="/">{{ messages.home }}</a>
+          </div>
         </main>
       }
       @case ('unavailable') {
-        <main class="state-screen" role="alert">
-          <h1 class="state-error">{{ apiErrors.network }}</h1>
-          <button type="button" class="btn btn-primary" (click)="ngOnInit()">
-            {{ wakeMessages.retry }}
-          </button>
+        <main class="state-screen">
+          <div class="state-screen-body" role="alert">
+            <h1 class="state-error">{{ apiErrors.network }}</h1>
+            <button type="button" class="btn btn-primary" (click)="ngOnInit()">
+              {{ wakeMessages.retry }}
+            </button>
+          </div>
         </main>
       }
     }

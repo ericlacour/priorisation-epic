@@ -13,8 +13,10 @@ import { BrowserStorage } from '../storage/browser-storage';
   selector: 'app-animate',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="state-screen" role="status">
-      <h1>{{ messages.title }}</h1>
+    <main class="state-screen">
+      <div class="state-screen-body" role="status">
+        <h1>{{ messages.title }}</h1>
+      </div>
     </main>
   `,
 })

@@ -10,6 +10,14 @@
   text-align: center;
 }
 
+/* Le message de l'écran porte son rôle (status ou alert) : <main> reste le repère principal de la page. */
+.state-screen-body {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .state-screen h1,
 .page h1 {
   margin: 0;
