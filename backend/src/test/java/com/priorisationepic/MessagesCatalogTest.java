@@ -27,7 +27,8 @@ class MessagesCatalogTest {
    * (« doit », « doivent »).
    */
   private static final Pattern INSTRUCTION =
-      Pattern.compile("\\b\\p{L}{3,}ez\\b|\\bdoit\\b|\\bdoivent\\b", Pattern.UNICODE_CHARACTER_CLASS);
+      Pattern.compile(
+          "\\b\\p{L}{3,}ez\\b|\\bdoit\\b|\\bdoivent\\b", Pattern.UNICODE_CHARACTER_CLASS);
 
   private static Properties catalog() throws IOException {
     Properties properties = new Properties();
@@ -45,9 +46,14 @@ class MessagesCatalogTest {
         JsonMapper.builder()
             .build()
             .readTree(Files.readString(Path.of("..", "contract", "schemas", "error.json")));
-    List<String> contract = schema.path("properties").path("code").path("enum").valueStream()
-        .map(JsonNode::asString)
-        .toList();
+    List<String> contract =
+        schema
+            .path("properties")
+            .path("code")
+            .path("enum")
+            .valueStream()
+            .map(JsonNode::asString)
+            .toList();
 
     assertThat(Arrays.stream(ErrorCode.values()).map(Enum::name))
         .containsExactlyInAnyOrderElementsOf(contract);

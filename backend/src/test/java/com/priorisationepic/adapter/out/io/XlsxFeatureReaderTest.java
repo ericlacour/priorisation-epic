@@ -171,7 +171,8 @@ class XlsxFeatureReaderTest {
 
   @Test
   void theTemplateIsReadBackAsOneValidRow() {
-    byte[] template = new ImportTemplateWriter(ImportFixtures.TEXTS).write(WsjfMethod.version1().definition());
+    byte[] template =
+        new ImportTemplateWriter(ImportFixtures.TEXTS).write(WsjfMethod.version1().definition());
 
     ImportPreview preview = reader.read(template, wsjf());
 

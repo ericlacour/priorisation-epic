@@ -54,6 +54,16 @@ public final class WsTestClient implements WebSocket.Listener {
     socket.abort();
   }
 
+  /** Ferme la connexion normalement (1000). */
+  public void close() {
+    socket.sendClose(WebSocket.NORMAL_CLOSURE, "").join();
+  }
+
+  /** Le code de fermeture envoyé par le serveur, attendu au plus {@code timeoutMs}. */
+  public int awaitCloseCode(long timeoutMs) throws Exception {
+    return closeCode.get(timeoutMs, TimeUnit.MILLISECONDS);
+  }
+
   public void send(String json) {
     socket.sendText(json, true).join();
   }
