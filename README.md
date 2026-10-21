@@ -14,7 +14,22 @@ La spécification se trouve dans [`specs/001-wsjf-prioritization-session/`](spec
 | `.github/` | CI et outillage de sécurité |
 | `specs/` | Spécification, plan et tâches de la feature 001 |
 
-Prérequis : JDK 25 (Temurin) et Node.js ≥ 24.15.
+Prérequis : JDK 25 (Temurin), Node.js ≥ 24.15 et Docker (base locale et Testcontainers).
+
+### Lancer en local
+
+```bash
+# Base PostgreSQL 17
+docker run -d --name wsjf-db -e POSTGRES_DB=wsjf -e POSTGRES_USER=wsjf \
+  -e POSTGRES_PASSWORD=wsjf -p 5432:5432 postgres:17
+
+# Webservice sur http://localhost:8080 (Flyway applique les migrations au démarrage)
+(cd backend && DATABASE_URL=postgresql://wsjf:wsjf@localhost:5432/wsjf \
+  ALLOWED_ORIGINS=http://localhost:4200 ./mvnw spring-boot:run)
+
+# Front sur http://localhost:4200 (écrit config.json en mode dev, puis lance ng serve)
+(cd frontend && npm ci && npm start)
+```
 
 ### Vérifications avant un push
 
@@ -23,6 +38,31 @@ Prérequis : JDK 25 (Temurin) et Node.js ≥ 24.15.
 (cd frontend && npm ci && npm run lint && npm run format:check && npm test)
 (cd contract && npm ci && npm run format:check && npm run validate && npm test)
 ```
+
+### Tests de bout en bout
+
+```bash
+# e2e Playwright contre un faux socket (Chromium, Firefox, WebKit, axe-core, accessibilité)
+(cd frontend && npm run build:e2e && npm run e2e)
+
+# Parcours du quickstart contre le vrai webservice : jar construit, base PostgreSQL désignée par DATABASE_URL
+(cd backend && ./mvnw -B -DskipTests package)
+(cd frontend && API_BASE_URL=http://127.0.0.1:4310 npm run build:e2e \
+  && DATABASE_URL=postgresql://wsjf:wsjf@localhost:5432/wsjf npm run e2e:journeys)
+
+# Test de charge (SC-002, SC-005) : 10 participants, 50 fonctionnalités
+node deploy/load-test.mjs --url http://localhost:8080
+```
+
+Sans navigateurs Playwright installés, `PLAYWRIGHT_CHROMIUM_PATH` désigne un Chromium existant.
+La validation complète de la feature est décrite dans
+[`quickstart.md`](specs/001-wsjf-prioritization-session/quickstart.md).
+
+### Déploiement
+
+Le front est un site statique Render, le webservice une image Docker sur Render et la base est sur
+Neon. La mise en place, les mises à jour, les règles d'usage et le test de charge sont dans
+[`deploy/README.md`](deploy/README.md).
 
 `./mvnw spotless:apply` reformate le Java. Une dérogation Error Prone se fait au cas par cas avec
 `@SuppressWarnings("NomDeLaVérification")` et un commentaire qui explique pourquoi.
@@ -46,7 +86,8 @@ PostgreSQL jetable : `TEST_DATABASE_URL=postgresql://postgres@localhost:5433/pe 
 `contract` (format, validation, tests), `backend` (`./mvnw verify` avec un service
 PostgreSQL 17, puis l'image Docker, démarrée sous un UID arbitraire en lecture seule hors
 `/tmp`, avec des journaux JSON), `frontend` (lint, format, tests avec seuils de couverture,
-builds, e2e Playwright sur Chromium, Firefox et WebKit) et `journeys` (vide jusqu'à T048).
+builds, e2e Playwright sur Chromium, Firefox et WebKit) et `journeys` (parcours du quickstart
+contre le vrai webservice, sur les trois navigateurs).
 
 ### Sessions Claude Code dans le cloud
 
@@ -69,9 +110,6 @@ Le dépôt applique l'outillage de sécurité exigé par la constitution
 | **Secret scanning et push protection** | Réglage GitHub | À chaque push : GitHub refuse un push qui contient un secret reconnu |
 | **Dependency Review** | [`.github/workflows/dependency-review.yml`](.github/workflows/dependency-review.yml) | Sur chaque PR : bloque l'ajout d'une dépendance avec une vulnérabilité haute ou critique |
 | **actionlint** | [`.github/workflows/actionlint.yml`](.github/workflows/actionlint.yml) | Sur chaque PR et sur `main` : vérifie les workflows GitHub Actions |
-
-Tant que `backend/`, `frontend/` et `contract/` n'existent pas, CodeQL n'analyse que les
-workflows, et Dependabot ne suit que les GitHub Actions.
 
 ### Réglages GitHub à activer à la main
 
