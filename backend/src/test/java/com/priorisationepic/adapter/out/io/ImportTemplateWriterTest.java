@@ -14,7 +14,9 @@ class ImportTemplateWriterTest {
 
   @Test
   void theHeadersAndExampleFollowTheMethodDefinition() throws IOException {
-    byte[] content = new ImportTemplateWriter().write(new FakeTwoCriteriaMethod().definition());
+    byte[] content =
+        new ImportTemplateWriter(ImportFixtures.TEXTS)
+            .write(new FakeTwoCriteriaMethod().definition());
 
     try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(content))) {
       Sheet sheet = workbook.getSheetAt(0);

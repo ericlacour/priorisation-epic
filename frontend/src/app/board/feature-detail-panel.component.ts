@@ -46,7 +46,7 @@ const REASON_MAX = 200;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-side-panel labelledBy="detail-title" (closed)="closed.emit()">
-      <header class="panel-head">
+      <div class="panel-head">
         <span class="muted small">
           {{ feature().externalId }} · {{ rankLabel() }}
           @if (feature().markedForReview) {
@@ -69,7 +69,7 @@ const REASON_MAX = 200;
         } @else {
           <h2 id="detail-title">{{ feature().title }}</h2>
         }
-      </header>
+      </div>
 
       @if (canAnimate() && !editing()) {
         <div class="actions">

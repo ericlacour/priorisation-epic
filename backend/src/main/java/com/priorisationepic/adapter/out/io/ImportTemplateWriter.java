@@ -16,21 +16,26 @@ import org.springframework.stereotype.Component;
 /**
  * Modèle Excel vierge (FR-007a, contracts/file-formats.md), généré à partir de la définition de la
  * méthode : une feuille « Fonctionnalités », les en-têtes {@code Identifiant}, {@code Titre},
- * {@code Description} puis le {@code header} de chaque critère, et une ligne d'exemple.
+ * {@code Description} puis le {@code header} de chaque critère, et une ligne d'exemple. Le nom de
+ * la feuille et les textes de l'exemple viennent de {@code messages.properties} (constitution V).
  */
 @Component
 public class ImportTemplateWriter implements ImportTemplate {
 
-  static final String SHEET = "Fonctionnalités";
-
   /** Valeurs d'exemple des critères, prises dans l'ordre de la définition (8, 5, 3, 4 en WSJF). */
   private static final int[] EXAMPLE_VALUES = {8, 5, 3, 4};
+
+  private final ImportTexts texts;
+
+  public ImportTemplateWriter(ImportTexts texts) {
+    this.texts = texts;
+  }
 
   @Override
   public byte[] write(MethodDefinition method) {
     try (XSSFWorkbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = workbook.createSheet(SHEET);
+      Sheet sheet = workbook.createSheet(texts.text("template.sheet"));
       CellStyle bold = workbook.createCellStyle();
       Font font = workbook.createFont();
       font.setBold(true);
@@ -44,8 +49,8 @@ public class ImportTemplateWriter implements ImportTemplate {
       }
       Row example = sheet.createRow(1);
       example.createCell(0).setCellValue("F-1");
-      example.createCell(1).setCellValue("Exemple de fonctionnalité");
-      example.createCell(2).setCellValue("Description facultative");
+      example.createCell(1).setCellValue(texts.text("template.example.title"));
+      example.createCell(2).setCellValue(texts.text("template.example.description"));
       for (int i = 0; i < method.criteria().size(); i++) {
         example.createCell(3 + i).setCellValue(EXAMPLE_VALUES[i % EXAMPLE_VALUES.length]);
       }

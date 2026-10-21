@@ -11,16 +11,17 @@ import {
 } from '@angular/core';
 
 import { MESSAGES } from '../i18n/messages.fr';
+import { keepTabInside } from './focus-trap';
 
 /**
  * Fenêtre modale centrée (import, échelle) : se ferme par la croix, la touche Échap ou un clic à côté. Le focus
- * entre dans la fenêtre à l'ouverture et revient à l'élément qui l'avait à la fermeture. Occupe tout l'écran sur
- * téléphone (feuille de style globale).
+ * entre dans la fenêtre à l'ouverture, n'en sort pas avec Tab, et revient à l'élément qui l'avait à la fermeture.
+ * Occupe tout l'écran sur téléphone (feuille de style globale).
  */
 @Component({
   selector: 'app-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown.escape)': 'closed.emit()' },
+  host: { '(document:keydown.escape)': 'closed.emit()', '(keydown)': 'keepFocus($event)' },
   template: `
     <button
       type="button"
@@ -61,7 +62,17 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.opener = this.document.activeElement as HTMLElement | null;
-    queueMicrotask(() => this.host.nativeElement.querySelector<HTMLElement>('.modal')?.focus());
+    queueMicrotask(() => this.dialog()?.focus());
+  }
+
+  /** Tab et Maj+Tab restent dans la fenêtre (`aria-modal`). */
+  protected keepFocus(event: KeyboardEvent): void {
+    const dialog = this.dialog();
+    if (dialog) keepTabInside(event, dialog);
+  }
+
+  private dialog(): HTMLElement | null {
+    return this.host.nativeElement.querySelector<HTMLElement>('.modal');
   }
 
   ngOnDestroy(): void {

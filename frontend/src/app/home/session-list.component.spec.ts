@@ -95,7 +95,7 @@ describe('SessionListComponent', () => {
       'GET /api/sessions': () => (++attempts === 1 ? reply(500, {}) : reply(200, SESSIONS)),
     });
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
-      'La liste des sessions est indisponible.',
+      'La liste des sessions est indisponible : réessayez dans un instant.',
     );
 
     element.querySelector<HTMLButtonElement>('button')!.click();

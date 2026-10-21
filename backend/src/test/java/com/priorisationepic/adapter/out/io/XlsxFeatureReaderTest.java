@@ -141,7 +141,7 @@ class XlsxFeatureReaderTest {
   void aFileOfMoreThan5MbIsRefused() {
     assertThatThrownBy(() -> reader.read(new byte[5 * 1024 * 1024 + 1], wsjf()))
         .isInstanceOf(ImportRefusedException.class)
-        .hasMessage("Le fichier dépasse 5 Mo.");
+        .hasMessage("Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.");
   }
 
   @Test
@@ -171,7 +171,8 @@ class XlsxFeatureReaderTest {
 
   @Test
   void theTemplateIsReadBackAsOneValidRow() {
-    byte[] template = new ImportTemplateWriter().write(WsjfMethod.version1().definition());
+    byte[] template =
+        new ImportTemplateWriter(ImportFixtures.TEXTS).write(WsjfMethod.version1().definition());
 
     ImportPreview preview = reader.read(template, wsjf());
 

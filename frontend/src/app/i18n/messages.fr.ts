@@ -36,8 +36,9 @@ export const MESSAGES = {
     methodLabel: 'Méthode de priorisation',
     methodHelp: 'Elle ne pourra plus être changée après la création.',
     methodDetail: 'Voir le détail de la méthode',
+    methodOption: '{name} (version {version}) : {formula}',
     methodsLoading: 'Chargement des méthodes…',
-    methodsError: 'Les méthodes de priorisation sont indisponibles.',
+    methodsError: 'Les méthodes de priorisation sont indisponibles : réessayez dans un instant.',
     methodsRetry: 'Réessayer',
     submit: 'Créer la session',
     submitting: 'Création en cours…',
@@ -96,12 +97,13 @@ export const MESSAGES = {
   },
   apiErrors: {
     invalid: 'Les valeurs saisies sont invalides. Corrigez-les et réessayez.',
-    pseudoTaken: 'Ce pseudo est déjà utilisé dans cette session.',
+    pseudoTaken: 'Ce pseudo est déjà utilisé dans cette session. Choisissez-en un autre.',
     nameTaken: 'Une session porte déjà ce nom. Choisissez-en un autre.',
-    notFound: "Cette session n'existe pas.",
+    notFound: "Cette session n'existe pas : vérifiez le lien auprès de l'animateur.",
     tooManyRequests: 'Trop de sessions créées depuis cette adresse. Réessayez dans une minute.',
-    forbidden: "Seul l'animateur peut faire cette action.",
-    tooLarge: 'Le fichier dépasse 5 Mo.',
+    forbidden:
+      "Seul l'animateur peut faire cette action : ouvrez la session avec votre lien d'animation.",
+    tooLarge: 'Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.',
     network: 'Le service ne répond pas. Vérifiez votre connexion et réessayez.',
   },
   board: {
@@ -206,7 +208,7 @@ export const MESSAGES = {
     method: '{method} v{version}',
     loading: 'Chargement des sessions…',
     empty: 'Aucune session pour l’instant.',
-    error: 'La liste des sessions est indisponible.',
+    error: 'La liste des sessions est indisponible : réessayez dans un instant.',
     retry: 'Réessayer',
     open: 'Ouvrir la session {name}',
     filters: {
@@ -372,20 +374,28 @@ export const MESSAGES = {
   },
   intentErrors: {
     INVALID_MESSAGE: "La demande n'a pas été comprise. Rechargez la page et réessayez.",
-    FORBIDDEN: "Seul l'animateur peut faire cette action.",
-    SESSION_CLOSED: 'La session est clôturée : elle est en lecture seule.',
+    FORBIDDEN:
+      "Seul l'animateur peut faire cette action : ouvrez la session avec votre lien d'animation.",
+    SESSION_CLOSED:
+      'La session est clôturée, donc en lecture seule : rouvrez-la avec « Rouvrir la session » pour la modifier.',
     STALE_VERSION: 'La fonctionnalité a été modifiée entre-temps : vérifiez sa version actuelle.',
-    INVALID_VALUE: "Une valeur est en dehors de l'échelle de la session.",
+    INVALID_VALUE:
+      "Une valeur est en dehors de l'échelle de la session : choisissez une valeur autorisée par l'échelle.",
     DUPLICATE_EXTERNAL_ID: 'Cet identifiant existe déjà dans la session. Choisissez-en un autre.',
-    FEATURE_IN_OPEN_ROUND: 'Cette fonctionnalité est dans un tour de vote ouvert.',
-    ROUND_REVEALED: 'Ce tour est déjà révélé.',
-    SCALE_IMPACT: "Ce changement d'échelle met des valeurs hors échelle.",
-    UNKNOWN_PARTICIPANT: 'Ce participant est inconnu.',
+    FEATURE_IN_OPEN_ROUND:
+      'Cette fonctionnalité est dans un tour de vote ouvert : révélez le tour, puis réessayez.',
+    ROUND_REVEALED: 'Ce tour est déjà révélé : ouvrez un nouveau tour pour voter de nouveau.',
+    SCALE_IMPACT:
+      "Ce changement d'échelle met des valeurs hors échelle : confirmez-le, ou gardez l'échelle actuelle.",
+    UNKNOWN_PARTICIPANT:
+      'Ce participant est inconnu : rechargez la page pour mettre à jour la liste des participants.',
     SESSION_NOT_STARTED:
       'La session n’est pas démarrée : cliquez d’abord sur « Démarrer la session ».',
     ROUND_OPEN: 'Un tour de vote est ouvert : révélez-le d’abord.',
-    PARTICIPANT_OFFLINE: "Ce participant n'est pas connecté.",
-    UNKNOWN_CRITERION: "Ce critère n'existe pas dans la méthode de la session.",
+    PARTICIPANT_OFFLINE:
+      "Ce participant n'est pas connecté : attendez son retour, ou choisissez un participant en ligne.",
+    UNKNOWN_CRITERION:
+      "Ce critère n'existe pas dans la méthode de la session : rechargez la page, puis réessayez.",
     SESSION_NAME_TAKEN: 'Une session porte déjà ce nom. Choisissez-en un autre.',
     NOT_CONNECTED:
       'Connexion perdue : votre modification n’a pas été envoyée. Réessayez dans un instant.',
@@ -437,9 +447,10 @@ export const MESSAGES = {
     close: 'Terminer',
     anotherFile: 'Choisir un autre fichier',
     errors: {
-      tooLarge: 'Le fichier dépasse 5 Mo.',
+      tooLarge: 'Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.',
       expired: 'L’aperçu a expiré : importez de nouveau le fichier.',
-      forbidden: 'Seul l’animateur peut importer des fonctionnalités.',
+      forbidden:
+        'Seul l’animateur peut importer des fonctionnalités : ouvrez la session avec votre lien d’animation.',
       network: 'Le service ne répond pas. Vérifiez votre connexion et réessayez.',
     },
   },
@@ -451,7 +462,7 @@ export const MESSAGES = {
     fibonacci: 'Suite de Fibonacci',
     fibonacciHint: '1, 2, 3, 5, 8, 13, 20, 40, 100',
     max: 'Borne supérieure',
-    maxInvalid: 'La borne est un entier de 2 à 100.',
+    maxInvalid: 'La borne doit être un entier de 2 à 100.',
     allowed: 'Valeurs autorisées :',
     impactTitle: '{count} valeur(s) deviennent hors échelle.',
     impactText:

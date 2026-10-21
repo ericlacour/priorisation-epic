@@ -149,6 +149,45 @@ Le déploiement automatique sur une étiquette `v*` (`deploy/render-deploy.sh` e
 `.github/workflows/deploy.yml`, tâche T062) n'est pas encore en place ; aucun secret GitHub n'est
 donc nécessaire pour l'instant.
 
+## Test de charge (SC-002 et SC-005)
+
+Le script [`load-test.mjs`](load-test.mjs) vérifie les objectifs de la spec : avec 10 participants
+connectés et 50 fonctionnalités, chaque modification est visible par tous en moins de 2 s, et
+l'ouverture de la session prend moins de 3 s. Il n'a aucune dépendance (Node 24 et son WebSocket
+natif suffisent).
+
+- L'animateur crée une session, s'y connecte, ajoute F fonctionnalités (`--features`, 50 par
+  défaut) avec des valeurs au hasard, puis démarre la session.
+- Les autres participants (`--participants`, 10 par défaut, animateur compris) rejoignent la
+  session et s'y connectent. L'ouverture est mesurée de l'envoi de `hello` au premier
+  `sessionState` reçu.
+- L'animateur fait E modifications de valeur (`--edits`, 100 par défaut, `--pause-ms` 200 entre
+  deux). Pour chacune, le script mesure le délai jusqu'à la réception, par chaque participant
+  connecté, de l'instantané qui porte la nouvelle version de la fonctionnalité.
+- Toutes les connexions se ferment puis se rouvrent en même temps (cas d'un redéploiement) ;
+  chaque ouverture est mesurée. La session est ensuite clôturée.
+- Il affiche p50, p95, p99 et max des diffusions, des ouvertures et des ouvertures simultanées. Il
+  sort en erreur (code 1) si une diffusion dépasse 2 s ou n'arrive pas, si une ouverture dépasse
+  3 s, si le webservice répond `error` ou si une connexion tombe ; sinon avec le code 0.
+
+`ALLOWED_ORIGINS` filtre l'en-tête `Origin` des WebSocket. Le script n'en envoie aucun par défaut ;
+si le webservice le refuse, passer l'adresse du front avec `--origin`. Chaque essai laisse une
+session clôturée « Test de charge … » dans la liste de l'accueil.
+
+```bash
+# Contre Render : réveiller d'abord le webservice (ouvrir le front), hors atelier.
+node deploy/load-test.mjs --url https://priorisation-epic.onrender.com \
+  --origin https://priorisation-epic-app.onrender.com
+```
+
+| Date | Cible | Paramètres | Résultat |
+| --- | --- | --- | --- |
+| 2026-10-21 | webservice local (`java -jar`, PostgreSQL 16 local) | 10 participants, 50 fonctionnalités, 100 modifications | OK : 1 000 diffusions, p50 16,4 ms, p95 24,4 ms, max 151,1 ms ; ouvertures (9) max 10,2 ms ; ouvertures simultanées (10) max 57,8 ms |
+| 2026-10-21 | webservice local, idem | 10 participants, 100 fonctionnalités, 30 modifications sans pause | OK : 300 diffusions, max 36,2 ms ; ouvertures simultanées max 140,4 ms |
+
+Un essai contre Render reste à faire et à noter ici : la sortie vers Render n'était pas possible
+depuis l'environnement qui a écrit le script.
+
 ## Secret exposé
 
 Si la chaîne Neon a fuité : dans Neon, **Roles → Reset password**, puis mettre la nouvelle

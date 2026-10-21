@@ -39,7 +39,7 @@ cd backend  && docker build -t priorisation-epic-api:ci . \
   && curl -sf localhost:9090/api/health                  # image compatible OpenShift
 cd frontend && npm run lint && npm run format:check     # ESLint (angular-eslint) et Prettier
 cd frontend && npm test && npm run e2e                   # Vitest avec seuils de couverture, e2e Playwright contre un faux socket (avec axe-core)
-cd frontend && npm run e2e:journeys                      # parcours V1 à V14 contre le vrai webservice
+cd frontend && npm run e2e:journeys                      # parcours V1 à V18 (hors vote masqué) contre le vrai webservice
 bash deploy/render-deploy.test.sh                        # script de déploiement Render
 ```
 
@@ -97,6 +97,26 @@ ouvert.
 Une session créée existe toujours après un redéploiement, puisqu'elle est en base. Après
 15 minutes d'inactivité, le premier accès affiche l'écran de réveil, puis l'application
 répond.
+
+### Déroulé du 2026-10-21 (T120)
+
+Webservice local (`java -jar`, PostgreSQL 16 local), parcours sur Chromium ; la CI les rejoue sur
+Chromium, Firefox et WebKit.
+
+| Scénarios | Couverture | Résultat |
+|-----------|-----------|----------|
+| V1, V1a, V2, V3, V4 (partie US1), V14, V16 | `e2e-journeys/us1-saisie-directe.spec.ts` | OK |
+| V9, V10 (sans tour ouvert) | `e2e-journeys/us3-import-echelle.spec.ts` | OK |
+| V11, V12 | `e2e-journeys/us4-exports.spec.ts` | OK. Le rendu dans Excel FR et dans une vraie page Confluence (SC-007) reste à vérifier à la main |
+| V13 | `e2e-journeys/us5-consultation.spec.ts` | OK |
+| V13a | `e2e/home.spec.ts` | OK |
+| V13b, V17 (sans tour de vote), V18 | `e2e-journeys/finitions.spec.ts` | OK |
+| V15 | `e2e-journeys/reconnexion.spec.ts` | OK, sans la reprise des votes (vote masqué, phase 9) |
+| V5 à V8 | Vote masqué et transmission du rôle | Hors de ce déroulé (T083b, phase 9) |
+| SC-002, SC-005 | `deploy/load-test.mjs` | OK en local ; essai contre Render à faire |
+| Accessibilité | `e2e/accessibility.spec.ts` | OK |
+| Journaux | `NoSecretInLogsTest` | OK : aucun jeton ni texte envoyé |
+| Sécurité | CI, CodeQL, Gitleaks et actionlint sur `main` | Verts sur le dernier merge (PR 24) ; CodeQL et mutation hebdomadaires verts le 2026-10-19. Dependabot et la protection de branche se vérifient dans les réglages GitHub |
 
 Après 5 minutes d'inactivité, la base Neon se met en veille : la requête suivante la
 réveille, sans erreur côté application.

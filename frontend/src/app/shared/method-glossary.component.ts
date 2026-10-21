@@ -21,9 +21,9 @@ export function glossaryTitle(definition: MethodDefinition): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-side-panel labelledBy="glossary-title" (closed)="closed.emit()">
-      <header class="panel-head">
+      <div class="panel-head">
         <h2 id="glossary-title">{{ title() }}</h2>
-      </header>
+      </div>
       <dl class="glossary">
         @for (entry of entries(); track entry.key) {
           <dt>{{ entry.code }} · {{ entry.label }}</dt>

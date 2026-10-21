@@ -63,7 +63,8 @@ class JsonSessionReaderTest {
     assertThatThrownBy(() -> reader.read(file("autre-methode.json"), wsjf()))
         .isInstanceOf(ImportRefusedException.class)
         .hasMessage(
-            "Ce fichier a été produit avec la méthode REACH v1 ; cette session utilise WSJF v1.");
+            "Ce fichier a été produit avec la méthode REACH v1 ; cette session utilise WSJF v1."
+                + " Importez-le dans une session qui utilise REACH v1.");
   }
 
   @Test
@@ -81,7 +82,9 @@ class JsonSessionReaderTest {
   void anUnknownFormatVersionOrAnUnreadableFileIsRefused() {
     assertThatThrownBy(() -> read("{\"formatVersion\":2,\"session\":{},\"features\":[]}"))
         .isInstanceOf(ImportRefusedException.class)
-        .hasMessage("Ce fichier JSON est au format 2, que l'outil ne connaît pas.");
+        .hasMessage(
+            "Ce fichier JSON est au format 2, que l'outil ne connaît pas : importez un export JSON"
+                + " produit par l'outil.");
     assertThatThrownBy(() -> read("{pas du json"))
         .isInstanceOf(ImportRefusedException.class)
         .hasMessageStartingWith("Le fichier JSON est illisible");
@@ -114,7 +117,7 @@ class JsonSessionReaderTest {
         .hasMessageStartingWith("Le fichier dépasse 1 000 lignes");
     assertThatThrownBy(() -> reader.read(new byte[5 * 1024 * 1024 + 1], wsjf()))
         .isInstanceOf(ImportRefusedException.class)
-        .hasMessage("Le fichier dépasse 5 Mo.");
+        .hasMessage("Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.");
   }
 
   private static String document(String features) {

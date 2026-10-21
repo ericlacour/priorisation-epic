@@ -2,5 +2,5 @@
   "type": "about:blank",
   "title": "Content Too Large",
   "status": 413,
-  "detail": "La requête dépasse la taille autorisée."
+  "detail": "La requête dépasse la taille autorisée : raccourcissez les textes saisis, puis réessayez."
 }

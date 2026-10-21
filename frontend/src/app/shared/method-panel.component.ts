@@ -16,13 +16,13 @@ import { SidePanelComponent } from './side-panel.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-side-panel labelledBy="method-panel-title" (closed)="closed.emit()">
-      <header class="panel-head">
+      <div class="panel-head">
         <span class="muted small">{{ messages.caption }}</span>
         <h2 id="method-panel-title">
           {{ definition().name }}
           <span class="badge">{{ versionLabel() }}</span>
         </h2>
-      </header>
+      </div>
       <section>
         <h3>{{ messages.formula }}</h3>
         <p class="formula">{{ definition().formula }}</p>

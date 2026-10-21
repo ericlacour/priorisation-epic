@@ -119,7 +119,7 @@ describe('SettingsDialogComponent', () => {
     fixture.detectChanges();
 
     expect(element.querySelector('#settings-max-error')?.textContent).toContain(
-      'La borne est un entier de 2 à 100.',
+      'La borne doit être un entier de 2 à 100.',
     );
     expect(button(element, 'Appliquer')?.disabled).toBe(true);
     expect(room.updateSettings).not.toHaveBeenCalled();

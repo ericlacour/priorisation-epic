@@ -122,6 +122,11 @@ textarea.input {
   margin-top: 0;
 }
 
+/* --muted sur --primary-soft n'atteint pas 4,5:1 (constitution IV) : l'aide de l'encadré prend la couleur du texte. */
+.secret .help {
+  color: var(--fg);
+}
+
 .linkbox {
   display: flex;
   flex-wrap: wrap;
