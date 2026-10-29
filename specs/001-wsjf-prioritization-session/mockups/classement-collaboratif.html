@@ -562,7 +562,7 @@ a { color: var(--primary-ink); }
   /* ---------- Toasts et fil ---------- */
   function toast(msg) {
     const area = frame.querySelector('.toasts'); if (!area) return;
-    const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.innerHTML = msg;
+    const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg;
     area.appendChild(t); setTimeout(() => t.remove(), 3200);
   }
 
