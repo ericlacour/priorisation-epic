@@ -18,6 +18,14 @@ info:
       connection of the session, each one **filtered for its recipient** (FR-019, FR-019a,
       SC-004).
     - The contract only evolves by addition.
+    - Exception, the **live ranking room** (FR-015b, FR-015c, added 2026-10-29): its intents
+      (`updateRankingDraft`, `endRanking`, `giveOpinion`, `clearOpinions`, `setSpotlight`)
+      write nothing
+      to the database, do not increment `version` and do not trigger `sessionState`. After
+      each accepted one, the server sends a fresh `rankingRoom` to every connection of the
+      session, filtered for its recipient. The room lives in memory, one per session, from
+      the first `updateRankingDraft` to `endRanking`; it is lost on a server restart, which
+      only ends the room (the retained values are still written with `updateFeature`).
     - The contract never lists the criteria of a method (FR-017a, FR-017b). Criteria and computed
       values are maps keyed by the keys that `sessionState.methodDefinition` declares (for WSJF:
       criteria `bv`, `tc`, `rrOe`, `js`; computed values `cod`, `wsjf`). Adding a method adds
@@ -60,7 +68,25 @@ channels:
       `ROUND_OPEN` (`openRound`, `changeStatus CLOSE` or a scale change in `updateSettings`
       while a round is open: only one open round per session in V1), `PARTICIPANT_OFFLINE`
       (`transferFacilitator` to a participant with no open connection), `SESSION_NAME_TAKEN`
-      (`updateSettings` renaming the session to the name of another session, FR-001a).
+      (`updateSettings` renaming the session to the name of another session, FR-001a),
+      `NO_RANKING_IN_PROGRESS` (a ranking room intent other than `updateRankingDraft` while
+      no room is open), `NOT_IN_RANKING` (a feature or criterion outside the current draft).
+
+      Live ranking room (FR-015b, FR-015c):
+      - the facilitator's first `updateRankingDraft` opens the room; every member then gets
+        `rankingRoom` with `active: true`. A connection that opens (or reopens) while a room is
+        open gets `rankingRoom` right after `sessionState`;
+      - the room ends on `endRanking` (`SAVED` once the server confirmed every `updateFeature`,
+        or `CANCELLED`), when the facilitator's last connection closes (`FACILITATOR_LEFT`), on
+        `transferFacilitator` (`FACILITATOR_CHANGED`) or on `changeStatus CLOSE`
+        (`SESSION_CLOSED`). Every member then gets one last `rankingRoom` with `active: false`
+        and `endReason`, and goes back to the board;
+      - the facilitator's client sends a full snapshot of its draft, at most once every 200 ms
+        (latest state only); the server forwards the latest snapshot it holds;
+      - opinions and the spotlight are dropped with the room: never stored, exported nor
+        written to the change log (FR-025);
+      - phones are read-only in V1: the front sends none of these intents from a phone; the
+        server does not tell devices apart.
     parameters:
       sessionId:
         description: 128 random bits, base64url without padding (22 characters).
@@ -76,6 +102,12 @@ channels:
       castVote: { $ref: '#/components/messages/castVote' }
       revealRound: { $ref: '#/components/messages/revealRound' }
       transferFacilitator: { $ref: '#/components/messages/transferFacilitator' }
+      updateRankingDraft: { $ref: '#/components/messages/updateRankingDraft' }
+      endRanking: { $ref: '#/components/messages/endRanking' }
+      giveOpinion: { $ref: '#/components/messages/giveOpinion' }
+      clearOpinions: { $ref: '#/components/messages/clearOpinions' }
+      setSpotlight: { $ref: '#/components/messages/setSpotlight' }
+      rankingRoom: { $ref: '#/components/messages/rankingRoom' }
       sessionState: { $ref: '#/components/messages/sessionState' }
       facilitatorHandover: { $ref: '#/components/messages/facilitatorHandover' }
       tick: { $ref: '#/components/messages/tick' }
@@ -102,6 +134,12 @@ operations:
   receiveCastVote: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Send or replace own ranking for the round (FR-019)', messages: [{ $ref: '#/channels/session/messages/castVote' }] }
   receiveRevealRound: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Reveal the whole round (FR-020) - facilitator', messages: [{ $ref: '#/channels/session/messages/revealRound' }] }
   receiveTransferFacilitator: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Hand over the facilitator role (FR-002a) - facilitator', messages: [{ $ref: '#/channels/session/messages/transferFacilitator' }] }
+  receiveUpdateRankingDraft: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Open the room or broadcast the ranking draft, or pause the broadcast (FR-015b) - facilitator', messages: [{ $ref: '#/channels/session/messages/updateRankingDraft' }] }
+  receiveEndRanking: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Close the ranking room, saved or cancelled (FR-015b) - facilitator', messages: [{ $ref: '#/channels/session/messages/endRanking' }] }
+  receiveGiveOpinion: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Give, change or withdraw an opinion on a card, with an optional comment (FR-015c) - participant', messages: [{ $ref: '#/channels/session/messages/giveOpinion' }] }
+  receiveClearOpinions: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Clear the opinions of a card for a criterion (FR-015c point 3) - facilitator', messages: [{ $ref: '#/channels/session/messages/clearOpinions' }] }
+  receiveSetSpotlight: { action: receive, channel: { $ref: '#/channels/session' }, summary: 'Start or end the card under discussion (FR-015c point 4) - facilitator', messages: [{ $ref: '#/channels/session/messages/setSpotlight' }] }
+  sendRankingRoom: { action: send, channel: { $ref: '#/channels/session' }, summary: 'Live ranking room, filtered per recipient (FR-015b, FR-015c)', messages: [{ $ref: '#/channels/session/messages/rankingRoom' }] }
   sendSessionState: { action: send, channel: { $ref: '#/channels/session' }, summary: 'Full state, filtered per recipient', messages: [{ $ref: '#/channels/session/messages/sessionState' }] }
   sendFacilitatorHandover: { action: send, channel: { $ref: '#/channels/session' }, summary: "New animation token, sent only to the beneficiary's connections", messages: [{ $ref: '#/channels/session/messages/facilitatorHandover' }] }
   sendTick: { action: send, channel: { $ref: '#/channels/session' }, messages: [{ $ref: '#/channels/session/messages/tick' }] }
@@ -120,6 +158,12 @@ components:
     castVote: { name: castVote, payload: { $ref: '#/components/schemas/castVote' } }
     revealRound: { name: revealRound, payload: { $ref: '#/components/schemas/revealRound' } }
     transferFacilitator: { name: transferFacilitator, payload: { $ref: '#/components/schemas/transferFacilitator' } }
+    updateRankingDraft: { name: updateRankingDraft, payload: { $ref: '#/components/schemas/updateRankingDraft' } }
+    endRanking: { name: endRanking, payload: { $ref: '#/components/schemas/endRanking' } }
+    giveOpinion: { name: giveOpinion, payload: { $ref: '#/components/schemas/giveOpinion' } }
+    clearOpinions: { name: clearOpinions, payload: { $ref: '#/components/schemas/clearOpinions' } }
+    setSpotlight: { name: setSpotlight, payload: { $ref: '#/components/schemas/setSpotlight' } }
+    rankingRoom: { name: rankingRoom, payload: { $ref: '#/components/schemas/rankingRoom' } }
     sessionState: { name: sessionState, payload: { $ref: '#/components/schemas/sessionState' } }
     facilitatorHandover: { name: facilitatorHandover, payload: { $ref: '#/components/schemas/facilitatorHandover' } }
     tick: { name: tick, payload: { $ref: '#/components/schemas/tick' } }
@@ -303,6 +347,127 @@ components:
       required: [type]
       properties:
         type: { const: tick }
+    rankingDraft:
+      type: object
+      description: >-
+        Snapshot of the facilitator's ranking screen (FR-015a steps 2 to 4), never stored.
+        Features in an open round get `error FEATURE_IN_OPEN_ROUND`; a value outside the scale
+        gets `error INVALID_VALUE`; a feature listed twice gets `error INVALID_MESSAGE`.
+      required: [criterionKeys, criterionKey, levels, unranked, values]
+      properties:
+        criterionKeys:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          description: Criteria chosen at step 1, in method definition order
+          items: { $ref: '#/components/schemas/criterionKey' }
+        criterionKey:
+          description: Criterion being ranked, one of criterionKeys
+          $ref: '#/components/schemas/criterionKey'
+        levels:
+          type: array
+          description: From the highest to the lowest level; features of a level are tied
+          items:
+            type: array
+            minItems: 1
+            items: { type: string, format: uuid }
+        unranked:
+          type: array
+          description: Features waiting in "Non classées (sans valeur)"
+          items: { type: string, format: uuid }
+        values:
+          type: object
+          description: Value of each ranked feature for criterionKey, by featureId; null or missing means no value
+          additionalProperties: { type: [integer, 'null'], minimum: 1 }
+    updateRankingDraft:
+      type: object
+      required: [type, live]
+      description: >-
+        Facilitator only (`error FORBIDDEN` otherwise; `error SESSION_CLOSED` in CLOSED). The
+        first one opens the room. With `live: true`, `draft` is required and replaces the
+        broadcast draft. With `live: false`, the broadcast is paused: `draft` is ignored and
+        members keep the last broadcast one (FR-015b).
+      properties:
+        type: { const: updateRankingDraft }
+        live: { type: boolean }
+        draft: { $ref: '#/components/schemas/rankingDraft' }
+    endRanking:
+      type: object
+      required: [type, outcome]
+      properties:
+        type: { const: endRanking }
+        outcome:
+          type: string
+          enum: [SAVED, CANCELLED]
+          description: SAVED once every updateFeature sent by "Terminer" is confirmed; CANCELLED on "Annuler"
+    opinionKind:
+      type: string
+      enum: [AGREE, RAISE, LOWER]
+      description: "D'accord, Je monterais, Je descendrais (FR-015c point 1)"
+    giveOpinion:
+      type: object
+      required: [type, featureId, criterionKey, opinion]
+      description: >-
+        Participant only (`error FORBIDDEN` for the facilitator, who moves the card instead).
+        One opinion per member, feature and criterion: a new one replaces the previous one;
+        `opinion: null` withdraws it with its comment. `comment` is optional and never
+        required; when absent, a changed opinion keeps the previous comment, and an empty
+        string clears it. A feature outside the draft or a criterion outside
+        `draft.criterionKeys` gets `error NOT_IN_RANKING`.
+      properties:
+        type: { const: giveOpinion }
+        featureId: { type: string, format: uuid }
+        criterionKey: { $ref: '#/components/schemas/criterionKey' }
+        opinion:
+          oneOf:
+            - $ref: '#/components/schemas/opinionKind'
+            - type: 'null'
+        comment: { type: string, maxLength: 140 }
+    clearOpinions:
+      type: object
+      required: [type, featureId, criterionKey]
+      description: Facilitator only. Removes every opinion of the feature for the criterion ("Effacer les avis").
+      properties:
+        type: { const: clearOpinions }
+        featureId: { type: string, format: uuid }
+        criterionKey: { $ref: '#/components/schemas/criterionKey' }
+    setSpotlight:
+      type: object
+      required: [type, featureId]
+      description: >-
+        Facilitator only. A featureId puts that feature under discussion for everyone and ends
+        the previous one; null ends the discussion. No timer.
+      properties:
+        type: { const: setSpotlight }
+        featureId: { type: [string, 'null'], format: uuid }
+    rankingRoom:
+      type: object
+      required: [type, active]
+      description: >-
+        Live ranking room (FR-015b, FR-015c), the same for every member. When `active` is
+        false, only `endReason` is set, and the client goes back to the board.
+      properties:
+        type: { const: rankingRoom }
+        active: { type: boolean }
+        endReason:
+          type: [string, 'null']
+          enum: [SAVED, CANCELLED, FACILITATOR_LEFT, FACILITATOR_CHANGED, SESSION_CLOSED, null]
+        facilitatorId: { type: string, format: uuid }
+        live: { type: boolean, description: False while the facilitator paused the broadcast }
+        draft: { $ref: '#/components/schemas/rankingDraft' }
+        opinions:
+          type: array
+          description: Opinions on the chosen criteria, oldest first
+          items:
+            type: object
+            required: [featureId, criterionKey, participantId, opinion]
+            properties:
+              featureId: { type: string, format: uuid }
+              criterionKey: { $ref: '#/components/schemas/criterionKey' }
+              participantId: { type: string, format: uuid }
+              opinion: { $ref: '#/components/schemas/opinionKind' }
+              comment: { type: [string, 'null'], maxLength: 140 }
+        spotlightFeatureId: { type: [string, 'null'], format: uuid, description: Feature under discussion }
     error:
       type: object
       required: [type, code]
@@ -313,7 +478,7 @@ components:
           enum: [INVALID_MESSAGE, FORBIDDEN, SESSION_CLOSED, STALE_VERSION, INVALID_VALUE,
                  DUPLICATE_EXTERNAL_ID, FEATURE_IN_OPEN_ROUND, ROUND_REVEALED, SCALE_IMPACT,
                  UNKNOWN_PARTICIPANT, SESSION_NOT_STARTED, ROUND_OPEN, PARTICIPANT_OFFLINE,
-                 UNKNOWN_CRITERION, SESSION_NAME_TAKEN]
+                 UNKNOWN_CRITERION, SESSION_NAME_TAKEN, NO_RANKING_IN_PROGRESS, NOT_IN_RANKING]
         featureId: { type: string, format: uuid }
         impactedValues:
           type: array

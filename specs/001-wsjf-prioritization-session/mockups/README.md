@@ -24,6 +24,25 @@ l'application.
 | Barres de l'écran de session | Décision du 2026-10-16 : une barre de session (marque réduite, nom, statut, « Comprendre le WSJF » ; à droite « Participants », « Tours révélés », « Exporter », « Liens », thème) et une barre d'actions (saisie, préparation, tours, cycle de vie). Ensemble, au plus 105 px de haut. Action indisponible : désactivée à sa place, avec une infobulle. Messages en superposition. Un seul tour ouvert à la fois ; clôture confirmée ; sous 1280 px, la barre d'actions peut passer sur deux lignes (FR-004, FR-014c, FR-018) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
+## Classement collaboratif (2026-10-29)
+
+`classement-collaboratif.html` : maquette cliquable de la priorisation par classement
+partagée entre l'animateur et les personnes connectées. Les écrans partagent le même état
+(un avis donné dans la vue participant apparaît chez l'animateur).
+
+| Écran | Rôle | Statut | Idée principale |
+|-------|------|--------|-----------------|
+| A. Atelier en direct | Animateur | Retenu (FR-015b, FR-015c) | Le classement est diffusé en direct (pause possible). Chaque carte montre ses compteurs ✓ ↑ ↓ et le nombre d'avis commentés. À droite : la carte en discussion avec ses avis, puis les cartes que la salle voudrait monter ou descendre, avec les commentaires. Menu ⋯ : « Mettre en discussion », « Effacer les avis ». Cartes en grille par niveau, valeur du niveau en grand à gauche |
+| B. Suivre et donner son avis | Participant | Retenu (FR-015b, FR-015c) | Suit l'écran de l'animateur (ou parcourt librement). Un avis par carte : ✓ d'accord, ↑ je monterais, ↓ je descendrais ; une bulle propose un commentaire, jamais obligatoire. « Vos avis » pour commenter ou retirer |
+| C. Tour masqué : suivi | Animateur | Mis de côté | Piste pour le vote masqué, à revoir plus tard |
+| D. Voter par classement | Participant | Mis de côté | Idem |
+| E. Révélation et accord | Tous | Mis de côté | Idem |
+
+Décision du 2026-10-29 : garder un échange simple. Les quatre réactions (dont « Question »),
+les propositions de déplacement, la main levée, le minuteur, le sondage d'accord et le fil de
+la séance, présents dans la première version de la maquette, sont abandonnés. Pas d'avis sur
+téléphone en V1 (lecture seule).
+
 ## Charte
 
 Les couleurs suivent la demande : un rouge vif en couleur principale, et un gris anthracite
