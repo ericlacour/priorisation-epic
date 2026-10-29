@@ -67,11 +67,12 @@
 ### Session 2026-10-29 (classement collaboratif)
 
 - Q : pendant « Prioriser par classement », que voient les autres membres ? → A: Le **classement de l'animateur, en direct** (FR-015b), en lecture seule, au lieu du tableau. C'est un brouillon : rien n'est enregistré avant « Terminer » (FR-015a). Maquette `mockups/classement-collaboratif.html`, écrans A et B.
-- Q : comment un participant intervient-il sans modifier le classement ? → A: Par des **réactions** sur une carte (« D'accord », « Je monterais », « Je descendrais », « Question »), une **proposition de déplacement** envoyée à l'animateur et la **main levée** (FR-015c). Seul l'animateur déplace les cartes et applique une proposition.
-- Q : l'animateur peut-il concentrer la discussion sur une fonctionnalité ? → A: Oui : « Mettre en discussion » met une carte en avant chez tous, avec un minuteur indicatif (FR-015c). Une seule carte à la fois.
-- Q : la diffusion et les réactions s'appliquent-elles au vote d'un tour masqué ? → A: Non. Pendant un vote (FR-019), chacun classe seul, sans voir le classement des autres : diffuser ou réagir créerait l'effet d'ancrage que le vote masqué veut éviter.
-- Q : les réactions et les propositions sont-elles conservées ? → A: Non. Elles ne vivent que le temps de l'écran de classement : ni enregistrées, ni exportées, ni dans l'historique (FR-025). Seules les valeurs enregistrées à « Terminer » comptent.
-- Q : peut-on réagir depuis un téléphone ? → A: Non en V1. Le téléphone reste en lecture seule (« Hors périmètre ») : il suit le classement diffusé, sans réagir, proposer ni lever la main.
+- Q : comment un participant intervient-il sans modifier le classement ? → A: En donnant son **avis** sur une carte : « D'accord », « Je monterais » ou « Je descendrais », avec un **commentaire facultatif**, jamais demandé (FR-015c). Un seul avis par carte et par critère. Seul l'animateur déplace les cartes. *Simplifié le 2026-10-29 : les quatre réactions, les propositions de déplacement, la main levée, le minuteur, le sondage d'accord et le fil de la séance sont abandonnés, pour garder un échange simple.*
+- Q : l'animateur peut-il concentrer la discussion sur une fonctionnalité ? → A: Oui : « Mettre en discussion » met une carte en avant chez tous, avec ses avis et leurs commentaires, jusqu'à « Terminer la discussion » (FR-015c). Une seule carte à la fois, sans minuteur.
+- Q : la diffusion et les avis s'appliquent-ils au vote d'un tour masqué ? → A: Non. Pendant un vote (FR-019), chacun classe seul, sans voir le classement des autres : diffuser ou donner son avis créerait l'effet d'ancrage que le vote masqué veut éviter.
+- Q : les avis sont-ils conservés ? → A: Non. Ils ne vivent que le temps de l'écran de classement : ni enregistrés, ni exportés, ni dans l'historique (FR-025). Seules les valeurs enregistrées à « Terminer » comptent.
+- Q : peut-on donner son avis depuis un téléphone ? → A: Non en V1. Le téléphone reste en lecture seule (« Hors périmètre ») : il suit le classement diffusé, sans donner d'avis.
+- Q : les écrans C à E de la maquette (suivi du tour masqué, vote, révélation en carte des écarts) changent-ils le vote masqué ? → A: Pas pour l'instant : le vote masqué (User Story 2, FR-018 à FR-022) sera revu plus tard, dans le même esprit d'échange simple.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -628,52 +629,38 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - la diffusion ne concerne **pas** le vote d'un tour masqué (FR-019) : chacun y classe
     seul et ne voit le classement de personne avant la révélation ;
   - sur téléphone, la vue diffusée est consultable en lecture seule, comme le tableau.
-- **FR-015c**: Pendant un classement diffusé (FR-015b), les membres et l'animateur DOIVENT
-  pouvoir **échanger sur le classement** sans que personne d'autre que l'animateur ne le
-  modifie (décision du 2026-10-29) :
-  1. **Réactions** : sur chaque carte, au survol ou au focus clavier, un membre peut
-     donner « D'accord » (✓), « Je monterais » (↑), « Je descendrais » (↓) et « J'ai une
-     question » (?). Il a au plus une réaction de sens par carte et par critère
-     (« D'accord », « Je monterais » ou « Je descendrais »), plus éventuellement
-     « Question » ; un second clic retire la réaction. Chaque carte affiche, chez tous,
-     le nombre de chaque réaction ; le survol ou le focus donne les pseudos. Les réactions
-     d'un critère restent attachées à ce critère, même si la carte est déplacée ;
-  2. **Proposition de déplacement** : un membre peut proposer de placer une fonctionnalité
-     « au-dessus de », « au même niveau que » ou « en dessous de » une autre, avec un
-     motif facultatif (140 caractères au plus). La proposition arrive dans la file
-     « Propositions » de l'animateur, dans l'ordre d'arrivée. L'animateur choisit :
-     - « Appliquer » : la fonctionnalité est déplacée dans son brouillon, et sa valeur
-       est proposée selon les règles de FR-015a (étape 3), comme un déplacement fait à la
-       main ;
-     - « En discuter » : la fonctionnalité est mise en discussion (point 4) et la parole
-       est donnée à l'auteur de la proposition ;
-     - « Écarter » : la proposition disparaît.
+- **FR-015c**: Pendant un classement diffusé (FR-015b), chaque membre DOIT pouvoir **donner
+  son avis** sur une carte, et l'animateur **mettre une carte en discussion**, sans que
+  personne d'autre que l'animateur ne modifie le classement (décision du 2026-10-29,
+  simplifiée le même jour) :
+  1. **Avis** : sur chaque carte, au survol ou au focus clavier, un membre choisit
+     « D'accord » (✓), « Je monterais » (↑) ou « Je descendrais » (↓). Il a **un seul avis
+     par carte et par critère** : en choisir un autre remplace le précédent, cliquer à
+     nouveau sur le même le retire. Les avis d'un critère restent attachés à ce critère,
+     même si la carte est déplacée ;
+  2. **Commentaire facultatif** : un membre peut ajouter à son avis un petit commentaire
+     (140 caractères au plus), sans que ce soit jamais demandé. Changer d'avis garde le
+     commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire ;
+  3. **Affichage** : chaque carte montre, chez tous, le nombre de ✓, de ↑ et de ↓, et un
+     signe quand au moins un avis est commenté. Le survol, le focus ou un clic sur ces
+     compteurs ouvre la liste des avis de la carte : pseudo, avis et commentaire.
+     L'animateur voit en plus, à côté du classement, la liste des cartes qui ont des avis
+     ↑ ou ↓, de la plus discutée à la moins discutée, avec les commentaires ; un clic sur
+     une carte de cette liste la met en discussion. Depuis le menu d'une carte, il peut
+     « Effacer les avis » de cette carte pour le critère en cours, par exemple après l'avoir
+     déplacée ;
+  4. **Carte en discussion** : depuis le menu d'une carte ou la liste des avis,
+     l'animateur peut « Mettre en discussion » une fonctionnalité. Elle est mise en avant
+     chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer
+     la discussion » ou mette une autre carte en discussion. Une seule carte est en
+     discussion à la fois.
 
-     L'auteur est informé de la décision (« Proposition appliquée », « … mise en
-     discussion », « … écartée »). Une proposition qui ne s'applique plus (fonctionnalité
-     retirée du classement) est retirée de la file ;
-  3. **Main levée** : un membre peut lever la main et la baisser. Les mains levées sont
-     visibles par tous (sur l'avatar, dans « Participants ») et listées chez l'animateur
-     par ordre d'arrivée, avec la durée d'attente. L'animateur peut « Donner la parole »
-     (la main se baisse, et tous voient « <pseudo> a la parole ») ou « Baisser » la main ;
-  4. **Carte en discussion** : depuis le menu d'une carte, l'animateur peut « Mettre en
-     discussion » une fonctionnalité. Elle est mise en avant chez tous, avec un minuteur
-     de 2 minutes, que l'animateur peut prolonger d'une minute ou terminer. Le minuteur
-     est **indicatif** : à zéro, rien n'est bloqué. Une seule carte est en discussion à la
-     fois ; en mettre une autre en discussion termine la précédente ;
-  5. **Sondage d'accord** : l'animateur peut demander à tous « D'accord avec ce classement
-     de <critère> ? ». Chaque membre répond « D'accord », « Avec réserve » ou « Pas
-     d'accord » ; l'animateur voit la répartition à mesure des réponses, sans les
-     pseudos. Le sondage ne change rien au classement ;
-  6. **Fil de la séance** : l'animateur et les membres voient la liste des derniers
-     événements (réactions, propositions et décisions, mains levées, mises en discussion),
-     du plus récent au plus ancien, avec l'heure.
-
-  Les réactions, propositions, mains levées et sondages ne vivent que le temps de l'écran
-  de classement : ils ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025),
-  et repartent de zéro au classement suivant. Ils ne sont pas disponibles pendant le vote
-  d'un tour masqué (FR-019), ni sur téléphone (lecture seule). Tous ces éléments ont un
-  nom accessible et se pilotent au clavier, comme le glisser-déposer de FR-015a.
+  Les avis et la carte en discussion ne vivent que le temps de l'écran de classement : ils
+  ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025), et repartent de zéro
+  au classement suivant. L'animateur ne donne pas d'avis : il déplace la carte. Ils ne
+  sont pas disponibles pendant le vote d'un tour masqué (FR-019), ni sur téléphone
+  (lecture seule). Tous ces éléments ont un nom accessible et se pilotent au clavier, comme
+  le glisser-déposer de FR-015a.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.

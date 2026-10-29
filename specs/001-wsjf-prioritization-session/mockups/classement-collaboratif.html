@@ -185,7 +185,10 @@ a { color: var(--primary-ink); }
 @keyframes wobble { 50% { transform: translateY(-2px); } }
 .card.flash { animation: flash 1.2s ease-out; }
 @keyframes flash { from { background: var(--primary-soft); } }
-.rx { display: flex; gap: 3px; flex: none; }
+.rx { display: flex; gap: 3px; flex: none; border: 0; background: transparent; padding: 0; cursor: pointer; border-radius: 999px; }
+.rx:hover span { filter: brightness(.95); }
+.rx .cm { background: var(--surface-muted); color: var(--fg); }
+.rx .cm svg { width: 11px; height: 11px; fill: currentColor; }
 .rx span { display: inline-flex; align-items: center; gap: 2px; height: 20px; padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--surface-muted); }
 .rx .ok { background: var(--success-soft); color: var(--success); }
 .rx .up, .rx .down { background: var(--warning-soft); color: var(--warning); }
@@ -194,17 +197,25 @@ a { color: var(--primary-ink); }
 .card .more:hover { background: var(--surface-muted); }
 .react-bar { display: none; gap: 2px; flex: none; }
 .card:hover .react-bar, .card:focus-within .react-bar, .card.spot .react-bar { display: flex; }
-.card.has-bar:hover .rx, .card.has-bar:focus-within .rx, .card.has-bar.spot .rx { display: none; }
 .react-bar button { border: 1px solid var(--border); background: var(--surface); height: 24px; min-width: 24px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 4px; }
 .react-bar button:hover { background: var(--primary-soft); border-color: var(--primary); }
 .react-bar button.mine { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
 
-.tray { display: grid; gap: 6px; }
+.tray { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .tray .card { width: 100%; }
 .tray-drop { grid-template-columns: minmax(0, 1fr); border: 1px dashed var(--border); border-radius: 10px; padding: 8px; display: grid; gap: 6px; min-height: 60px; transition: background .15s; }
 .tray-drop.over { background: var(--primary-soft); border-color: var(--primary); }
 .tray-drop .hint { font-size: 12px; color: var(--muted); text-align: center; }
 
+.pop { position: absolute; z-index: 30; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--pop); padding: 10px 12px; width: 300px; display: grid; gap: 8px; font-size: 13px; }
+.pop h4 { margin: 0; font-size: 13px; }
+.pop input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); font-size: 13px; }
+.pop .acts { display: flex; gap: 6px; justify-content: flex-end; }
+.ops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ops li { display: grid; grid-template-columns: auto 1fr; gap: 2px 6px; align-items: center; font-size: 12.5px; }
+.ops li q { grid-column: 2; color: var(--muted); font-style: italic; }
+.ops .k { font-weight: 700; }
+.ops .k.ok { color: var(--success); } .ops .k.up, .ops .k.down { color: var(--warning); }
 /* Menu de carte */
 .menu { position: absolute; z-index: 30; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--pop); padding: 4px; display: grid; min-width: 220px; }
 .menu button { text-align: left; border: 0; background: transparent; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13.5px; }
@@ -314,8 +325,8 @@ a { color: var(--primary-ink); }
 <div class="wrap">
   <header class="intro">
     <div>
-      <h1>Classement collaboratif : l'animateur classe, la salle réagit</h1>
-      <p>Proposition d'ergonomie pour « Prioriser par classement » (FR-015a) et le vote par classement (FR-019, FR-020). Les cinq écrans partagent le même état : ce que fait alice dans « Vue participant » arrive chez eric dans « Atelier en direct ». Données fictives.</p>
+      <h1>Classement collaboratif : l'animateur classe, chacun donne son avis</h1>
+      <p>Proposition d'ergonomie pour « Prioriser par classement » (FR-015a) et le vote par classement (FR-019, FR-020). Les écrans A et B sont retenus (FR-015b, FR-015c) et partagent le même état : un avis donné par alice en B apparaît chez eric en A. Les écrans C à E, sur le vote masqué, sont mis de côté et seront revus plus tard. Données fictives.</p>
     </div>
     <div class="mock-tools">
       <div class="seg" role="group" aria-label="Thème"><button type="button" data-theme-set="light" aria-pressed="false">Clair</button><button type="button" data-theme-set="dark" aria-pressed="false">Sombre</button></div>
@@ -324,18 +335,18 @@ a { color: var(--primary-ink); }
   </header>
 
   <ol class="principles">
-    <li><span class="k">Diffuser</span><b>Le classement se fait en direct</b><span>L'écran de l'animateur est suivi par tous, carte par carte, sans partage d'écran.</span></li>
-    <li><span class="k">Réagir</span><b>Chaque carte reçoit des avis</b><span>D'accord, je monterais, je descendrais, question. Une proposition de déplacement arrive dans une file.</span></li>
-    <li><span class="k">Focaliser</span><b>Une carte en discussion à la fois</b><span>Mise en avant chez tous, minuteur partagé, main levée et parole donnée.</span></li>
-    <li><span class="k">Converger</span><b>Les écarts se voient d'un coup d'œil</b><span>Après un vote masqué, une carte des écarts et un sondage d'accord rapide avant de retenir la valeur.</span></li>
+    <li><span class="k">Suivre</span><b>Le classement se fait en direct</b><span>L'écran de l'animateur est suivi par tous, carte par carte, sans partage d'écran.</span></li>
+    <li><span class="k">Donner son avis</span><b>✓ d'accord, ↑ monter, ↓ descendre</b><span>Un avis par carte, avec un petit commentaire si besoin, jamais obligatoire.</span></li>
+    <li><span class="k">Discuter</span><b>Une carte en discussion à la fois</b><span>L'animateur met en avant une carte et ses avis chez tous, puis la déplace s'il le faut.</span></li>
+    <li><span class="k">Plus tard</span><b>Le vote masqué</b><span>Les écrans C à E restent une piste, à revoir dans le même esprit d'échange simple.</span></li>
   </ol>
 
   <nav class="tabs" aria-label="Écrans">
     <button type="button" data-tab="atelier">A. Atelier en direct <span class="who">animateur</span></button>
-    <button type="button" data-tab="suivi">B. Suivre et réagir <span class="who">participant</span></button>
-    <button type="button" data-tab="tour">C. Tour masqué : suivi <span class="who">animateur</span></button>
-    <button type="button" data-tab="vote">D. Voter par classement <span class="who">participant</span></button>
-    <button type="button" data-tab="revelation">E. Révélation et accord <span class="who">tous</span></button>
+    <button type="button" data-tab="suivi">B. Suivre et donner son avis <span class="who">participant</span></button>
+    <button type="button" data-tab="tour">C. Tour masqué : suivi <span class="who">animateur · plus tard</span></button>
+    <button type="button" data-tab="vote">D. Voter par classement <span class="who">participant · plus tard</span></button>
+    <button type="button" data-tab="revelation">E. Révélation et accord <span class="who">tous · plus tard</span></button>
   </nav>
 
   <div class="stage" id="stage"><div class="frame" id="frame"></div></div>
@@ -358,7 +369,10 @@ a { color: var(--primary-ink); }
     bob: { n: 'bob', r: 'Architecte', i: 'B' }, chloe: { n: 'chloé', r: 'Product Manager', i: 'C' },
     david: { n: 'david', r: 'Lead dev', i: 'D' },
   };
-  const RX = { ok: ['✓', "D'accord"], up: ['↑', 'Je monterais'], down: ['↓', 'Je descendrais'], q: ['?', "J'ai une question"] };
+  const OP = { ok: ['✓', "D'accord"], up: ['↑', 'Je monterais'], down: ['↓', 'Je descendrais'] };
+  const BUBBLE = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 3v-3H2z"/></svg>';
+  const opsOf = (id) => Object.entries(S.op[id] || {});
+  const opsList = (id) => opsOf(id).map(([p, x]) => `<li>${av(p, 'sm')}<span><b>${P[p].n}</b> <span class="k ${x.o}">${OP[x.o][0]} ${OP[x.o][1]}</span></span>${x.c ? `<q>${esc(x.c)}</q>` : ''}</li>`).join('') || '<li class="muted">Aucun avis pour l\'instant.</li>';
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const av = (p, cls = '', extra = '') => `<span class="av ${cls}" data-p="${p}" title="${esc(P[p].n)} · ${esc(P[p].r)}">${P[p].i}${extra}</span>`;
   const now = () => { const d = new Date(); return d.toTimeString().slice(0, 5); };
@@ -369,20 +383,13 @@ a { color: var(--primary-ink); }
     board: { crit: 'TC', name: 'Time Criticality', top: 13,
       levels: [['F-1'], ['F-4', 'F-8'], ['F-5'], ['F-3', 'F-10'], ['F-2'], ['F-14', 'F-12']],
       unranked: ['F-7', 'F-11', 'F-13'] },
-    reactions: { 'F-4': { ok: ['alice', 'chloe', 'david'] }, 'F-5': { up: ['alice'], ok: ['bob'] }, 'F-3': { q: ['david'] }, 'F-8': { down: ['bob', 'chloe'] } },
-    spot: 'F-8', spotEnd: Date.now() + 102000,
-    hands: [{ p: 'bob', at: Date.now() - 40000 }],
-    speaker: null,
-    proposals: [
-      { id: 1, p: 'alice', f: 'F-5', move: 'tie', ref: 'F-4', why: 'Le salon de mars impose la nouvelle recherche.' },
-      { id: 2, p: 'david', f: 'F-14', move: 'below', ref: 'F-12', why: '' },
-    ],
-    feed: [
-      { p: 'chloe', t: 'est d\'accord avec F-4 au niveau 2', at: '14:06' },
-      { p: 'bob', t: 'a levé la main', at: '14:07' },
-      { p: 'eric', t: 'a mis F-8 en discussion', at: '14:07' },
-    ],
-    pulse: { ok: 3, mid: 1, ko: 1 },
+    op: {
+      'F-4': { alice: { o: 'ok' }, chloe: { o: 'ok' }, david: { o: 'ok' } },
+      'F-5': { alice: { o: 'up', c: 'Le salon de mars impose la nouvelle recherche.' }, bob: { o: 'ok' } },
+      'F-8': { bob: { o: 'down', c: 'Le transporteur ne sera prêt qu\'en juin.' }, chloe: { o: 'down' } },
+      'F-14': { david: { o: 'up' } },
+    },
+    spot: 'F-8',
     me: 'alice', follow: true,
     // Tour masqué
     round: { feats: ['F-2', 'F-3', 'F-7', 'F-11', 'F-13', 'F-14'], crits: ['BV', 'JS'], end: Date.now() + 200000,
@@ -446,20 +453,22 @@ a { color: var(--primary-ink); }
   function boardHTML(board, opts) {
     const card = (id, i) => {
       const v = i == null ? null : valueAt(board, i);
-      const rx = S.reactions[id] || {};
       const spot = opts.mode !== 'vote' && S.spot === id;
       const ghost = opts.mode === 'part' && S.ghost === id;
-      const chips = opts.mode === 'vote' ? '' : Object.entries(rx).filter(([, l]) => l.length).map(([k, l]) => `<span class="${k}" title="${RX[k][1]} : ${l.map((p) => P[p].n).join(', ')}">${RX[k][0]} ${l.length}</span>`).join('');
-      const mine = (k) => (rx[k] || []).includes(S.me) ? ' mine' : '';
-      const bar = opts.mode === 'part' ? `<span class="react-bar">${Object.entries(RX).map(([k, [g, l]]) => `<button type="button" class="${mine(k)}" data-react="${k}" data-f="${id}" title="${l}" aria-label="${l} : ${id}">${g}</button>`).join('')}</span>` : '';
+      const ops = opsOf(id);
+      const count = (k) => ops.filter(([, x]) => x.o === k).length;
+      const noted = ops.filter(([, x]) => x.c).length;
+      const chips = opts.mode === 'vote' || !ops.length ? '' : `<button type="button" class="rx" data-ops="${id}" aria-label="Voir les avis sur ${id}">${Object.keys(OP).filter(count).map((k) => `<span class="${k}">${OP[k][0]} ${count(k)}</span>`).join('')}${noted ? `<span class="cm" title="Avis commentés">${BUBBLE} ${noted}</span>` : ''}</button>`;
+      const mine = (S.op[id] || {})[S.me]?.o;
+      const bar = opts.mode === 'part' ? `<span class="react-bar">${Object.entries(OP).map(([k, [g, l]]) => `<button type="button" class="${mine === k ? 'mine' : ''}" data-op="${k}" data-f="${id}" title="${l}" aria-pressed="${mine === k}" aria-label="${l} : ${id}">${g}</button>`).join('')}</span>` : '';
       const val = opts.editable
         ? `<input class="val" inputmode="numeric" aria-label="${opts.crit} de ${id}" value="${v ?? ''}" ${i == null ? 'placeholder="–"' : ''}>`
         : `<span class="val ro ${v == null ? 'none' : ''}">${v ?? (opts.mode === 'vote' ? 'sans avis' : '–')}</span>`;
-      return `<div class="card${opts.mode === 'part' ? ' has-bar' : ''}${spot ? ' spot' : ''}${ghost ? ' ghost' : ''}${selected === id ? ' sel' : ''}" data-card="${id}" ${opts.editable ? 'draggable="true"' : ''} ${spot ? `data-spot="En discussion · ${fmt(S.spotEnd - Date.now())}"` : ''}>
+      return `<div class="card${opts.mode === 'part' ? ' has-bar' : ''}${spot ? ' spot' : ''}${ghost ? ' ghost' : ''}${selected === id ? ' sel' : ''}" data-card="${id}" ${opts.editable ? 'draggable="true"' : ''} ${spot ? 'data-spot="En discussion"' : ''}>
         <span class="grip" aria-hidden="true">${opts.editable ? '⠿' : ''}</span>
         <a href="#" class="fid" title="Voir le descriptif de ${id}" onclick="return false">${id}</a>
         <span class="t" title="${esc(F[id])}">${esc(F[id])}</span>
-        <span class="rx">${chips}</span>${bar}
+        ${chips}${bar}
         ${val}
         ${opts.mode !== 'vote' || opts.editable ? `<button type="button" class="more" data-menu="${id}" aria-label="Actions pour ${id}">⋯</button>` : ''}
       </div>`;
@@ -520,21 +529,33 @@ a { color: var(--primary-ink); }
     m.querySelector('button').focus();
     return new Promise((res) => { m.addEventListener('click', (e) => { const a = e.target.closest('[data-act]'); if (a) { closeMenu(); res(a.dataset.act); } }); });
   }
-  const closeMenu = () => frame.querySelectorAll('.menu').forEach((m) => m.remove());
-  document.addEventListener('click', (e) => { if (!e.target.closest('.menu, [data-menu]')) closeMenu(); });
+  function openPop(anchor, html) {
+    closeMenu();
+    const fr = frame.getBoundingClientRect(), b = anchor.getBoundingClientRect();
+    const m = document.createElement('div'); m.className = 'pop'; m.innerHTML = html;
+    m.style.top = ((b.bottom - fr.top) / scale + 6) + 'px';
+    m.style.left = Math.max(8, Math.min((b.left - fr.left) / scale, 1280 - 316)) + 'px';
+    frame.appendChild(m);
+    return m;
+  }
+  const closeMenu = () => frame.querySelectorAll('.menu, .pop').forEach((m) => m.remove());
+  document.addEventListener('click', (e) => { if (!e.target.closest('.menu, .pop, [data-menu], [data-ops], [data-op]')) closeMenu(); });
+  // Liste des avis d'une carte, ouverte au clic sur ses compteurs (FR-015c point 3).
+  function wireOpsLists() {
+    frame.querySelectorAll('[data-ops]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); const id = b.dataset.ops; openPop(b, `<h4>Avis sur ${id} · ${esc(F[id])}</h4><ul class="ops">${opsList(id)}</ul>`); });
+  }
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeMenu(); selected = null; frame.querySelector('.placing')?.classList.remove('placing'); render(); } });
 
   /* ---------- Minuteurs ---------- */
   const fmt = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
   setInterval(() => {
     frame.querySelectorAll('[data-timer]').forEach((el) => {
-      const end = el.dataset.timer === 'spot' ? S.spotEnd : el.dataset.timer === 'round' ? S.round.end : S.speakerEnd;
+      const end = el.dataset.timer === 'round' ? S.round.end : null;
       if (!end) return;
       const left = end - Date.now();
       el.querySelector('.tv').textContent = fmt(left);
       el.classList.toggle('low', left < 30000);
     });
-    const sp = frame.querySelector('.card.spot'); if (sp) sp.dataset.spot = `En discussion · ${fmt(S.spotEnd - Date.now())}`;
     frame.querySelectorAll('[data-since]').forEach((el) => { el.textContent = 'depuis ' + fmt(Date.now() - +el.dataset.since); });
   }, 1000);
 
@@ -544,33 +565,29 @@ a { color: var(--primary-ink); }
     const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.innerHTML = msg;
     area.appendChild(t); setTimeout(() => t.remove(), 3200);
   }
-  const log = (p, t) => S.feed.unshift({ p, t, at: now(), fresh: true });
 
   /* ---------- Barre de session commune ---------- */
   function sbar(role, extra = '') {
     const ppl = ['eric', 'alice', 'bob', 'chloe', 'david'];
-    const hands = S.hands.map((h) => h.p);
     return `<header class="sbar">
       <div class="logo" aria-hidden="true">PF</div>
       <div class="sbar-id"><span class="sbar-name">PI 27 – Epics plateforme</span><span class="sbar-sub"><span class="badge live">En cours</span> ${role === 'eric' ? 'eric (vous) · animateur' : 'alice (vous) · participante'} · Fibonacci 1 à 20</span></div>
       <a href="#" class="small" onclick="return false" style="font-weight:600">Comprendre le WSJF</a>
       <span class="spacer"></span>${extra}
-      <span class="presence" title="Participants connectés"><span class="stack">${ppl.map((p) => av(p, p === 'david' ? 'off' : '', `<span class="st"></span>${hands.includes(p) ? '<span class="hand" aria-label="main levée">✋</span>' : ''}`)).join('')}</span> 4 / 5 en ligne</span>
+      <span class="presence" title="Participants connectés"><span class="stack">${ppl.map((p) => av(p, p === 'david' ? 'off' : '', '<span class="st"></span>')).join('')}</span> 4 / 5 en ligne</span>
       <button type="button" class="btn">Liens</button>
     </header>`;
   }
 
   /* ================= A. ATELIER EN DIRECT (animateur) ================= */
+  const spotBlock = (anim) => S.spot ? `<div class="blk"><h3>En discussion</h3><div class="item"><div class="who"><b>${S.spot}</b>&nbsp;${esc(F[S.spot])}</div>
+      <ul class="ops">${opsList(S.spot)}</ul>
+      ${anim ? `<div class="acts"><button type="button" class="btn xs" id="spot-end">Terminer la discussion</button><button type="button" class="btn xs ghost" data-clear="${S.spot}">Effacer les avis</button></div>` : ''}</div></div>` : '';
   function screenAtelier() {
     const b = S.board;
     const { levels, tray } = boardHTML(b, { editable: true, mode: 'anim', crit: b.crit });
-    const prop = (x) => {
-      const what = x.move === 'tie' ? `au même niveau que ${x.ref}` : x.move === 'above' ? `au-dessus de ${x.ref}` : `en dessous de ${x.ref}`;
-      return `<div class="item${x.fresh ? ' new' : ''}"><div class="who">${av(x.p, 'sm')} ${P[x.p].n} <span class="muted">propose</span></div>
-        <div><b>${x.f}</b> ${what}</div>${x.why ? `<q>${esc(x.why)}</q>` : ''}
-        <div class="acts"><button type="button" class="btn xs primary" data-prop-apply="${x.id}">Appliquer</button><button type="button" class="btn xs" data-prop-talk="${x.id}">En discuter</button><button type="button" class="btn xs ghost" data-prop-drop="${x.id}">Écarter</button></div></div>`;
-    };
-    const tot = S.pulse.ok + S.pulse.mid + S.pulse.ko;
+    const moves = (id) => opsOf(id).filter(([, x]) => x.o !== 'ok').length;
+    const asked = Object.keys(S.op).filter((id) => id !== S.spot && moves(id)).sort((x, y) => moves(y) - moves(x));
     return sbar('eric') + `
     <div class="abar">
       <div class="steps" aria-label="Critères">
@@ -581,7 +598,6 @@ a { color: var(--primary-ink); }
       </div>
       <span class="sep"></span>
       <button type="button" class="btn ${S.live ? 'on' : ''}" id="live" aria-pressed="${S.live}" title="Les participants voient votre classement en direct">${S.live ? '<span class="pulse"></span> Diffusé en direct' : 'Diffuser en direct'}</button>
-      <button type="button" class="btn" id="pulse-btn" title="Demander à chacun s'il est d'accord avec le classement de ce critère">Sondage d'accord</button>
       <span class="spacer"></span>
       <button type="button" class="btn ghost">Aide</button>
       <button type="button" class="btn">Annuler</button>
@@ -599,113 +615,90 @@ a { color: var(--primary-ink); }
           <label class="top" for="top-val">Premier niveau <input id="top-val" value="${b.top}" inputmode="numeric"></label></div>
         <div class="levels">${levels}</div>
       </main>
-      <aside class="side right" aria-label="La salle">
-        ${S.spot ? `<div class="blk"><h3>En discussion</h3>
-          <div class="item"><div class="who"><b>${S.spot}</b>&nbsp;${esc(F[S.spot])}</div>
-          <div class="timer" data-timer="spot"><span class="tv">${fmt(S.spotEnd - Date.now())}</span><span class="spacer"></span><button type="button" class="btn xs" id="spot-plus">+1 min</button><button type="button" class="btn xs" id="spot-end">Terminer</button></div>
-          ${S.speaker ? `<div class="speaker">${av(S.speaker, 'sm')} ${P[S.speaker].n} a la parole</div>` : ''}</div></div>` : ''}
-        <div class="blk"><h3>Mains levées <span class="count">${S.hands.length}</span></h3>
-          ${S.hands.length ? S.hands.map((h) => `<div class="item"><div class="who">${av(h.p, 'sm')} ${P[h.p].n}<span class="muted" data-since="${h.at}">depuis ${fmt(Date.now() - h.at)}</span></div><div class="acts"><button type="button" class="btn xs primary" data-give="${h.p}">Donner la parole</button><button type="button" class="btn xs ghost" data-lower="${h.p}">Baisser</button></div></div>`).join('') : '<span class="small muted">Personne pour l\'instant.</span>'}</div>
-        <div class="blk"><h3>Propositions <span class="count">${S.proposals.length}</span></h3>
-          ${S.proposals.length ? S.proposals.map(prop).join('') : '<span class="small muted">Aucune proposition en attente.</span>'}</div>
-        <div class="blk pulse-meter"><h3>Accord sur TC</h3>
-          <div class="bar" aria-hidden="true"><i class="g" style="width:${S.pulse.ok / tot * 100}%"></i><i class="y" style="width:${S.pulse.mid / tot * 100}%"></i><i class="r" style="width:${S.pulse.ko / tot * 100}%"></i></div>
-          <span class="small muted">${S.pulse.ok} d'accord · ${S.pulse.mid} avec réserve · ${S.pulse.ko} pas d'accord (dernier sondage)</span></div>
-        <div class="blk"><h3>Fil de la séance</h3><ul class="feed">${S.feed.slice(0, 7).map((x) => `<li>${av(x.p, 'sm')}<span><b>${P[x.p].n}</b> ${esc(x.t)}</span><time>${x.at}</time></li>`).join('')}</ul></div>
+      <aside class="side right" aria-label="Avis de la salle">
+        ${spotBlock(true)}
+        <div class="blk"><h3>À monter ou descendre <span class="count">${asked.length}</span></h3>
+          ${asked.length ? asked.map((id) => `<div class="item"><div class="who"><b>${id}</b>&nbsp;<span style="font-weight:400" class="t">${esc(F[id])}</span></div><ul class="ops">${opsList(id)}</ul><div class="acts"><button type="button" class="btn xs" data-spot-go="${id}">Mettre en discussion</button><button type="button" class="btn xs ghost" data-clear="${id}">Effacer les avis</button></div></div>`).join('') : '<span class="small muted">Aucune carte à déplacer selon la salle.</span>'}</div>
+        <div class="blk small muted"><h3>Les avis</h3>✓ d'accord, ↑ je monterais, ↓ je descendrais, avec un commentaire facultatif. Cliquez sur les compteurs d'une carte pour lire ses avis.</div>
       </aside>
       <div class="toasts"></div>
     </div>`;
   }
   function wireAtelier() {
-    wireBoard(S.board, (id) => { if (id) { const i = findLevel(S.board, id); log('eric', i >= 0 ? `a placé ${id} au niveau ${i + 1}` : `a retiré ${id} du classement`); } render(); if (id) flash(id); });
+    wireBoard(S.board, (id) => { render(); if (id) flash(id); });
+    wireOpsLists();
     frame.querySelector('#live').onclick = () => { S.live = !S.live; render(); toast(S.live ? 'Les participants suivent à nouveau votre classement.' : 'Diffusion en pause : les participants voient le dernier état diffusé.'); };
-    frame.querySelector('#pulse-btn').onclick = () => { toast('Sondage envoyé : « D\'accord avec ce classement de TC ? »'); setTimeout(() => { S.pulse = { ok: 4, mid: 1, ko: 0 }; log('chloe', 'a répondu au sondage : d\'accord'); if (current === 'atelier') { render(); toast('Sondage : 4 d\'accord, 1 avec réserve.'); } }, 1800); };
-    frame.querySelector('#spot-plus')?.addEventListener('click', () => { S.spotEnd += 60000; });
-    frame.querySelector('#spot-end')?.addEventListener('click', () => { log('eric', `a terminé la discussion sur ${S.spot}`); S.spot = null; S.speaker = null; render(); });
-    frame.querySelectorAll('[data-give]').forEach((b) => b.onclick = () => { const p = b.dataset.give; S.speaker = p; S.hands = S.hands.filter((h) => h.p !== p); log('eric', `a donné la parole à ${P[p].n}`); render(); toast(`${P[p].n} a la parole. Son écran l'indique.`); });
-    frame.querySelectorAll('[data-lower]').forEach((b) => b.onclick = () => { S.hands = S.hands.filter((h) => h.p !== b.dataset.lower); render(); });
-    frame.querySelectorAll('[data-prop-apply]').forEach((b) => b.onclick = () => {
-      const x = S.proposals.find((y) => y.id === +b.dataset.propApply);
-      const ri = findLevel(S.board, x.ref);
-      if (x.move === 'tie') place(S.board, x.f, { kind: 'level', i: ri });
-      else place(S.board, x.f, { kind: 'gap', i: x.move === 'above' ? ri : ri + 1 });
-      S.proposals = S.proposals.filter((y) => y !== x); log('eric', `a appliqué la proposition de ${P[x.p].n} (${x.f})`); render(); flash(x.f); toast(`${P[x.p].n} est prévenu·e : proposition appliquée.`);
-    });
-    frame.querySelectorAll('[data-prop-talk]').forEach((b) => b.onclick = () => { const x = S.proposals.find((y) => y.id === +b.dataset.propTalk); S.spot = x.f; S.spotEnd = Date.now() + 120000; S.speaker = x.p; S.proposals = S.proposals.filter((y) => y !== x); log('eric', `a mis ${x.f} en discussion`); render(); });
-    frame.querySelectorAll('[data-prop-drop]').forEach((b) => b.onclick = () => { S.proposals = S.proposals.filter((y) => y.id !== +b.dataset.propDrop); render(); });
+    frame.querySelector('#spot-end')?.addEventListener('click', () => { S.spot = null; render(); });
+    frame.querySelectorAll('[data-spot-go]').forEach((b) => b.onclick = () => { S.spot = b.dataset.spotGo; render(); flash(S.spot); toast(`${S.spot} est mise en avant chez tous, avec ses avis.`); });
+    frame.querySelectorAll('[data-clear]').forEach((b) => b.onclick = () => { delete S.op[b.dataset.clear]; render(); toast(`Avis de ${b.dataset.clear} effacés pour TC.`); });
     frame.querySelectorAll('[data-menu]').forEach((btn) => btn.onclick = async (e) => {
-      e.stopPropagation(); const id = btn.dataset.menu; const i = findLevel(S.board, id);
-      const a = await openMenu(btn, [['spot', 'Mettre en discussion (2 min)'], '-', ...MOVES]);
-      if (a === 'spot') { S.spot = id; S.spotEnd = Date.now() + 120000; S.speaker = null; log('eric', `a mis ${id} en discussion`); toast(`${id} est mise en avant chez tous les participants.`); }
+      e.stopPropagation(); const id = btn.dataset.menu;
+      const a = await openMenu(btn, [['spot', 'Mettre en discussion'], ['clear', 'Effacer les avis'], '-', ...MOVES]);
+      if (a === 'spot') { S.spot = id; toast(`${id} est mise en avant chez tous, avec ses avis.`); }
+      else if (a === 'clear') delete S.op[id];
       else move(S.board, id, a);
       render(); flash(id);
     });
   }
 
-  /* ================= B. SUIVRE ET RÉAGIR (participant) ================= */
+  /* ================= B. SUIVRE ET DONNER SON AVIS (participant) ================= */
   function screenSuivi() {
     const b = S.board;
     const { levels, tray } = boardHTML(b, { editable: false, mode: 'part', crit: b.crit });
-    const hand = S.hands.some((h) => h.p === S.me);
-    const all = [...b.levels.flat(), ...b.unranked];
+    const mine = Object.entries(S.op).filter(([, o]) => o[S.me]).map(([id, o]) => [id, o[S.me]]);
     return sbar('alice') + `
     <div class="abar">
       <div class="steps" aria-label="Critères"><span class="step done"><span class="n">✓</span>BV</span><span class="step cur"><span class="n">2</span>TC</span><span class="step"><span class="n">3</span>RR/OE</span><span class="step"><span class="n">4</span>JS</span></div>
       <span class="sep"></span>
       <span class="badge vote"><span class="pulse"></span> eric classe TC en direct</span>
       <span class="spacer"></span>
-      <button type="button" class="btn ${hand ? 'on' : ''}" id="hand" aria-pressed="${hand}">${hand ? '✋ Main levée · Baisser' : '✋ Lever la main'}</button>
+      <span class="small muted">Survolez une carte pour donner votre avis</span>
     </div>
     <div class="body" style="grid-template-columns: 250px minmax(0,1fr) 300px">
       <aside class="side left" aria-label="Non classées">
         <div class="blk"><h3>Non classées <span class="count">${b.unranked.length}</span></h3><div class="tray">${tray}</div></div>
-        <div class="blk small muted"><h3>Réagir</h3>Survolez ou parcourez une carte au clavier : ✓ d'accord, ↑ je monterais, ↓ je descendrais, ? question. Vos réactions sont visibles par tous.</div>
+        <div class="blk small muted"><h3>Donner son avis</h3>Survolez une carte ou atteignez-la au clavier : ✓ d'accord, ↑ je monterais, ↓ je descendrais. Un commentaire est possible, jamais obligatoire. Un second clic retire l'avis.</div>
       </aside>
       <main class="center">
         <div class="follow">${av('eric', 'sm')} <span>${S.follow ? 'Vous suivez l\'écran d\'<b>eric</b> : le classement bouge avec le sien.' : 'Suivi en pause : vous parcourez librement. Le classement reste à jour.'}</span><span class="spacer"></span>
-          ${S.speaker === S.me ? '<span class="badge vote">Vous avez la parole</span>' : ''}
           <button type="button" class="btn xs" id="follow">${S.follow ? 'Parcourir librement' : 'Revenir sur eric'}</button></div>
         <div class="ctx"><span class="crit"><b>TC</b> · Time Criticality</span><span class="muted small">Lecture seule : seul l'animateur déplace les cartes</span></div>
         <div class="levels">${levels}</div>
       </main>
       <aside class="side right" aria-label="Votre participation">
-        ${S.spot ? `<div class="blk"><h3>En discussion</h3><div class="item"><div class="who"><b>${S.spot}</b>&nbsp;${esc(F[S.spot])}</div><div class="timer" data-timer="spot"><span class="tv">${fmt(S.spotEnd - Date.now())}</span></div>
-          ${S.speaker ? `<div class="speaker">${av(S.speaker, 'sm')} ${S.speaker === S.me ? 'Vous avez' : P[S.speaker].n + ' a'} la parole</div>` : ''}</div></div>` : ''}
-        <form class="blk" id="propose"><h3>Proposer un déplacement</h3>
-          <label class="field" for="pf">Fonctionnalité<select id="pf">${all.map((id) => `<option value="${id}">${id} · ${esc(F[id])}</option>`).join('')}</select></label>
-          <label class="field" for="pm">Position<select id="pm"><option value="above">au-dessus de</option><option value="tie">au même niveau que</option><option value="below">en dessous de</option></select></label>
-          <label class="field" for="pr">Par rapport à<select id="pr">${b.levels.flat().map((id) => `<option value="${id}">${id} · ${esc(F[id])}</option>`).join('')}</select></label>
-          <label class="field" for="pw">Pourquoi (facultatif)<textarea id="pw" maxlength="140" placeholder="Une phrase pour l'animateur"></textarea></label>
-          <button type="submit" class="btn primary">Envoyer à eric</button>
-        </form>
-        <div class="blk"><h3>Fil de la séance</h3><ul class="feed">${S.feed.slice(0, 5).map((x) => `<li>${av(x.p, 'sm')}<span><b>${P[x.p].n}</b> ${esc(x.t)}</span><time>${x.at}</time></li>`).join('')}</ul></div>
+        ${spotBlock(false)}
+        <div class="blk"><h3>Vos avis <span class="count">${mine.length}</span></h3>
+          ${mine.length ? mine.map(([id, x]) => `<div class="item"><div class="who"><b>${id}</b>&nbsp;<span class="ops"><span class="k ${x.o}">${OP[x.o][0]} ${OP[x.o][1]}</span></span></div>${x.c ? `<q>${esc(x.c)}</q>` : ''}<div class="acts"><button type="button" class="btn xs" data-edit="${id}">${x.c ? 'Modifier le commentaire' : 'Ajouter un commentaire'}</button><button type="button" class="btn xs ghost" data-withdraw="${id}">Retirer</button></div></div>`).join('') : '<span class="small muted">Vous n\'avez encore donné aucun avis.</span>'}</div>
       </aside>
       <div class="toasts"></div>
     </div>`;
   }
+  function askComment(id) {
+    const card = frame.querySelector(`.levels [data-card="${id}"], .tray [data-card="${id}"]`); if (!card) return;
+    const x = S.op[id][S.me];
+    const m = openPop(card, `<form class="blk" id="cm-form"><label for="cm-in"><b>${OP[x.o][0]} ${OP[x.o][1]}</b> · ${id}. Un commentaire ? <span class="muted">(facultatif)</span></label>
+      <input id="cm-in" maxlength="140" value="${esc(x.c || '')}" placeholder="Une phrase pour eric et la salle">
+      <div class="acts"><button type="button" class="btn xs ghost" id="cm-skip">Sans commentaire</button><button type="submit" class="btn xs primary">Envoyer</button></div></form>`);
+    const input = m.querySelector('#cm-in'); input.focus();
+    m.querySelector('#cm-skip').onclick = () => closeMenu();
+    m.querySelector('#cm-form').onsubmit = (e) => { e.preventDefault(); x.c = input.value.trim() || undefined; closeMenu(); render(); toast(x.c ? 'Commentaire envoyé avec votre avis.' : 'Commentaire effacé.'); };
+  }
   function wireSuivi() {
-    frame.querySelectorAll('[data-react]').forEach((b) => b.onclick = () => {
-      const { react: k, f } = b.dataset; const r = (S.reactions[f] ??= {}); const l = (r[k] ??= []);
-      const had = l.includes(S.me);
-      // Une seule réaction de sens par carte : ↑ et ↓ s'excluent avec ✓.
-      for (const key of ['ok', 'up', 'down']) if (k !== 'q' && key !== k && r[key]) r[key] = r[key].filter((p) => p !== S.me);
-      r[k] = had ? l.filter((p) => p !== S.me) : [...l, S.me];
-      if (!had) log(S.me, `${RX[k][1].toLowerCase()} pour ${f}`);
-      render(); toast(had ? 'Réaction retirée.' : `Réaction envoyée : ${RX[k][1]} (${f}). eric la voit sur la carte.`);
+    wireOpsLists();
+    frame.querySelectorAll('[data-op]').forEach((b) => b.onclick = (e) => {
+      e.stopPropagation();
+      const { op: k, f } = b.dataset; const o = (S.op[f] ??= {});
+      if (o[S.me]?.o === k) { delete o[S.me]; render(); toast('Avis retiré.'); return; }
+      o[S.me] = { o: k, c: o[S.me]?.c };
+      render(); askComment(f);
     });
-    frame.querySelector('#hand').onclick = () => { const i = S.hands.findIndex((h) => h.p === S.me); if (i >= 0) S.hands.splice(i, 1); else { S.hands.push({ p: S.me, at: Date.now() }); log(S.me, 'a levé la main'); } render(); };
+    frame.querySelectorAll('[data-edit]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); askComment(b.dataset.edit); });
+    frame.querySelectorAll('[data-withdraw]').forEach((b) => b.onclick = () => { delete S.op[b.dataset.withdraw][S.me]; render(); toast('Avis retiré.'); });
     frame.querySelector('#follow').onclick = () => { S.follow = !S.follow; render(); };
-    frame.querySelector('#propose').onsubmit = (e) => {
-      e.preventDefault(); const f = frame.querySelector('#pf').value, ref = frame.querySelector('#pr').value;
-      if (f === ref) { toast('Choisissez deux fonctionnalités différentes.'); return; }
-      S.proposals.push({ id: Date.now(), p: S.me, f, move: frame.querySelector('#pm').value, ref, why: frame.querySelector('#pw').value.trim(), fresh: true });
-      log(S.me, `propose de déplacer ${f}`); render(); toast('Proposition envoyée. Vous serez prévenue de la décision d\'eric.');
-    };
     frame.querySelectorAll('[data-menu]').forEach((btn) => btn.onclick = async (e) => {
       e.stopPropagation(); const id = btn.dataset.menu;
-      const a = await openMenu(btn, [['desc', 'Voir le descriptif'], ['prop', 'Proposer un déplacement…'], ['q', 'Poser une question sur cette carte']]);
-      if (a === 'prop') { frame.querySelector('#pf').value = id; frame.querySelector('#pw').focus(); }
-      if (a === 'q') { const r = (S.reactions[id] ??= {}); r.q = [...new Set([...(r.q || []), S.me])]; log(S.me, `a une question sur ${id}`); render(); toast('Question signalée à eric.'); }
+      const a = await openMenu(btn, [['desc', 'Voir le descriptif'], ['ops', 'Voir les avis']]);
+      if (a === 'ops') openPop(btn, `<h4>Avis sur ${id} · ${esc(F[id])}</h4><ul class="ops">${opsList(id)}</ul>`);
     });
   }
 
@@ -912,23 +905,23 @@ a { color: var(--primary-ink); }
   /* ---------- Notes de conception par écran ---------- */
   const NOTES = {
     atelier: [
-      ['Ce qui change', ['L\'écran de classement de l\'animateur devient une salle : à droite, la discussion en cours, les mains levées, les propositions et le fil de la séance.', 'Cartes en grille par niveau (plusieurs par ligne) : 15 fonctionnalités et plus restent visibles sans défilement à 1280 × 720.', 'Valeur du niveau à gauche, en grand : l\'échelle se lit en descendant (13, 8, 5…).', 'Menu ⋯ d\'une carte : « Mettre en discussion » met la carte en avant chez tous avec un minuteur de 2 min.', 'Une proposition s\'applique en un clic, ou se transforme en discussion avec la parole donnée à son auteur.', 'Essayez : glissez une carte, ou cliquez une carte puis un niveau. Le bouton « Simuler la salle » fait arriver des réactions.']],
-      ['Exigences touchées', ['<span class="req">FR-015a</span> mise en page des niveaux, inchangée sur les règles de valeur', '<span class="req">FR-015b</span> à créer : diffusion en direct du classement aux membres', '<span class="req">FR-015c</span> à créer : réactions, propositions, main levée, carte en discussion', 'Aucune valeur n\'est envoyée avant « Terminer » : la diffusion transmet un brouillon, pas des modifications.']],
+      ['Ce qui change', ['Le classement de l\'animateur est diffusé en direct. À droite : la carte en discussion avec ses avis, puis les cartes que la salle voudrait monter ou descendre, de la plus demandée à la moins demandée, avec les commentaires.', 'Chaque carte affiche ses compteurs ✓ ↑ ↓ et le nombre d\'avis commentés. Un clic sur les compteurs ouvre la liste des avis.', 'Menu ⋯ d\'une carte : « Mettre en discussion », « Effacer les avis » (par exemple après l\'avoir déplacée), puis les déplacements au clavier.', 'Cartes en grille par niveau : 15 fonctionnalités et plus restent visibles à 1280 × 720.', 'Essayez : glissez une carte, ou cliquez une carte puis un niveau. « Simuler la salle » fait arriver des avis.']],
+      ['Exigences', ['<span class="req">FR-015a</span> règles de valeur inchangées', '<span class="req">FR-015b</span> diffusion en direct du classement', '<span class="req">FR-015c</span> avis ✓ ↑ ↓ avec commentaire facultatif, carte en discussion', 'Rien n\'est enregistré avant « Terminer » ; les avis ne sont pas conservés.']],
     ],
     suivi: [
-      ['Ce qui change', ['Le participant n\'est plus un spectateur du tableau : il suit le classement de l\'animateur en direct et réagit sur chaque carte.', 'Barre de réactions au survol ou au focus clavier : une seule réaction de sens par carte (✓, ↑ ou ↓), plus « ? ».', '« Proposer un déplacement » : trois listes et un motif d\'une phrase, envoyés dans la file de l\'animateur.', '« Parcourir librement » détache la vue sans perdre les mises à jour.', 'Essayez : réagissez sur une carte ou envoyez une proposition, puis revenez sur l\'écran A.']],
-      ['Exigences touchées', ['<span class="req">Hors périmètre V1</span> le participant ne modifie toujours rien', '<span class="req">FR-014b</span> vue participant : s\'ajoute un mode « suivre l\'animateur »', 'Téléphone : réagir et lever la main sont possibles en lecture seule (à décider).']],
+      ['Ce qui change', ['Le participant suit le classement de l\'animateur en direct et donne son avis sur chaque carte : ✓ d\'accord, ↑ je monterais, ↓ je descendrais.', 'Un seul avis par carte : en choisir un autre le remplace, un second clic le retire.', 'Après un avis, une petite bulle propose un commentaire. « Sans commentaire » suffit : il n\'est jamais demandé.', '« Vos avis » à droite permet d\'ajouter ou de modifier un commentaire, ou de retirer un avis.', 'Essayez : donnez un avis sur une carte, puis revenez sur l\'écran A.']],
+      ['Exigences', ['<span class="req">FR-015b</span> vue suivie, « Parcourir librement »', '<span class="req">FR-015c</span> avis et commentaire facultatif', 'Téléphone : vue suivie en lecture seule, sans avis (V1).']],
     ],
     tour: [
-      ['Ce qui change', ['Une carte par membre : présence, état (pas commencé, en train de classer, envoyé) et avancement par critère, sans aucune valeur.', 'Minuteur partagé, indicatif : à zéro, rien n\'est bloqué.', 'Relance discrète, individuelle ou groupée, et messages rapides affichés chez tous.', 'Révéler avant que tous aient voté demande une confirmation qui nomme les absents.']],
+      ['Ce qui change', ['<b>Mis de côté le 2026-10-29</b> : le vote masqué sera revu plus tard, dans le même esprit d\'échange simple. Piste conservée pour mémoire.', 'Une carte par membre : présence, état (pas commencé, en train de classer, envoyé) et avancement par critère, sans aucune valeur.', 'Minuteur partagé, indicatif : à zéro, rien n\'est bloqué.', 'Relance discrète, individuelle ou groupée, et messages rapides affichés chez tous.', 'Révéler avant que tous aient voté demande une confirmation qui nomme les absents.']],
       ['Exigences touchées', ['<span class="req">FR-019</span> « tous voient s\'il a voté » : l\'avancement par critère est un ajout, désactivable', '<span class="req">FR-020</span> révélation à tout moment, conservée', '<span class="req">FR-018b</span> à créer : minuteur, relance et messages de tour']],
     ],
     vote: [
-      ['Ce qui change', ['Même écran que le classement de l\'animateur, sans la salle : le message d\'eric, le minuteur et « qui a voté » restent visibles.', 'Étapes cliquables BV, JS, puis un récapitulatif qui montre les « sans avis » avant l\'envoi.', 'Après l\'envoi, un écran de confirmation avec « Modifier mon vote ».', 'Essayez : classez les six fonctionnalités pour JS, puis passez au récapitulatif et envoyez.']],
+      ['Ce qui change', ['<b>Mis de côté le 2026-10-29</b> : le vote masqué sera revu plus tard, dans le même esprit d\'échange simple. Piste conservée pour mémoire.', 'Même écran que le classement de l\'animateur, sans la salle : le message d\'eric, le minuteur et « qui a voté » restent visibles.', 'Étapes cliquables BV, JS, puis un récapitulatif qui montre les « sans avis » avant l\'envoi.', 'Après l\'envoi, un écran de confirmation avec « Modifier mon vote ».', 'Essayez : classez les six fonctionnalités pour JS, puis passez au récapitulatif et envoyez.']],
       ['Exigences touchées', ['<span class="req">FR-019</span> classement vide au départ, « sans avis » pour les non classées, renvoi possible', '<span class="req">FR-019a</span> valeurs du tour masquées, rappelé à droite', 'Étape « Récapitulatif » : nouvelle, à ajouter à FR-019.']],
     ],
     revelation: [
-      ['Ce qui change', ['Carte des écarts : pour chaque fonctionnalité et chaque critère du tour, les pastilles des votants posées sur l\'échelle. La bande orange signale un écart important (plus de 3).', 'Lignes triées par écart décroissant : on commence par ce qui divise.', '« Donner la parole aux extrêmes » entoure chez tous les pastilles du plus bas et du plus haut.', 'Sondage d\'accord (pour, réserve, contre) sur une valeur proposée, puis « Retenir ». Un clic sur l\'échelle retient aussi une valeur.', 'Essayez : lancez un sondage, puis passez en « Vue participant » pour y répondre.']],
+      ['Ce qui change', ['<b>Mis de côté le 2026-10-29</b> : le vote masqué sera revu plus tard, dans le même esprit d\'échange simple. Piste conservée pour mémoire.', 'Carte des écarts : pour chaque fonctionnalité et chaque critère du tour, les pastilles des votants posées sur l\'échelle. La bande orange signale un écart important (plus de 3).', 'Lignes triées par écart décroissant : on commence par ce qui divise.', '« Donner la parole aux extrêmes » entoure chez tous les pastilles du plus bas et du plus haut.', 'Sondage d\'accord (pour, réserve, contre) sur une valeur proposée, puis « Retenir ». Un clic sur l\'échelle retient aussi une valeur.', 'Essayez : lancez un sondage, puis passez en « Vue participant » pour y répondre.']],
       ['Exigences touchées', ['<span class="req">FR-020</span> valeur de chaque membre, minimum et maximum : présentés en graphique', '<span class="req">FR-021</span> consensus prérempli quand unanime, conservé', '<span class="req">FR-022a</span> à créer : sondage d\'accord, parole aux extrêmes']],
     ],
   };
@@ -944,7 +937,6 @@ a { color: var(--primary-ink); }
     const [html, wire] = SCREENS[current];
     frame.innerHTML = html(); wire();
     const sc = frame.querySelector('.levels, .reveal, .room'); if (sc) sc.scrollTop = keep;
-    S.feed.forEach((x) => delete x.fresh); S.proposals.forEach((x) => delete x.fresh);
     document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === current ? 'page' : 'false'));
     document.getElementById('notes').innerHTML = NOTES[current].map(([h, l]) => `<section><h2>${h}</h2><ul>${l.map((x) => `<li>${x}</li>`).join('')}</ul></section>`).join('');
   }
@@ -970,10 +962,10 @@ a { color: var(--primary-ink); }
       return;
     }
     const evs = [
-      () => { (S.reactions['F-1'] ??= {}).ok = [...new Set([...(S.reactions['F-1'].ok || []), 'chloe'])]; log('chloe', 'est d\'accord avec F-1 en tête'); return 'chloé est d\'accord avec F-1 en tête.'; },
-      () => { S.proposals.push({ id: Date.now(), p: 'chloe', f: 'F-13', move: 'above', ref: 'F-2', why: 'La campagne de rentrée en dépend.', fresh: true }); log('chloe', 'propose de déplacer F-13'); return 'chloé propose de monter F-13.'; },
-      () => { if (!S.hands.some((h) => h.p === 'chloe')) S.hands.push({ p: 'chloe', at: Date.now() }); log('chloe', 'a levé la main'); return 'chloé lève la main.'; },
-      () => { S.ghost = 'F-10'; setTimeout(() => { S.ghost = null; if (current === 'suivi') render(); }, 2600); log('eric', 'déplace F-10'); return 'eric déplace F-10 (visible dans la vue participant).'; },
+      () => { (S.op['F-13'] ??= {}).chloe = { o: 'up', c: 'La campagne de rentrée en dépend.' }; return 'chloé monterait F-13 et l\'explique.'; },
+      () => { (S.op['F-1'] ??= {}).david = { o: 'down' }; return 'david descendrait F-1, sans commentaire.'; },
+      () => { (S.op['F-1'] ??= {}).chloe = { o: 'ok' }; return 'chloé est d\'accord avec F-1 en tête.'; },
+      () => { S.ghost = 'F-10'; setTimeout(() => { S.ghost = null; if (current === 'suivi') render(); }, 2600); return 'eric déplace F-10 (visible dans la vue participant).'; },
     ];
     const msg = evs[simI++ % evs.length](); render(); toast(msg);
   };
