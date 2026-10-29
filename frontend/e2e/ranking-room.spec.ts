@@ -10,7 +10,9 @@ import {
 } from './fake-session-socket';
 import { F1, F2, F3, manyFeatures, sessionState } from './state-fixtures';
 
-type Feature = { id: string };
+interface Feature {
+  id: string;
+}
 
 async function open(page: Page, features: unknown[], animate: boolean): Promise<void> {
   await page.route('**/api/health', (route) => route.fulfill({ json: { status: 'UP' } }));
