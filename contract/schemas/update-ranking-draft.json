@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "update-ranking-draft.json",
   "title": "updateRankingDraft (client → server)",
-  "description": "Facilitator only (FR-015b). The first one opens the ranking room; every member then gets rankingRoom. With live true, draft is required and replaces the broadcast draft; the client sends its whole draft at most once every 200 ms. With live false, the broadcast is paused: draft is ignored and members keep the last broadcast one. Writes nothing, does not increment sessionState.version. A feature that is no longer in the session is left out of the broadcast draft; a feature in an open round gets error FEATURE_IN_OPEN_ROUND, a feature listed twice error INVALID_MESSAGE, a value outside the scale error INVALID_VALUE, a criterion the method does not declare error UNKNOWN_CRITERION. Refused while CLOSED (SESSION_CLOSED).",
+  "description": "Facilitator only (FR-015b). The first one opens the ranking room; every member then gets rankingRoom. With live true, draft is required and replaces the broadcast draft; the client sends its whole draft at most once every 200 ms. With live false, the broadcast is paused: draft is ignored and members keep the last broadcast one; without an open room, error NO_RANKING_IN_PROGRESS. Writes nothing, does not increment sessionState.version. A feature that is no longer in the session is left out of the broadcast draft; a feature in an open round gets error FEATURE_IN_OPEN_ROUND, a feature listed twice error INVALID_MESSAGE, a value outside the scale error INVALID_VALUE, a criterion the method does not declare error UNKNOWN_CRITERION. Refused while CLOSED (SESSION_CLOSED).",
   "type": "object",
   "additionalProperties": false,
   "required": ["type", "live"],
