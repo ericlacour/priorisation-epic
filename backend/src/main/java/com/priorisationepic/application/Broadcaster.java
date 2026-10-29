@@ -25,6 +25,18 @@ public interface Broadcaster {
   /** Envoie son {@code sessionState} à une seule connexion. */
   void publishTo(String connectionId);
 
+  /** Vrai si une connexion de la session a les droits d'animateur. */
+  boolean hasFacilitatorConnection(SessionId sessionId);
+
+  /**
+   * Envoie le même {@code rankingRoom} à chaque connexion de la session (FR-015b), sans {@code
+   * sessionState} : la salle n'écrit rien.
+   */
+  void publishRankingRoom(SessionId sessionId, RankingRoomView room);
+
+  /** Envoie {@code rankingRoom} à une seule connexion, celle qui vient de s'ouvrir. */
+  void sendRankingRoom(String connectionId, RankingRoomView room);
+
   /** Envoie {@code error} à une seule connexion. */
   void sendError(String connectionId, ErrorCode code);
 

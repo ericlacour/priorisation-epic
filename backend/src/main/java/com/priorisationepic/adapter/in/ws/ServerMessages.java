@@ -2,13 +2,17 @@ package com.priorisationepic.adapter.in.ws;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.priorisationepic.application.ErrorCode;
+import com.priorisationepic.application.RankingRoomView;
+import com.priorisationepic.domain.ranking.CardOpinion;
+import com.priorisationepic.domain.ranking.RankingDraft;
 import com.priorisationepic.domain.scale.Scale;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Messages serveur → client du canal de session (asyncapi.yaml), d'après {@code tick.json} et
- * {@code error.json}.
+ * Messages serveur → client du canal de session (asyncapi.yaml), d'après {@code tick.json}, {@code
+ * error.json} et {@code ranking-room.json}.
  */
 final class ServerMessages {
 
@@ -46,4 +50,60 @@ final class ServerMessages {
 
   /** Une valeur que le changement d'échelle mettrait hors échelle. */
   record ImpactedValue(String externalId, String criterion, int value) {}
+
+  /**
+   * {@code ranking-room.json} : une salle ouverte porte tous ses champs ({@code spotlightFeatureId}
+   * compris, même nul) ; une salle fermée ne porte que {@code endReason}.
+   */
+  static Object rankingRoom(RankingRoomView room) {
+    if (!room.active()) {
+      return new EndedRankingRoom("rankingRoom", false, room.endReason().name());
+    }
+    RankingDraft draft = room.draft();
+    return new ActiveRankingRoom(
+        "rankingRoom",
+        true,
+        room.facilitatorId(),
+        room.live(),
+        new Draft(
+            draft.criterionKeys(),
+            draft.criterionKey(),
+            draft.levels(),
+            draft.unranked(),
+            draft.values()),
+        room.opinions().stream().map(ServerMessages::opinion).toList(),
+        room.spotlightFeatureId());
+  }
+
+  private static Opinion opinion(CardOpinion opinion) {
+    return new Opinion(
+        opinion.featureId(),
+        opinion.criterionKey(),
+        opinion.participantId(),
+        opinion.opinion().name(),
+        opinion.comment());
+  }
+
+  record EndedRankingRoom(String type, boolean active, String endReason) {}
+
+  record ActiveRankingRoom(
+      String type,
+      boolean active,
+      UUID facilitatorId,
+      boolean live,
+      Draft draft,
+      List<Opinion> opinions,
+      UUID spotlightFeatureId) {}
+
+  record Draft(
+      List<String> criterionKeys,
+      String criterionKey,
+      List<List<UUID>> levels,
+      List<UUID> unranked,
+      Map<UUID, Integer> values) {}
+
+  /** Un avis : {@code comment} est absent quand il n'y en a pas. */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  record Opinion(
+      UUID featureId, String criterionKey, UUID participantId, String opinion, String comment) {}
 }
