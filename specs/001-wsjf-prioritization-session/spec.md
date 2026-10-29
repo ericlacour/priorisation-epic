@@ -614,18 +614,22 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     apparaît chez les membres en moins de 2 secondes, comme une mise à jour du tableau
     (SC-002). La carte qui vient de bouger est signalée un court instant ;
   - un bandeau rappelle « Vous suivez le classement de <animateur> ». « Parcourir
-    librement » détache le défilement et le critère affiché de ceux de l'animateur, sans
-    arrêter les mises à jour ; « Revenir sur <animateur> » le raccroche ;
+    librement » cesse de ramener à la vue la carte que l'animateur vient de déplacer, sans
+    arrêter les mises à jour ; « Revenir sur <animateur> » le raccroche. Le critère affiché
+    est toujours celui que l'animateur classe ;
   - l'animateur peut **suspendre la diffusion** (« Diffusé en direct », bouton à bascule
-    de sa barre d'actions) : les membres gardent le dernier état diffusé, avec le bandeau
+    de l'écran de classement, à côté de la valeur du premier niveau, pour ne pas allonger
+    l'en-tête) : les membres gardent le dernier état diffusé, avec le bandeau
     « Diffusion en pause ». Il la reprend d'un clic ;
   - ce qui est diffusé est un **brouillon** : aucune valeur retenue ne change avant
     « Terminer » (FR-015a). Le tableau des membres réapparaît, à jour, quand l'animateur
     termine ; il réapparaît inchangé quand il annule ;
   - un membre qui se connecte ou se reconnecte pendant le classement arrive sur l'état
     diffusé en cours. Si l'animateur se déconnecte, les membres reviennent au tableau,
-    avec le message « <animateur> s'est déconnecté : le classement en cours n'a pas été
-    enregistré » ; une session rouverte commence toujours sur le tableau (FR-015a) ;
+    avec le message « L'animateur s'est déconnecté : le classement en cours n'a pas été
+    enregistré. Attendez son retour. » ; à son retour, s'il est encore sur l'écran de
+    classement, la diffusion reprend d'elle-même. Une session rouverte commence toujours
+    sur le tableau (FR-015a) ;
   - la diffusion ne concerne **pas** le vote d'un tour masqué (FR-019) : chacun y classe
     seul et ne voit le classement de personne avant la révélation ;
   - sur téléphone, la vue diffusée est consultable en lecture seule, comme le tableau.
@@ -642,15 +646,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      (140 caractères au plus), sans que ce soit jamais demandé. Changer d'avis garde le
      commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire ;
   3. **Affichage** : chaque carte montre, chez tous, le nombre de ✓, de ↑ et de ↓, et un
-     signe quand au moins un avis est commenté. Le survol, le focus ou un clic sur ces
+     signe quand au moins un avis est commenté. Un clic (ou Entrée au clavier) sur ces
      compteurs ouvre la liste des avis de la carte : pseudo, avis et commentaire.
      L'animateur voit en plus, à côté du classement, la liste des cartes qui ont des avis
-     ↑ ou ↓, de la plus discutée à la moins discutée, avec les commentaires ; un clic sur
-     une carte de cette liste la met en discussion. Depuis le menu d'une carte, il peut
-     « Effacer les avis » de cette carte pour le critère en cours, par exemple après l'avoir
-     déplacée ;
-  4. **Carte en discussion** : depuis le menu d'une carte ou la liste des avis,
-     l'animateur peut « Mettre en discussion » une fonctionnalité. Elle est mise en avant
+     ↑ ou ↓, de la plus discutée à la moins discutée, avec les commentaires. Depuis cette
+     liste, il peut « Effacer les avis » d'une carte pour le critère en cours, par exemple
+     après l'avoir déplacée ;
+  4. **Carte en discussion** : depuis la liste des avis, l'animateur peut « Mettre en
+     discussion » une fonctionnalité. Elle est mise en avant
      chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer
      la discussion » ou mette une autre carte en discussion. Une seule carte est en
      discussion à la fois.

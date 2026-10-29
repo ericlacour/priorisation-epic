@@ -5,7 +5,7 @@
 //   node deploy/load-test.mjs --url https://priorisation-epic.onrender.com --origin https://priorisation-epic-app.onrender.com
 //
 // Options : --url (obligatoire, origine http(s) du webservice), --participants 10 (animateur compris),
-// --features 50, --edits 100, --pause-ms 200 (entre deux modifications), --origin (en-tête Origin envoyé à
+// --features 50, --edits 100, --drafts 50, --pause-ms 200 (entre deux envois), --origin (en-tête Origin envoyé à
 // l'ouverture du WebSocket, à mettre dans ALLOWED_ORIGINS ; aucun par défaut), --timeout-ms 10000 (au-delà,
 // une diffusion compte comme non reçue).
 //
@@ -17,6 +17,10 @@
 // 3. l'animateur fait E modifications de valeur (updateFeature) ; pour chacune, le script mesure le délai
 //    entre l'envoi et la réception, par chaque participant connecté, de l'instantané qui porte la nouvelle
 //    version de la fonctionnalité, donc le tableau recalculé et retrié (SC-002 et SC-005 : moins de 2 s) ;
+// 3 bis. l'animateur diffuse D brouillons de classement (updateRankingDraft, FR-015b), un ordre différent des F
+//    fonctionnalités à chaque fois ; pour chacun, le script mesure le délai jusqu'à la réception, par chaque
+//    participant connecté, du `rankingRoom` qui porte ce classement (moins de 2 s), puis ferme la salle
+//    (endRanking CANCELLED) ;
 // 4. les P connexions se ferment puis se rouvrent toutes en même temps (cas d'un redéploiement) :
 //    chaque ouverture est mesurée de la même façon.
 //
@@ -37,6 +41,7 @@ function parseArgs(argv) {
     participants: 10,
     features: 50,
     edits: 100,
+    drafts: 50,
     pauseMs: 200,
     origin: null,
     timeoutMs: 10_000,
@@ -54,6 +59,7 @@ function parseArgs(argv) {
       case '--participants':
       case '--features':
       case '--edits':
+      case '--drafts':
       case '--pause-ms':
       case '--timeout-ms': {
         const number = Number(value);
@@ -87,9 +93,9 @@ class Expectations {
     this.missed = [];
   }
 
-  /** Attend que chaque pair de `recipients` reçoive un instantané qui satisfait `match`. */
-  expect(label, recipients, match, t0) {
-    const expectation = { label, waiting: new Set(recipients), match, t0 };
+  /** Attend que chaque pair de `recipients` reçoive un message de ce type (`sessionState` par défaut) qui satisfait `match`. */
+  expect(label, recipients, match, t0, type = 'sessionState') {
+    const expectation = { label, waiting: new Set(recipients), match, t0, type };
     if (expectation.waiting.size === 0) return Promise.resolve();
     this.pending.add(expectation);
     return new Promise((resolve) => {
@@ -104,6 +110,7 @@ class Expectations {
 
   received(peer, state, at) {
     for (const expectation of this.pending) {
+      if (expectation.type !== state.type) continue;
       if (expectation.waiting.has(peer) && expectation.match(state)) {
         expectation.waiting.delete(peer);
         this.latencies.push(at - expectation.t0);
@@ -154,6 +161,8 @@ class Peer {
             first = false;
             resolve(at - helloAt);
           }
+        } else if (message.type === 'rankingRoom') {
+          expectations.received(this, message, at);
         } else if (message.type === 'error') {
           errors.push(`${this.label} : error ${message.code}`);
         }
@@ -261,6 +270,33 @@ async function edit(run, facilitator, index) {
   await propagated;
 }
 
+/** Un ordre au hasard des fonctionnalités, chacune à son niveau, pour le classement de BV (FR-015b). */
+function shuffledDraft(features) {
+  const ids = features.map((feature) => feature.id).sort(() => Math.random() - 0.5);
+  return {
+    criterionKeys: ['bv'],
+    criterionKey: 'bv',
+    levels: ids.map((id) => [id]),
+    unranked: [],
+    values: Object.fromEntries(ids.map((id, index) => [id, Math.max(10 - index, 1)])),
+  };
+}
+
+/** L'animateur diffuse un brouillon ; chaque participant connecté doit recevoir la salle qui le porte. */
+async function broadcastDraft(run, facilitator, index) {
+  const draft = shuffledDraft(facilitator.state.features);
+  const levels = JSON.stringify(draft.levels);
+  const received = run.expectations.expect(
+    `updateRankingDraft ${index + 1}`,
+    run.peers.filter((p) => p.open),
+    (room) => room.active && JSON.stringify(room.draft.levels) === levels,
+    now(),
+    'rankingRoom',
+  );
+  facilitator.send({ type: 'updateRankingDraft', live: true, draft });
+  await received;
+}
+
 function percentile(sorted, p) {
   if (sorted.length === 0) return 0;
   return sorted[Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)];
@@ -281,7 +317,7 @@ async function main() {
   const started = now();
   console.log(
     `Charge : ${options.participants} participants, ${options.features} fonctionnalités, ` +
-      `${options.edits} modifications, contre ${options.url}`,
+      `${options.edits} modifications, ${options.drafts} brouillons, contre ${options.url}`,
   );
 
   const heartbeat = setInterval(() => {
@@ -299,6 +335,24 @@ async function main() {
   }
   const propagations = [...run.expectations.latencies];
 
+  run.expectations.latencies = [];
+  for (let i = 0; i < options.drafts; i++) {
+    await broadcastDraft(run, facilitator, i);
+    await sleep(options.pauseMs);
+  }
+  const drafts = [...run.expectations.latencies];
+  if (options.drafts > 0) {
+    const ended = run.expectations.expect(
+      'endRanking',
+      run.peers.filter((p) => p.open),
+      (room) => !room.active,
+      now(),
+      'rankingRoom',
+    );
+    facilitator.send({ type: 'endRanking', outcome: 'CANCELLED' });
+    await ended;
+  }
+
   for (const peer of run.peers) peer.close();
   await sleep(500);
   const reopenings = await Promise.all(run.peers.map((peer) => peer.connect()));
@@ -314,6 +368,7 @@ async function main() {
     if (late) failures.push(`${late} ${label.toLowerCase()} au-delà de ${limit / 1000} s (max ${Math.max(...latencies).toFixed(1)} ms)`);
   };
   report('Diffusions', propagations, PROPAGATION_LIMIT_MS);
+  report('Brouillons diffusés', drafts, PROPAGATION_LIMIT_MS);
   report('Ouvertures', openings, OPENING_LIMIT_MS);
   report('Ouvertures simultanées', reopenings, OPENING_LIMIT_MS);
   if (run.expectations.missed.length) {
@@ -325,7 +380,9 @@ async function main() {
     for (const failure of failures) console.error(`ÉCHEC : ${failure}`);
     process.exit(1);
   }
-  console.log('OK : diffusions en moins de 2 s, ouvertures en moins de 3 s, aucune erreur, aucune connexion tombée.');
+  console.log(
+    'OK : diffusions et brouillons en moins de 2 s, ouvertures en moins de 3 s, aucune erreur, aucune connexion tombée.',
+  );
   process.exit(0);
 }
 

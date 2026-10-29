@@ -164,10 +164,15 @@ natif suffisent).
 - L'animateur fait E modifications de valeur (`--edits`, 100 par défaut, `--pause-ms` 200 entre
   deux). Pour chacune, le script mesure le délai jusqu'à la réception, par chaque participant
   connecté, de l'instantané qui porte la nouvelle version de la fonctionnalité.
+- L'animateur diffuse D brouillons de classement (`--drafts`, 50 par défaut, FR-015b), un ordre
+  différent des fonctionnalités à chaque fois. Pour chacun, le script mesure le délai jusqu'à la
+  réception, par chaque participant connecté, du `rankingRoom` qui porte ce classement ; puis il
+  ferme la salle.
 - Toutes les connexions se ferment puis se rouvrent en même temps (cas d'un redéploiement) ;
   chaque ouverture est mesurée. La session est ensuite clôturée.
-- Il affiche p50, p95, p99 et max des diffusions, des ouvertures et des ouvertures simultanées. Il
-  sort en erreur (code 1) si une diffusion dépasse 2 s ou n'arrive pas, si une ouverture dépasse
+- Il affiche p50, p95, p99 et max des diffusions, des brouillons diffusés, des ouvertures et des
+  ouvertures simultanées. Il sort en erreur (code 1) si une diffusion ou un brouillon dépasse 2 s
+  ou n'arrive pas, si une ouverture dépasse
   3 s, si le webservice répond `error` ou si une connexion tombe ; sinon avec le code 0.
 
 `ALLOWED_ORIGINS` filtre l'en-tête `Origin` des WebSocket. Le script n'en envoie aucun par défaut ;
@@ -183,6 +188,7 @@ node deploy/load-test.mjs --url https://priorisation-epic.onrender.com \
 | Date | Cible | Paramètres | Résultat |
 | --- | --- | --- | --- |
 | 2026-10-21 | webservice local (`java -jar`, PostgreSQL 16 local) | 10 participants, 50 fonctionnalités, 100 modifications | OK : 1 000 diffusions, p50 16,4 ms, p95 24,4 ms, max 151,1 ms ; ouvertures (9) max 10,2 ms ; ouvertures simultanées (10) max 57,8 ms |
+| 2026-10-29 | webservice local (`java -jar`, PostgreSQL 17 en conteneur) | 10 participants, 50 fonctionnalités, 30 modifications, 50 brouillons | OK : 300 diffusions, p50 28,2 ms, p95 42,3 ms, max 156,7 ms ; 500 brouillons reçus, p50 10,6 ms, p95 15,4 ms, max 47,7 ms ; ouvertures (9) max 27,1 ms ; ouvertures simultanées (10) max 137,2 ms |
 | 2026-10-21 | webservice local, idem | 10 participants, 100 fonctionnalités, 30 modifications sans pause | OK : 300 diffusions, max 36,2 ms ; ouvertures simultanées max 140,4 ms |
 
 Un essai contre Render reste à faire et à noter ici : la sortie vers Render n'était pas possible
