@@ -19,6 +19,12 @@ info:
       values are maps keyed by the keys that `sessionState.methodDefinition` declares.
     - The contract only evolves by addition. The messages of the user journeys are added to this
       file with their schemas, task by task.
+    - Exception, the live ranking room (FR-015b, FR-015c): `updateRankingDraft`, `endRanking`,
+      `giveOpinion`, `clearOpinions` and `setSpotlight` write nothing to the database, do not
+      increment `version` and do not trigger `sessionState`. After each accepted one, every
+      connection of the session gets `rankingRoom`. The room lives in memory, one per session,
+      from the first `updateRankingDraft` to its end; a server restart only ends it. Opinions and
+      the card under discussion are never stored, exported nor written to the change log.
   license:
     name: Proprietary
 
@@ -71,6 +77,18 @@ channels:
         $ref: '#/components/messages/changeStatus'
       sessionState:
         $ref: '#/components/messages/sessionState'
+      updateRankingDraft:
+        $ref: '#/components/messages/updateRankingDraft'
+      endRanking:
+        $ref: '#/components/messages/endRanking'
+      giveOpinion:
+        $ref: '#/components/messages/giveOpinion'
+      clearOpinions:
+        $ref: '#/components/messages/clearOpinions'
+      setSpotlight:
+        $ref: '#/components/messages/setSpotlight'
+      rankingRoom:
+        $ref: '#/components/messages/rankingRoom'
     x-close-codes:
       - code: 4401
         reason: Unknown participant token. The client shows the Join screen.
@@ -131,6 +149,48 @@ operations:
     summary: Start, close or reopen the session (FR-004, FR-026), facilitator only.
     messages:
       - $ref: '#/channels/session/messages/changeStatus'
+  receiveUpdateRankingDraft:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Open the ranking room, broadcast the ranking draft or pause the broadcast (FR-015b), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/updateRankingDraft'
+  receiveEndRanking:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Close the ranking room, saved or cancelled (FR-015b), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/endRanking'
+  receiveGiveOpinion:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Give, change or withdraw an opinion on a card, with an optional comment (FR-015c), participant only.
+    messages:
+      - $ref: '#/channels/session/messages/giveOpinion'
+  receiveClearOpinions:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Clear the opinions of a card for a criterion (FR-015c), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/clearOpinions'
+  receiveSetSpotlight:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Start or end the card under discussion (FR-015c), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/setSpotlight'
+  sendRankingRoom:
+    action: send
+    channel:
+      $ref: '#/channels/session'
+    summary: Live ranking room, the same for every member (FR-015b, FR-015c).
+    messages:
+      - $ref: '#/channels/session/messages/rankingRoom'
   sendSessionState:
     action: send
     channel:
@@ -216,3 +276,39 @@ components:
       summary: Full state, filtered for each recipient (FR-019, FR-019a, SC-004).
       payload:
         $ref: './schemas/session-state.json'
+    updateRankingDraft:
+      name: updateRankingDraft
+      title: updateRankingDraft
+      summary: Open the ranking room, broadcast the ranking draft or pause the broadcast (FR-015b), facilitator only.
+      payload:
+        $ref: './schemas/update-ranking-draft.json'
+    endRanking:
+      name: endRanking
+      title: endRanking
+      summary: Close the ranking room, saved or cancelled (FR-015b), facilitator only.
+      payload:
+        $ref: './schemas/end-ranking.json'
+    giveOpinion:
+      name: giveOpinion
+      title: giveOpinion
+      summary: Give, change or withdraw an opinion on a card, with an optional comment (FR-015c), participant only.
+      payload:
+        $ref: './schemas/give-opinion.json'
+    clearOpinions:
+      name: clearOpinions
+      title: clearOpinions
+      summary: Clear the opinions of a card for a criterion (FR-015c), facilitator only.
+      payload:
+        $ref: './schemas/clear-opinions.json'
+    setSpotlight:
+      name: setSpotlight
+      title: setSpotlight
+      summary: Start or end the card under discussion (FR-015c), facilitator only.
+      payload:
+        $ref: './schemas/set-spotlight.json'
+    rankingRoom:
+      name: rankingRoom
+      title: rankingRoom
+      summary: Live ranking room, the same for every member (FR-015b, FR-015c).
+      payload:
+        $ref: './schemas/ranking-room.json'

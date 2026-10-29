@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "set-spotlight.json",
+  "title": "setSpotlight (client → server)",
+  "description": "Facilitator only (FR-015c point 4). A featureId puts that feature under discussion for everyone and ends the previous one; null ends the discussion. No timer. A feature outside the draft gets error NOT_IN_RANKING.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId"],
+  "properties": {
+    "type": {
+      "const": "setSpotlight"
+    },
+    "featureId": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    }
+  }
+}

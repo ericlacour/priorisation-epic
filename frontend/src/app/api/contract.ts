@@ -56,6 +56,8 @@ export const ERROR_CODES = [
   'PARTICIPANT_OFFLINE',
   'UNKNOWN_CRITERION',
   'SESSION_NAME_TAKEN',
+  'NO_RANKING_IN_PROGRESS',
+  'NOT_IN_RANKING',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

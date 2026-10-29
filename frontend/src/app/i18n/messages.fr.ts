@@ -397,6 +397,10 @@ export const MESSAGES = {
     UNKNOWN_CRITERION:
       "Ce critère n'existe pas dans la méthode de la session : rechargez la page, puis réessayez.",
     SESSION_NAME_TAKEN: 'Une session porte déjà ce nom. Choisissez-en un autre.',
+    NO_RANKING_IN_PROGRESS:
+      "Le classement en direct est terminé : votre avis n'a pas été envoyé. Revenez au tableau.",
+    NOT_IN_RANKING:
+      "Cette fonctionnalité n'est plus dans le classement en cours : attendez la mise à jour du classement, puis réessayez.",
     NOT_CONNECTED:
       'Connexion perdue : votre modification n’a pas été envoyée. Réessayez dans un instant.',
   },
