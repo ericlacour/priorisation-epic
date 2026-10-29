@@ -1,14 +1,19 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
 
 import {
+  ActiveRankingRoom,
   AddFeatureMessage,
   DeleteFeatureMessage,
   ErrorCode,
   ImpactedValue,
+  OpinionKind,
+  RankingDraft,
+  RankingEndReason,
   StatusAction,
   UpdateFeatureMessage,
   UpdateSettingsMessage,
   isErrorMessage,
+  isRankingRoom,
   isSessionState,
 } from '../api/contract';
 import { SessionState } from '../api/session-state';
@@ -35,10 +40,16 @@ export class SessionRoomService {
 
   private readonly stateSignal = signal<SessionState | null>(null);
   private readonly refusalSignal = signal<IntentRefusal | null>(null);
+  private readonly rankingRoomSignal = signal<ActiveRankingRoom | null>(null);
+  private readonly rankingEndSignal = signal<RankingEndReason | null>(null);
   private sessionId: string | null = null;
 
   readonly state = this.stateSignal.asReadonly();
   readonly refusal = this.refusalSignal.asReadonly();
+  /** La salle de classement en cours (FR-015b), ou `null` : aucun classement diffusé. */
+  readonly rankingRoom = this.rankingRoomSignal.asReadonly();
+  /** Pourquoi la dernière salle s'est fermée, jusqu'à ce que le message soit lu. */
+  readonly rankingEnd = this.rankingEndSignal.asReadonly();
   readonly connection = this.socket.connection;
   readonly end = this.socket.end;
   /** Les droits d'animateur sont ceux de la connexion : `me.role` vaut `FACILITATOR` avec un jeton d'animation valide. */
@@ -54,9 +65,16 @@ export class SessionRoomService {
         this.stateSignal.set(message);
       } else if (isErrorMessage(message)) {
         this.receiveError(message.code, message.featureId, message.impactedValues);
+      } else if (isRankingRoom(message)) {
+        this.rankingRoomSignal.set(message.active ? message : null);
+        this.rankingEndSignal.set(message.active ? null : message.endReason);
       }
     });
     inject(DestroyRef).onDestroy(() => subscription.unsubscribe());
+    // Connexion perdue : la salle n'est plus suivie. Le serveur la renvoie à la reconnexion si elle est encore ouverte.
+    effect(() => {
+      if (this.socket.connection() === 'lost') this.rankingRoomSignal.set(null);
+    });
   }
 
   /** Ouvre la connexion à la session avec les jetons rangés dans ce navigateur. */
@@ -94,6 +112,57 @@ export class SessionRoomService {
   /** Démarre, clôture ou rouvre la session (animateur, FR-004). */
   changeStatus(action: StatusAction): boolean {
     return this.send({ type: 'changeStatus', action });
+  }
+
+  /**
+   * Diffuse le brouillon de l'écran de classement (animateur, FR-015b), ou met la diffusion en pause avec `null`.
+   * Envoi discret : un échec ne remplace pas le dernier refus affiché.
+   */
+  sendRankingDraft(draft: RankingDraft | null): boolean {
+    return this.socket.send(
+      draft === null
+        ? { type: 'updateRankingDraft', live: false }
+        : { type: 'updateRankingDraft', live: true, draft },
+    );
+  }
+
+  /** Ferme la salle de classement (animateur) : `SAVED` après « Terminer », `CANCELLED` sur « Annuler ». */
+  endRanking(outcome: 'SAVED' | 'CANCELLED'): boolean {
+    return this.socket.send({ type: 'endRanking', outcome });
+  }
+
+  /**
+   * Donne, change ou retire (`null`) son avis sur une carte (participant, FR-015c). `comment` absent garde le
+   * commentaire, vide l'efface.
+   */
+  giveOpinion(
+    featureId: string,
+    criterionKey: string,
+    opinion: OpinionKind | null,
+    comment?: string,
+  ): boolean {
+    return this.send({
+      type: 'giveOpinion',
+      featureId,
+      criterionKey,
+      opinion,
+      ...(comment === undefined ? {} : { comment }),
+    });
+  }
+
+  /** « Effacer les avis » d'une carte pour un critère (animateur). */
+  clearOpinions(featureId: string, criterionKey: string): boolean {
+    return this.send({ type: 'clearOpinions', featureId, criterionKey });
+  }
+
+  /** Met une carte en discussion, ou termine la discussion avec `null` (animateur). */
+  setSpotlight(featureId: string | null): boolean {
+    return this.send({ type: 'setSpotlight', featureId });
+  }
+
+  /** Le message de fin de la salle a été lu. */
+  dismissRankingEnd(): void {
+    this.rankingEndSignal.set(null);
   }
 
   /** Les jetons de l'animateur de cette session rangés dans ce navigateur, pour l'import ; `null` sans eux. */

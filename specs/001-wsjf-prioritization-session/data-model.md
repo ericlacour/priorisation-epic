@@ -290,6 +290,25 @@ change vraiment.
 - Le rôle `FACILITATOR` ne se reprend jamais par pseudo, seulement par le lien
   d'animation.
 
+## RankingRoom (Salle de classement collaboratif, en mémoire, FR-015b et FR-015c)
+
+Jamais enregistrée : une salle par session, dans la mémoire du webservice, du premier brouillon
+diffusé par l'animateur (`updateRankingDraft`) à sa fermeture. Elle n'incrémente pas
+`session.version` et n'écrit rien dans `change_log`. Un redémarrage du webservice la ferme ; les
+valeurs retenues, elles, sont toujours écrites par `updateFeature` à « Terminer ».
+
+| Champ | Type | Règles |
+|-------|------|--------|
+| facilitatorId | UUID | Le participant qui a ouvert la salle |
+| live | booléen | Faux pendant la pause de la diffusion : les membres gardent le dernier brouillon diffusé |
+| draft | objet | `criterionKeys` (choisis, au moins un), `criterionKey` (en cours, parmi eux), `levels` (du plus fort au plus faible, jamais vides), `unranked`, `values` (fonctionnalités classées seulement, dans l'échelle). Une fonctionnalité au plus une fois, jamais d'un tour ouvert ; une fonctionnalité supprimée entre-temps en sort |
+| opinions | liste | Un avis au plus par membre, fonctionnalité et critère : `AGREE`, `RAISE` ou `LOWER`, avec un commentaire facultatif de 140 caractères au plus. Seulement sur une fonctionnalité et un critère du brouillon ; un brouillon qui les retire retire leurs avis |
+| spotlightFeatureId | UUID ou vide | La carte en discussion, une à la fois, dans le brouillon |
+
+Fermeture : `endRanking` (`SAVED` ou `CANCELLED`), dernière connexion d'animateur fermée
+(`FACILITATOR_LEFT`), transmission du rôle (`FACILITATOR_CHANGED`) ou clôture de la session
+(`SESSION_CLOSED`).
+
 ## ImportPreview (Aperçu d'import, temporaire)
 
 | Champ | Type | Règles |

@@ -14,6 +14,7 @@ import { SessionApi, SessionApiError } from '../api/session-api';
 import { BoardComponent } from '../board/board.component';
 import { MESSAGES } from '../i18n/messages.fr';
 import { BrowserStorage } from '../storage/browser-storage';
+import { LiveRankingViewComponent } from '../ranking/live-ranking-view.component';
 import { RankingScreenComponent } from '../ranking/ranking-screen.component';
 import { JoinComponent } from './join/join.component';
 import { SessionRoomService } from './session-room.service';
@@ -30,12 +31,19 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
  * clôturée, son tableau en lecture seule lu par `GET /api/sessions/{sessionId}`, sans la rejoindre (FR-026) ; seul
  * l'animateur venu par son lien d'animation la rejoint, pour pouvoir la rouvrir. Avec un jeton, la connexion à la
  * session et le tableau. La connexion (`4401`) ou la session (`4404`) perdue ramène à l'entrée ou à
- * « Session introuvable ». L'animateur passe du tableau à l'écran « Prioriser par classement » et en revient. Le
- * socket et l'état de la session vivent et meurent avec la page.
+ * « Session introuvable ». L'animateur passe du tableau à l'écran « Prioriser par classement » et en revient ; pendant
+ * ce temps, les autres membres suivent son classement en direct à la place du tableau (FR-015b). Le socket et l'état
+ * de la session vivent et meurent avec la page.
  */
 @Component({
   selector: 'app-session-entry',
-  imports: [BoardComponent, JoinComponent, RankingScreenComponent, RouterLink],
+  imports: [
+    BoardComponent,
+    JoinComponent,
+    LiveRankingViewComponent,
+    RankingScreenComponent,
+    RouterLink,
+  ],
   providers: [SessionSocketService, SessionRoomService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -53,6 +61,9 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
       @case ('room') {
         @if (ranking()) {
           <app-ranking-screen (closed)="ranking.set(false)" />
+        } @else if (room.rankingRoom() && !room.canAnimate()) {
+          <!-- L'animateur classe : les membres suivent son classement en direct (FR-015b). -->
+          <app-live-ranking-view />
         } @else {
           <app-board (rankingRequested)="ranking.set(true)" />
         }
@@ -82,7 +93,7 @@ type Phase = 'checking' | 'join' | 'room' | 'notFound' | 'unavailable';
 export class SessionEntryComponent implements OnInit {
   private readonly api = inject(SessionApi);
   private readonly storage = inject(BrowserStorage);
-  private readonly room = inject(SessionRoomService);
+  protected readonly room = inject(SessionRoomService);
   protected readonly messages = MESSAGES.sessionEntry;
   protected readonly apiErrors = MESSAGES.apiErrors;
   protected readonly wakeMessages = MESSAGES.wake;

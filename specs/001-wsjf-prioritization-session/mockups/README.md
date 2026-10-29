@@ -32,7 +32,7 @@ partagée entre l'animateur et les personnes connectées. Les écrans partagent 
 
 | Écran | Rôle | Statut | Idée principale |
 |-------|------|--------|-----------------|
-| A. Atelier en direct | Animateur | Retenu (FR-015b, FR-015c) | Le classement est diffusé en direct (pause possible). Chaque carte montre ses compteurs ✓ ↑ ↓ et le nombre d'avis commentés. À droite : la carte en discussion avec ses avis, puis les cartes que la salle voudrait monter ou descendre, avec les commentaires. Menu ⋯ : « Mettre en discussion », « Effacer les avis ». Cartes en grille par niveau, valeur du niveau en grand à gauche |
+| A. Atelier en direct | Animateur | Retenu (FR-015b, FR-015c) | Le classement est diffusé en direct (pause possible). Chaque carte montre ses compteurs ✓ ↑ ↓ et le nombre d'avis commentés. À droite : la carte en discussion avec ses avis, puis les cartes que la salle voudrait monter ou descendre, avec les commentaires. « Mettre en discussion » et « Effacer les avis » depuis la liste des avis (dans l'application, pas de menu ⋯ par carte ; la bascule « Diffusé en direct » est à côté de la valeur du premier niveau). Cartes en grille par niveau, valeur du niveau en grand à gauche |
 | B. Suivre et donner son avis | Participant | Retenu (FR-015b, FR-015c) | Suit l'écran de l'animateur (ou parcourt librement). Un avis par carte : ✓ d'accord, ↑ je monterais, ↓ je descendrais ; une bulle propose un commentaire, jamais obligatoire. « Vos avis » pour commenter ou retirer |
 | C. Tour masqué : suivi | Animateur | Mis de côté | Piste pour le vote masqué, à revoir plus tard |
 | D. Voter par classement | Participant | Mis de côté | Idem |

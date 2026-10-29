@@ -290,3 +290,123 @@ test('un exemple de session sans définition de méthode est refusé', async () 
     errors.join('\n'),
   );
 });
+
+// Salle de classement (FR-015b, FR-015c, T126).
+const ACTIVE_ROOM = 'examples/ranking-room/active.json';
+const F3 = '8b3e4f50-6d7c-4e9f-8a01-2c3d4e5f6071';
+
+test('une salle active sans brouillon est refusée', async () => {
+  const dir = copyContract();
+  editJson(dir, ACTIVE_ROOM, (s) => delete s.draft);
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, ACTIVE_ROOM, 'draft'), errors.join('\n'));
+});
+
+test('une salle fermée ne porte que son motif de fin', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/ranking-room/ended-saved.json', (s) => {
+    s.live = true;
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, 'examples/ranking-room/ended-saved.json'), errors.join('\n'));
+
+  const other = copyContract();
+  editJson(other, 'examples/ranking-room/ended-saved.json', (s) => delete s.endReason);
+  const result = await validateContract(other);
+  assert.ok(
+    hasError(result.errors, 'examples/ranking-room/ended-saved.json', 'endReason'),
+    result.errors.join('\n'),
+  );
+});
+
+test('une salle active ne porte pas de motif de fin', async () => {
+  const dir = copyContract();
+  editJson(dir, ACTIVE_ROOM, (s) => {
+    s.endReason = 'SAVED';
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, ACTIVE_ROOM), errors.join('\n'));
+});
+
+test('un brouillon diffusé sans brouillon est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/update-ranking-draft/live.json', (s) => delete s.draft);
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/update-ranking-draft/live.json', 'draft'),
+    errors.join('\n'),
+  );
+});
+
+test('une fonctionnalité deux fois dans un brouillon est refusée', async () => {
+  const dir = copyContract();
+  editJson(dir, ACTIVE_ROOM, (s) => s.draft.unranked.push(F3));
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, ACTIVE_ROOM, F3, 'plusieurs fois'), errors.join('\n'));
+});
+
+test('un critère en cours hors des critères choisis est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/update-ranking-draft/live.json', (s) => {
+    s.draft.criterionKey = 'tc';
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/update-ranking-draft/live.json', 'tc', 'critères choisis'),
+    errors.join('\n'),
+  );
+});
+
+test('une valeur pour une fonctionnalité non classée est refusée', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/update-ranking-draft/with-unranked.json', (s) => {
+    s.draft.values[s.draft.unranked[0]] = 2;
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/update-ranking-draft/with-unranked.json', 'sans être classée'),
+    errors.join('\n'),
+  );
+});
+
+test("deux avis d'un même membre sur une carte et un critère sont refusés", async () => {
+  const dir = copyContract();
+  editJson(dir, ACTIVE_ROOM, (s) => s.opinions.push({ ...s.opinions[1], opinion: 'LOWER' }));
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, ACTIVE_ROOM, 'un seul par membre'), errors.join('\n'));
+});
+
+test('un avis ou une carte en discussion hors du brouillon sont refusés', async () => {
+  const dir = copyContract();
+  editJson(dir, ACTIVE_ROOM, (s) => {
+    s.draft.levels = [s.draft.levels[0]];
+    s.draft.values = { [s.draft.levels[0][0]]: 8 };
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(hasError(errors, ACTIVE_ROOM, 'hors du brouillon'), errors.join('\n'));
+  assert.ok(hasError(errors, ACTIVE_ROOM, 'carte en discussion'), errors.join('\n'));
+});
+
+test('un avis inconnu est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/give-opinion/agree-without-comment.json', (s) => {
+    s.opinion = 'QUESTION';
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/give-opinion/agree-without-comment.json', 'opinion'),
+    errors.join('\n'),
+  );
+});
+
+test('un commentaire de plus de 140 caractères est refusé', async () => {
+  const dir = copyContract();
+  editJson(dir, 'examples/give-opinion/raise-with-comment.json', (s) => {
+    s.comment = 'x'.repeat(141);
+  });
+  const { errors } = await validateContract(dir);
+  assert.ok(
+    hasError(errors, 'examples/give-opinion/raise-with-comment.json', 'comment'),
+    errors.join('\n'),
+  );
+});

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SessionRoomService } from '../session/session-room.service';
 import { FakeRoom } from '../testing/fake-room';
-import { F1, F2, feature, state } from '../testing/fixtures';
+import { F1, F2, feature, rankingRoom, state } from '../testing/fixtures';
 import { RankingScreenComponent } from './ranking-screen.component';
 
 const F3 = feature({ id: 'f3', externalId: 'F-3', title: 'Programme de fidélité', version: 5 });
@@ -327,5 +327,78 @@ describe('RankingScreenComponent', () => {
     fixture.detectChanges();
     expect(closed()).toBe(2);
     expect(room.updateFeature).not.toHaveBeenCalled();
+  });
+
+  describe('live ranking (FR-015b, FR-015c)', () => {
+    it('broadcasts the ranking of the current criterion once it starts', () => {
+      const { click, room } = render([F1, F2]);
+      expect(room.sendRankingDraft).not.toHaveBeenCalled();
+
+      click('Commencer le classement');
+
+      expect(room.sendRankingDraft).toHaveBeenCalledTimes(1);
+      const draft = room.sendRankingDraft.mock.calls[0]![0] as {
+        criterionKeys: string[];
+        criterionKey: string;
+      };
+      expect(draft.criterionKeys).toEqual(['bv', 'tc', 'rrOe', 'js']);
+      expect(draft.criterionKey).toBe('bv');
+    });
+
+    it('pauses and resumes the broadcast', () => {
+      const { click, button, fixture, room } = render([F1, F2]);
+      click('Commencer le classement');
+
+      button('Diffusé en direct').click();
+      fixture.detectChanges();
+      expect(room.sendRankingDraft).toHaveBeenLastCalledWith(null);
+      expect(button('Diffuser en direct').getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('closes the room on cancel', () => {
+      const { click, room } = render([F1, F2]);
+      click('Commencer le classement');
+      click('Annuler');
+      expect(room.endRanking).toHaveBeenCalledWith('CANCELLED');
+    });
+
+    it('closes the room as saved when nothing changes', () => {
+      const { click, room, closed } = render([F1]);
+      click('Commencer le classement');
+      for (let step = 0; step < 4; step++) click(step < 3 ? 'Critère suivant' : 'Terminer');
+      expect(room.endRanking).toHaveBeenCalledWith('SAVED');
+      expect(closed()).toBe(1);
+    });
+
+    it('shows the opinions of the room and acts on them', () => {
+      const { click, fixture, element, room } = render([F1, F2]);
+      click('Commencer le classement');
+      room.rankingRoom.set(
+        rankingRoom({
+          opinions: [
+            {
+              featureId: 'f2',
+              criterionKey: 'bv',
+              participantId: 'p2',
+              opinion: 'RAISE',
+              comment: 'Urgent',
+            },
+          ],
+        }),
+      );
+      fixture.detectChanges();
+
+      expect(element.querySelector('[data-id="f2"] .opinion-counts')).not.toBeNull();
+      const panel = element.querySelector('app-opinions-panel')!;
+      expect(panel.textContent).toContain('Urgent');
+      [...panel.querySelectorAll<HTMLButtonElement>('button')]
+        .find((b) => b.textContent?.trim() === 'Mettre en discussion')!
+        .click();
+      [...panel.querySelectorAll<HTMLButtonElement>('button')]
+        .find((b) => b.textContent?.trim() === 'Effacer les avis')!
+        .click();
+      expect(room.setSpotlight).toHaveBeenCalledWith('f2');
+      expect(room.clearOpinions).toHaveBeenCalledWith('f2', 'bv');
+    });
   });
 });

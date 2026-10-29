@@ -708,4 +708,23 @@ describe('BoardComponent', () => {
       'Valeur hors échelle (Fibonacci 1, 2, 3, 5, 8, 13)',
     );
   });
+
+  it('tells a participant why the live ranking stopped, until they close the message (FR-015b)', () => {
+    const { fixture, room, element } = render({ animate: false });
+    room.rankingEnd.set('FACILITATOR_LEFT');
+    fixture.detectChanges();
+    expect(element.textContent).toContain('L’animateur s’est déconnecté');
+
+    button(element, 'Fermer')!.click();
+    fixture.detectChanges();
+    expect(room.dismissRankingEnd).toHaveBeenCalled();
+    expect(element.textContent).not.toContain('L’animateur s’est déconnecté');
+  });
+
+  it('does not tell the facilitator, who stopped the ranking', () => {
+    const { fixture, room, element } = render();
+    room.rankingEnd.set('CANCELLED');
+    fixture.detectChanges();
+    expect(element.textContent).not.toContain('Le classement a été annulé');
+  });
 });

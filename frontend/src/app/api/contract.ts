@@ -56,6 +56,8 @@ export const ERROR_CODES = [
   'PARTICIPANT_OFFLINE',
   'UNKNOWN_CRITERION',
   'SESSION_NAME_TAKEN',
+  'NO_RANKING_IN_PROGRESS',
+  'NOT_IN_RANKING',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -148,6 +150,77 @@ export interface ChangeStatusMessage {
   readonly action: StatusAction;
 }
 
+/**
+ * Brouillon de l'écran de classement de l'animateur (`ranking-draft.json`, FR-015b) : niveaux du plus fort au plus
+ * faible, non classées, et valeur de chaque fonctionnalité classée pour le critère en cours.
+ */
+export interface RankingDraft {
+  readonly criterionKeys: readonly string[];
+  readonly criterionKey: string;
+  readonly levels: readonly (readonly string[])[];
+  readonly unranked: readonly string[];
+  readonly values: Readonly<Record<string, number | null>>;
+}
+
+/** Avis sur une carte (FR-015c) : « D'accord », « Je monterais », « Je descendrais ». */
+export type OpinionKind = 'AGREE' | 'RAISE' | 'LOWER';
+export const OPINION_KINDS: readonly OpinionKind[] = ['AGREE', 'RAISE', 'LOWER'];
+
+/** L'avis d'un membre sur une fonctionnalité pour un critère, avec son commentaire facultatif. */
+export interface CardOpinion {
+  readonly featureId: string;
+  readonly criterionKey: string;
+  readonly participantId: string;
+  readonly opinion: OpinionKind;
+  readonly comment?: string;
+}
+
+/** Pourquoi la salle de classement s'est fermée. */
+export type RankingEndReason =
+  'SAVED' | 'CANCELLED' | 'FACILITATOR_LEFT' | 'FACILITATOR_CHANGED' | 'SESSION_CLOSED';
+
+/** La salle de classement ouverte (`ranking-room.json`, `active: true`). */
+export interface ActiveRankingRoom {
+  readonly type: 'rankingRoom';
+  readonly active: true;
+  readonly facilitatorId: string;
+  readonly live: boolean;
+  readonly draft: RankingDraft;
+  readonly opinions: readonly CardOpinion[];
+  readonly spotlightFeatureId: string | null;
+}
+
+/** La salle de classement fermée (`ranking-room.json`, `active: false`). */
+export interface EndedRankingRoom {
+  readonly type: 'rankingRoom';
+  readonly active: false;
+  readonly endReason: RankingEndReason;
+}
+
+export type RankingRoomMessage = ActiveRankingRoom | EndedRankingRoom;
+
+/** `updateRankingDraft` (animateur) : diffuse le brouillon, ou met la diffusion en pause (`live: false`). */
+export type UpdateRankingDraftMessage =
+  | { readonly type: 'updateRankingDraft'; readonly live: true; readonly draft: RankingDraft }
+  | { readonly type: 'updateRankingDraft'; readonly live: false };
+
+/** `endRanking` (animateur) : ferme la salle de classement. */
+export interface EndRankingMessage {
+  readonly type: 'endRanking';
+  readonly outcome: 'SAVED' | 'CANCELLED';
+}
+
+/**
+ * `giveOpinion` (participant) : `opinion` nul retire l'avis ; `comment` absent garde le commentaire, vide l'efface.
+ */
+export interface GiveOpinionMessage {
+  readonly type: 'giveOpinion';
+  readonly featureId: string;
+  readonly criterionKey: string;
+  readonly opinion: OpinionKind | null;
+  readonly comment?: string;
+}
+
 /** Une ligne de la liste des sessions (`session-summary.json`, FR-026). */
 export interface SessionSummary {
   readonly sessionId: string;
@@ -192,7 +265,8 @@ export interface ImportResult {
 }
 
 /** Messages du serveur reconnus ; un type inconnu est conservé brut. */
-export type ServerMessage = TickMessage | ErrorMessage | SessionState | { readonly type: string };
+export type ServerMessage =
+  TickMessage | ErrorMessage | SessionState | RankingRoomMessage | { readonly type: string };
 
 /** Codes de fermeture du serveur (asyncapi.yaml, `x-close-codes`). */
 export const CLOSE_UNKNOWN_TOKEN = 4401;
@@ -251,7 +325,75 @@ export function parseServerMessage(json: unknown): ServerMessage | null {
     };
   }
   if (json['type'] === 'sessionState') return parseSessionState(json);
+  if (json['type'] === 'rankingRoom') return parseRankingRoom(json);
   return { type: json['type'] };
+}
+
+const END_REASONS: readonly string[] = [
+  'SAVED',
+  'CANCELLED',
+  'FACILITATOR_LEFT',
+  'FACILITATOR_CHANGED',
+  'SESSION_CLOSED',
+];
+
+const isTextList = (value: unknown): value is readonly string[] =>
+  Array.isArray(value) && value.every(isText);
+
+function isRankingDraft(value: unknown): value is RankingDraft {
+  return (
+    isObject(value) &&
+    isTextList(value['criterionKeys']) &&
+    isText(value['criterionKey']) &&
+    Array.isArray(value['levels']) &&
+    value['levels'].every(isTextList) &&
+    isTextList(value['unranked']) &&
+    isObject(value['values']) &&
+    Object.values(value['values']).every((v) => v === null || isInt(v))
+  );
+}
+
+const isCardOpinion = (value: unknown): value is CardOpinion =>
+  isObject(value) &&
+  isText(value['featureId']) &&
+  isText(value['criterionKey']) &&
+  isText(value['participantId']) &&
+  OPINION_KINDS.includes(value['opinion'] as OpinionKind) &&
+  (value['comment'] === undefined || typeof value['comment'] === 'string');
+
+/** Lit un `rankingRoom` : `null` s'il est hors contrat. */
+function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | null {
+  if (json['active'] === false) {
+    const reason = json['endReason'];
+    return END_REASONS.includes(reason as string)
+      ? { type: 'rankingRoom', active: false, endReason: reason as RankingEndReason }
+      : null;
+  }
+  const spotlight = json['spotlightFeatureId'];
+  if (
+    json['active'] !== true ||
+    !isText(json['facilitatorId']) ||
+    typeof json['live'] !== 'boolean' ||
+    !isRankingDraft(json['draft']) ||
+    !Array.isArray(json['opinions']) ||
+    !json['opinions'].every(isCardOpinion) ||
+    !(spotlight === null || isText(spotlight))
+  ) {
+    return null;
+  }
+  return {
+    type: 'rankingRoom',
+    active: true,
+    facilitatorId: json['facilitatorId'],
+    live: json['live'],
+    draft: json['draft'],
+    opinions: json['opinions'],
+    spotlightFeatureId: spotlight,
+  };
+}
+
+export function isRankingRoom(message: ServerMessage): message is RankingRoomMessage {
+  return message.type === 'rankingRoom';
 }
 
 export function isSessionState(message: ServerMessage): message is SessionState {

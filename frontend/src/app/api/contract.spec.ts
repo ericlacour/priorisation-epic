@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   heartbeatMessage,
   helloMessage,
+  isRankingRoom,
   isSessionId,
   parseCreateSessionResponse,
   parseImportPreview,
@@ -168,5 +169,53 @@ describe('contract: session list', () => {
     ]) {
       expect(() => parseSessionSummaries(bad)).toThrow();
     }
+  });
+});
+
+describe('contract: rankingRoom', () => {
+  const room = {
+    type: 'rankingRoom',
+    active: true,
+    facilitatorId: 'p1',
+    live: true,
+    draft: {
+      criterionKeys: ['bv'],
+      criterionKey: 'bv',
+      levels: [['f1']],
+      unranked: ['f2'],
+      values: { f1: 8 },
+    },
+    opinions: [
+      {
+        featureId: 'f1',
+        criterionKey: 'bv',
+        participantId: 'p2',
+        opinion: 'RAISE',
+        comment: 'Urgent',
+      },
+    ],
+    spotlightFeatureId: null,
+  };
+
+  it('reads an open room and a closed one', () => {
+    expect(parseServerMessage(room)).toEqual(room);
+    expect(isRankingRoom(parseServerMessage(room)!)).toBe(true);
+    expect(parseServerMessage({ type: 'rankingRoom', active: false, endReason: 'SAVED' })).toEqual({
+      type: 'rankingRoom',
+      active: false,
+      endReason: 'SAVED',
+    });
+  });
+
+  it('refuses a room out of contract', () => {
+    expect(
+      parseServerMessage({ type: 'rankingRoom', active: false, endReason: 'LOST' }),
+    ).toBeNull();
+    expect(parseServerMessage({ ...room, live: 'yes' })).toBeNull();
+    expect(parseServerMessage({ ...room, spotlightFeatureId: 3 })).toBeNull();
+    expect(parseServerMessage({ ...room, draft: { ...room.draft, levels: [[1]] } })).toBeNull();
+    expect(
+      parseServerMessage({ ...room, opinions: [{ ...room.opinions[0], opinion: 'QUESTION' }] }),
+    ).toBeNull();
   });
 });

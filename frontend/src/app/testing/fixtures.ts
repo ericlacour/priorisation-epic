@@ -1,3 +1,4 @@
+import { ActiveRankingRoom } from '../api/contract';
 import { Feature, MethodDefinition, Participant, Score, SessionState } from '../api/session-state';
 
 /** Données de test partagées par les specs (exclues de la couverture). */
@@ -190,6 +191,26 @@ export function state(overrides: Partial<SessionState> = {}): SessionState {
     me: { participantId: 'p1', pseudo: 'Éric', role: 'FACILITATOR' },
     participants: PEOPLE,
     features: [F1, F2],
+    ...overrides,
+  };
+}
+
+/** Une salle de classement ouverte par Éric : BV, F-1 au niveau 1 (8), F-2 non classée. */
+export function rankingRoom(overrides: Partial<ActiveRankingRoom> = {}): ActiveRankingRoom {
+  return {
+    type: 'rankingRoom',
+    active: true,
+    facilitatorId: 'p1',
+    live: true,
+    draft: {
+      criterionKeys: ['bv', 'js'],
+      criterionKey: 'bv',
+      levels: [['f1']],
+      unranked: ['f2'],
+      values: { f1: 8 },
+    },
+    opinions: [],
+    spotlightFeatureId: null,
     ...overrides,
   };
 }

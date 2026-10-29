@@ -15,6 +15,8 @@ import com.priorisationepic.application.ImportUseCase;
 import com.priorisationepic.application.JoinSessionUseCase;
 import com.priorisationepic.application.ListSessionsUseCase;
 import com.priorisationepic.application.ParticipantRepository;
+import com.priorisationepic.application.RankingRoomUseCase;
+import com.priorisationepic.application.RoundRepository;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.SessionExporter;
 import com.priorisationepic.application.SessionLocks;
@@ -153,8 +155,21 @@ public class ApplicationConfig {
       SessionRepository sessions,
       Broadcaster broadcaster,
       SessionLocks locks,
-      Transactions transactions) {
-    return new ChangeStatusUseCase(sessions, broadcaster, locks, transactions);
+      Transactions transactions,
+      RankingRoomUseCase rankingRooms) {
+    return new ChangeStatusUseCase(
+        sessions, broadcaster, locks, transactions, rankingRooms::sessionClosed);
+  }
+
+  @Bean
+  public RankingRoomUseCase rankingRoomUseCase(
+      SessionRepository sessions,
+      FeatureRepository features,
+      RoundRepository rounds,
+      MethodRegistry methods,
+      Broadcaster broadcaster,
+      SessionLocks locks) {
+    return new RankingRoomUseCase(sessions, features, rounds, methods, broadcaster, locks);
   }
 
   @Bean

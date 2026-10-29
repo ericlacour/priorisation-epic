@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "end-ranking.json",
+  "title": "endRanking (client → server)",
+  "description": "Facilitator only (FR-015b). Closes the ranking room: SAVED once the server confirmed every updateFeature sent by \"Terminer\", CANCELLED on \"Annuler\". Every member gets a last rankingRoom with active false and goes back to the board. Without an open room: error NO_RANKING_IN_PROGRESS.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "outcome"],
+  "properties": {
+    "type": {
+      "const": "endRanking"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["SAVED", "CANCELLED"]
+    }
+  }
+}

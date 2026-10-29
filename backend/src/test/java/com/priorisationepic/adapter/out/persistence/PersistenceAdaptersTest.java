@@ -124,6 +124,40 @@ class PersistenceAdaptersTest extends PostgresTestBase {
   }
 
   @Test
+  void listsTheFeaturesOfTheOpenRoundOnly() {
+    UUID inOpenRound = UUID.randomUUID();
+    UUID inRevealedRound = UUID.randomUUID();
+    for (UUID feature : List.of(inOpenRound, inRevealedRound)) {
+      jdbc.update(
+          "insert into feature (id, session_id, external_id, title) values (?, ?, ?, 'T')",
+          feature,
+          ID,
+          feature.toString().substring(0, 8));
+    }
+    UUID open = UUID.randomUUID();
+    UUID revealed = UUID.randomUUID();
+    jdbc.update(
+        "insert into voting_round (id, session_id, number, status, opened_at)"
+            + " values (?, ?, 1, 'REVEALED', now())",
+        revealed,
+        ID);
+    jdbc.update(
+        "insert into voting_round (id, session_id, number, status, opened_at)"
+            + " values (?, ?, 2, 'OPEN', now())",
+        open,
+        ID);
+    assertThat(rounds.featuresInOpenRound(SESSION)).isEmpty();
+    jdbc.update(
+        "insert into round_feature (round_id, feature_id) values (?, ?)",
+        revealed,
+        inRevealedRound);
+    jdbc.update(
+        "insert into round_feature (round_id, feature_id) values (?, ?)", open, inOpenRound);
+
+    assertThat(rounds.featuresInOpenRound(SESSION)).containsExactly(inOpenRound);
+  }
+
+  @Test
   void theChangeLogNeedsTheTransactionOfTheChange() {
     assertThatThrownBy(
             () -> writer.valueChanged(SESSION, Pseudo.of("Alice"), UUID.randomUUID(), "bv", 1, 2))

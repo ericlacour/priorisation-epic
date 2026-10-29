@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ranking-room.json",
+  "title": "rankingRoom (server → client)",
+  "description": "Live ranking room (FR-015b, FR-015c), the same for every member, sent to every connection after each accepted room intent and right after sessionState to a connection that opens during a ranking. Never stored. When active is false, only endReason is set and the client goes back to the board: SAVED, CANCELLED (endRanking), FACILITATOR_LEFT (the facilitator's last connection closed), FACILITATOR_CHANGED (transferFacilitator), SESSION_CLOSED (changeStatus CLOSE).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "active"],
+  "properties": {
+    "type": {
+      "const": "rankingRoom"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "endReason": {
+      "type": "string",
+      "enum": ["SAVED", "CANCELLED", "FACILITATOR_LEFT", "FACILITATOR_CHANGED", "SESSION_CLOSED"]
+    },
+    "facilitatorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "live": {
+      "type": "boolean",
+      "description": "False while the facilitator paused the broadcast"
+    },
+    "draft": {
+      "$ref": "ranking-draft.json"
+    },
+    "opinions": {
+      "type": "array",
+      "description": "Opinions on the chosen criteria, oldest first",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["featureId", "criterionKey", "participantId", "opinion"],
+        "properties": {
+          "featureId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "criterionKey": {
+            "$ref": "criterion-key.json"
+          },
+          "participantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "opinion": {
+            "type": "string",
+            "enum": ["AGREE", "RAISE", "LOWER"]
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 140
+          }
+        }
+      }
+    },
+    "spotlightFeatureId": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Feature under discussion"
+    }
+  },
+  "if": {
+    "properties": {
+      "active": {
+        "const": true
+      }
+    }
+  },
+  "then": {
+    "required": ["facilitatorId", "live", "draft", "opinions", "spotlightFeatureId"],
+    "not": {
+      "required": ["endReason"]
+    }
+  },
+  "else": {
+    "required": ["endReason"],
+    "maxProperties": 3
+  }
+}

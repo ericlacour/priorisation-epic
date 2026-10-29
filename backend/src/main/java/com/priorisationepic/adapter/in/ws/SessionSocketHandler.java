@@ -2,11 +2,16 @@ package com.priorisationepic.adapter.in.ws;
 
 import com.priorisationepic.adapter.in.ws.ClientMessages.AddFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ChangeStatusMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.ClearOpinionsMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.ClientMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.DeleteFeatureMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.EndRankingMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.GiveOpinionMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.SetSpotlightMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateRankingDraftMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateSettingsMessage;
 import com.priorisationepic.application.ChangeStatusUseCase;
 import com.priorisationepic.application.ConnectResult;
@@ -14,9 +19,13 @@ import com.priorisationepic.application.ErrorCode;
 import com.priorisationepic.application.FeatureUseCase;
 import com.priorisationepic.application.IntentRejectedException;
 import com.priorisationepic.application.Patch;
+import com.priorisationepic.application.RankingRoomUseCase;
+import com.priorisationepic.application.RankingRoomView.EndReason;
 import com.priorisationepic.application.SessionConnectionUseCase;
 import com.priorisationepic.application.UpdateSettingsUseCase;
+import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.SessionStatus;
+import com.priorisationepic.domain.ranking.Opinion;
 import com.priorisationepic.domain.scale.ScaleType;
 import java.io.IOException;
 import java.net.URI;
@@ -70,6 +79,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
   private final FeatureUseCase featureIntents;
   private final UpdateSettingsUseCase settingsIntents;
   private final ChangeStatusUseCase statusIntents;
+  private final RankingRoomUseCase rankingRooms;
   private final WebSocketBroadcaster broadcaster;
   private final Duration helloTimeout;
   private final ScheduledExecutorService timer =
@@ -83,6 +93,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       FeatureUseCase featureIntents,
       UpdateSettingsUseCase settingsIntents,
       ChangeStatusUseCase statusIntents,
+      RankingRoomUseCase rankingRooms,
       WebSocketBroadcaster broadcaster,
       @Value("${priorisation-epic.hello-timeout:5s}") Duration helloTimeout) {
     this.jsonMapper = jsonMapper;
@@ -90,6 +101,7 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
     this.featureIntents = featureIntents;
     this.settingsIntents = settingsIntents;
     this.statusIntents = statusIntents;
+    this.rankingRooms = rankingRooms;
     this.broadcaster = broadcaster;
     this.helloTimeout = helloTimeout;
   }
@@ -195,6 +207,53 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
                       at.sessionId(),
                       at.facilitator(),
                       SessionStatus.Action.valueOf(status.action())));
+      case UpdateRankingDraftMessage update ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.updateDraft(
+                      at.sessionId(),
+                      at.participantId(),
+                      at.facilitator(),
+                      update.live(),
+                      update.draft() == null
+                          ? null
+                          : new RankingRoomUseCase.Draft(
+                              update.draft().criterionKeys(),
+                              update.draft().criterionKey(),
+                              update.draft().levels(),
+                              update.draft().unranked(),
+                              update.draft().values())));
+      case EndRankingMessage end ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.end(
+                      at.sessionId(), at.facilitator(), EndReason.valueOf(end.outcome())));
+      case GiveOpinionMessage opinion ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.giveOpinion(
+                      at.sessionId(),
+                      at.participantId(),
+                      at.facilitator(),
+                      opinion.featureId(),
+                      opinion.criterionKey(),
+                      opinion.opinion() == null ? null : Opinion.valueOf(opinion.opinion()),
+                      opinion.comment()));
+      case ClearOpinionsMessage clear ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.clearOpinions(
+                      at.sessionId(), at.facilitator(), clear.featureId(), clear.criterionKey()));
+      case SetSpotlightMessage spotlight ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.setSpotlight(
+                      at.sessionId(), at.facilitator(), spotlight.featureId()));
       default -> broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }
@@ -251,6 +310,8 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
     WsConnection.Attachment attachment = broadcaster.closed(session.getId());
     if (attachment != null) {
       connections.disconnect(attachment.sessionId(), attachment.participantId(), session.getId());
+      // Plus aucun animateur connecté : la salle de classement se ferme (FR-015b).
+      rankingRooms.connectionClosed(attachment.sessionId());
     }
   }
 
@@ -274,9 +335,9 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
       case ConnectResult.SessionNotFound notFound -> refuse(session, SESSION_NOT_FOUND);
       case ConnectResult.UnknownToken unknown -> refuse(session, UNKNOWN_TOKEN);
       case ConnectResult.ConnectionClosed gone -> broadcaster.forget(session.getId());
-      case ConnectResult.Connected connected -> {
-        // État déjà en file d'envoi.
-      }
+      case ConnectResult.Connected connected ->
+          // État déjà en file d'envoi ; la salle de classement en cours le suit (FR-015b).
+          rankingRooms.connected(new SessionId(sessionIdOf(session)), session.getId());
     }
   }
 

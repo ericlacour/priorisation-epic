@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "give-opinion.json",
+  "title": "giveOpinion (client → server)",
+  "description": "Participant only (FR-015c): the facilitator gets error FORBIDDEN, they move the card instead. AGREE, RAISE, LOWER: \"D'accord\", \"Je monterais\", \"Je descendrais\". One opinion per member, feature and criterion: a new one replaces the previous one; opinion null withdraws it with its comment. comment is optional and never required: absent, a changed opinion keeps the previous comment; an empty string clears it. A feature outside the draft or a criterion outside draft.criterionKeys gets error NOT_IN_RANKING; without an open room, error NO_RANKING_IN_PROGRESS.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId", "criterionKey", "opinion"],
+  "properties": {
+    "type": {
+      "const": "giveOpinion"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criterionKey": {
+      "$ref": "criterion-key.json"
+    },
+    "opinion": {
+      "type": ["string", "null"],
+      "enum": ["AGREE", "RAISE", "LOWER", null]
+    },
+    "comment": {
+      "type": "string",
+      "maxLength": 140
+    }
+  }
+}

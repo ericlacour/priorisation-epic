@@ -99,6 +99,18 @@ const NEW_ROW = 'new';
           @if (refusalText(); as text) {
             <p class="notice danger" role="alert">{{ text }}</p>
           }
+          @if (rankingEndText(); as text) {
+            <div class="notice info toast" role="status">
+              <span>{{ text }}</span>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                (click)="room.dismissRankingEnd()"
+              >
+                {{ liveMessages.dismiss }}
+              </button>
+            </div>
+          }
           @if (conflict(); as conflict) {
             <div class="notice danger toast" role="alert">
               <span> {{ conflictTitle(conflict) }} {{ conflictCurrent(conflict) }} </span>
@@ -404,6 +416,13 @@ export class BoardComponent {
     const pending = this.pending();
     return refusal?.code === 'STALE_VERSION' && pending?.kind === 'detail';
   });
+
+  /** Pourquoi le classement suivi en direct s'est arrêté (FR-015b) ; l'animateur, lui, le sait déjà. */
+  protected readonly rankingEndText = computed(() => {
+    const end = this.room.rankingEnd();
+    return end && !this.room.canAnimate() ? MESSAGES.liveRanking.ended[end] : null;
+  });
+  protected readonly liveMessages = MESSAGES.liveRanking;
 
   protected readonly refusalText = computed(() => {
     const refusal = this.room.refusal();

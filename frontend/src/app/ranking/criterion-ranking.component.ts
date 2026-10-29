@@ -12,6 +12,7 @@ import {
   signal,
 } from '@angular/core';
 
+import { CardOpinion } from '../api/contract';
 import { CriterionDefinition, SessionScale } from '../api/session-state';
 import { parseCriterionInput } from '../board/feature-editor.component';
 import { format } from '../i18n/format';
@@ -33,6 +34,7 @@ import {
   withPending,
 } from './ranking';
 import { invalidValueMessage } from '../shared/scale';
+import { CardOpinionsComponent } from './card-opinions.component';
 
 /** Une fonctionnalité à classer : seul ce qui s'affiche. */
 export interface RankedItem {
@@ -52,7 +54,7 @@ type Action = 'up' | 'down' | 'join' | 'last';
  */
 @Component({
   selector: 'app-criterion-ranking',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, CardOpinionsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'criterion-ranking' },
   template: `
@@ -77,6 +79,8 @@ type Action = 'up' | 'down' | 'join' | 'last';
       >
         {{ messages.resetProposals }}
       </button>
+      <!-- Place des actions propres à l'écran hôte (la diffusion en direct, FR-015b). -->
+      <ng-content select="[rankingTopAction]" />
     </div>
     @if (topInvalid()) {
       <p id="ranking-top-error" class="err" role="alert">{{ topError() }}</p>
@@ -166,7 +170,12 @@ type Action = 'up' | 'down' | 'join' | 'last';
     <!-- Une ligne par fonctionnalité : titre sur une ligne (en entier au survol), boutons réduits à leur symbole. -->
     <ng-template #row let-id="id" let-value="value" let-ranked="ranked">
       @if (items().get(id); as item) {
-        <li class="rank-item" [attr.data-id]="id" [class.dragging]="dragged() === id">
+        <li
+          class="rank-item"
+          [attr.data-id]="id"
+          [class.dragging]="dragged() === id"
+          [class.spotlight]="spotlightId() === id"
+        >
           <span
             class="drag-handle"
             draggable="true"
@@ -178,6 +187,13 @@ type Action = 'up' | 'down' | 'join' | 'last';
           >
           <span class="fid-text">{{ item.externalId }}</span>
           <span class="rank-title" [attr.title]="item.title">{{ item.title }}</span>
+          @if (opinions().get(id); as cardOpinions) {
+            <app-card-opinions
+              [opinions]="cardOpinions"
+              [names]="names()"
+              [featureLabel]="item.externalId"
+            />
+          }
           <span class="rank-value">
             @if (isOverridden(id)) {
               <span class="badge review">{{ messages.overridden }}</span>
@@ -264,6 +280,12 @@ export class CriterionRankingComponent {
   readonly criterion = input.required<CriterionDefinition>();
   readonly scale = input.required<SessionScale>();
   readonly step = model.required<RankingStep>();
+  /** Pendant un classement diffusé (FR-015c) : les avis de la salle par fonctionnalité, pour ce critère. */
+  readonly opinions = input<ReadonlyMap<string, readonly CardOpinion[]>>(new Map());
+  /** Pseudo de chaque membre, pour lire les avis. */
+  readonly names = input<ReadonlyMap<string, string>>(new Map());
+  /** La carte en discussion, mise en avant. */
+  readonly spotlightId = input<string | null>(null);
 
   protected readonly dragged = signal<string | null>(null);
   protected readonly dropTarget = signal<string | null>(null);

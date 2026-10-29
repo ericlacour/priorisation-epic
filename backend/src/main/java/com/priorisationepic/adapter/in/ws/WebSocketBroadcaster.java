@@ -5,6 +5,7 @@ import com.priorisationepic.application.ClockPort;
 import com.priorisationepic.application.ConnectionMaintenance;
 import com.priorisationepic.application.ErrorCode;
 import com.priorisationepic.application.IntentRejectedException;
+import com.priorisationepic.application.RankingRoomView;
 import com.priorisationepic.application.SessionStateProvider;
 import com.priorisationepic.application.SessionStateProvider.Recipient;
 import com.priorisationepic.domain.SessionId;
@@ -183,6 +184,38 @@ public class WebSocketBroadcaster implements Broadcaster, ConnectionMaintenance,
       return;
     }
     stateText(connection.attachment()).ifPresent(connection::enqueue);
+  }
+
+  @Override
+  public boolean hasFacilitatorConnection(SessionId sessionId) {
+    Set<WsConnection> targets = bySession.get(sessionId);
+    return targets != null
+        && targets.stream()
+            .map(WsConnection::attachment)
+            .anyMatch(a -> a != null && a.facilitator());
+  }
+
+  @Override
+  public void publishRankingRoom(SessionId sessionId, RankingRoomView room) {
+    Set<WsConnection> targets = bySession.get(sessionId);
+    if (targets == null) {
+      return;
+    }
+    // La même salle pour tous : sérialisée une seule fois.
+    TextMessage text = toText(ServerMessages.rankingRoom(room));
+    for (WsConnection connection : targets) {
+      if (connection.attachment() != null) {
+        connection.enqueue(text);
+      }
+    }
+  }
+
+  @Override
+  public void sendRankingRoom(String connectionId, RankingRoomView room) {
+    WsConnection connection = connections.get(connectionId);
+    if (connection != null && connection.attachment() != null) {
+      connection.enqueue(toText(ServerMessages.rankingRoom(room)));
+    }
   }
 
   @Override

@@ -43,7 +43,13 @@ const MESSAGE_ACTIONS = {
   castVote: 'receive',
   revealRound: 'receive',
   transferFacilitator: 'receive',
+  updateRankingDraft: 'receive',
+  endRanking: 'receive',
+  giveOpinion: 'receive',
+  clearOpinions: 'receive',
+  setSpotlight: 'receive',
   sessionState: 'send',
+  rankingRoom: 'send',
   facilitatorHandover: 'send',
   tick: 'send',
   error: 'send',
@@ -129,6 +135,8 @@ export async function validateContract(root) {
   errors.push(...checkProblemResponses(openapi, ajv, examples.problem ?? []));
   // Les règles d'métier ne portent que sur des exemples déjà conformes à leur schéma.
   errors.push(...checkSessionStates((examples['session-state'] ?? []).filter((e) => e.valid)));
+  errors.push(...checkRankingDrafts(examples));
+  errors.push(...checkRankingRooms((examples['ranking-room'] ?? []).filter((e) => e.valid)));
   return { errors, stats };
 }
 
@@ -286,6 +294,74 @@ export const SESSION_STATE_RULES = [];
 function checkSessionStates(states, rules = SESSION_STATE_RULES) {
   const errors = [];
   for (const { path, data } of states) {
+    const fail = (msg) => errors.push(`${path} : ${msg}`);
+    for (const rule of rules) rule(data, fail);
+  }
+  return errors;
+}
+
+// Règles du brouillon de classement (FR-015a, FR-015b) qu'un JSON Schema ne sait pas exprimer :
+// chaque brouillon d'un exemple valide de rankingRoom ou d'updateRankingDraft les respecte.
+export const RANKING_DRAFT_RULES = [
+  (draft, fail) => {
+    const ids = [...draft.levels.flat(), ...draft.unranked];
+    const twice = ids.filter((id, i) => ids.indexOf(id) !== i);
+    if (twice.length > 0)
+      fail(`la fonctionnalité ${twice[0]} apparaît plusieurs fois dans le brouillon`);
+  },
+  (draft, fail) => {
+    if (!draft.criterionKeys.includes(draft.criterionKey))
+      fail(`le critère en cours ${draft.criterionKey} n'est pas parmi les critères choisis`);
+  },
+  (draft, fail) => {
+    const ranked = draft.levels.flat();
+    for (const id of Object.keys(draft.values)) {
+      if (!ranked.includes(id)) fail(`la fonctionnalité ${id} a une valeur sans être classée`);
+    }
+  },
+];
+
+function checkRankingDrafts(examples, rules = RANKING_DRAFT_RULES) {
+  const errors = [];
+  const drafts = ['ranking-room', 'update-ranking-draft'].flatMap((dir) =>
+    (examples[dir] ?? []).filter((e) => e.valid && e.data.draft),
+  );
+  for (const { path, data } of drafts) {
+    const fail = (msg) => errors.push(`${path} : ${msg}`);
+    for (const rule of rules) rule(data.draft, fail);
+  }
+  return errors;
+}
+
+// Règles de la salle de classement (FR-015c) : avis et carte en discussion portent sur le brouillon.
+export const RANKING_ROOM_RULES = [
+  (room, fail) => {
+    const seen = new Set();
+    for (const o of room.opinions ?? []) {
+      const key = `${o.participantId}/${o.featureId}/${o.criterionKey}`;
+      if (seen.has(key))
+        fail(
+          `${o.participantId} a plusieurs avis sur ${o.featureId} pour ${o.criterionKey} (un seul par membre, fonctionnalité et critère)`,
+        );
+      seen.add(key);
+    }
+  },
+  (room, fail) => {
+    if (!room.draft) return;
+    const ids = [...room.draft.levels.flat(), ...room.draft.unranked];
+    for (const o of room.opinions ?? []) {
+      if (!ids.includes(o.featureId)) fail(`un avis porte sur ${o.featureId}, hors du brouillon`);
+      if (!room.draft.criterionKeys.includes(o.criterionKey))
+        fail(`un avis porte sur le critère ${o.criterionKey}, qui n'est pas choisi`);
+    }
+    if (room.spotlightFeatureId && !ids.includes(room.spotlightFeatureId))
+      fail(`la carte en discussion ${room.spotlightFeatureId} n'est pas dans le brouillon`);
+  },
+];
+
+function checkRankingRooms(rooms, rules = RANKING_ROOM_RULES) {
+  const errors = [];
+  for (const { path, data } of rooms) {
     const fail = (msg) => errors.push(`${path} : ${msg}`);
     for (const rule of rules) rule(data, fail);
   }

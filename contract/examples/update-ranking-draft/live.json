@@ -1,0 +1,18 @@
+{
+  "type": "updateRankingDraft",
+  "live": true,
+  "draft": {
+    "criterionKeys": ["bv", "js"],
+    "criterionKey": "bv",
+    "levels": [
+      ["6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f"],
+      ["7a2d3e4f-5c6b-4d8e-9fa0-1b2c3d4e5f60", "8b3e4f50-6d7c-4e9f-8a01-2c3d4e5f6071"]
+    ],
+    "unranked": [],
+    "values": {
+      "6f1c2d3e-4b5a-4c7d-8e9f-0a1b2c3d4e5f": 8,
+      "7a2d3e4f-5c6b-4d8e-9fa0-1b2c3d4e5f60": 5,
+      "8b3e4f50-6d7c-4e9f-8a01-2c3d4e5f6071": 5
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ranking-draft.json",
+  "title": "Ranking draft",
+  "description": "Snapshot of the facilitator's ranking screen (FR-015a steps 2 to 4, FR-015b), never stored. levels go from the highest to the lowest level, features of a level are tied; unranked are the features waiting in \"Non classées (sans valeur)\". values holds the value of each ranked feature for criterionKey, by featureId; null or missing means no value. A feature appears at most once, criterionKey is one of criterionKeys, and only ranked features have a value.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["criterionKeys", "criterionKey", "levels", "unranked", "values"],
+  "properties": {
+    "criterionKeys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Criteria chosen at step 1, in method definition order",
+      "items": {
+        "$ref": "criterion-key.json"
+      }
+    },
+    "criterionKey": {
+      "$ref": "criterion-key.json"
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "unranked": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "values": {
+      "type": "object",
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "additionalProperties": {
+        "type": ["integer", "null"],
+        "minimum": 1
+      }
+    }
+  }
+}

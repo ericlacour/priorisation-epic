@@ -17,6 +17,8 @@ public final class RecordingBroadcaster implements Broadcaster {
   public final List<String> publishedTo = new ArrayList<>();
   public final List<String> errors = new ArrayList<>();
   public final List<UUID> errorFeatures = new ArrayList<>();
+  public final List<RankingRoomView> rooms = new ArrayList<>();
+  public final Map<String, RankingRoomView> roomsTo = new HashMap<>();
   public boolean refuseAttach;
 
   @Override
@@ -59,5 +61,21 @@ public final class RecordingBroadcaster implements Broadcaster {
   public void sendError(String connectionId, ErrorCode code, UUID featureId) {
     errorFeatures.add(featureId);
     sendError(connectionId, code);
+  }
+
+  @Override
+  public boolean hasFacilitatorConnection(SessionId sessionId) {
+    return attached.values().stream()
+        .anyMatch(a -> a.sessionId().equals(sessionId) && a.facilitator());
+  }
+
+  @Override
+  public void publishRankingRoom(SessionId sessionId, RankingRoomView room) {
+    rooms.add(room);
+  }
+
+  @Override
+  public void sendRankingRoom(String connectionId, RankingRoomView room) {
+    roomsTo.put(connectionId, room);
   }
 }

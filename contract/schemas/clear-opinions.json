@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clear-opinions.json",
+  "title": "clearOpinions (client → server)",
+  "description": "Facilitator only (FR-015c point 3, \"Effacer les avis\"): removes every opinion of the feature for the criterion. Errors as giveOpinion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId", "criterionKey"],
+  "properties": {
+    "type": {
+      "const": "clearOpinions"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criterionKey": {
+      "$ref": "criterion-key.json"
+    }
+  }
+}

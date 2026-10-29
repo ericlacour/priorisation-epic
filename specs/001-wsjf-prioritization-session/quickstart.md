@@ -39,7 +39,7 @@ cd backend  && docker build -t priorisation-epic-api:ci . \
   && curl -sf localhost:9090/api/health                  # image compatible OpenShift
 cd frontend && npm run lint && npm run format:check     # ESLint (angular-eslint) et Prettier
 cd frontend && npm test && npm run e2e                   # Vitest avec seuils de couverture, e2e Playwright contre un faux socket (avec axe-core)
-cd frontend && npm run e2e:journeys                      # parcours V1 à V18 (hors vote masqué) contre le vrai webservice
+cd frontend && npm run e2e:journeys                      # parcours V1 à V19 (hors vote masqué) contre le vrai webservice
 bash deploy/render-deploy.test.sh                        # script de déploiement Render
 ```
 
@@ -76,6 +76,7 @@ ouvert.
 | V16 | FR-016a, FR-016b : définitions et descriptif | Survoler BV dans le tableau. Cliquer sur « Comprendre le WSJF » au-dessus du tableau. Cliquer sur F-1, lire le descriptif, cliquer sur « Modifier le titre et le descriptif », changer le titre, puis « Enregistrer » | La définition de BV s'affiche. Un panneau affiche toutes les définitions. Le panneau affiche le descriptif, les valeurs et le calcul. Le nouveau titre apparaît en moins de 2 s dans un second navigateur, et « Annuler » n'envoie rien |
 | V17 | FR-006a : marque « à revoir » | Dans le panneau de F-9, cliquer sur « Marquer à revoir » avec le motif « descriptif à compléter ». Ouvrir un tour avec la sélection rapide « À revoir », puis le révéler | Le badge « à revoir » et son motif apparaissent chez tous ; le WSJF et le rang de F-9 ne changent pas. La sélection rapide coche F-9. Après la révélation, la marque a disparu |
 | V18 | FR-015a : prioriser par classement | Avec F-1 (8, 5, 3, 4), F-2 (2, 2, 2, 3) et F-3 (BV 6), cliquer sur « Prioriser par classement », ne garder que BV et JS, puis « Commencer » et « Terminer » sans rien toucher. Recommencer : pour BV, mettre F-2 à égalité avec F-3 et fixer le premier niveau à 5. Pour JS, « Classer en dernier » F-3, la monter en tête, fixer le premier niveau à 3 et vider la valeur de F-2. « Terminer et enregistrer ». Enfin, modifier F-1 dans un second onglet d'animateur pendant un classement, puis terminer | Le premier passage n'envoie rien : les valeurs actuelles sont gardées. Puis BV : F-1 5, F-3 et F-2 4 ; JS : F-3 3, F-1 2, F-2 sans valeur, une seule modification par fonctionnalité, et le tableau réapparaît trié par WSJF, chez tous en moins de 2 s. Avec la modification concurrente, l'écran reste ouvert, nomme F-1 et ses valeurs, et propose « Enregistrer quand même » ou « Retour au tableau » |
+| V19 | FR-015b, FR-015c : classement collaboratif | L'animateur crée une session avec F-1 (BV 8), F-2 (BV 5) et F-3 (BV 2) ; alice et bob la rejoignent. L'animateur ouvre « Prioriser par classement », ne garde que BV, « Commencer le classement », puis monte F-3. alice clique sur ↑ « Je monterais » pour F-2 et écrit « Le transporteur est prêt en mars. » ; bob clique sur ✓ « D'accord » pour F-1, « Sans commentaire ». L'animateur met F-2 en discussion, puis « Annuler ». Dans une seconde session, l'animateur ferme son onglet pendant un classement | En moins de 2 s, alice et bob voient « Classement en direct » à la place du tableau, en lecture seule, puis F-3 au-dessus de F-2. L'animateur voit sur ses cartes les compteurs (✓ 1 sur F-1), et dans le panneau des avis le commentaire d'alice. F-2 est mise en avant chez tous avec ses avis. Après « Annuler », tous reviennent au tableau avec « Le classement a été annulé », sans aucune valeur changée. Quand l'animateur part, alice revient au tableau avec « L'animateur s'est déconnecté » |
 
 ## Valider le déploiement sur Render (V1 temporaire, comme planning-poker)
 
@@ -111,9 +112,10 @@ Chromium, Firefox et WebKit.
 | V13 | `e2e-journeys/us5-consultation.spec.ts` | OK |
 | V13a | `e2e/home.spec.ts` | OK |
 | V13b, V17 (sans tour de vote), V18 | `e2e-journeys/finitions.spec.ts` | OK |
+| V19 (2026-10-29, phase 8 bis) | `e2e-journeys/classement-collaboratif.spec.ts`, `e2e/ranking-room.spec.ts` | OK sur Chromium en local ; la CI les rejoue sur les trois navigateurs |
 | V15 | `e2e-journeys/reconnexion.spec.ts` | OK, sans la reprise des votes (vote masqué, phase 9) |
 | V5 à V8 | Vote masqué et transmission du rôle | Hors de ce déroulé (T083b, phase 9) |
-| SC-002, SC-005 | `deploy/load-test.mjs` | OK en local ; essai contre Render à faire |
+| SC-002, SC-005 | `deploy/load-test.mjs` (avec les brouillons de classement diffusés depuis le 2026-10-29) | OK en local ; essai contre Render à faire |
 | Accessibilité | `e2e/accessibility.spec.ts` | OK |
 | Journaux | `NoSecretInLogsTest` | OK : aucun jeton ni texte envoyé |
 | Sécurité | CI, CodeQL, Gitleaks et actionlint sur `main` | Verts sur le dernier merge (PR 24) ; CodeQL et mutation hebdomadaires verts le 2026-10-19. Dependabot et la protection de branche se vérifient dans les réglages GitHub |

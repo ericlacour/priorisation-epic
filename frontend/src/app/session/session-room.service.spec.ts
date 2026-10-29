@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ServerMessage } from '../api/contract';
-import { SESSION_ID, state } from '../testing/fixtures';
+import { SESSION_ID, rankingRoom, state } from '../testing/fixtures';
 import { memoryStorage } from '../testing/helpers';
 import { SessionRoomService } from './session-room.service';
 import { SessionSocketService } from './session-socket.service';
@@ -15,7 +15,7 @@ describe('SessionRoomService', () => {
     let sent = false;
     const socket = {
       messages: messages.asObservable(),
-      connection: signal('open'),
+      connection: signal<'connecting' | 'open' | 'lost'>('open'),
       end: signal(null),
       connect: vi.fn(),
       send: vi.fn<(message: object) => boolean>(() => {
@@ -177,5 +177,71 @@ describe('SessionRoomService', () => {
       participantToken: 'p-token',
       animationToken: 'a-token',
     });
+  });
+
+  it('follows the ranking room until it ends, and keeps why it ended until read', () => {
+    const { room, messages } = setup();
+    messages.next(rankingRoom());
+    expect(room.rankingRoom()?.draft.levels).toEqual([['f1']]);
+
+    messages.next({
+      type: 'rankingRoom',
+      active: false,
+      endReason: 'FACILITATOR_LEFT',
+    } as ServerMessage);
+    expect(room.rankingRoom()).toBeNull();
+    expect(room.rankingEnd()).toBe('FACILITATOR_LEFT');
+
+    room.dismissRankingEnd();
+    expect(room.rankingEnd()).toBeNull();
+  });
+
+  it('forgets the ranking room when the connection is lost', () => {
+    const { room, messages, socket } = setup();
+    messages.next(rankingRoom());
+    socket.connection.set('lost');
+    TestBed.tick();
+    expect(room.rankingRoom()).toBeNull();
+  });
+
+  it('sends the ranking room intents as contract messages', () => {
+    const { room, socket } = setup();
+    const draft = rankingRoom().draft;
+
+    room.sendRankingDraft(draft);
+    room.sendRankingDraft(null);
+    room.endRanking('SAVED');
+    room.giveOpinion('f1', 'bv', 'RAISE');
+    room.giveOpinion('f1', 'bv', 'RAISE', 'Urgent');
+    room.giveOpinion('f1', 'bv', null);
+    room.clearOpinions('f1', 'bv');
+    room.setSpotlight('f1');
+    room.setSpotlight(null);
+
+    expect(socket.send.mock.calls.map(([message]) => message)).toEqual([
+      { type: 'updateRankingDraft', live: true, draft },
+      { type: 'updateRankingDraft', live: false },
+      { type: 'endRanking', outcome: 'SAVED' },
+      { type: 'giveOpinion', featureId: 'f1', criterionKey: 'bv', opinion: 'RAISE' },
+      {
+        type: 'giveOpinion',
+        featureId: 'f1',
+        criterionKey: 'bv',
+        opinion: 'RAISE',
+        comment: 'Urgent',
+      },
+      { type: 'giveOpinion', featureId: 'f1', criterionKey: 'bv', opinion: null },
+      { type: 'clearOpinions', featureId: 'f1', criterionKey: 'bv' },
+      { type: 'setSpotlight', featureId: 'f1' },
+      { type: 'setSpotlight', featureId: null },
+    ]);
+  });
+
+  it('a failed draft does not replace the refusal shown', () => {
+    const { room } = setup(false);
+    expect(room.sendRankingDraft(rankingRoom().draft)).toBe(false);
+    expect(room.refusal()).toBeNull();
+    expect(room.giveOpinion('f1', 'bv', 'AGREE')).toBe(false);
+    expect(room.refusal()).toEqual({ code: 'NOT_CONNECTED' });
   });
 });

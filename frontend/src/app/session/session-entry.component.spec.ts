@@ -3,7 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SESSION_ID, state } from '../testing/fixtures';
+import { ActiveRankingRoom } from '../api/contract';
+import { SESSION_ID, rankingRoom, state } from '../testing/fixtures';
 import { fakeFetch, memoryStorage, pageProviders, reply, settle } from '../testing/helpers';
 import { READ_ONLY_REFRESH_MS, SessionEntryComponent } from './session-entry.component';
 import { SessionRoomService } from './session-room.service';
@@ -21,6 +22,12 @@ class FakeRoom {
   readonly canEdit = computed(() => this.canAnimate() && !this.closed());
   readonly showReadOnly = vi.fn();
   clearRefusal = vi.fn();
+  readonly rankingRoom = signal<ActiveRankingRoom | null>(null);
+  readonly rankingEnd = signal(null);
+  readonly sendRankingDraft = vi.fn(() => true);
+  readonly endRanking = vi.fn(() => true);
+  readonly giveOpinion = vi.fn(() => true);
+  readonly dismissRankingEnd = vi.fn();
 }
 
 describe('SessionEntryComponent', () => {
@@ -201,6 +208,28 @@ describe('SessionEntryComponent', () => {
     button('Annuler').click();
     await settle(fixture);
     expect(element.querySelector('app-ranking-screen')).toBeNull();
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('shows the live ranking to a participant while the facilitator ranks, then the board (FR-015b)', async () => {
+    const { fixture, room, element } = await render({ token: true });
+    room.rankingRoom.set(rankingRoom());
+    await settle(fixture);
+    expect(element.querySelector('app-live-ranking-view')).not.toBeNull();
+    expect(element.querySelector('app-board')).toBeNull();
+
+    room.rankingRoom.set(null);
+    await settle(fixture);
+    expect(element.querySelector('app-live-ranking-view')).toBeNull();
+    expect(element.querySelector('app-board')).not.toBeNull();
+  });
+
+  it('keeps the facilitator on the board while another of their tabs ranks', async () => {
+    const { fixture, room, element } = await render({ token: true });
+    room.canAnimate.set(true);
+    room.rankingRoom.set(rankingRoom());
+    await settle(fixture);
+    expect(element.querySelector('app-live-ranking-view')).toBeNull();
     expect(element.querySelector('app-board')).not.toBeNull();
   });
 
