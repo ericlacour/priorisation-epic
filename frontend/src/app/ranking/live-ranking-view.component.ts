@@ -124,32 +124,26 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               </section>
             }
 
-            @if (composing(); as id) {
-              @if (mine().get(id); as opinion) {
-                <form class="opinion-card opinion-composer" (submit)="sendComment($event, id)">
-                  <p class="opinion-card-title">{{ composerTitle(id, opinion) }}</p>
-                  <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
-                  <input
-                    id="opinion-comment"
-                    class="input"
-                    maxlength="140"
-                    [placeholder]="messages.commentPlaceholder"
-                    [value]="opinion.comment ?? ''"
-                  />
-                  <div class="board-actions">
-                    <button
-                      type="button"
-                      class="btn btn-ghost btn-sm"
-                      (click)="composing.set(null)"
-                    >
-                      {{ messages.commentSkip }}
-                    </button>
-                    <button type="submit" class="btn btn-primary btn-sm">
-                      {{ messages.commentSend }}
-                    </button>
-                  </div>
-                </form>
-              }
+            @if (composing(); as draft) {
+              <form class="opinion-card opinion-composer" (submit)="sendComment($event)">
+                <p class="opinion-card-title">{{ composerTitle(draft.id, draft.kind) }}</p>
+                <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
+                <input
+                  id="opinion-comment"
+                  class="input"
+                  maxlength="140"
+                  [placeholder]="messages.commentPlaceholder"
+                  [value]="mine().get(draft.id)?.comment ?? ''"
+                />
+                <div class="board-actions">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="composing.set(null)">
+                    {{ messages.commentSkip }}
+                  </button>
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    {{ messages.commentSend }}
+                  </button>
+                </div>
+              </form>
             }
 
             <section class="opinion-block" aria-labelledby="my-opinions-title">
@@ -171,7 +165,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
                     <button
                       type="button"
                       class="btn btn-secondary btn-sm"
-                      (click)="compose(entry.featureId)"
+                      (click)="compose(entry.featureId, entry.opinion)"
                     >
                       {{ entry.comment ? messages.commentEdit : messages.commentAdd }}
                     </button>
@@ -246,7 +240,9 @@ export class LiveRankingViewComponent {
   /** Le participant suit l'animateur : la carte déplacée est ramenée à la vue. */
   protected readonly follow = signal(true);
   /** La carte dont le participant écrit le commentaire, ou `null`. */
-  protected readonly composing = signal<string | null>(null);
+  protected readonly composing = signal<{ readonly id: string; readonly kind: OpinionKind } | null>(
+    null,
+  );
   /** Les cartes que l'animateur vient de déplacer. */
   protected readonly moved = signal<ReadonlySet<string>>(new Set());
 
@@ -358,10 +354,10 @@ export class LiveRankingViewComponent {
     return format(this.messages.opinionLabel, { opinion: this.messages.opinions[kind], id });
   }
 
-  protected composerTitle(id: string, opinion: CardOpinion): string {
+  protected composerTitle(id: string, kind: OpinionKind): string {
     return format(this.messages.commentTitle, {
       id: this.featureOf(id)?.externalId ?? '',
-      opinion: `${this.symbols[opinion.opinion]} ${this.messages.opinions[opinion.opinion]}`,
+      opinion: `${this.symbols[kind]} ${this.messages.opinions[kind]}`,
     });
   }
 
@@ -371,31 +367,31 @@ export class LiveRankingViewComponent {
       this.give(id, null);
       return;
     }
-    if (this.give(id, kind)) this.compose(id);
+    if (this.give(id, kind)) this.compose(id, kind);
   }
 
   protected give(id: string, kind: OpinionKind | null): boolean {
     const criterionKey = this.room.rankingRoom()?.draft.criterionKey;
     if (!criterionKey) return false;
-    if (kind === null && this.composing() === id) this.composing.set(null);
+    if (kind === null && this.composing()?.id === id) this.composing.set(null);
     return this.room.giveOpinion(id, criterionKey, kind);
   }
 
-  /** Ouvre le champ du commentaire de cette carte. */
-  protected compose(id: string): void {
-    this.composing.set(id);
+  /** Ouvre le champ du commentaire de cette carte, aussitôt l'avis donné, sans attendre l'écho du serveur. */
+  protected compose(id: string, kind: OpinionKind): void {
+    this.composing.set({ id, kind });
     afterNextRender(() => this.host.querySelector<HTMLInputElement>('#opinion-comment')?.focus(), {
       injector: this.injector,
     });
   }
 
-  protected sendComment(event: Event, id: string): void {
+  protected sendComment(event: Event): void {
     event.preventDefault();
-    const opinion = this.mine().get(id);
+    const draft = this.composing();
     const criterionKey = this.room.rankingRoom()?.draft.criterionKey;
     const input = this.host.querySelector<HTMLInputElement>('#opinion-comment');
-    if (!opinion || !criterionKey || !input) return;
-    this.room.giveOpinion(id, criterionKey, opinion.opinion, input.value.trim());
+    if (!draft || !criterionKey || !input) return;
+    this.room.giveOpinion(draft.id, criterionKey, draft.kind, input.value.trim());
     this.composing.set(null);
   }
 

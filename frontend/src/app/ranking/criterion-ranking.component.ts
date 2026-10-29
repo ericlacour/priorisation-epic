@@ -79,6 +79,8 @@ type Action = 'up' | 'down' | 'join' | 'last';
       >
         {{ messages.resetProposals }}
       </button>
+      <!-- Place des actions propres à l'écran hôte (la diffusion en direct, FR-015b). -->
+      <ng-content select="[rankingTopAction]" />
     </div>
     @if (topInvalid()) {
       <p id="ranking-top-error" class="err" role="alert">{{ topError() }}</p>

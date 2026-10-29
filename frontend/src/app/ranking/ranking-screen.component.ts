@@ -101,22 +101,6 @@ type Changes = Readonly<Record<string, number | null>>;
               </section>
             }
           </div>
-          @if (stepIndex() !== null) {
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [class.btn-live]="broadcast.live()"
-              [attr.aria-pressed]="broadcast.live()"
-              [attr.title]="broadcast.live() ? liveMessages.broadcastHint : liveMessages.pausedHint"
-              (click)="broadcast.setLive(!broadcast.live())"
-            >
-              @if (broadcast.live()) {
-                <span class="live-dot" aria-hidden="true"></span> {{ liveMessages.broadcastOn }}
-              } @else {
-                {{ liveMessages.broadcastOff }}
-              }
-            </button>
-          }
           <button type="button" class="btn btn-secondary" (click)="cancel()">
             {{ messages.cancel }}
           </button>
@@ -176,7 +160,23 @@ type Changes = Readonly<Record<string, number | null>>;
             [names]="names()"
             [spotlightId]="liveRoom()?.spotlightFeatureId ?? null"
             (stepChange)="setStep(criterion.key, $event)"
-          />
+          >
+            <button
+              rankingTopAction
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [class.btn-live]="broadcast.live()"
+              [attr.aria-pressed]="broadcast.live()"
+              [attr.title]="broadcast.live() ? liveMessages.broadcastHint : liveMessages.pausedHint"
+              (click)="broadcast.setLive(!broadcast.live())"
+            >
+              @if (broadcast.live()) {
+                <span class="live-dot" aria-hidden="true"></span> {{ liveMessages.broadcastOn }}
+              } @else {
+                {{ liveMessages.broadcastOff }}
+              }
+            </button>
+          </app-criterion-ranking>
           @if (liveRoom(); as liveRoom) {
             <app-opinions-panel
               [room]="liveRoom"
