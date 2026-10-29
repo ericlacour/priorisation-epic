@@ -1,0 +1,171 @@
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ScreenSizeService } from '../layout/screen-size.service';
+import { SessionRoomService } from '../session/session-room.service';
+import { FakeRoom } from '../testing/fake-room';
+import { rankingRoom, state } from '../testing/fixtures';
+import { LiveRankingViewComponent, MOVED_HIGHLIGHT_MS } from './live-ranking-view.component';
+
+describe('LiveRankingViewComponent', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  function render(phone = false) {
+    const room = new FakeRoom();
+    room.state.set(state({ me: { participantId: 'p2', pseudo: 'Camille', role: 'PARTICIPANT' } }));
+    room.rankingRoom.set(rankingRoom());
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: SessionRoomService, useValue: room },
+        { provide: ScreenSizeService, useValue: { isPhone: signal(phone) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(LiveRankingViewComponent);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const row = (id: string) => element.querySelector<HTMLElement>(`[data-id="${id}"]`)!;
+    const opinionButton = (id: string, kind: string) =>
+      row(id).querySelector<HTMLButtonElement>(`.opinion-buttons [data-opinion="${kind}"]`)!;
+    return { room, fixture, element, row, opinionButton };
+  }
+
+  it('shows the facilitator ranking read-only, with the criterion and the values', () => {
+    const { element, row } = render();
+    expect(element.querySelector('h1')?.textContent).toBe('Classement en direct');
+    expect(element.textContent).toContain('Éric classe BV · Business Value');
+    expect(element.textContent).toContain('Vous suivez le classement de Éric');
+    expect(row('f1').closest('.rank-ranked')).not.toBeNull();
+    expect(row('f1').querySelector('.live-value')?.textContent).toBe('8');
+    expect(row('f2').closest('.rank-unranked')).not.toBeNull();
+    expect(row('f2').querySelector('.live-value')?.textContent).toBe('–');
+    expect(element.querySelector('input.num-input')).toBeNull();
+    expect(element.querySelector('[draggable]')).toBeNull();
+  });
+
+  it('gives an opinion, then offers an optional comment', () => {
+    const { room, fixture, element, opinionButton } = render();
+
+    opinionButton('f1', 'RAISE').click();
+    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', 'RAISE');
+    room.rankingRoom.set(
+      rankingRoom({
+        opinions: [{ featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE' }],
+      }),
+    );
+    fixture.detectChanges();
+    expect(opinionButton('f1', 'RAISE').getAttribute('aria-pressed')).toBe('true');
+
+    const input = element.querySelector<HTMLInputElement>('#opinion-comment')!;
+    expect(element.querySelector('.opinion-composer')?.textContent).toContain(
+      'Votre avis sur F-1 : ↑ Je monterais',
+    );
+    input.value = '  Le salon de mars.  ';
+    element.querySelector<HTMLFormElement>('.opinion-composer')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', 'RAISE', 'Le salon de mars.');
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+  });
+
+  it('a comment is never required, and a second click withdraws the opinion', () => {
+    const { room, fixture, element, opinionButton } = render();
+    room.rankingRoom.set(
+      rankingRoom({
+        opinions: [{ featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'AGREE' }],
+      }),
+    );
+    fixture.detectChanges();
+
+    opinionButton('f1', 'LOWER').click();
+    fixture.detectChanges();
+    [...element.querySelectorAll<HTMLButtonElement>('.opinion-composer button')]
+      .find((b) => b.textContent?.trim() === 'Sans commentaire')!
+      .click();
+    fixture.detectChanges();
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+
+    opinionButton('f1', 'AGREE').click();
+    expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', null);
+  });
+
+  it('lists my opinions, to comment or withdraw them', () => {
+    const { room, fixture, element } = render();
+    room.rankingRoom.set(
+      rankingRoom({
+        opinions: [
+          {
+            featureId: 'f1',
+            criterionKey: 'bv',
+            participantId: 'p2',
+            opinion: 'RAISE',
+            comment: 'Vite',
+          },
+          { featureId: 'f1', criterionKey: 'bv', participantId: 'p1', opinion: 'AGREE' },
+          { featureId: 'f2', criterionKey: 'js', participantId: 'p2', opinion: 'AGREE' },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+    const mine = element.querySelector('[aria-labelledby="my-opinions-title"]')!;
+    expect(mine.querySelectorAll('.opinion-card')).toHaveLength(1);
+    expect(mine.textContent).toContain('Vite');
+    [...mine.querySelectorAll<HTMLButtonElement>('button')]
+      .find((b) => b.textContent?.trim() === 'Retirer')!
+      .click();
+    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', null);
+  });
+
+  it('highlights the card under discussion with its opinions', () => {
+    const { room, fixture, element, row } = render();
+    room.rankingRoom.set(
+      rankingRoom({
+        spotlightFeatureId: 'f1',
+        opinions: [{ featureId: 'f1', criterionKey: 'bv', participantId: 'p1', opinion: 'AGREE' }],
+      }),
+    );
+    fixture.detectChanges();
+    expect(row('f1').classList).toContain('spotlight');
+    expect(element.querySelector('.opinion-card.spotlight')?.textContent).toContain('Éric');
+  });
+
+  it('signals the card the facilitator just moved', () => {
+    const { room, fixture, row } = render();
+    room.rankingRoom.set(
+      rankingRoom({
+        draft: {
+          ...rankingRoom().draft,
+          levels: [['f2'], ['f1']],
+          unranked: [],
+          values: { f2: 8, f1: 7 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+    expect(row('f2').classList).toContain('just-moved');
+
+    vi.advanceTimersByTime(MOVED_HIGHLIGHT_MS);
+    fixture.detectChanges();
+    expect(row('f2').classList).not.toContain('just-moved');
+  });
+
+  it('lets the participant browse freely, and says when the broadcast is paused', () => {
+    const { room, fixture, element } = render();
+    const follow = () =>
+      [...element.querySelectorAll<HTMLButtonElement>('.live-follow button')][0]!;
+    follow().click();
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Vous parcourez librement');
+    expect(follow().textContent?.trim()).toBe('Revenir sur Éric');
+
+    room.rankingRoom.set(rankingRoom({ live: false }));
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Diffusion en pause');
+  });
+
+  it('is read-only on a phone, without opinion buttons', () => {
+    const { element } = render(true);
+    expect(element.querySelector('[data-opinion="AGREE"]:is(button)')).toBeNull();
+    expect(element.textContent).toContain('Pour donner votre avis, utilisez un ordinateur.');
+  });
+});

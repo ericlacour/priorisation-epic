@@ -359,3 +359,236 @@
     grid-template-rows: minmax(120px, 2fr) minmax(160px, 3fr);
   }
 }
+
+/*
+ * Classement collaboratif (FR-015b, FR-015c) : le classement et, à droite, le panneau des avis. Le panneau défile de
+ * son côté ; les lignes du classement gardent leur hauteur, donc 15 fonctionnalités restent visibles.
+ */
+.ranking-with-room {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ranking-with-room.with-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 12px;
+}
+
+.ranking-with-room > .criterion-ranking {
+  min-width: 0;
+  min-height: 0;
+}
+
+.opinions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.opinion-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opinion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.875rem;
+}
+
+.opinion-card.spotlight {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+.opinion-card-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.opinion-composer .input {
+  width: 100%;
+}
+
+.opinion-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opinion-items li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  align-items: baseline;
+}
+
+.opinion-kind {
+  font-weight: 600;
+}
+
+.opinion-kind[data-opinion='AGREE'],
+.opinion-count[data-opinion='AGREE'] {
+  color: var(--success);
+}
+
+.opinion-kind[data-opinion='RAISE'],
+.opinion-kind[data-opinion='LOWER'],
+.opinion-count[data-opinion='RAISE'],
+.opinion-count[data-opinion='LOWER'] {
+  color: var(--warning);
+}
+
+.opinion-comment {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Compteurs d'avis sur une carte : un bouton qui ouvre la liste des avis. */
+.card-opinions {
+  position: relative;
+  flex: none;
+}
+
+.opinion-counts {
+  display: inline-flex;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.opinion-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.opinion-count[data-opinion='AGREE'] {
+  background: var(--success-soft);
+}
+
+.opinion-count[data-opinion='RAISE'],
+.opinion-count[data-opinion='LOWER'] {
+  background: var(--warning-soft);
+}
+
+.opinion-bubble {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+}
+
+.opinion-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 280px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 0.875rem;
+}
+
+/* La carte en discussion, et celle que l'animateur vient de déplacer. */
+.rank-item.spotlight {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
+.rank-item.just-moved {
+  animation: rank-moved 1.5s ease-out;
+}
+
+@keyframes rank-moved {
+  from {
+    background: var(--primary-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rank-item.just-moved {
+    animation: none;
+    background: var(--primary-soft);
+  }
+}
+
+.live-value {
+  min-width: 2.5ch;
+  text-align: center;
+  font-weight: 700;
+}
+
+.opinion-buttons .btn-icon[aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.live-follow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+/* « Diffusé en direct » : un point qui respire, et le bouton marqué. */
+.btn-live {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .live-follow {
+    flex-wrap: wrap;
+  }
+}

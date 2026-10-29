@@ -10,13 +10,16 @@ import {
   signal,
 } from '@angular/core';
 
-import { ErrorCode } from '../api/contract';
+import { ErrorCode, RankingDraft } from '../api/contract';
 import { CriterionDefinition, Feature } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SessionRoomService } from '../session/session-room.service';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
-import { RankingStep, newStep, reselect, resolveStep } from './ranking';
+import { OpinionsPanelComponent } from './opinions-panel.component';
+import { opinionsByFeature } from './opinions';
+import { RankingStep, draftValues, newStep, reselect, resolveStep } from './ranking';
+import { RankingRoomService } from './ranking-room.service';
 
 /** Une fonctionnalité dans un tour de vote ouvert ne se classe pas : ses valeurs viendront du vote. */
 const isRankable = (feature: Feature): boolean => !feature.votingInProgress;
@@ -38,7 +41,8 @@ type Changes = Readonly<Record<string, number | null>>;
  */
 @Component({
   selector: 'app-ranking-screen',
-  imports: [CriterionRankingComponent],
+  imports: [CriterionRankingComponent, OpinionsPanelComponent],
+  providers: [RankingRoomService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'board-page ranking-page',
@@ -97,7 +101,23 @@ type Changes = Readonly<Record<string, number | null>>;
               </section>
             }
           </div>
-          <button type="button" class="btn btn-secondary" (click)="closed.emit()">
+          @if (stepIndex() !== null) {
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [class.btn-live]="broadcast.live()"
+              [attr.aria-pressed]="broadcast.live()"
+              [attr.title]="broadcast.live() ? liveMessages.broadcastHint : liveMessages.pausedHint"
+              (click)="broadcast.setLive(!broadcast.live())"
+            >
+              @if (broadcast.live()) {
+                <span class="live-dot" aria-hidden="true"></span> {{ liveMessages.broadcastOn }}
+              } @else {
+                {{ liveMessages.broadcastOff }}
+              }
+            </button>
+          }
+          <button type="button" class="btn btn-secondary" (click)="cancel()">
             {{ messages.cancel }}
           </button>
           @if (stepIndex() !== null && !pending()) {
@@ -146,13 +166,27 @@ type Changes = Readonly<Record<string, number | null>>;
       }
 
       @if (current(); as criterion) {
-        <app-criterion-ranking
-          [items]="items()"
-          [criterion]="criterion"
-          [scale]="state.scale"
-          [step]="steps()[criterion.key]!"
-          (stepChange)="setStep(criterion.key, $event)"
-        />
+        <div class="ranking-with-room" [class.with-panel]="liveRoom() !== null">
+          <app-criterion-ranking
+            [items]="items()"
+            [criterion]="criterion"
+            [scale]="state.scale"
+            [step]="steps()[criterion.key]!"
+            [opinions]="opinions()"
+            [names]="names()"
+            [spotlightId]="liveRoom()?.spotlightFeatureId ?? null"
+            (stepChange)="setStep(criterion.key, $event)"
+          />
+          @if (liveRoom(); as liveRoom) {
+            <app-opinions-panel
+              [room]="liveRoom"
+              [items]="items()"
+              [names]="names()"
+              (spotlightChange)="room.setSpotlight($event)"
+              (clear)="room.clearOpinions($event, criterion.key)"
+            />
+          }
+        </div>
       } @else {
         <div class="ranking-setup">
           <fieldset class="card ranking-criteria">
@@ -208,7 +242,9 @@ type Changes = Readonly<Record<string, number | null>>;
   `,
 })
 export class RankingScreenComponent {
-  private readonly room = inject(SessionRoomService);
+  protected readonly room = inject(SessionRoomService);
+  protected readonly broadcast = inject(RankingRoomService);
+  protected readonly liveMessages = MESSAGES.liveRanking;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly messages = MESSAGES.ranking;
 
@@ -254,6 +290,36 @@ export class RankingScreenComponent {
 
   protected readonly items = computed<ReadonlyMap<string, RankedItem>>(
     () => new Map(this.base().map((f) => [f.id, f])),
+  );
+
+  /** Le brouillon diffusé aux membres pendant le classement d'un critère (FR-015b) ; `null` pendant le choix. */
+  private readonly draft = computed<RankingDraft | null>(() => {
+    const criterion = this.current();
+    const scale = this.state()?.scale;
+    const step = criterion ? this.steps()[criterion.key] : undefined;
+    if (!criterion || !scale || !step) return null;
+    return {
+      criterionKeys: this.criteria().map((c) => c.key),
+      criterionKey: criterion.key,
+      levels: step.levels,
+      unranked: step.unranked,
+      values: draftValues(step, scale),
+    };
+  });
+
+  /** La salle en cours, si elle porte sur le critère affiché (le serveur a reçu ce brouillon). */
+  protected readonly liveRoom = computed(() => {
+    const room = this.room.rankingRoom();
+    return room && room.draft.criterionKey === this.current()?.key ? room : null;
+  });
+
+  protected readonly opinions = computed(() => {
+    const room = this.liveRoom();
+    return room ? opinionsByFeature(room) : new Map();
+  });
+
+  protected readonly names = computed<ReadonlyMap<string, string>>(
+    () => new Map((this.state()?.participants ?? []).map((p) => [p.participantId, p.pseudo])),
   );
 
   /** Les fonctionnalités envoyées dont l'état reçu n'a pas encore toutes les valeurs (supprimées entre-temps : ignorées). */
@@ -315,11 +381,17 @@ export class RankingScreenComponent {
     effect(() => {
       if (!this.room.canEdit()) this.closed.emit();
     });
+    // Chaque changement du classement est diffusé aux membres (FR-015b).
+    effect(() => {
+      const draft = this.draft();
+      if (draft) this.broadcast.publish(draft);
+    });
     // Pendant l'enregistrement : tout est confirmé, on rend la main ; un refus ou une coupure, on le dit.
     effect(() => {
       if (!this.pending()) return;
       if (this.unsaved().length === 0) {
         this.pending.set(null);
+        this.broadcast.end('SAVED');
         this.closed.emit();
         return;
       }
@@ -436,6 +508,7 @@ export class RankingScreenComponent {
     const existing = new Set((this.state()?.features ?? []).map((f) => f.id));
     const toSend = this.base().filter((f) => changes.has(f.id) && existing.has(f.id));
     if (toSend.length === 0) {
+      this.broadcast.end('SAVED');
       this.closed.emit();
       return;
     }
@@ -472,6 +545,13 @@ export class RankingScreenComponent {
 
   protected backToBoard(): void {
     this.room.clearRefusal();
+    this.broadcast.end('CANCELLED');
+    this.closed.emit();
+  }
+
+  /** « Annuler » : retour au tableau sans rien enregistrer ; la salle se ferme chez les membres. */
+  protected cancel(): void {
+    this.broadcast.end('CANCELLED');
     this.closed.emit();
   }
 

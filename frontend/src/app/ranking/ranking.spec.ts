@@ -5,6 +5,7 @@ import {
   canJoinAbove,
   canMoveDown,
   canMoveUp,
+  draftValues,
   joinAbove,
   levelOf,
   levelValues,
@@ -253,6 +254,24 @@ describe('ranking', () => {
 
     it('follows a scale with gaps, such as Fibonacci', () => {
       expect(proposedValues(3, 13, [1, 2, 3, 5, 8, 13, 20])).toEqual([13, 8, 5]);
+    });
+  });
+
+  describe('draftValues', () => {
+    it('gives each ranked feature the value of its level, or the one typed by hand', () => {
+      const step = { ...start(), overrides: { d: '2' } };
+      expect(draftValues(step, SCALE)).toEqual({ c: 8, a: 3, d: 2 });
+    });
+
+    it('keeps the proposed value while a typed value is not valid, and leaves a cleared value out', () => {
+      expect(draftValues({ ...start(), overrides: { a: '42', d: '' } }, SCALE)).toEqual({
+        c: 8,
+        a: 3,
+      });
+    });
+
+    it('has no value when the value of the first level is not valid', () => {
+      expect(draftValues({ ...start(), top: 'x', topTouched: true }, SCALE)).toEqual({});
     });
   });
 });

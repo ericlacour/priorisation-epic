@@ -319,3 +319,22 @@ export function proposedValues(
   const descending = [...allowedValues].filter((value) => value <= top).sort((a, b) => b - a);
   return Array.from({ length: levelCount }, (_, index) => descending[index] ?? null);
 }
+
+/**
+ * Les valeurs à diffuser pendant le classement (FR-015b) : celle de chaque fonctionnalité classée, saisie à la main
+ * ou proposée par son niveau. Une saisie en cours qui n'est pas valide laisse voir la valeur proposée ; une
+ * fonctionnalité sans valeur est absente.
+ */
+export function draftValues(step: RankingStep, scale: SessionScale): Record<string, number> {
+  const levels = levelValues(step, scale) ?? [];
+  const values: Record<string, number> = {};
+  for (const [index, level] of step.levels.entries()) {
+    for (const id of level) {
+      const typed =
+        id in step.overrides ? parseCriterionInput(step.overrides[id] ?? '', scale) : undefined;
+      const value = typed === undefined ? (levels[index] ?? null) : typed;
+      if (value !== null) values[id] = value;
+    }
+  }
+  return values;
+}

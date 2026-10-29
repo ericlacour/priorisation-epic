@@ -1,6 +1,7 @@
 import { computed, signal } from '@angular/core';
 import { vi } from 'vitest';
 
+import { ActiveRankingRoom, RankingEndReason } from '../api/contract';
 import { SessionState } from '../api/session-state';
 import { IntentRefusal } from '../session/session-room.service';
 
@@ -24,4 +25,14 @@ export class FakeRoom {
     () => { participantToken: string; animationToken: string } | null
   >(() => ({ participantToken: 'p-token', animationToken: 'a-token' }));
   readonly clearRefusal = vi.fn(() => this.refusal.set(null));
+  readonly rankingRoom = signal<ActiveRankingRoom | null>(null);
+  readonly rankingEnd = signal<RankingEndReason | null>(null);
+  readonly sendRankingDraft = vi.fn<(draft: object | null) => boolean>(() => true);
+  readonly endRanking = vi.fn<(outcome: string) => boolean>(() => true);
+  readonly giveOpinion = vi.fn<
+    (featureId: string, criterionKey: string, opinion: string | null, comment?: string) => boolean
+  >(() => true);
+  readonly clearOpinions = vi.fn<(featureId: string, criterionKey: string) => boolean>(() => true);
+  readonly setSpotlight = vi.fn<(featureId: string | null) => boolean>(() => true);
+  readonly dismissRankingEnd = vi.fn(() => this.rankingEnd.set(null));
 }
