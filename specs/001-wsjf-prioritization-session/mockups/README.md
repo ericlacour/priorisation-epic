@@ -29,7 +29,7 @@ l'application.
 `classement-collaboratif.html` : proposition d'ergonomie, à discuter, pour rendre la
 priorisation par classement plus interactive entre l'animateur et les personnes connectées.
 Cinq écrans cliquables qui partagent le même état (une réaction envoyée dans la vue
-participant apparaît chez l'animateur). Rien n'est encore dans la spec.
+participant apparaît chez l'animateur). Les écrans A et B sont repris dans la spec par FR-015b et FR-015c (2026-10-29) ; les écrans C à E restent une proposition.
 
 | Écran | Rôle | Idée principale |
 |-------|------|-----------------|
@@ -39,8 +39,10 @@ participant apparaît chez l'animateur). Rien n'est encore dans la spec.
 | D. Voter par classement | Participant | Même écran de classement, avec le message de l'animateur, le minuteur et « qui a voté ». Étape « Récapitulatif » avant l'envoi, qui montre les « sans avis » |
 | E. Révélation et accord | Tous | Carte des écarts : les pastilles des votants posées sur l'échelle, triées par écart décroissant. « Donner la parole aux extrêmes ». Sondage d'accord (pour, réserve, contre) puis « Retenir » ; un clic sur l'échelle retient aussi une valeur |
 
-Exigences à créer si la proposition est retenue : FR-015b (diffusion en direct du
-classement), FR-015c (réactions, propositions, main levée, carte en discussion), FR-018b
+Exigences ajoutées à la spec le 2026-10-29 : FR-015b (diffusion en direct du
+classement) et FR-015c (réactions, propositions, main levée, carte en discussion, sondage
+d'accord, fil de la séance). Écart avec la maquette : pas de réaction sur téléphone en V1.
+Exigences encore à créer si la suite est retenue : FR-018b
 (minuteur, relance et messages pendant un tour), FR-022a (sondage d'accord, parole aux
 extrêmes). L'avancement par critère pendant un tour va au-delà de FR-019 (« a voté »
 seulement) : à valider.

@@ -64,6 +64,15 @@
 - Q : comment fonctionne le filtre par statut ? → A: Trois cases à cocher, « En préparation », « En cours » et « Clôturée », toutes cochées par défaut. Seules les sessions des statuts cochés sont affichées ; aucune case cochée n'affiche aucune session.
 - Q : les filtres sont-ils traités par le serveur ? → A: Non. `GET /api/sessions` renvoie déjà toutes les sessions ; le filtrage se fait dans le navigateur, sans changer le contrat. Les filtres ne sont pas conservés d'une visite à l'autre.
 
+### Session 2026-10-29 (classement collaboratif)
+
+- Q : pendant « Prioriser par classement », que voient les autres membres ? → A: Le **classement de l'animateur, en direct** (FR-015b), en lecture seule, au lieu du tableau. C'est un brouillon : rien n'est enregistré avant « Terminer » (FR-015a). Maquette `mockups/classement-collaboratif.html`, écrans A et B.
+- Q : comment un participant intervient-il sans modifier le classement ? → A: Par des **réactions** sur une carte (« D'accord », « Je monterais », « Je descendrais », « Question »), une **proposition de déplacement** envoyée à l'animateur et la **main levée** (FR-015c). Seul l'animateur déplace les cartes et applique une proposition.
+- Q : l'animateur peut-il concentrer la discussion sur une fonctionnalité ? → A: Oui : « Mettre en discussion » met une carte en avant chez tous, avec un minuteur indicatif (FR-015c). Une seule carte à la fois.
+- Q : la diffusion et les réactions s'appliquent-elles au vote d'un tour masqué ? → A: Non. Pendant un vote (FR-019), chacun classe seul, sans voir le classement des autres : diffuser ou réagir créerait l'effet d'ancrage que le vote masqué veut éviter.
+- Q : les réactions et les propositions sont-elles conservées ? → A: Non. Elles ne vivent que le temps de l'écran de classement : ni enregistrées, ni exportées, ni dans l'historique (FR-025). Seules les valeurs enregistrées à « Terminer » comptent.
+- Q : peut-on réagir depuis un téléphone ? → A: Non en V1. Le téléphone reste en lecture seule (« Hors périmètre ») : il suit le classement diffusé, sans réagir, proposer ni lever la main.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Prioriser des fonctionnalités en saisie directe (Priority: P1)
@@ -593,6 +602,78 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   changer. Une session rouverte (reconnexion) commence toujours sur le tableau. Ce
   classement est repris tel quel par chaque membre lors de son vote dans un tour masqué
   (FR-019, User Story 2, réalisée en dernier).
+- **FR-015b**: Pendant que l'animateur est sur l'écran « Prioriser par classement »
+  (FR-015a, étapes 2 à 4), chaque autre membre connecté DOIT voir **son classement en
+  direct**, à la place du tableau, sans recharger la page (décision du 2026-10-29) :
+  - la vue reprend la mise en page de l'écran de classement : « Non classées » à gauche,
+    les niveaux à droite, chaque niveau avec sa valeur, et le critère en cours avec son
+    sigle et son nom complet (FR-016a). Elle est en **lecture seule** : aucun déplacement,
+    aucune saisie de valeur ;
+  - chaque déplacement, chaque changement de valeur et chaque passage à un autre critère
+    apparaît chez les membres en moins de 2 secondes, comme une mise à jour du tableau
+    (SC-002). La carte qui vient de bouger est signalée un court instant ;
+  - un bandeau rappelle « Vous suivez le classement de <animateur> ». « Parcourir
+    librement » détache le défilement et le critère affiché de ceux de l'animateur, sans
+    arrêter les mises à jour ; « Revenir sur <animateur> » le raccroche ;
+  - l'animateur peut **suspendre la diffusion** (« Diffusé en direct », bouton à bascule
+    de sa barre d'actions) : les membres gardent le dernier état diffusé, avec le bandeau
+    « Diffusion en pause ». Il la reprend d'un clic ;
+  - ce qui est diffusé est un **brouillon** : aucune valeur retenue ne change avant
+    « Terminer » (FR-015a). Le tableau des membres réapparaît, à jour, quand l'animateur
+    termine ; il réapparaît inchangé quand il annule ;
+  - un membre qui se connecte ou se reconnecte pendant le classement arrive sur l'état
+    diffusé en cours. Si l'animateur se déconnecte, les membres reviennent au tableau,
+    avec le message « <animateur> s'est déconnecté : le classement en cours n'a pas été
+    enregistré » ; une session rouverte commence toujours sur le tableau (FR-015a) ;
+  - la diffusion ne concerne **pas** le vote d'un tour masqué (FR-019) : chacun y classe
+    seul et ne voit le classement de personne avant la révélation ;
+  - sur téléphone, la vue diffusée est consultable en lecture seule, comme le tableau.
+- **FR-015c**: Pendant un classement diffusé (FR-015b), les membres et l'animateur DOIVENT
+  pouvoir **échanger sur le classement** sans que personne d'autre que l'animateur ne le
+  modifie (décision du 2026-10-29) :
+  1. **Réactions** : sur chaque carte, au survol ou au focus clavier, un membre peut
+     donner « D'accord » (✓), « Je monterais » (↑), « Je descendrais » (↓) et « J'ai une
+     question » (?). Il a au plus une réaction de sens par carte et par critère
+     (« D'accord », « Je monterais » ou « Je descendrais »), plus éventuellement
+     « Question » ; un second clic retire la réaction. Chaque carte affiche, chez tous,
+     le nombre de chaque réaction ; le survol ou le focus donne les pseudos. Les réactions
+     d'un critère restent attachées à ce critère, même si la carte est déplacée ;
+  2. **Proposition de déplacement** : un membre peut proposer de placer une fonctionnalité
+     « au-dessus de », « au même niveau que » ou « en dessous de » une autre, avec un
+     motif facultatif (140 caractères au plus). La proposition arrive dans la file
+     « Propositions » de l'animateur, dans l'ordre d'arrivée. L'animateur choisit :
+     - « Appliquer » : la fonctionnalité est déplacée dans son brouillon, et sa valeur
+       est proposée selon les règles de FR-015a (étape 3), comme un déplacement fait à la
+       main ;
+     - « En discuter » : la fonctionnalité est mise en discussion (point 4) et la parole
+       est donnée à l'auteur de la proposition ;
+     - « Écarter » : la proposition disparaît.
+
+     L'auteur est informé de la décision (« Proposition appliquée », « … mise en
+     discussion », « … écartée »). Une proposition qui ne s'applique plus (fonctionnalité
+     retirée du classement) est retirée de la file ;
+  3. **Main levée** : un membre peut lever la main et la baisser. Les mains levées sont
+     visibles par tous (sur l'avatar, dans « Participants ») et listées chez l'animateur
+     par ordre d'arrivée, avec la durée d'attente. L'animateur peut « Donner la parole »
+     (la main se baisse, et tous voient « <pseudo> a la parole ») ou « Baisser » la main ;
+  4. **Carte en discussion** : depuis le menu d'une carte, l'animateur peut « Mettre en
+     discussion » une fonctionnalité. Elle est mise en avant chez tous, avec un minuteur
+     de 2 minutes, que l'animateur peut prolonger d'une minute ou terminer. Le minuteur
+     est **indicatif** : à zéro, rien n'est bloqué. Une seule carte est en discussion à la
+     fois ; en mettre une autre en discussion termine la précédente ;
+  5. **Sondage d'accord** : l'animateur peut demander à tous « D'accord avec ce classement
+     de <critère> ? ». Chaque membre répond « D'accord », « Avec réserve » ou « Pas
+     d'accord » ; l'animateur voit la répartition à mesure des réponses, sans les
+     pseudos. Le sondage ne change rien au classement ;
+  6. **Fil de la séance** : l'animateur et les membres voient la liste des derniers
+     événements (réactions, propositions et décisions, mains levées, mises en discussion),
+     du plus récent au plus ancien, avec l'heure.
+
+  Les réactions, propositions, mains levées et sondages ne vivent que le temps de l'écran
+  de classement : ils ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025),
+  et repartent de zéro au classement suivant. Ils ne sont pas disponibles pendant le vote
+  d'un tour masqué (FR-019), ni sur téléphone (lecture seule). Tous ces éléments ont un
+  nom accessible et se pilotent au clavier, comme le glisser-déposer de FR-015a.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
   l'échelle utilisées.
