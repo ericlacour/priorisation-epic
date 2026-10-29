@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classement collaboratif WSJF</title>
+<style>
+/* Mise en page : une page de présentation (principes, onglets) au-dessus d'un cadre 1280 × 720
+   qui simule l'écran du produit ; le cadre se réduit à la largeur disponible.
+   Jetons repris de mockups/index.html (rouge principal, anthracite, gris chauds). */
+:root {
+  --bg: #F7F5F3; --surface: #FFFFFF; --surface-muted: #F0EDEA; --fg: #2F3338; --muted: #6B7079;
+  --border: #E2DED9; --primary: #E2001A; --primary-hover: #C8001A; --primary-ink: #C8001A;
+  --primary-fg: #FFFFFF; --primary-soft: #FDE8EA; --success: #16754F; --success-soft: #E3F4EC;
+  --warning: #8A560C; --warning-soft: #FBF0DC; --danger: #A11423; --danger-soft: #FCE9EA;
+  --info-soft: #EEF0F3; --online: #16754F; --offline: #8A8F98;
+  --masked: repeating-linear-gradient(135deg, #F0EDEA 0 6px, #E7E3DE 6px 12px);
+  --shadow: 0 1px 2px rgba(47,51,56,.06), 0 4px 16px rgba(47,51,56,.08);
+  --pop: 0 6px 24px rgba(47,51,56,.18);
+  --p-eric: #E2001A; --p-alice: #2F6FB3; --p-bob: #7A4FB5; --p-chloe: #16754F; --p-david: #A2620A;
+  --av-fg: #FFFFFF;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16181C; --surface: #1F2227; --surface-muted: #282C32; --fg: #ECEDEF; --muted: #A3A8B0;
+    --border: #33373E; --primary: #FF6B76; --primary-hover: #FF808A; --primary-ink: #FF808A;
+    --primary-fg: #16181C; --primary-soft: #3A1E22; --success: #42C58E; --success-soft: #173A2C;
+    --warning: #E3A94B; --warning-soft: #3A2E17; --danger: #FF8A80; --danger-soft: #3D1F1E;
+    --info-soft: #262A31; --online: #42C58E; --offline: #7A8191;
+    --masked: repeating-linear-gradient(135deg, #282C32 0 6px, #2F343B 6px 12px);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); --pop: 0 6px 24px rgba(0,0,0,.5);
+    --p-eric: #FF6B76; --p-alice: #6EA8E8; --p-bob: #B595E8; --p-chloe: #42C58E; --p-david: #E3A94B;
+    --av-fg: #16181C; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16181C; --surface: #1F2227; --surface-muted: #282C32; --fg: #ECEDEF; --muted: #A3A8B0;
+  --border: #33373E; --primary: #FF6B76; --primary-hover: #FF808A; --primary-ink: #FF808A;
+  --primary-fg: #16181C; --primary-soft: #3A1E22; --success: #42C58E; --success-soft: #173A2C;
+  --warning: #E3A94B; --warning-soft: #3A2E17; --danger: #FF8A80; --danger-soft: #3D1F1E;
+  --info-soft: #262A31; --online: #42C58E; --offline: #7A8191;
+  --masked: repeating-linear-gradient(135deg, #282C32 0 6px, #2F343B 6px 12px);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25); --pop: 0 6px 24px rgba(0,0,0,.5);
+  --p-eric: #FF6B76; --p-alice: #6EA8E8; --p-bob: #B595E8; --p-chloe: #42C58E; --p-david: #E3A94B;
+  --av-fg: #16181C; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 15px/1.5 var(--font); }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--primary-ink); }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* ---------- Page de présentation (hors produit) ---------- */
+.wrap { max-width: 1312px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; display: grid; gap: 16px; }
+.intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 24px; align-items: end; }
+.intro h1 { margin: 0; font-size: 26px; line-height: 1.2; text-wrap: balance; }
+.intro p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+.mock-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; padding: 6px 10px; cursor: pointer; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.principles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.principles li { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.principles b { display: block; font-size: 15px; }
+.principles span { color: var(--muted); }
+.principles .k { color: var(--primary-ink); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 5px 14px; font-size: 14px; cursor: pointer; }
+.tabs button[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+.tabs .who { font-size: 12px; opacity: .75; margin-left: 4px; }
+.stage { width: 100%; overflow: hidden; }
+.frame { width: 1280px; height: 720px; transform-origin: top left; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); position: relative; display: flex; flex-direction: column; }
+.notes { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+.notes section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 14px; min-width: 0; }
+.notes h2 { margin: 0 0 6px; font-size: 15px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.notes .req { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surface-muted); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+@media (max-width: 900px) {
+  .intro, .notes { grid-template-columns: 1fr; }
+  .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) { .principles { grid-template-columns: 1fr; } }
+
+/* ---------- Produit : barres ---------- */
+.sbar { height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: var(--surface); border-bottom: 3px solid var(--primary); }
+.logo { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); color: var(--primary-fg); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
+.sbar-id { display: grid; line-height: 1.25; min-width: 0; }
+.sbar-name { font-weight: 700; font-size: 15px; }
+.sbar-sub { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.spacer { flex: 1; }
+.abar { height: 50px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.abar .sep { width: 1px; height: 24px; background: var(--border); }
+.body { flex: 1; min-height: 0; display: grid; gap: 0; position: relative; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.btn:hover { background: var(--surface-muted); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+.btn.primary:hover { background: var(--primary-hover); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--primary-ink); }
+.btn.ghost:hover { background: var(--primary-soft); }
+.btn.xs { min-height: 26px; padding: 0 8px; font-size: 12.5px; border-radius: 6px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.btn.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-muted); white-space: nowrap; }
+.badge.live { background: var(--success-soft); color: var(--success); }
+.badge.vote { background: var(--primary-soft); color: var(--primary-ink); }
+.badge.warn { background: var(--warning-soft); color: var(--warning); }
+.badge.ok { background: var(--success-soft); color: var(--success); }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* Étapes de critère */
+.steps { display: flex; gap: 4px; align-items: center; }
+.step { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
+.step .n { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; background: var(--surface-muted); }
+.step.done .n { background: var(--success); color: var(--surface); }
+.step.cur { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-ink); }
+.step.cur .n { background: var(--primary); color: var(--primary-fg); }
+
+/* Avatars et présence */
+.av { width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--av-fg); flex: none; position: relative; border: 2px solid var(--surface); }
+.av.sm { width: 20px; height: 20px; font-size: 10px; border-width: 1.5px; }
+.av[data-p="eric"] { background: var(--p-eric); } .av[data-p="alice"] { background: var(--p-alice); }
+.av[data-p="bob"] { background: var(--p-bob); } .av[data-p="chloe"] { background: var(--p-chloe); }
+.av[data-p="david"] { background: var(--p-david); }
+.av.off { opacity: .4; }
+.av .st { position: absolute; right: -3px; bottom: -3px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--surface); background: var(--online); }
+.av.off .st { background: var(--offline); }
+.av .hand { position: absolute; top: -9px; right: -8px; font-size: 13px; line-height: 1; }
+.stack { display: flex; }
+.stack .av + .av { margin-left: -6px; }
+.presence { display: flex; align-items: center; gap: 8px; padding: 3px 10px 3px 4px; border: 1px solid var(--border); border-radius: 999px; font-size: 13px; }
+
+/* Colonnes latérales */
+.side > * { min-width: 0; }
+.side { min-height: 0; overflow: auto; background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+.side.left { border-right: 1px solid var(--border); }
+.side.right { border-left: 1px solid var(--border); }
+.side h3 { margin: 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.side h3 .count { background: var(--primary); color: var(--primary-fg); border-radius: 999px; padding: 0 7px; font-size: 11px; letter-spacing: 0; }
+.blk { display: grid; gap: 8px; }
+
+/* ---------- Classement ---------- */
+.center { min-height: 0; display: flex; flex-direction: column; }
+.ctx { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.ctx .crit { font-weight: 700; }
+.ctx .crit b { color: var(--primary-ink); }
+.ctx .top { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.ctx .top input { width: 52px; height: 30px; text-align: center; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); font-weight: 700; }
+.follow { flex: none; display: flex; align-items: center; gap: 10px; padding: 7px 16px; background: var(--info-soft); font-size: 13px; border-bottom: 1px solid var(--border); }
+.levels { flex: 1; min-height: 0; overflow: auto; padding: 8px 16px 16px; display: flex; flex-direction: column; }
+.lvl { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; align-items: start; padding: 6px 0; border-radius: 10px; transition: background .15s; }
+.lvl-val { height: 38px; border-radius: 8px; display: grid; place-items: center; background: var(--surface-muted); line-height: 1; }
+.lvl-val b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.lvl-val small { font-size: 10px; color: var(--muted); }
+.lvl:first-child .lvl-val { background: var(--primary); color: var(--primary-fg); }
+.lvl:first-child .lvl-val small { color: inherit; opacity: .8; }
+.lvl-cards { display: flex; flex-wrap: wrap; gap: 6px; min-height: 38px; }
+.lvl.over { background: var(--primary-soft); }
+.gap { height: 6px; margin-left: 68px; border-radius: 6px; transition: height .12s, background .12s; display: grid; place-items: center; font-size: 12px; color: transparent; }
+.dragging .gap, .placing .gap { height: 16px; border: 1px dashed var(--border); }
+.gap.over { height: 30px; background: var(--primary-soft); border: 1px dashed var(--primary) !important; color: var(--primary-ink); }
+.placing .gap { cursor: pointer; }
+.placing .lvl, .placing .tray-drop { cursor: pointer; }
+.empty-hint { margin: 30px auto; max-width: 420px; text-align: center; color: var(--muted); border: 2px dashed var(--border); border-radius: 12px; padding: 24px; }
+
+.card { width: 300px; height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 1px rgba(0,0,0,.04); position: relative; font-size: 13.5px; }
+.card[draggable="true"] { cursor: grab; }
+.card .grip { color: var(--muted); width: 14px; text-align: center; flex: none; }
+.card .fid { font-weight: 700; font-size: 12.5px; text-decoration: none; flex: none; }
+.card .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .val { width: 34px; height: 26px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-weight: 700; font-size: 13px; background: var(--surface); flex: none; }
+.card .val.ro { display: grid; place-items: center; background: var(--surface-muted); border-color: transparent; }
+.card .val.none { color: var(--muted); font-weight: 400; font-size: 11px; }
+.card.sel { outline: 2px dashed var(--primary); outline-offset: 1px; }
+.card.spot { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.card.spot::before { content: attr(data-spot); position: absolute; top: -9px; left: 10px; background: var(--primary); color: var(--primary-fg); font-size: 10.5px; font-weight: 700; padding: 0 6px; border-radius: 4px; line-height: 16px; }
+.card.ghost { border-style: dashed; border-color: var(--p-eric); animation: wobble 1.4s ease-in-out infinite; }
+.card.ghost::after { content: "eric déplace…"; position: absolute; right: -6px; top: -10px; font-size: 10.5px; background: var(--p-eric); color: var(--av-fg); padding: 0 6px; border-radius: 4px; line-height: 16px; }
+@keyframes wobble { 50% { transform: translateY(-2px); } }
+.card.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--primary-soft); } }
+.rx { display: flex; gap: 3px; flex: none; }
+.rx span { display: inline-flex; align-items: center; gap: 2px; height: 20px; padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--surface-muted); }
+.rx .ok { background: var(--success-soft); color: var(--success); }
+.rx .up, .rx .down { background: var(--warning-soft); color: var(--warning); }
+.rx .q { background: var(--info-soft); }
+.card .more { border: 0; background: transparent; width: 22px; height: 26px; border-radius: 6px; cursor: pointer; color: var(--muted); flex: none; }
+.card .more:hover { background: var(--surface-muted); }
+.react-bar { display: none; gap: 2px; flex: none; }
+.card:hover .react-bar, .card:focus-within .react-bar, .card.spot .react-bar { display: flex; }
+.card.has-bar:hover .rx, .card.has-bar:focus-within .rx, .card.has-bar.spot .rx { display: none; }
+.react-bar button { border: 1px solid var(--border); background: var(--surface); height: 24px; min-width: 24px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 4px; }
+.react-bar button:hover { background: var(--primary-soft); border-color: var(--primary); }
+.react-bar button.mine { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+
+.tray { display: grid; gap: 6px; }
+.tray .card { width: 100%; }
+.tray-drop { grid-template-columns: minmax(0, 1fr); border: 1px dashed var(--border); border-radius: 10px; padding: 8px; display: grid; gap: 6px; min-height: 60px; transition: background .15s; }
+.tray-drop.over { background: var(--primary-soft); border-color: var(--primary); }
+.tray-drop .hint { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* Menu de carte */
+.menu { position: absolute; z-index: 30; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--pop); padding: 4px; display: grid; min-width: 220px; }
+.menu button { text-align: left; border: 0; background: transparent; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13.5px; }
+.menu button:hover { background: var(--surface-muted); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* Éléments de la salle */
+.item { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: grid; gap: 6px; font-size: 13px; background: var(--surface); }
+.item.new { animation: flash 1.4s ease-out; }
+.item .who b { white-space: nowrap; }
+.item .who { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.item .who .muted { font-weight: 400; margin-left: auto; font-size: 12px; }
+.item q { color: var(--muted); font-style: italic; }
+.item .acts { display: flex; gap: 4px; flex-wrap: wrap; }
+.feed { display: grid; gap: 6px; font-size: 12.5px; color: var(--muted); margin: 0; padding: 0; list-style: none; }
+.feed li { display: flex; gap: 6px; align-items: flex-start; }
+.feed li b { color: var(--fg); font-weight: 600; }
+.feed time { margin-left: auto; font-variant-numeric: tabular-nums; flex: none; }
+.timer { display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 10px; border-radius: 8px; background: var(--primary-soft); color: var(--primary-ink); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+.timer.big { font-size: 30px; padding: 10px 14px; justify-content: space-between; }
+.timer.low { background: var(--warning-soft); color: var(--warning); }
+.pulse-meter { display: grid; gap: 4px; }
+.bar { height: 8px; border-radius: 99px; background: var(--surface-muted); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; transition: width .6s ease; }
+.bar .g { background: var(--success); } .bar .y { background: var(--warning); } .bar .r { background: var(--danger); }
+.field { display: grid; gap: 4px; font-size: 13px; }
+.field select, .field input, .field textarea { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); font-size: 13px; }
+.field textarea { resize: none; height: 52px; }
+.big-hand { min-height: 44px; font-size: 15px; }
+
+/* Toasts dans le cadre */
+.toasts { position: absolute; top: 112px; left: 50%; transform: translateX(-50%); z-index: 40; display: grid; gap: 6px; pointer-events: none; }
+.toast { background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 10px; font-size: 13.5px; box-shadow: var(--pop); animation: toast-in .25s ease-out; display: flex; gap: 8px; align-items: center; }
+@keyframes toast-in { from { transform: translateY(-8px); opacity: 0; } }
+
+/* ---------- Tour masqué : suivi ---------- */
+.room { padding: 16px 20px; overflow: auto; display: grid; gap: 16px; align-content: start; }
+.round-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.round-head h2 { margin: 0; font-size: 18px; }
+.fchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fchip { display: inline-flex; gap: 6px; align-items: center; padding: 3px 10px; border-radius: 6px; background: var(--masked); font-size: 13px; border: 1px solid var(--border); }
+.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pcard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.pcard.sent { border-color: var(--success); }
+.pcard .top { display: flex; align-items: center; gap: 10px; }
+.pcard .av { width: 38px; height: 38px; font-size: 14px; }
+.pcard .nm { font-weight: 700; } .pcard .rl { font-size: 12px; color: var(--muted); }
+.pcard .state { margin-left: auto; }
+.prog { display: flex; gap: 4px; }
+.prog i { flex: 1; height: 6px; border-radius: 99px; background: var(--surface-muted); }
+.prog i.d { background: var(--success); } .prog i.c { background: var(--primary); animation: pulse 1.6s infinite; }
+.pcard .lbl { font-size: 12.5px; color: var(--muted); display: flex; justify-content: space-between; }
+.privacy { display: block; font-size: 13px; padding: 8px 12px; border-radius: 10px; background: var(--info-soft); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Récapitulatif ---------- */
+.recap { padding: 16px 20px; overflow: auto; }
+.recap table { border-collapse: collapse; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 14px; }
+.recap th, .recap td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.recap th { font-size: 12px; color: var(--muted); background: var(--surface-muted); }
+.recap td.num { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.recap td.na { text-align: center; color: var(--muted); font-style: italic; }
+.sent-banner { margin: 40px auto; max-width: 520px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+.sent-banner .ok { width: 56px; height: 56px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: grid; place-items: center; font-size: 28px; font-weight: 800; }
+
+/* ---------- Révélation : carte des écarts ---------- */
+.reveal { min-height: 0; overflow: auto; padding: 8px 16px 16px; }
+.rv-head, .rv-row { display: grid; grid-template-columns: 210px repeat(2, minmax(0, 1fr)); gap: 16px; align-items: center; }
+.rv-head { position: sticky; top: 0; background: var(--bg); padding: 6px 0; font-size: 12px; color: var(--muted); font-weight: 600; z-index: 2; }
+.rv-head .ticks { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-variant-numeric: tabular-nums; }
+.rv-row { padding: 8px 0; border-top: 1px solid var(--border); }
+.rv-row.focus { background: var(--primary-soft); border-radius: 10px; border-color: transparent; padding-inline: 8px; margin-inline: -8px; }
+.rv-feat { display: grid; gap: 2px; font-size: 13.5px; min-width: 0; }
+.rv-feat .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rv-feat .meta { display: flex; gap: 6px; align-items: center; }
+.strip { position: relative; height: 54px; }
+.strip .rail { position: absolute; left: 0; right: 0; top: 30px; height: 2px; background: var(--border); }
+.strip .band { position: absolute; top: 26px; height: 10px; border-radius: 99px; background: var(--warning-soft); border: 1px solid var(--warning); }
+.strip .band.calm { background: var(--success-soft); border-color: var(--success); }
+.strip .tick { position: absolute; top: 22px; width: 28px; height: 18px; transform: translateX(-50%); display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; border-radius: 6px; }
+.strip .tick::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); }
+.strip .tick:hover::before { border-color: var(--primary); }
+.strip .tick.cons::before { width: 14px; height: 14px; background: var(--primary); border-color: var(--primary); }
+.strip .tick.cons::after { content: attr(data-v); position: absolute; top: 18px; font-size: 11px; font-weight: 800; color: var(--primary-ink); }
+.strip .dots { position: absolute; top: 0; transform: translateX(-50%); display: flex; }
+.strip .dots .av { width: 20px; height: 20px; font-size: 9.5px; border-width: 1.5px; }
+.strip .dots .av + .av { margin-left: -7px; }
+.strip .dots .av.hl { box-shadow: 0 0 0 2px var(--primary); z-index: 1; }
+.strip .na { position: absolute; right: 0; top: 40px; font-size: 10.5px; color: var(--muted); }
+.ro-strip .tick { cursor: default; }
+.poll { display: grid; gap: 8px; }
+.poll .res { display: grid; grid-template-columns: 70px 1fr 24px; gap: 8px; align-items: center; font-size: 13px; }
+.overlay { position: absolute; inset: 0; background: rgba(22,24,28,.45); display: grid; place-items: center; z-index: 35; }
+.dialog { background: var(--surface); border-radius: 14px; box-shadow: var(--pop); padding: 20px 22px; width: 440px; display: grid; gap: 12px; border: 1px solid var(--border); }
+.dialog h3 { margin: 0; font-size: 18px; }
+.vote-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vote-choices button { min-height: 64px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 700; display: grid; place-items: center; gap: 2px; font-size: 14px; }
+.vote-choices button small { font-weight: 400; color: var(--muted); font-size: 11.5px; }
+.vote-choices button:hover, .vote-choices button.mine { border-color: var(--primary); background: var(--primary-soft); }
+.speaker { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-ink); font-weight: 700; font-size: 13.5px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="intro">
+    <div>
+      <h1>Classement collaboratif : l'animateur classe, la salle réagit</h1>
+      <p>Proposition d'ergonomie pour « Prioriser par classement » (FR-015a) et le vote par classement (FR-019, FR-020). Les cinq écrans partagent le même état : ce que fait alice dans « Vue participant » arrive chez eric dans « Atelier en direct ». Données fictives.</p>
+    </div>
+    <div class="mock-tools">
+      <div class="seg" role="group" aria-label="Thème"><button type="button" data-theme-set="light" aria-pressed="false">Clair</button><button type="button" data-theme-set="dark" aria-pressed="false">Sombre</button></div>
+      <button type="button" class="btn" id="simulate">Simuler la salle</button>
+    </div>
+  </header>
+
+  <ol class="principles">
+    <li><span class="k">Diffuser</span><b>Le classement se fait en direct</b><span>L'écran de l'animateur est suivi par tous, carte par carte, sans partage d'écran.</span></li>
+    <li><span class="k">Réagir</span><b>Chaque carte reçoit des avis</b><span>D'accord, je monterais, je descendrais, question. Une proposition de déplacement arrive dans une file.</span></li>
+    <li><span class="k">Focaliser</span><b>Une carte en discussion à la fois</b><span>Mise en avant chez tous, minuteur partagé, main levée et parole donnée.</span></li>
+    <li><span class="k">Converger</span><b>Les écarts se voient d'un coup d'œil</b><span>Après un vote masqué, une carte des écarts et un sondage d'accord rapide avant de retenir la valeur.</span></li>
+  </ol>
+
+  <nav class="tabs" aria-label="Écrans">
+    <button type="button" data-tab="atelier">A. Atelier en direct <span class="who">animateur</span></button>
+    <button type="button" data-tab="suivi">B. Suivre et réagir <span class="who">participant</span></button>
+    <button type="button" data-tab="tour">C. Tour masqué : suivi <span class="who">animateur</span></button>
+    <button type="button" data-tab="vote">D. Voter par classement <span class="who">participant</span></button>
+    <button type="button" data-tab="revelation">E. Révélation et accord <span class="who">tous</span></button>
+  </nav>
+
+  <div class="stage" id="stage"><div class="frame" id="frame"></div></div>
+
+  <div class="notes" id="notes"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const FIB = [1, 2, 3, 5, 8, 13, 20];
+  const F = {
+    'F-1': 'Paiement en un clic', 'F-2': 'Notifications de livraison', 'F-3': 'Programme de fidélité',
+    'F-4': 'Export comptable mensuel', 'F-5': 'Refonte de la recherche', 'F-7': 'Carte cadeau dématérialisée',
+    'F-8': 'Réservation de créneau de livraison', 'F-10': 'Tableau de bord des ventes', 'F-11': 'Comparateur de produits',
+    'F-12': 'Alertes de baisse de prix', 'F-13': 'Partage de liste de courses', 'F-14': 'Mode hors connexion',
+  };
+  const P = {
+    eric: { n: 'eric', r: 'Animateur', i: 'E' }, alice: { n: 'alice', r: 'Product Owner', i: 'A' },
+    bob: { n: 'bob', r: 'Architecte', i: 'B' }, chloe: { n: 'chloé', r: 'Product Manager', i: 'C' },
+    david: { n: 'david', r: 'Lead dev', i: 'D' },
+  };
+  const RX = { ok: ['✓', "D'accord"], up: ['↑', 'Je monterais'], down: ['↓', 'Je descendrais'], q: ['?', "J'ai une question"] };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const av = (p, cls = '', extra = '') => `<span class="av ${cls}" data-p="${p}" title="${esc(P[p].n)} · ${esc(P[p].r)}">${P[p].i}${extra}</span>`;
+  const now = () => { const d = new Date(); return d.toTimeString().slice(0, 5); };
+
+  /* ---------- État partagé : l'atelier (critère TC) ---------- */
+  const S = {
+    live: true,
+    board: { crit: 'TC', name: 'Time Criticality', top: 13,
+      levels: [['F-1'], ['F-4', 'F-8'], ['F-5'], ['F-3', 'F-10'], ['F-2'], ['F-14', 'F-12']],
+      unranked: ['F-7', 'F-11', 'F-13'] },
+    reactions: { 'F-4': { ok: ['alice', 'chloe', 'david'] }, 'F-5': { up: ['alice'], ok: ['bob'] }, 'F-3': { q: ['david'] }, 'F-8': { down: ['bob', 'chloe'] } },
+    spot: 'F-8', spotEnd: Date.now() + 102000,
+    hands: [{ p: 'bob', at: Date.now() - 40000 }],
+    speaker: null,
+    proposals: [
+      { id: 1, p: 'alice', f: 'F-5', move: 'tie', ref: 'F-4', why: 'Le salon de mars impose la nouvelle recherche.' },
+      { id: 2, p: 'david', f: 'F-14', move: 'below', ref: 'F-12', why: '' },
+    ],
+    feed: [
+      { p: 'chloe', t: 'est d\'accord avec F-4 au niveau 2', at: '14:06' },
+      { p: 'bob', t: 'a levé la main', at: '14:07' },
+      { p: 'eric', t: 'a mis F-8 en discussion', at: '14:07' },
+    ],
+    pulse: { ok: 3, mid: 1, ko: 1 },
+    me: 'alice', follow: true,
+    // Tour masqué
+    round: { feats: ['F-2', 'F-3', 'F-7', 'F-11', 'F-13', 'F-14'], crits: ['BV', 'JS'], end: Date.now() + 200000,
+      members: { alice: { step: 1, sent: false }, bob: { step: 2, sent: true, at: '14:21' }, chloe: { step: 0, sent: false }, david: { step: 1, sent: false, off: true }, eric: { step: 0, sent: false } },
+      showProgress: true, msg: 'Pensez au JS : on compare l\'effort, pas la valeur.' },
+    vote: { step: 2, sent: false,
+      BV: { top: 13, levels: [['F-3'], ['F-7'], ['F-2', 'F-14'], ['F-11'], ['F-13']], unranked: [] },
+      JS: { top: 13, levels: [], unranked: ['F-2', 'F-3', 'F-7', 'F-11', 'F-13', 'F-14'] } },
+    // Révélation
+    rev: {
+      votes: {
+        'F-3': { BV: { alice: 3, bob: 13, chloe: 8, david: 8, eric: 8 }, JS: { alice: 5, bob: 5, chloe: 8, david: 5, eric: 5 } },
+        'F-14': { BV: { alice: 2, bob: 3, chloe: 2, david: null, eric: 3 }, JS: { alice: 13, bob: 20, chloe: 13, david: 13, eric: 8 } },
+        'F-7': { BV: { alice: 8, bob: 3, chloe: 5, david: 5, eric: 8 }, JS: { alice: 5, bob: 5, chloe: 5, david: 5, eric: 5 } },
+        'F-11': { BV: { alice: 3, bob: 3, chloe: 2, david: 3, eric: 3 }, JS: { alice: 8, bob: 8, chloe: 5, david: 8, eric: null } },
+        'F-2': { BV: { alice: 5, bob: 5, chloe: 5, david: 5, eric: 5 }, JS: { alice: 3, bob: 2, chloe: 3, david: 3, eric: 3 } },
+        'F-13': { BV: { alice: 1, bob: 2, chloe: 1, david: 1, eric: 1 }, JS: { alice: 2, bob: 3, chloe: 2, david: 2, eric: 2 } },
+      },
+      cons: {}, focus: ['F-3', 'BV'], speakers: [], poll: null, viewAs: 'eric', myPoll: null,
+    },
+  };
+  // Consensus prérempli quand tous les votants ont donné la même valeur (FR-021).
+  for (const [f, cs] of Object.entries(S.rev.votes)) for (const [c, vs] of Object.entries(cs)) {
+    const vals = Object.values(vs).filter((v) => v != null);
+    if (vals.length && vals.every((v) => v === vals[0])) S.rev.cons[f + c] = vals[0];
+  }
+
+  /* ---------- Outils de classement ---------- */
+  const valueAt = (board, i) => { const k = FIB.indexOf(board.top) - i; return k >= 0 ? FIB[k] : null; };
+  const removeEverywhere = (board, id) => {
+    board.levels = board.levels.map((l) => l.filter((x) => x !== id)).filter((l) => l.length);
+    board.unranked = board.unranked.filter((x) => x !== id);
+  };
+  // target : { kind: 'level', i } | { kind: 'gap', i } (nouveau niveau avant i) | { kind: 'tray' }
+  const place = (board, id, target) => {
+    const before = board.levels.map((l) => l.join());
+    const lvlOf = board.levels.findIndex((l) => l.includes(id));
+    let i = target.i;
+    removeEverywhere(board, id);
+    if (target.kind === 'tray') { board.unranked.push(id); return; }
+    // L'indice cible bouge si le niveau d'origine a disparu au-dessus.
+    if (lvlOf >= 0 && lvlOf < i && before[lvlOf] === id) i -= 1;
+    if (target.kind === 'level') (board.levels[i] ??= []).push(id);
+    else board.levels.splice(i, 0, [id]);
+  };
+  const findLevel = (board, id) => board.levels.findIndex((l) => l.includes(id));
+  const MOVES = [['up', '↑ Monter'], ['down', '↓ Descendre'], ['tie', '= Égalité avec au-dessus'], ['last', 'Classer en dernier'], ['tray', 'Retirer du classement']];
+  // Actions clavier de FR-015a, reprises dans le menu ⋯ de chaque carte.
+  function move(board, id, a) {
+    const i = findLevel(board, id); const alone = i >= 0 && board.levels[i].length === 1;
+    if (a === 'up' && i >= 0 && (i > 0 || !alone)) place(board, id, { kind: 'gap', i: alone ? i - 1 : i });
+    if (a === 'down' && i >= 0 && (i < board.levels.length - 1 || !alone)) place(board, id, { kind: 'gap', i: alone ? i + 2 : i + 1 });
+    if (a === 'tie' && i > 0) place(board, id, { kind: 'level', i: i - 1 });
+    if (a === 'last') place(board, id, { kind: 'gap', i: board.levels.length });
+    if (a === 'tray') place(board, id, { kind: 'tray' });
+  }
+
+  /* ---------- Rendu générique d'un classement ---------- */
+  // opts : { editable, mode: 'anim'|'part'|'vote', crit }
+  let selected = null; // placement en deux clics
+  function boardHTML(board, opts) {
+    const card = (id, i) => {
+      const v = i == null ? null : valueAt(board, i);
+      const rx = S.reactions[id] || {};
+      const spot = opts.mode !== 'vote' && S.spot === id;
+      const ghost = opts.mode === 'part' && S.ghost === id;
+      const chips = opts.mode === 'vote' ? '' : Object.entries(rx).filter(([, l]) => l.length).map(([k, l]) => `<span class="${k}" title="${RX[k][1]} : ${l.map((p) => P[p].n).join(', ')}">${RX[k][0]} ${l.length}</span>`).join('');
+      const mine = (k) => (rx[k] || []).includes(S.me) ? ' mine' : '';
+      const bar = opts.mode === 'part' ? `<span class="react-bar">${Object.entries(RX).map(([k, [g, l]]) => `<button type="button" class="${mine(k)}" data-react="${k}" data-f="${id}" title="${l}" aria-label="${l} : ${id}">${g}</button>`).join('')}</span>` : '';
+      const val = opts.editable
+        ? `<input class="val" inputmode="numeric" aria-label="${opts.crit} de ${id}" value="${v ?? ''}" ${i == null ? 'placeholder="–"' : ''}>`
+        : `<span class="val ro ${v == null ? 'none' : ''}">${v ?? (opts.mode === 'vote' ? 'sans avis' : '–')}</span>`;
+      return `<div class="card${opts.mode === 'part' ? ' has-bar' : ''}${spot ? ' spot' : ''}${ghost ? ' ghost' : ''}${selected === id ? ' sel' : ''}" data-card="${id}" ${opts.editable ? 'draggable="true"' : ''} ${spot ? `data-spot="En discussion · ${fmt(S.spotEnd - Date.now())}"` : ''}>
+        <span class="grip" aria-hidden="true">${opts.editable ? '⠿' : ''}</span>
+        <a href="#" class="fid" title="Voir le descriptif de ${id}" onclick="return false">${id}</a>
+        <span class="t" title="${esc(F[id])}">${esc(F[id])}</span>
+        <span class="rx">${chips}</span>${bar}
+        ${val}
+        ${opts.mode !== 'vote' || opts.editable ? `<button type="button" class="more" data-menu="${id}" aria-label="Actions pour ${id}">⋯</button>` : ''}
+      </div>`;
+    };
+    let h = '';
+    if (!board.levels.length) h += `<div class="empty-hint">Glissez ici la fonctionnalité la plus forte pour ${opts.crit},<br>ou cliquez sur une carte puis sur cette zone.<div class="gap" data-gap="0" style="margin:10px 0 0;height:40px;border:1px dashed var(--border)">Premier niveau</div></div>`;
+    board.levels.forEach((l, i) => {
+      const v = valueAt(board, i);
+      h += `<div class="gap" data-gap="${i}">Nouveau niveau ici</div>`;
+      h += `<div class="lvl" data-level="${i}"><div class="lvl-val"><b>${v ?? '–'}</b><small>niv. ${i + 1}</small></div><div class="lvl-cards">${l.map((id) => card(id, i)).join('')}</div></div>`;
+    });
+    if (board.levels.length) h += `<div class="gap" data-gap="${board.levels.length}">Nouveau niveau en dernier</div>`;
+    return { levels: h, tray: board.unranked.map((id) => card(id, null)).join(''), card };
+  }
+
+  function wireBoard(board, rerender) {
+    const root = frame.querySelector('.body');
+    const levels = root.querySelector('.levels');
+    const tray = root.querySelector('.tray-drop');
+    const targetOf = (el) => {
+      const g = el.closest('[data-gap]'); if (g) return { kind: 'gap', i: +g.dataset.gap, el: g };
+      const l = el.closest('[data-level]'); if (l) return { kind: 'level', i: +l.dataset.level, el: l };
+      const t = el.closest('.tray-drop'); if (t) return { kind: 'tray', el: t };
+      return null;
+    };
+    let dragId = null;
+    root.querySelectorAll('.card[draggable="true"]').forEach((c) => {
+      c.addEventListener('dragstart', (e) => { dragId = c.dataset.card; e.dataTransfer.setData('text/plain', dragId); e.dataTransfer.effectAllowed = 'move'; requestAnimationFrame(() => root.classList.add('dragging')); });
+      c.addEventListener('dragend', () => { root.classList.remove('dragging'); root.querySelectorAll('.over').forEach((x) => x.classList.remove('over')); });
+    });
+    const zones = [levels, tray].filter(Boolean);
+    zones.forEach((z) => {
+      z.addEventListener('dragover', (e) => { const t = targetOf(e.target); if (!t || !dragId) return; e.preventDefault(); root.querySelectorAll('.over').forEach((x) => x !== t.el && x.classList.remove('over')); t.el.classList.add('over'); });
+      z.addEventListener('drop', (e) => { const t = targetOf(e.target); if (!t || !dragId) return; e.preventDefault(); place(board, dragId, t); const id = dragId; dragId = null; rerender(id); });
+    });
+    // Placement en deux clics (alternative au glisser-déposer, utilisable au clavier).
+    root.addEventListener('click', (e) => {
+      if (e.target.closest('input, button, a')) return;
+      const c = e.target.closest('.card[draggable="true"]');
+      if (c) { selected = selected === c.dataset.card ? null : c.dataset.card; root.classList.toggle('placing', !!selected); root.querySelectorAll('.card.sel').forEach((x) => x.classList.remove('sel')); if (selected) c.classList.add('sel'); return; }
+      if (!selected) return;
+      const t = targetOf(e.target); if (!t) return;
+      place(board, selected, t); const id = selected; selected = null; root.classList.remove('placing'); rerender(id);
+    });
+    const top = root.querySelector('#top-val');
+    if (top) top.addEventListener('change', () => { const v = +top.value; if (FIB.includes(v)) { board.top = v; rerender(); } else { top.value = board.top; toast(`${top.value || 'Cette valeur'} n'est pas dans l'échelle Fibonacci (1, 2, 3, 5, 8, 13, 20).`); } });
+  }
+
+  /* ---------- Menus de carte ---------- */
+  function openMenu(btn, items) {
+    closeMenu();
+    const fr = frame.getBoundingClientRect(), b = btn.getBoundingClientRect(), s = scale;
+    const m = document.createElement('div'); m.className = 'menu'; m.setAttribute('role', 'menu');
+    m.innerHTML = items.map((it) => it === '-' ? '<hr>' : `<button type="button" role="menuitem" data-act="${it[0]}">${it[1]}</button>`).join('');
+    m.style.top = ((b.bottom - fr.top) / s + 4) + 'px';
+    m.style.left = Math.min((b.left - fr.left) / s - 190, 1280 - 240) + 'px';
+    frame.appendChild(m);
+    m.querySelector('button').focus();
+    return new Promise((res) => { m.addEventListener('click', (e) => { const a = e.target.closest('[data-act]'); if (a) { closeMenu(); res(a.dataset.act); } }); });
+  }
+  const closeMenu = () => frame.querySelectorAll('.menu').forEach((m) => m.remove());
+  document.addEventListener('click', (e) => { if (!e.target.closest('.menu, [data-menu]')) closeMenu(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeMenu(); selected = null; frame.querySelector('.placing')?.classList.remove('placing'); render(); } });
+
+  /* ---------- Minuteurs ---------- */
+  const fmt = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+  setInterval(() => {
+    frame.querySelectorAll('[data-timer]').forEach((el) => {
+      const end = el.dataset.timer === 'spot' ? S.spotEnd : el.dataset.timer === 'round' ? S.round.end : S.speakerEnd;
+      if (!end) return;
+      const left = end - Date.now();
+      el.querySelector('.tv').textContent = fmt(left);
+      el.classList.toggle('low', left < 30000);
+    });
+    const sp = frame.querySelector('.card.spot'); if (sp) sp.dataset.spot = `En discussion · ${fmt(S.spotEnd - Date.now())}`;
+    frame.querySelectorAll('[data-since]').forEach((el) => { el.textContent = 'depuis ' + fmt(Date.now() - +el.dataset.since); });
+  }, 1000);
+
+  /* ---------- Toasts et fil ---------- */
+  function toast(msg) {
+    const area = frame.querySelector('.toasts'); if (!area) return;
+    const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.innerHTML = msg;
+    area.appendChild(t); setTimeout(() => t.remove(), 3200);
+  }
+  const log = (p, t) => S.feed.unshift({ p, t, at: now(), fresh: true });
+
+  /* ---------- Barre de session commune ---------- */
+  function sbar(role, extra = '') {
+    const ppl = ['eric', 'alice', 'bob', 'chloe', 'david'];
+    const hands = S.hands.map((h) => h.p);
+    return `<header class="sbar">
+      <div class="logo" aria-hidden="true">PF</div>
+      <div class="sbar-id"><span class="sbar-name">PI 27 – Epics plateforme</span><span class="sbar-sub"><span class="badge live">En cours</span> ${role === 'eric' ? 'eric (vous) · animateur' : 'alice (vous) · participante'} · Fibonacci 1 à 20</span></div>
+      <a href="#" class="small" onclick="return false" style="font-weight:600">Comprendre le WSJF</a>
+      <span class="spacer"></span>${extra}
+      <span class="presence" title="Participants connectés"><span class="stack">${ppl.map((p) => av(p, p === 'david' ? 'off' : '', `<span class="st"></span>${hands.includes(p) ? '<span class="hand" aria-label="main levée">✋</span>' : ''}`)).join('')}</span> 4 / 5 en ligne</span>
+      <button type="button" class="btn">Liens</button>
+    </header>`;
+  }
+
+  /* ================= A. ATELIER EN DIRECT (animateur) ================= */
+  function screenAtelier() {
+    const b = S.board;
+    const { levels, tray } = boardHTML(b, { editable: true, mode: 'anim', crit: b.crit });
+    const prop = (x) => {
+      const what = x.move === 'tie' ? `au même niveau que ${x.ref}` : x.move === 'above' ? `au-dessus de ${x.ref}` : `en dessous de ${x.ref}`;
+      return `<div class="item${x.fresh ? ' new' : ''}"><div class="who">${av(x.p, 'sm')} ${P[x.p].n} <span class="muted">propose</span></div>
+        <div><b>${x.f}</b> ${what}</div>${x.why ? `<q>${esc(x.why)}</q>` : ''}
+        <div class="acts"><button type="button" class="btn xs primary" data-prop-apply="${x.id}">Appliquer</button><button type="button" class="btn xs" data-prop-talk="${x.id}">En discuter</button><button type="button" class="btn xs ghost" data-prop-drop="${x.id}">Écarter</button></div></div>`;
+    };
+    const tot = S.pulse.ok + S.pulse.mid + S.pulse.ko;
+    return sbar('eric') + `
+    <div class="abar">
+      <div class="steps" aria-label="Critères">
+        <button type="button" class="step done"><span class="n">✓</span>BV</button>
+        <button type="button" class="step cur" aria-current="step"><span class="n">2</span>TC</button>
+        <button type="button" class="step"><span class="n">3</span>RR/OE</button>
+        <button type="button" class="step"><span class="n">4</span>JS</button>
+      </div>
+      <span class="sep"></span>
+      <button type="button" class="btn ${S.live ? 'on' : ''}" id="live" aria-pressed="${S.live}" title="Les participants voient votre classement en direct">${S.live ? '<span class="pulse"></span> Diffusé en direct' : 'Diffuser en direct'}</button>
+      <button type="button" class="btn" id="pulse-btn" title="Demander à chacun s'il est d'accord avec le classement de ce critère">Sondage d'accord</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost">Aide</button>
+      <button type="button" class="btn">Annuler</button>
+      <button type="button" class="btn">Précédent</button>
+      <button type="button" class="btn primary">Critère suivant</button>
+    </div>
+    <div class="body" style="grid-template-columns: 250px minmax(0,1fr) 320px">
+      <aside class="side left" aria-label="Non classées">
+        <div class="blk"><h3>Non classées <span class="count">${b.unranked.length}</span></h3>
+          <div class="tray-drop tray">${tray || ''}<div class="hint">Déposez ici pour retirer une valeur</div></div></div>
+        <div class="blk small muted"><h3>Placer sans glisser</h3>Cliquez sur une carte, puis sur un niveau ou un espace entre deux niveaux. Échap annule.</div>
+      </aside>
+      <main class="center">
+        <div class="ctx"><span class="crit"><b>TC</b> · Time Criticality</span><span class="muted small">Classez de la plus urgente à la moins urgente</span><span class="spacer"></span>
+          <label class="top" for="top-val">Premier niveau <input id="top-val" value="${b.top}" inputmode="numeric"></label></div>
+        <div class="levels">${levels}</div>
+      </main>
+      <aside class="side right" aria-label="La salle">
+        ${S.spot ? `<div class="blk"><h3>En discussion</h3>
+          <div class="item"><div class="who"><b>${S.spot}</b>&nbsp;${esc(F[S.spot])}</div>
+          <div class="timer" data-timer="spot"><span class="tv">${fmt(S.spotEnd - Date.now())}</span><span class="spacer"></span><button type="button" class="btn xs" id="spot-plus">+1 min</button><button type="button" class="btn xs" id="spot-end">Terminer</button></div>
+          ${S.speaker ? `<div class="speaker">${av(S.speaker, 'sm')} ${P[S.speaker].n} a la parole</div>` : ''}</div></div>` : ''}
+        <div class="blk"><h3>Mains levées <span class="count">${S.hands.length}</span></h3>
+          ${S.hands.length ? S.hands.map((h) => `<div class="item"><div class="who">${av(h.p, 'sm')} ${P[h.p].n}<span class="muted" data-since="${h.at}">depuis ${fmt(Date.now() - h.at)}</span></div><div class="acts"><button type="button" class="btn xs primary" data-give="${h.p}">Donner la parole</button><button type="button" class="btn xs ghost" data-lower="${h.p}">Baisser</button></div></div>`).join('') : '<span class="small muted">Personne pour l\'instant.</span>'}</div>
+        <div class="blk"><h3>Propositions <span class="count">${S.proposals.length}</span></h3>
+          ${S.proposals.length ? S.proposals.map(prop).join('') : '<span class="small muted">Aucune proposition en attente.</span>'}</div>
+        <div class="blk pulse-meter"><h3>Accord sur TC</h3>
+          <div class="bar" aria-hidden="true"><i class="g" style="width:${S.pulse.ok / tot * 100}%"></i><i class="y" style="width:${S.pulse.mid / tot * 100}%"></i><i class="r" style="width:${S.pulse.ko / tot * 100}%"></i></div>
+          <span class="small muted">${S.pulse.ok} d'accord · ${S.pulse.mid} avec réserve · ${S.pulse.ko} pas d'accord (dernier sondage)</span></div>
+        <div class="blk"><h3>Fil de la séance</h3><ul class="feed">${S.feed.slice(0, 7).map((x) => `<li>${av(x.p, 'sm')}<span><b>${P[x.p].n}</b> ${esc(x.t)}</span><time>${x.at}</time></li>`).join('')}</ul></div>
+      </aside>
+      <div class="toasts"></div>
+    </div>`;
+  }
+  function wireAtelier() {
+    wireBoard(S.board, (id) => { if (id) { const i = findLevel(S.board, id); log('eric', i >= 0 ? `a placé ${id} au niveau ${i + 1}` : `a retiré ${id} du classement`); } render(); if (id) flash(id); });
+    frame.querySelector('#live').onclick = () => { S.live = !S.live; render(); toast(S.live ? 'Les participants suivent à nouveau votre classement.' : 'Diffusion en pause : les participants voient le dernier état diffusé.'); };
+    frame.querySelector('#pulse-btn').onclick = () => { toast('Sondage envoyé : « D\'accord avec ce classement de TC ? »'); setTimeout(() => { S.pulse = { ok: 4, mid: 1, ko: 0 }; log('chloe', 'a répondu au sondage : d\'accord'); if (current === 'atelier') { render(); toast('Sondage : 4 d\'accord, 1 avec réserve.'); } }, 1800); };
+    frame.querySelector('#spot-plus')?.addEventListener('click', () => { S.spotEnd += 60000; });
+    frame.querySelector('#spot-end')?.addEventListener('click', () => { log('eric', `a terminé la discussion sur ${S.spot}`); S.spot = null; S.speaker = null; render(); });
+    frame.querySelectorAll('[data-give]').forEach((b) => b.onclick = () => { const p = b.dataset.give; S.speaker = p; S.hands = S.hands.filter((h) => h.p !== p); log('eric', `a donné la parole à ${P[p].n}`); render(); toast(`${P[p].n} a la parole. Son écran l'indique.`); });
+    frame.querySelectorAll('[data-lower]').forEach((b) => b.onclick = () => { S.hands = S.hands.filter((h) => h.p !== b.dataset.lower); render(); });
+    frame.querySelectorAll('[data-prop-apply]').forEach((b) => b.onclick = () => {
+      const x = S.proposals.find((y) => y.id === +b.dataset.propApply);
+      const ri = findLevel(S.board, x.ref);
+      if (x.move === 'tie') place(S.board, x.f, { kind: 'level', i: ri });
+      else place(S.board, x.f, { kind: 'gap', i: x.move === 'above' ? ri : ri + 1 });
+      S.proposals = S.proposals.filter((y) => y !== x); log('eric', `a appliqué la proposition de ${P[x.p].n} (${x.f})`); render(); flash(x.f); toast(`${P[x.p].n} est prévenu·e : proposition appliquée.`);
+    });
+    frame.querySelectorAll('[data-prop-talk]').forEach((b) => b.onclick = () => { const x = S.proposals.find((y) => y.id === +b.dataset.propTalk); S.spot = x.f; S.spotEnd = Date.now() + 120000; S.speaker = x.p; S.proposals = S.proposals.filter((y) => y !== x); log('eric', `a mis ${x.f} en discussion`); render(); });
+    frame.querySelectorAll('[data-prop-drop]').forEach((b) => b.onclick = () => { S.proposals = S.proposals.filter((y) => y.id !== +b.dataset.propDrop); render(); });
+    frame.querySelectorAll('[data-menu]').forEach((btn) => btn.onclick = async (e) => {
+      e.stopPropagation(); const id = btn.dataset.menu; const i = findLevel(S.board, id);
+      const a = await openMenu(btn, [['spot', 'Mettre en discussion (2 min)'], '-', ...MOVES]);
+      if (a === 'spot') { S.spot = id; S.spotEnd = Date.now() + 120000; S.speaker = null; log('eric', `a mis ${id} en discussion`); toast(`${id} est mise en avant chez tous les participants.`); }
+      else move(S.board, id, a);
+      render(); flash(id);
+    });
+  }
+
+  /* ================= B. SUIVRE ET RÉAGIR (participant) ================= */
+  function screenSuivi() {
+    const b = S.board;
+    const { levels, tray } = boardHTML(b, { editable: false, mode: 'part', crit: b.crit });
+    const hand = S.hands.some((h) => h.p === S.me);
+    const all = [...b.levels.flat(), ...b.unranked];
+    return sbar('alice') + `
+    <div class="abar">
+      <div class="steps" aria-label="Critères"><span class="step done"><span class="n">✓</span>BV</span><span class="step cur"><span class="n">2</span>TC</span><span class="step"><span class="n">3</span>RR/OE</span><span class="step"><span class="n">4</span>JS</span></div>
+      <span class="sep"></span>
+      <span class="badge vote"><span class="pulse"></span> eric classe TC en direct</span>
+      <span class="spacer"></span>
+      <button type="button" class="btn ${hand ? 'on' : ''}" id="hand" aria-pressed="${hand}">${hand ? '✋ Main levée · Baisser' : '✋ Lever la main'}</button>
+    </div>
+    <div class="body" style="grid-template-columns: 250px minmax(0,1fr) 300px">
+      <aside class="side left" aria-label="Non classées">
+        <div class="blk"><h3>Non classées <span class="count">${b.unranked.length}</span></h3><div class="tray">${tray}</div></div>
+        <div class="blk small muted"><h3>Réagir</h3>Survolez ou parcourez une carte au clavier : ✓ d'accord, ↑ je monterais, ↓ je descendrais, ? question. Vos réactions sont visibles par tous.</div>
+      </aside>
+      <main class="center">
+        <div class="follow">${av('eric', 'sm')} <span>${S.follow ? 'Vous suivez l\'écran d\'<b>eric</b> : le classement bouge avec le sien.' : 'Suivi en pause : vous parcourez librement. Le classement reste à jour.'}</span><span class="spacer"></span>
+          ${S.speaker === S.me ? '<span class="badge vote">Vous avez la parole</span>' : ''}
+          <button type="button" class="btn xs" id="follow">${S.follow ? 'Parcourir librement' : 'Revenir sur eric'}</button></div>
+        <div class="ctx"><span class="crit"><b>TC</b> · Time Criticality</span><span class="muted small">Lecture seule : seul l'animateur déplace les cartes</span></div>
+        <div class="levels">${levels}</div>
+      </main>
+      <aside class="side right" aria-label="Votre participation">
+        ${S.spot ? `<div class="blk"><h3>En discussion</h3><div class="item"><div class="who"><b>${S.spot}</b>&nbsp;${esc(F[S.spot])}</div><div class="timer" data-timer="spot"><span class="tv">${fmt(S.spotEnd - Date.now())}</span></div>
+          ${S.speaker ? `<div class="speaker">${av(S.speaker, 'sm')} ${S.speaker === S.me ? 'Vous avez' : P[S.speaker].n + ' a'} la parole</div>` : ''}</div></div>` : ''}
+        <form class="blk" id="propose"><h3>Proposer un déplacement</h3>
+          <label class="field" for="pf">Fonctionnalité<select id="pf">${all.map((id) => `<option value="${id}">${id} · ${esc(F[id])}</option>`).join('')}</select></label>
+          <label class="field" for="pm">Position<select id="pm"><option value="above">au-dessus de</option><option value="tie">au même niveau que</option><option value="below">en dessous de</option></select></label>
+          <label class="field" for="pr">Par rapport à<select id="pr">${b.levels.flat().map((id) => `<option value="${id}">${id} · ${esc(F[id])}</option>`).join('')}</select></label>
+          <label class="field" for="pw">Pourquoi (facultatif)<textarea id="pw" maxlength="140" placeholder="Une phrase pour l'animateur"></textarea></label>
+          <button type="submit" class="btn primary">Envoyer à eric</button>
+        </form>
+        <div class="blk"><h3>Fil de la séance</h3><ul class="feed">${S.feed.slice(0, 5).map((x) => `<li>${av(x.p, 'sm')}<span><b>${P[x.p].n}</b> ${esc(x.t)}</span><time>${x.at}</time></li>`).join('')}</ul></div>
+      </aside>
+      <div class="toasts"></div>
+    </div>`;
+  }
+  function wireSuivi() {
+    frame.querySelectorAll('[data-react]').forEach((b) => b.onclick = () => {
+      const { react: k, f } = b.dataset; const r = (S.reactions[f] ??= {}); const l = (r[k] ??= []);
+      const had = l.includes(S.me);
+      // Une seule réaction de sens par carte : ↑ et ↓ s'excluent avec ✓.
+      for (const key of ['ok', 'up', 'down']) if (k !== 'q' && key !== k && r[key]) r[key] = r[key].filter((p) => p !== S.me);
+      r[k] = had ? l.filter((p) => p !== S.me) : [...l, S.me];
+      if (!had) log(S.me, `${RX[k][1].toLowerCase()} pour ${f}`);
+      render(); toast(had ? 'Réaction retirée.' : `Réaction envoyée : ${RX[k][1]} (${f}). eric la voit sur la carte.`);
+    });
+    frame.querySelector('#hand').onclick = () => { const i = S.hands.findIndex((h) => h.p === S.me); if (i >= 0) S.hands.splice(i, 1); else { S.hands.push({ p: S.me, at: Date.now() }); log(S.me, 'a levé la main'); } render(); };
+    frame.querySelector('#follow').onclick = () => { S.follow = !S.follow; render(); };
+    frame.querySelector('#propose').onsubmit = (e) => {
+      e.preventDefault(); const f = frame.querySelector('#pf').value, ref = frame.querySelector('#pr').value;
+      if (f === ref) { toast('Choisissez deux fonctionnalités différentes.'); return; }
+      S.proposals.push({ id: Date.now(), p: S.me, f, move: frame.querySelector('#pm').value, ref, why: frame.querySelector('#pw').value.trim(), fresh: true });
+      log(S.me, `propose de déplacer ${f}`); render(); toast('Proposition envoyée. Vous serez prévenue de la décision d\'eric.');
+    };
+    frame.querySelectorAll('[data-menu]').forEach((btn) => btn.onclick = async (e) => {
+      e.stopPropagation(); const id = btn.dataset.menu;
+      const a = await openMenu(btn, [['desc', 'Voir le descriptif'], ['prop', 'Proposer un déplacement…'], ['q', 'Poser une question sur cette carte']]);
+      if (a === 'prop') { frame.querySelector('#pf').value = id; frame.querySelector('#pw').focus(); }
+      if (a === 'q') { const r = (S.reactions[id] ??= {}); r.q = [...new Set([...(r.q || []), S.me])]; log(S.me, `a une question sur ${id}`); render(); toast('Question signalée à eric.'); }
+    });
+  }
+
+  /* ================= C. TOUR MASQUÉ : SUIVI (animateur) ================= */
+  function screenTour() {
+    const R = S.round; const m = R.members; const ids = ['alice', 'bob', 'chloe', 'david', 'eric'];
+    const sent = ids.filter((p) => m[p].sent).length;
+    const pc = (p) => {
+      const x = m[p];
+      const st = x.sent ? `<span class="badge ok">Vote envoyé · ${x.at}</span>` : x.off ? '<span class="badge">Hors ligne</span>' : x.step ? '<span class="badge vote">En train de classer</span>' : '<span class="badge warn">Pas commencé</span>';
+      const lbl = x.sent ? 'Peut encore modifier jusqu\'à la révélation' : R.showProgress ? (x.step ? `Critère ${x.step} sur ${R.crits.length}` : 'N\'a pas ouvert l\'écran de vote') : 'Avancement masqué';
+      return `<div class="pcard${x.sent ? ' sent' : ''}"><div class="top">${av(p, x.off ? 'off' : '', '<span class="st"></span>')}<div><div class="nm">${P[p].n}${p === 'eric' ? ' (vous)' : ''}</div><div class="rl">${P[p].r}</div></div><span class="state">${st}</span></div>
+        ${R.showProgress ? `<div class="prog" aria-hidden="true">${R.crits.map((_, i) => `<i class="${x.sent || i < x.step - 1 ? 'd' : i === x.step - 1 ? 'c' : ''}"></i>`).join('')}</div>` : ''}
+        <div class="lbl"><span>${lbl}</span>${!x.sent && !x.off && p !== 'eric' ? `<button type="button" class="btn xs ghost" data-nudge="${p}">Relancer</button>` : ''}${p === 'eric' && !x.sent ? '<button type="button" class="btn xs" data-go="vote">Voter moi aussi</button>' : ''}</div></div>`;
+    };
+    const late = ids.filter((p) => p !== 'eric' && !m[p].sent && !m[p].off);
+    return sbar('eric') + `
+    <div class="abar">
+      <span class="badge vote"><span class="pulse"></span> Tour 2 ouvert</span><span class="small muted">BV, JS · ${R.feats.length} fonctionnalités</span>
+      <span class="sep"></span>
+      <span class="small tnum"><b>${sent}/5</b> votes envoyés</span>
+      <span class="spacer"></span>
+      <button type="button" class="btn">Retour au tableau</button>
+      <button type="button" class="btn primary" id="reveal">Révéler les votes</button>
+    </div>
+    <div class="body" style="grid-template-columns: minmax(0,1fr) 340px">
+      <main class="room">
+        <div class="round-head"><h2>Qui a voté ?</h2><span class="spacer"></span>
+          <label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="prog" ${R.showProgress ? 'checked' : ''}> Montrer l'avancement par critère</label></div>
+        <div class="privacy"><b>Valeurs masquées.</b> Personne, vous compris, ne voit les classements des autres avant la révélation. Seuls « a voté » et l'avancement sont partagés.</div>
+        <div class="people">${ids.map(pc).join('')}</div>
+        <div class="blk"><h3 class="small muted" style="margin:0">Fonctionnalités du tour (valeurs masquées aux participants)</h3>
+          <div class="fchips">${R.feats.map((f) => `<span class="fchip"><b>${f}</b> ${esc(F[f])}</span>`).join('')}</div></div>
+      </main>
+      <aside class="side right" aria-label="Pilotage du tour">
+        <div class="blk"><h3>Minuteur partagé</h3>
+          <div class="timer big" data-timer="round"><span class="tv">${fmt(R.end - Date.now())}</span><span style="display:flex;gap:4px"><button type="button" class="btn xs" id="r-plus">+1 min</button><button type="button" class="btn xs" id="r-stop">Arrêter</button></span></div>
+          <span class="small muted">Affiché chez chaque participant. À zéro, rien n'est bloqué : vous révélez quand vous voulez.</span></div>
+        <div class="blk"><h3>Relancer</h3>
+          <button type="button" class="btn" id="nudge-all" ${late.length ? '' : 'disabled'}>Relancer ${late.length ? late.map((p) => P[p].n).join(' et ') : 'personne'}</button>
+          <span class="small muted">Une notification discrète, sans nommer la personne devant les autres.</span></div>
+        <div class="blk"><h3>Message à la salle</h3>
+          <div class="quick">${['Encore 2 minutes', 'Pensez au JS : l\'effort, pas la valeur', 'Laissez « sans avis » si ce n\'est pas votre domaine'].map((q) => `<button type="button" class="btn xs" data-say="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+          <form id="say" style="display:flex;gap:6px"><input id="say-t" style="flex:1;min-width:0;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--surface)" placeholder="Votre message" aria-label="Message à la salle"><button class="btn xs primary" type="submit">Envoyer</button></form>
+          ${R.msg ? `<div class="item"><div class="who">${av('eric', 'sm')} Dernier message</div><q>${esc(R.msg)}</q></div>` : ''}</div>
+      </aside>
+      <div class="toasts"></div>
+    </div>`;
+  }
+  function wireTour() {
+    const R = S.round;
+    frame.querySelector('#prog').onchange = (e) => { R.showProgress = e.target.checked; render(); };
+    frame.querySelectorAll('[data-nudge]').forEach((b) => b.onclick = () => toast(`Rappel envoyé à ${P[b.dataset.nudge].n}.`));
+    frame.querySelector('#nudge-all').onclick = () => toast('Rappel envoyé aux retardataires.');
+    frame.querySelector('#r-plus').onclick = () => { R.end = Math.max(R.end, Date.now()) + 60000; toast('Une minute de plus, chez tous.'); };
+    frame.querySelector('#r-stop').onclick = () => { R.end = Date.now(); };
+    frame.querySelectorAll('[data-say]').forEach((b) => b.onclick = () => { R.msg = b.dataset.say; render(); toast('Message affiché chez les participants.'); });
+    frame.querySelector('#say').onsubmit = (e) => { e.preventDefault(); const v = frame.querySelector('#say-t').value.trim(); if (!v) return; R.msg = v; render(); toast('Message affiché chez les participants.'); };
+    frame.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+    frame.querySelector('#reveal').onclick = () => {
+      const missing = Object.entries(R.members).filter(([, x]) => !x.sent).map(([p]) => P[p].n);
+      if (missing.length && !frame.querySelector('.reveal-confirm')) {
+        const d = document.createElement('div'); d.className = 'overlay reveal-confirm';
+        d.innerHTML = `<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="rc-t"><h3 id="rc-t">Révéler maintenant ?</h3><p style="margin:0">${missing.join(', ')} n'${missing.length > 1 ? 'ont' : 'a'} pas encore envoyé de vote. Leurs valeurs compteront comme « sans avis ».</p><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" data-x>Attendre</button><button type="button" class="btn primary" data-y>Révéler</button></div></div>`;
+        frame.appendChild(d); d.querySelector('[data-y]').focus();
+        d.querySelector('[data-x]').onclick = () => d.remove(); d.querySelector('[data-y]').onclick = () => go('revelation');
+      }
+    };
+  }
+
+  /* ================= D. VOTER PAR CLASSEMENT (participant) ================= */
+  function screenVote() {
+    const V = S.vote; const crits = S.round.crits; const step = V.step; const recap = step > crits.length;
+    const crit = crits[step - 1]; const board = V[crit];
+    const sent = Object.values(S.round.members).filter((x) => x.sent).length;
+    const stepper = `<div class="steps" aria-label="Étapes du vote">${crits.map((c, i) => `<button type="button" class="step ${i + 1 < step ? 'done' : i + 1 === step ? 'cur' : ''}" data-step="${i + 1}"><span class="n">${i + 1 < step ? '✓' : i + 1}</span>${c}</button>`).join('')}<button type="button" class="step ${recap ? 'cur' : ''}" data-step="${crits.length + 1}"><span class="n">${crits.length + 1}</span>Récapitulatif</button></div>`;
+    const head = sbar('alice') + `<div class="abar">${stepper}<span class="sep"></span>
+      <span class="timer" data-timer="round"><span class="tv">${fmt(S.round.end - Date.now())}</span></span>
+      <span class="small muted tnum">${sent}/5 ont voté</span><span class="spacer"></span>
+      ${V.sent ? '<span class="badge ok">Vote envoyé</span>' : ''}
+      <button type="button" class="btn">Annuler</button>
+      ${step > 1 ? '<button type="button" class="btn" id="prev">Précédent</button>' : ''}
+      ${recap ? `<button type="button" class="btn primary" id="send">${V.sent ? 'Renvoyer mon vote' : 'Envoyer mon vote'}</button>` : '<button type="button" class="btn primary" id="next">Critère suivant</button>'}
+    </div>`;
+    if (recap) {
+      const rows = S.round.feats.map((f) => `<tr><td><b>${f}</b> ${esc(F[f])}</td>${crits.map((c) => { const i = findLevel(V[c], f); const v = i >= 0 ? valueAt(V[c], i) : null; return v == null ? '<td class="na">sans avis</td>' : `<td class="num">${v}</td>`; }).join('')}</tr>`).join('');
+      return head + `<div class="body" style="grid-template-columns: minmax(0,1fr) 300px"><main class="recap">
+        ${V.sent ? `<div class="sent-banner"><div class="ok">✓</div><h2 style="margin:0">Vote envoyé à ${now()}</h2><p class="muted" style="margin:0">Vous pouvez le modifier jusqu'à la révélation : chaque envoi remplace le précédent. En attendant, le minuteur et les messages d'eric restent affichés.</p><button type="button" class="btn" data-step="1">Modifier mon vote</button></div>` : ''}
+        <h2 style="margin:0 0 4px;font-size:17px">Votre vote</h2><p class="small muted" style="margin:0 0 10px">Vérifiez vos valeurs avant l'envoi. « Sans avis » : laissée dans « Non classées ».</p>
+        <table><thead><tr><th>Fonctionnalité</th>${crits.map((c) => `<th style="text-align:center">${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></main>
+        ${voteSide()}<div class="toasts"></div></div>`;
+    }
+    const { levels, tray } = boardHTML(board, { editable: true, mode: 'vote', crit });
+    const names = { BV: 'Business Value', JS: 'Job Size' };
+    return head + `<div class="body" style="grid-template-columns: 250px minmax(0,1fr) 300px">
+      <aside class="side left" aria-label="Non classées">
+        <div class="blk"><h3>Non classées <span class="count">${board.unranked.length}</span></h3><div class="tray-drop tray">${tray}<div class="hint">${board.unranked.length ? 'Laissée ici : « sans avis »' : 'Toutes classées'}</div></div></div>
+        <div class="blk small muted"><h3>Placer sans glisser</h3>Cliquez sur une carte, puis sur un niveau ou un espace entre deux niveaux.</div>
+      </aside>
+      <main class="center">
+        <div class="ctx"><span class="crit"><b>${crit}</b> · ${names[crit]}</span><span class="muted small">${crit === 'JS' ? 'Du plus gros effort au plus petit' : 'De la plus forte à la plus faible valeur'}</span><span class="spacer"></span>
+          <label class="top" for="top-val">Premier niveau <input id="top-val" value="${board.top}" inputmode="numeric"></label></div>
+        <div class="levels">${levels}</div>
+      </main>
+      ${voteSide()}<div class="toasts"></div></div>`;
+  }
+  const voteSide = () => `<aside class="side right" aria-label="Pendant le vote">
+      ${S.round.msg ? `<div class="blk"><h3>Message d'eric</h3><div class="item new"><div class="who">${av('eric', 'sm')} eric</div><q>${esc(S.round.msg)}</q></div></div>` : ''}
+      <div class="blk"><h3>Qui a voté</h3>${Object.entries(S.round.members).map(([p, x]) => `<div style="display:flex;align-items:center;gap:8px;font-size:13px">${av(p, 'sm' + (x.off ? ' off' : ''))} ${P[p].n}${p === S.me ? ' (vous)' : ''}<span class="spacer"></span>${(p === S.me ? S.vote.sent : x.sent) ? '<span class="badge ok">a voté</span>' : '<span class="small muted">pas encore</span>'}</div>`).join('')}</div>
+      <div class="blk small muted"><h3>Rappel</h3>Vos valeurs restent masquées jusqu'à la révélation. Les valeurs actuelles des fonctionnalités du tour sont cachées pour éviter l'ancrage.</div>
+    </aside>`;
+  function wireVote() {
+    const V = S.vote; const crits = S.round.crits;
+    if (V.step <= crits.length) wireBoard(V[crits[V.step - 1]], (id) => { render(); if (id) flash(id); });
+    frame.querySelectorAll('[data-step]').forEach((b) => b.onclick = () => { V.step = +b.dataset.step; render(); });
+    frame.querySelectorAll('[data-menu]').forEach((btn) => btn.onclick = async (e) => {
+      e.stopPropagation(); const id = btn.dataset.menu; const a = await openMenu(btn, MOVES);
+      move(V[crits[V.step - 1]], id, a); render(); flash(id);
+    });
+    frame.querySelector('#next')?.addEventListener('click', () => { V.step += 1; render(); });
+    frame.querySelector('#prev')?.addEventListener('click', () => { V.step -= 1; render(); });
+    frame.querySelector('#send')?.addEventListener('click', () => { V.sent = true; S.round.members.alice = { step: 2, sent: true, at: now() }; render(); toast('Vote envoyé. Les autres voient que vous avez voté, pas vos valeurs.'); });
+  }
+
+  /* ================= E. RÉVÉLATION ET ACCORD ================= */
+  function screenRevelation() {
+    const R = S.rev; const eric = R.viewAs === 'eric';
+    const stats = (vs) => { const v = Object.values(vs).filter((x) => x != null); return { min: Math.min(...v), max: Math.max(...v), na: Object.values(vs).length - v.length }; };
+    const spread = (f) => Math.max(...['BV', 'JS'].map((c) => { const s = stats(R.votes[f][c]); return s.max - s.min; }));
+    const order = Object.keys(R.votes).sort((a, b) => spread(b) - spread(a));
+    const pos = (v) => (FIB.indexOf(v) + .5) / FIB.length * 100;
+    const strip = (f, c) => {
+      const vs = R.votes[f][c]; const s = stats(vs); const big = s.max - s.min > 3;
+      const by = {}; for (const [p, v] of Object.entries(vs)) if (v != null) (by[v] ??= []).push(p);
+      const cons = R.cons[f + c];
+      const hl = R.focus[0] === f && R.focus[1] === c ? R.speakers : [];
+      return `<div class="strip ${eric ? '' : 'ro-strip'}" role="group" aria-label="${c} de ${f} : de ${s.min} à ${s.max}">
+        <div class="rail"></div>
+        <div class="band ${big ? '' : 'calm'}" style="left:calc(${pos(s.min)}% - 7px);width:calc(${pos(s.max) - pos(s.min)}% + 14px)"></div>
+        ${FIB.map((v) => `<button type="button" class="tick ${cons === v ? 'cons' : ''}" data-v="${v}" style="left:${pos(v)}%" ${eric ? `data-cons="${f}|${c}|${v}" aria-label="Retenir ${v} pour ${c} de ${f}"` : 'tabindex="-1" aria-hidden="true"'}></button>`).join('')}
+        ${Object.entries(by).map(([v, ps]) => `<span class="dots" style="left:${pos(+v)}%">${ps.map((p) => av(p, hl.includes(p) ? 'hl' : '')).join('')}</span>`).join('')}
+        ${s.na ? `<span class="na">${s.na} sans avis</span>` : ''}</div>`;
+    };
+    const rows = order.map((f) => {
+      const sp = spread(f); const done = ['BV', 'JS'].every((c) => R.cons[f + c] != null);
+      return `<div class="rv-row ${R.focus[0] === f ? 'focus' : ''}" data-row="${f}"><div class="rv-feat"><span class="meta"><b>${f}</b>${sp > 3 ? `<span class="badge warn">Écart ${sp}</span>` : '<span class="badge ok">Proches</span>'}${done ? '<span class="badge">✓ retenue</span>' : ''}</span><span class="t" title="${esc(F[f])}">${esc(F[f])}</span>
+        ${eric && R.focus[0] !== f ? `<button type="button" class="btn xs ghost" style="justify-self:start" data-focus="${f}">Discuter</button>` : ''}</div>${strip(f, 'BV')}${strip(f, 'JS')}</div>`;
+    }).join('');
+    const [ff, fc] = R.focus; const fs = stats(R.votes[ff][fc]);
+    const lowP = Object.entries(R.votes[ff][fc]).filter(([, v]) => v === fs.min).map(([p]) => p);
+    const highP = Object.entries(R.votes[ff][fc]).filter(([, v]) => v === fs.max).map(([p]) => p);
+    const median = (() => { const v = Object.values(R.votes[ff][fc]).filter((x) => x != null).sort((a, b) => a - b); return v[Math.floor(v.length / 2)]; })();
+    const poll = R.poll;
+    const pollHTML = poll ? `<div class="poll"><div class="small"><b>${fc} = ${poll.v}</b> pour ${ff} ?</div>
+        ${[['Pour', 'g', poll.yes], ['Réserve', 'y', poll.mid], ['Contre', 'r', poll.no]].map(([l, k, n]) => `<div class="res"><span>${l}</span><div class="bar"><i class="${k}" style="width:${n / 5 * 100}%"></i></div><b class="tnum">${n}</b></div>`).join('')}
+        <span class="small muted">${poll.yes + poll.mid + poll.no}/5 réponses${poll.open ? ' · en cours' : ''}</span>
+        ${eric ? `<button type="button" class="btn primary" data-cons="${ff}|${fc}|${poll.v}">Retenir ${poll.v}</button>` : ''}</div>` : '';
+    const side = eric ? `<aside class="side right" aria-label="Discussion">
+        <div class="blk"><h3>En discussion</h3><div class="item"><div class="who"><b>${ff}</b>&nbsp;${esc(F[ff])}</div>
+          <div class="steps">${['BV', 'JS'].map((c) => `<button type="button" class="step ${c === fc ? 'cur' : ''}" data-fc="${c}">${c}</button>`).join('')}</div>
+          <div class="small">De <b>${fs.min}</b> à <b>${fs.max}</b>${fs.na ? ` · ${fs.na} sans avis` : ''} · médiane ${median}</div></div></div>
+        <div class="blk"><h3>Donner la parole aux extrêmes</h3>
+          <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap">${lowP.slice(0, 1).concat(highP.slice(0, 1)).filter((p, i, a) => a.indexOf(p) === i).map((p) => `<button type="button" class="btn xs ${R.speakers.includes(p) ? 'on' : ''}" data-speak="${p}">${av(p, 'sm')} ${P[p].n} (${R.votes[ff][fc][p]})</button>`).join('')}</div>
+          ${R.speakers.length ? `<div class="speaker">${R.speakers.map((p) => av(p, 'sm')).join('')} ${R.speakers.map((p) => P[p].n).join(' puis ')} : 1 min chacun</div>` : '<span class="small muted">Ceux qui ont voté le plus bas et le plus haut expliquent leur choix. Leurs pastilles sont entourées chez tous.</span>'}</div>
+        <div class="blk"><h3>Sondage d'accord</h3>
+          ${poll ? pollHTML : `<div style="display:flex;gap:6px;align-items:center"><span class="small">Proposer</span><select id="poll-v" style="border:1px solid var(--border);border-radius:6px;padding:4px;background:var(--surface)">${FIB.map((v) => `<option ${v === median ? 'selected' : ''}>${v}</option>`).join('')}</select><button type="button" class="btn xs primary" id="poll-go">Lancer</button></div><span class="small muted">Chacun répond pour, réserve ou contre, en un clic.</span>`}</div>
+        <div class="blk small muted"><h3>Retenir une valeur</h3>Cliquez sur un point de l'échelle d'une ligne. Les critères unanimes sont déjà retenus.</div>
+      </aside>` : `<aside class="side right" aria-label="Discussion"><div class="blk"><h3>En discussion</h3><div class="item"><div class="who"><b>${ff}</b>&nbsp;${esc(F[ff])} · ${fc}</div><div class="small">De <b>${fs.min}</b> à <b>${fs.max}</b></div></div></div>
+        ${R.speakers.length ? `<div class="speaker">${R.speakers.map((p) => av(p, 'sm')).join('')} ${R.speakers.map((p) => P[p].n).join(' puis ')} expliquent leur vote</div>` : ''}
+        ${poll ? `<div class="blk"><h3>Sondage</h3>${pollHTML}</div>` : '<div class="blk small muted">eric peut lancer un sondage d\'accord : il s\'affichera ici et au centre de votre écran.</div>'}
+        <div class="blk small muted"><h3>Lecture seule</h3>Seul l'animateur retient les valeurs communes (FR-021).</div></aside>`;
+    const pollDialog = !eric && poll?.open && R.myPoll == null ? `<div class="overlay"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pd-t">
+        <span class="small muted">${av('eric', 'sm')} eric demande</span><h3 id="pd-t">D'accord pour ${fc} = ${poll.v} sur ${ff} ?</h3><p class="small muted" style="margin:0">${esc(F[ff])} · votes de ${fs.min} à ${fs.max}</p>
+        <div class="vote-choices"><button type="button" data-my="yes">Pour<small>je valide</small></button><button type="button" data-my="mid">Réserve<small>je peux vivre avec</small></button><button type="button" data-my="no">Contre<small>j'ai un argument</small></button></div></div></div>` : '';
+    return sbar(eric ? 'eric' : 'alice') + `<div class="abar">
+      <span class="badge ok">Tour 2 révélé</span><span class="small muted">5 votants · trié par écart décroissant</span>
+      <span class="sep"></span>
+      <div class="seg" role="group" aria-label="Vue de la maquette"><button type="button" data-view="eric" aria-pressed="${eric}">Vue animateur</button><button type="button" data-view="alice" aria-pressed="${!eric}">Vue participant</button></div>
+      <span class="spacer"></span>
+      ${eric ? `<button type="button" class="btn">Relancer un tour sur les écarts</button><button type="button" class="btn primary" id="validate">Valider ${Object.keys(R.cons).length}/12 valeurs</button>` : ''}
+    </div>
+    <div class="body" style="grid-template-columns: minmax(0,1fr) 320px">
+      <main class="reveal"><div class="rv-head"><span>Fonctionnalité</span>${['BV · Business Value', 'JS · Job Size'].map((c) => `<div><div>${c}</div><div class="ticks">${FIB.map((v) => `<span>${v}</span>`).join('')}</div></div>`).join('')}</div>${rows}</main>
+      ${side}${pollDialog}<div class="toasts"></div></div>`;
+  }
+  function wireRevelation() {
+    const R = S.rev;
+    frame.querySelectorAll('[data-view]').forEach((b) => b.onclick = () => { R.viewAs = b.dataset.view; render(); });
+    frame.querySelectorAll('[data-cons]').forEach((b) => b.onclick = () => { const [f, c, v] = b.dataset.cons.split('|'); R.cons[f + c] = +v; if (R.poll) R.poll = null; R.speakers = []; render(); toast(`${c} = ${v} retenu pour ${f}. Tous le voient.`); });
+    frame.querySelectorAll('[data-focus]').forEach((b) => b.onclick = () => { const f = b.dataset.focus; const vs = R.votes[f]; const sp = (c) => { const v = Object.values(vs[c]).filter((x) => x != null); return Math.max(...v) - Math.min(...v); }; R.focus = [f, sp('BV') >= sp('JS') ? 'BV' : 'JS']; R.speakers = []; R.poll = null; render(); toast(`${f} est mise en avant chez tous.`); });
+    frame.querySelectorAll('[data-fc]').forEach((b) => b.onclick = () => { R.focus = [R.focus[0], b.dataset.fc]; R.speakers = []; R.poll = null; render(); });
+    frame.querySelectorAll('[data-speak]').forEach((b) => b.onclick = () => { const p = b.dataset.speak; R.speakers = R.speakers.includes(p) ? R.speakers.filter((x) => x !== p) : [...R.speakers, p]; render(); });
+    frame.querySelector('#poll-go')?.addEventListener('click', () => {
+      R.poll = { v: +frame.querySelector('#poll-v').value, yes: 0, mid: 0, no: 0, open: true }; R.myPoll = null; render();
+      const answers = [['yes', 600], ['yes', 1300], ['mid', 2000], ['yes', 2600]];
+      answers.forEach(([k, t]) => setTimeout(() => { if (!R.poll) return; R.poll[k] += 1; if (current === 'revelation' && R.viewAs === 'eric') render(); }, t));
+      setTimeout(() => { if (R.poll) { R.poll.open = false; if (current === 'revelation') render(); } }, 3000);
+      toast('Sondage affiché chez les participants. Passez en « Vue participant » pour y répondre.');
+    });
+    frame.querySelectorAll('[data-my]').forEach((b) => b.onclick = () => { R.myPoll = b.dataset.my; R.poll[b.dataset.my] += 1; render(); toast('Réponse envoyée.'); });
+    frame.querySelector('#validate')?.addEventListener('click', () => toast(`${Object.keys(S.rev.cons).length} valeurs enregistrées : le tableau se recalcule et se retrie chez tous.`));
+  }
+
+  /* ---------- Notes de conception par écran ---------- */
+  const NOTES = {
+    atelier: [
+      ['Ce qui change', ['L\'écran de classement de l\'animateur devient une salle : à droite, la discussion en cours, les mains levées, les propositions et le fil de la séance.', 'Cartes en grille par niveau (plusieurs par ligne) : 15 fonctionnalités et plus restent visibles sans défilement à 1280 × 720.', 'Valeur du niveau à gauche, en grand : l\'échelle se lit en descendant (13, 8, 5…).', 'Menu ⋯ d\'une carte : « Mettre en discussion » met la carte en avant chez tous avec un minuteur de 2 min.', 'Une proposition s\'applique en un clic, ou se transforme en discussion avec la parole donnée à son auteur.', 'Essayez : glissez une carte, ou cliquez une carte puis un niveau. Le bouton « Simuler la salle » fait arriver des réactions.']],
+      ['Exigences touchées', ['<span class="req">FR-015a</span> mise en page des niveaux, inchangée sur les règles de valeur', '<span class="req">FR-015b</span> à créer : diffusion en direct du classement aux membres', '<span class="req">FR-015c</span> à créer : réactions, propositions, main levée, carte en discussion', 'Aucune valeur n\'est envoyée avant « Terminer » : la diffusion transmet un brouillon, pas des modifications.']],
+    ],
+    suivi: [
+      ['Ce qui change', ['Le participant n\'est plus un spectateur du tableau : il suit le classement de l\'animateur en direct et réagit sur chaque carte.', 'Barre de réactions au survol ou au focus clavier : une seule réaction de sens par carte (✓, ↑ ou ↓), plus « ? ».', '« Proposer un déplacement » : trois listes et un motif d\'une phrase, envoyés dans la file de l\'animateur.', '« Parcourir librement » détache la vue sans perdre les mises à jour.', 'Essayez : réagissez sur une carte ou envoyez une proposition, puis revenez sur l\'écran A.']],
+      ['Exigences touchées', ['<span class="req">Hors périmètre V1</span> le participant ne modifie toujours rien', '<span class="req">FR-014b</span> vue participant : s\'ajoute un mode « suivre l\'animateur »', 'Téléphone : réagir et lever la main sont possibles en lecture seule (à décider).']],
+    ],
+    tour: [
+      ['Ce qui change', ['Une carte par membre : présence, état (pas commencé, en train de classer, envoyé) et avancement par critère, sans aucune valeur.', 'Minuteur partagé, indicatif : à zéro, rien n\'est bloqué.', 'Relance discrète, individuelle ou groupée, et messages rapides affichés chez tous.', 'Révéler avant que tous aient voté demande une confirmation qui nomme les absents.']],
+      ['Exigences touchées', ['<span class="req">FR-019</span> « tous voient s\'il a voté » : l\'avancement par critère est un ajout, désactivable', '<span class="req">FR-020</span> révélation à tout moment, conservée', '<span class="req">FR-018b</span> à créer : minuteur, relance et messages de tour']],
+    ],
+    vote: [
+      ['Ce qui change', ['Même écran que le classement de l\'animateur, sans la salle : le message d\'eric, le minuteur et « qui a voté » restent visibles.', 'Étapes cliquables BV, JS, puis un récapitulatif qui montre les « sans avis » avant l\'envoi.', 'Après l\'envoi, un écran de confirmation avec « Modifier mon vote ».', 'Essayez : classez les six fonctionnalités pour JS, puis passez au récapitulatif et envoyez.']],
+      ['Exigences touchées', ['<span class="req">FR-019</span> classement vide au départ, « sans avis » pour les non classées, renvoi possible', '<span class="req">FR-019a</span> valeurs du tour masquées, rappelé à droite', 'Étape « Récapitulatif » : nouvelle, à ajouter à FR-019.']],
+    ],
+    revelation: [
+      ['Ce qui change', ['Carte des écarts : pour chaque fonctionnalité et chaque critère du tour, les pastilles des votants posées sur l\'échelle. La bande orange signale un écart important (plus de 3).', 'Lignes triées par écart décroissant : on commence par ce qui divise.', '« Donner la parole aux extrêmes » entoure chez tous les pastilles du plus bas et du plus haut.', 'Sondage d\'accord (pour, réserve, contre) sur une valeur proposée, puis « Retenir ». Un clic sur l\'échelle retient aussi une valeur.', 'Essayez : lancez un sondage, puis passez en « Vue participant » pour y répondre.']],
+      ['Exigences touchées', ['<span class="req">FR-020</span> valeur de chaque membre, minimum et maximum : présentés en graphique', '<span class="req">FR-021</span> consensus prérempli quand unanime, conservé', '<span class="req">FR-022a</span> à créer : sondage d\'accord, parole aux extrêmes']],
+    ],
+  };
+
+  /* ---------- Navigation ---------- */
+  const frame = document.getElementById('frame');
+  const stage = document.getElementById('stage');
+  const SCREENS = { atelier: [screenAtelier, wireAtelier], suivi: [screenSuivi, wireSuivi], tour: [screenTour, wireTour], vote: [screenVote, wireVote], revelation: [screenRevelation, wireRevelation] };
+  let current = 'atelier';
+  let scale = 1;
+  function render() {
+    const keep = frame.querySelector('.levels, .reveal, .room')?.scrollTop ?? 0;
+    const [html, wire] = SCREENS[current];
+    frame.innerHTML = html(); wire();
+    const sc = frame.querySelector('.levels, .reveal, .room'); if (sc) sc.scrollTop = keep;
+    S.feed.forEach((x) => delete x.fresh); S.proposals.forEach((x) => delete x.fresh);
+    document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === current ? 'page' : 'false'));
+    document.getElementById('notes').innerHTML = NOTES[current].map(([h, l]) => `<section><h2>${h}</h2><ul>${l.map((x) => `<li>${x}</li>`).join('')}</ul></section>`).join('');
+  }
+  function flash(id) { frame.querySelectorAll(`[data-card="${id}"]`).forEach((c) => c.classList.add('flash')); }
+  function go(name) { current = SCREENS[name] ? name : 'atelier'; selected = null; if (location.hash !== '#' + current) history.replaceState(null, '', '#' + current); render(); }
+  document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => go(b.dataset.tab));
+  window.addEventListener('hashchange', () => go(location.hash.slice(1)));
+  function fit() { scale = Math.min(1, stage.clientWidth / 1280); frame.style.transform = `scale(${scale})`; stage.style.height = 720 * scale + 'px'; }
+  new ResizeObserver(fit).observe(stage);
+
+  // Thème
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.onclick = () => {
+    document.documentElement.dataset.theme = b.dataset.themeSet;
+    document.querySelectorAll('[data-theme-set]').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  });
+
+  // Simulation : événements de la salle
+  let simI = 0;
+  document.getElementById('simulate').onclick = () => {
+    if (current === 'tour' || current === 'vote') {
+      const m = S.round.members; const next = ['chloe', 'alice', 'eric'].find((p) => !m[p].sent);
+      if (next) { m[next] = { step: 2, sent: true, at: now() }; render(); toast(`${P[next].n} a envoyé son vote.`); } else toast('Tout le monde a voté.');
+      return;
+    }
+    const evs = [
+      () => { (S.reactions['F-1'] ??= {}).ok = [...new Set([...(S.reactions['F-1'].ok || []), 'chloe'])]; log('chloe', 'est d\'accord avec F-1 en tête'); return 'chloé est d\'accord avec F-1 en tête.'; },
+      () => { S.proposals.push({ id: Date.now(), p: 'chloe', f: 'F-13', move: 'above', ref: 'F-2', why: 'La campagne de rentrée en dépend.', fresh: true }); log('chloe', 'propose de déplacer F-13'); return 'chloé propose de monter F-13.'; },
+      () => { if (!S.hands.some((h) => h.p === 'chloe')) S.hands.push({ p: 'chloe', at: Date.now() }); log('chloe', 'a levé la main'); return 'chloé lève la main.'; },
+      () => { S.ghost = 'F-10'; setTimeout(() => { S.ghost = null; if (current === 'suivi') render(); }, 2600); log('eric', 'déplace F-10'); return 'eric déplace F-10 (visible dans la vue participant).'; },
+    ];
+    const msg = evs[simI++ % evs.length](); render(); toast(msg);
+  };
+
+  go(location.hash.slice(1) || 'atelier');
+  fit();
+})();
+</script>
+</body>
+</html>

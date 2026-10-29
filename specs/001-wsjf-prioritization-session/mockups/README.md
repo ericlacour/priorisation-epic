@@ -24,6 +24,27 @@ l'application.
 | Barres de l'écran de session | Décision du 2026-10-16 : une barre de session (marque réduite, nom, statut, « Comprendre le WSJF » ; à droite « Participants », « Tours révélés », « Exporter », « Liens », thème) et une barre d'actions (saisie, préparation, tours, cycle de vie). Ensemble, au plus 105 px de haut. Action indisponible : désactivée à sa place, avec une infobulle. Messages en superposition. Un seul tour ouvert à la fois ; clôture confirmée ; sous 1280 px, la barre d'actions peut passer sur deux lignes (FR-004, FR-014c, FR-018) |
 | Téléphone | Lecture seule en V1. Saisir, voter et animer demandent un ordinateur (spec, « Hors périmètre ») |
 
+## Classement collaboratif (proposition du 2026-10-29)
+
+`classement-collaboratif.html` : proposition d'ergonomie, à discuter, pour rendre la
+priorisation par classement plus interactive entre l'animateur et les personnes connectées.
+Cinq écrans cliquables qui partagent le même état (une réaction envoyée dans la vue
+participant apparaît chez l'animateur). Rien n'est encore dans la spec.
+
+| Écran | Rôle | Idée principale |
+|-------|------|-----------------|
+| A. Atelier en direct | Animateur | Le classement est diffusé en direct. À droite : carte en discussion avec minuteur, mains levées, file de propositions (« Appliquer », « En discuter », « Écarter »), sondage d'accord, fil de la séance. Cartes en grille par niveau, valeur du niveau en grand à gauche |
+| B. Suivre et réagir | Participant | Suit l'écran de l'animateur (ou parcourt librement). Réactions par carte : ✓ d'accord, ↑ je monterais, ↓ je descendrais, ? question. « Proposer un déplacement » avec un motif. « Lever la main » |
+| C. Tour masqué : suivi | Animateur | Une carte par membre : présence, état, avancement par critère (désactivable), sans aucune valeur. Minuteur partagé indicatif, relance discrète, messages rapides à la salle. Révéler avant la fin demande une confirmation qui nomme les absents |
+| D. Voter par classement | Participant | Même écran de classement, avec le message de l'animateur, le minuteur et « qui a voté ». Étape « Récapitulatif » avant l'envoi, qui montre les « sans avis » |
+| E. Révélation et accord | Tous | Carte des écarts : les pastilles des votants posées sur l'échelle, triées par écart décroissant. « Donner la parole aux extrêmes ». Sondage d'accord (pour, réserve, contre) puis « Retenir » ; un clic sur l'échelle retient aussi une valeur |
+
+Exigences à créer si la proposition est retenue : FR-015b (diffusion en direct du
+classement), FR-015c (réactions, propositions, main levée, carte en discussion), FR-018b
+(minuteur, relance et messages pendant un tour), FR-022a (sondage d'accord, parole aux
+extrêmes). L'avancement par critère pendant un tour va au-delà de FR-019 (« a voté »
+seulement) : à valider.
+
 ## Charte
 
 Les couleurs suivent la demande : un rouge vif en couleur principale, et un gris anthracite
