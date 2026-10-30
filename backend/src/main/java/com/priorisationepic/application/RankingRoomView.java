@@ -1,6 +1,7 @@
 package com.priorisationepic.application;
 
 import com.priorisationepic.domain.ranking.CardOpinion;
+import com.priorisationepic.domain.ranking.DiscussedCard;
 import com.priorisationepic.domain.ranking.RankingDraft;
 import com.priorisationepic.domain.ranking.RankingRoom;
 import java.util.List;
@@ -17,7 +18,8 @@ public record RankingRoomView(
     boolean live,
     RankingDraft draft,
     List<CardOpinion> opinions,
-    UUID spotlightFeatureId) {
+    UUID spotlightFeatureId,
+    List<DiscussedCard> discussed) {
 
   /** Pourquoi la salle s'est fermée. */
   public enum EndReason {
@@ -36,10 +38,11 @@ public record RankingRoomView(
         room.live(),
         room.draft(),
         room.opinions(),
-        room.spotlightFeatureId());
+        room.spotlightFeatureId(),
+        room.discussed());
   }
 
   static RankingRoomView ended(EndReason reason) {
-    return new RankingRoomView(false, reason, null, false, null, List.of(), null);
+    return new RankingRoomView(false, reason, null, false, null, List.of(), null, List.of());
   }
 }

@@ -365,6 +365,67 @@ class RankingRoomTest {
   }
 
   @Test
+  void aCardLeavingTheDiscussionIsMarkedDiscussedForItsCriterion() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.spotlight(F2);
+    assertThat(room.discussed()).isEmpty();
+
+    room.spotlight(F2);
+    assertThat(room.discussed()).isEmpty();
+
+    room.spotlight(F3);
+    room.broadcast(
+        new RankingDraft(
+            List.of("bv", "js"),
+            "js",
+            List.of(List.of(F1), List.of(F2, F3)),
+            List.of(),
+            Map.of(F1, 3, F2, 2, F3, 2)));
+    room.spotlight(null);
+
+    assertThat(room.discussed())
+        .containsExactly(new DiscussedCard(F2, "bv"), new DiscussedCard(F3, "bv"));
+  }
+
+  @Test
+  void aChangedOpinionOrWantedValueReopensTheDiscussionButNotAComment() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null, 13);
+    room.spotlight(F2);
+    room.spotlight(null);
+
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Le salon de mars", null);
+    room.giveOpinion(BOB, F2, "js", Opinion.LOWER, null, null);
+    assertThat(room.discussed()).containsExactly(new DiscussedCard(F2, "bv"));
+
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null, 20);
+    assertThat(room.discussed()).isEmpty();
+
+    room.spotlight(F2);
+    room.spotlight(null);
+    room.giveOpinion(BOB, F2, "bv", Opinion.AGREE, null, null);
+    assertThat(room.discussed()).isEmpty();
+
+    room.spotlight(F2);
+    room.spotlight(null);
+    room.giveOpinion(BOB, F2, "bv", null, null, null);
+    assertThat(room.discussed()).isEmpty();
+  }
+
+  @Test
+  void clearingTheOpinionsOrRemovingTheCardForgetsItsDiscussion() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.spotlight(F2);
+    room.spotlight(F3);
+    room.spotlight(null);
+
+    room.clearOpinions(F2, "bv");
+    room.broadcast(draft().retainOnly(Set.of(F1, F2)));
+
+    assertThat(room.discussed()).isEmpty();
+  }
+
+  @Test
   void theDiscussionEndsWhenItsCardLeavesTheDraft() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
     room.spotlight(F3);

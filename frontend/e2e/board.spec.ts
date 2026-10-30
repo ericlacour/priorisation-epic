@@ -53,7 +53,8 @@ test.describe('tableau de priorisation', () => {
     await open(page, false);
     await push(page, sessionState([F1, F2], { animate: false }));
 
-    await expect(page.getByText('Aucun tour de vote en cours')).toBeVisible();
+    await expect(page.locator('tbody tr')).toHaveCount(2);
+    await expect(page.locator('.action-bar')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Modifier', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '+ Fonctionnalité' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Liens' })).toHaveCount(0);
@@ -297,7 +298,7 @@ test.describe('tableau de priorisation', () => {
     await page.getByRole('button', { name: 'F-1' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toContainText('Permettre le paiement sans ressaisir la carte.');
-    await expect(dialog).toContainText('CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00');
+    await expect(dialog).not.toContainText('Détail du calcul');
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
   });

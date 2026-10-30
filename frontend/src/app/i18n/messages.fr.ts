@@ -116,8 +116,6 @@ export const MESSAGES = {
       IN_PROGRESS: 'En cours',
       CLOSED: 'Clôturée',
     },
-    noRound:
-      "Aucun tour de vote en cours. Le tableau se met à jour en direct quand l'animateur modifie une valeur.",
     soon: 'Disponible dans une prochaine version.',
     revealedRounds: 'Tours révélés',
     addFeature: '+ Fonctionnalité',
@@ -344,13 +342,6 @@ export const MESSAGES = {
     noMyOpinion: 'Vous n’avez encore donné aucun avis.',
     wantedLabel: 'Valeur souhaitée',
     wantedOpinion: '{opinion} à {value}',
-    roomTitle: 'Classement selon la salle',
-    roomHint:
-      'Moyenne des avis des participants : ✓ garde la valeur, ↑ et ↓ comptent pour la valeur souhaitée.',
-    roomLabel: 'Classement selon les avis de la salle',
-    roomUnranked: 'Sans valeur',
-    roomChange: '{from} → {to}',
-    roomChangeLabel: '{id} : de {from} à {to}',
     spotlight: 'En discussion',
     endSpotlight: 'Terminer la discussion',
     startSpotlight: 'Mettre en discussion',
@@ -384,11 +375,6 @@ export const MESSAGES = {
     unranked: 'non classée',
     description: 'Descriptif',
     noDescription: 'Aucun descriptif.',
-    values: 'Valeurs retenues',
-    calculation: 'Détail du calcul',
-    notComputed:
-      'Calcul impossible : il manque une valeur nécessaire au calcul, ou une valeur est hors échelle.',
-    methodLink: 'Voir la méthode complète',
     editText: 'Modifier le titre et le descriptif',
     titleLabel: 'Titre',
     descriptionLabel: 'Descriptif',
@@ -543,6 +529,54 @@ export const MESSAGES = {
     cancel: 'Annuler',
     apply: 'Appliquer',
     confirm: 'Confirmer le changement',
+  },
+  assistant: {
+    title: 'Assistant IA',
+    preview: 'Aperçu',
+    label: 'Assistant IA de priorisation (aperçu, pas encore disponible)',
+    lead: 'Échangez sur la priorisation : l’assistant connaît la session, les tickets Jira et la documentation complète des fonctionnalités.',
+    sources: ['Session en cours', 'Jira', 'Documentation'],
+    you: 'Vous',
+    assistant: 'Assistant',
+    dialogueLabel: 'Exemple d’échange avec l’assistant',
+    dialogue: [
+      {
+        from: 'user',
+        text: 'Pourquoi « Paiement en un clic » passe devant « Notifications de livraison » ? Pour moi, les notifications sont plus urgentes.',
+      },
+      {
+        from: 'assistant',
+        text: 'Les deux ont un CoD de 13, mais pas le même Job Size : JS 3 pour le paiement, JS 8 pour les notifications. Dans Jira, PAY-418 compte 7 sous-tâches et attend l’API du transporteur (PAY-377, encore « À faire »). D’où un WSJF de 4,33 contre 1,63. Si l’urgence est réelle, c’est le TC qu’il faut revoir, pas le JS.',
+      },
+      {
+        from: 'user',
+        text: 'Qu’est-ce qui justifierait de monter son TC ?',
+      },
+      {
+        from: 'assistant',
+        text: 'Sa documentation (§ 2.3) cite une obligation réglementaire au 1er mars. Avec un TC de 8 au lieu de 3, son CoD passe à 18 et son WSJF à 2,25 : elle monte de la 6e à la 3e place. Je vous propose de la mettre en discussion au prochain classement.',
+      },
+      {
+        from: 'user',
+        text: 'Y a-t-il des fonctionnalités qu’on ne peut pas estimer correctement ?',
+      },
+      {
+        from: 'assistant',
+        text: 'Trois, d’après Jira et la documentation :',
+        items: [
+          'Export comptable : aucun critère d’acceptation dans PAY-455.',
+          'Programme de fidélité : JS 13, mais l’epic PAY-502 n’est pas découpée.',
+          'Alertes de stock : doublon probable de « Suivi des stocks » (même epic, même description).',
+        ],
+        after: 'Voulez-vous que je les marque « à revoir » ?',
+      },
+    ],
+    suggestionsLabel: 'Suggestions',
+    suggestions: ['Expliquer un rang', 'Repérer les doublons', 'Comparer avec Jira'],
+    inputLabel: 'Votre question',
+    placeholder: 'Posez une question sur la priorisation…',
+    send: 'Envoyer',
+    notice: 'Maquette : l’assistant n’est pas encore branché.',
   },
 } as const;
 

@@ -192,6 +192,14 @@ export interface ActiveRankingRoom {
   readonly draft: RankingDraft;
   readonly opinions: readonly CardOpinion[];
   readonly spotlightFeatureId: string | null;
+  /** Les cartes dont la discussion est terminée, par critère : leur écart d'avis ne se signale plus (FR-015c). */
+  readonly discussed: readonly DiscussedCard[];
+}
+
+/** Une carte dont la discussion est terminée, pour un critère. */
+export interface DiscussedCard {
+  readonly featureId: string;
+  readonly criterionKey: string;
 }
 
 /** La salle de classement fermée (`ranking-room.json`, `active: false`). */
@@ -368,6 +376,9 @@ const isCardOpinion = (value: unknown): value is CardOpinion =>
   (value['comment'] === undefined || typeof value['comment'] === 'string') &&
   (value['value'] === undefined || isInt(value['value']));
 
+const isDiscussedCard = (value: unknown): value is DiscussedCard =>
+  isObject(value) && isText(value['featureId']) && isText(value['criterionKey']);
+
 /** Lit un `rankingRoom` : `null` s'il est hors contrat. */
 function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | null {
   if (json['active'] === false) {
@@ -384,7 +395,9 @@ function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | n
     !isRankingDraft(json['draft']) ||
     !Array.isArray(json['opinions']) ||
     !json['opinions'].every(isCardOpinion) ||
-    !(spotlight === null || isText(spotlight))
+    !(spotlight === null || isText(spotlight)) ||
+    !Array.isArray(json['discussed']) ||
+    !json['discussed'].every(isDiscussedCard)
   ) {
     return null;
   }
@@ -396,6 +409,7 @@ function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | n
     draft: json['draft'],
     opinions: json['opinions'],
     spotlightFeatureId: spotlight,
+    discussed: json['discussed'],
   };
 }
 

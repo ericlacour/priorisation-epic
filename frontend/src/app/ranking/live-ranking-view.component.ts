@@ -28,7 +28,6 @@ import {
   opinionsOf,
   wantedChoices,
 } from './opinions';
-import { RoomRankingComponent } from './room-ranking.component';
 
 /** Une carte déplacée par l'animateur reste signalée ce temps-là. */
 export const MOVED_HIGHLIGHT_MS = 1_500;
@@ -44,7 +43,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 /**
  * Le classement de l'animateur suivi en direct par un participant (FR-015b), à la place du tableau, en lecture seule.
  * Chacun donne son avis sur une carte (✓, ↑, ↓) avec, pour ↑ et ↓, la valeur qu'il donnerait (le cran suivant de
- * l'échelle d'emblée) et un commentaire facultatif (FR-015c) ; à droite, le classement selon la salle. Un clic sur
+ * l'échelle d'emblée) et un commentaire facultatif (FR-015c) ; à droite, ses avis. Un clic sur
  * l'identifiant d'une carte ouvre son descriptif. La carte que l'animateur
  * vient de déplacer est signalée, et ramenée à la vue tant que le participant suit l'animateur. Sur téléphone, la vue
  * est en lecture seule, sans avis.
@@ -56,7 +55,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
     CardOpinionsComponent,
     FeatureDetailPanelComponent,
     OpinionListComponent,
-    RoomRankingComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'board-page ranking-page live-ranking', role: 'main' },
@@ -69,6 +67,11 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             <span class="muted small">{{ subtitle() }}</span>
           </div>
           <p class="small ranking-help">{{ messages.readOnly }}</p>
+          @if (criterion(); as criterion) {
+            <p class="small ranking-definition">
+              <b>{{ criterion.code }}</b> : {{ criterion.definition }}
+            </p>
+          }
         </div>
       </div>
 
@@ -180,13 +183,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               </form>
             }
 
-            <app-room-ranking
-              [room]="live"
-              [items]="features()"
-              [allowed]="allowed()"
-              (detailRequested)="detailId.set($event)"
-            />
-
             <section class="opinion-block" aria-labelledby="my-opinions-title">
               <h2 id="my-opinions-title" class="rank-column-title">
                 {{ messages.myOpinions }} <span class="rank-count">{{ mine().size }}</span>
@@ -275,11 +271,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 
       @if (detailId(); as detail) {
         @if (featureOf(detail); as feature) {
-          <app-feature-detail-panel
-            [feature]="feature"
-            [definition]="definition()!"
-            (closed)="detailId.set(null)"
-          />
+          <app-feature-detail-panel [feature]="feature" (closed)="detailId.set(null)" />
         }
       }
     }
@@ -314,12 +306,10 @@ export class LiveRankingViewComponent {
     () => new Map((this.room.state()?.features ?? []).map((f) => [f.id, f])),
   );
 
-  protected readonly definition = computed(() => this.room.state()?.methodDefinition ?? null);
-
   /** Les valeurs de l'échelle de la session, croissantes. */
   protected readonly allowed = computed(() => this.room.state()?.scale.allowedValues ?? []);
 
-  private readonly criterion = computed(() => {
+  protected readonly criterion = computed(() => {
     const key = this.room.rankingRoom()?.draft.criterionKey;
     return this.room.state()?.methodDefinition.criteria.find((c) => c.key === key) ?? null;
   });

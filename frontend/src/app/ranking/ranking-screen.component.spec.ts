@@ -329,6 +329,16 @@ describe('RankingScreenComponent', () => {
     expect(room.updateFeature).not.toHaveBeenCalled();
   });
 
+  it('says what the ranked criterion measures, so that a bigger Job Size reads as a harder job', () => {
+    const { click, element } = render([F1, F2]);
+    click('Commencer le classement');
+    expect(element.querySelector('.ranking-definition')?.textContent).toContain('BV');
+    for (let step = 0; step < 3; step++) click('Critère suivant');
+    expect(element.querySelector('.ranking-definition')?.textContent).toContain(
+      'plus le JS est grand, plus le travail est long et compliqué',
+    );
+  });
+
   describe('live ranking (FR-015b, FR-015c)', () => {
     it('broadcasts the ranking of the current criterion once it starts', () => {
       const { click, room } = render([F1, F2]);
@@ -401,7 +411,7 @@ describe('RankingScreenComponent', () => {
       expect(room.clearOpinions).toHaveBeenCalledWith('f2', 'bv');
     });
 
-    it('tints the cards with a wide gap until their discussion ends, and again if the opinions change', () => {
+    it('tints the cards with a wide gap, except those whose discussion the server says is over', () => {
       const { click, fixture, element, room } = render([F1, F2]);
       click('Commencer le classement');
       const lowered = {
@@ -421,14 +431,11 @@ describe('RankingScreenComponent', () => {
       show({});
       expect(gap()).toBe('strong');
       expect(element.querySelector('app-opinions-panel .opinion-gap')).not.toBeNull();
-      show({ spotlightFeatureId: 'f1' });
+      show({ discussed: [{ featureId: 'f1', criterionKey: 'js' }] });
       expect(gap()).toBe('strong');
-      show({ spotlightFeatureId: null });
+      show({ discussed: [{ featureId: 'f1', criterionKey: 'bv' }] });
       expect(gap()).toBeUndefined();
       expect(element.querySelector('app-opinions-panel .opinion-gap')).toBeNull();
-
-      show({ opinions: [lowered, { ...lowered, participantId: 'p3', value: 2 }] });
-      expect(gap()).toBe('strong');
     });
   });
 });

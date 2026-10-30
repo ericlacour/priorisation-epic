@@ -18,5 +18,6 @@
     }
   },
   "opinions": [],
-  "spotlightFeatureId": null
+  "spotlightFeatureId": null,
+  "discussed": []
 }

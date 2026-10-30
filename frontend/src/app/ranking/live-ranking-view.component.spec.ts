@@ -91,24 +91,18 @@ describe('LiveRankingViewComponent', () => {
     expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', 'RAISE', undefined, 10);
   });
 
-  it('shows the ranking according to the room, next to the live ranking', () => {
+  it('no longer shows the ranking according to the room', () => {
     const { room, fixture, element } = render();
     room.rankingRoom.set(
       rankingRoom({
         opinions: [
           { featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'LOWER', value: 3 },
-          { featureId: 'f2', criterionKey: 'bv', participantId: 'p3', opinion: 'RAISE', value: 5 },
         ],
       }),
     );
     fixture.detectChanges();
-    const panel = element.querySelector('app-room-ranking')!;
-    const rows = [...panel.querySelectorAll<HTMLElement>('.rank-item')];
-    expect(rows.map((r) => r.dataset['id'])).toEqual(['f2', 'f1']);
-    expect(rows[0]?.querySelector('.room-change')?.textContent?.trim()).toBe('– → 5');
-    expect(rows[1]?.querySelector('.room-change')?.textContent?.trim()).toBe('8 → 3');
-    expect(rows[1]?.dataset['direction']).toBe('down');
-    expect(element.textContent).not.toContain('Survolez une carte');
+    expect(element.querySelector('app-room-ranking')).toBeNull();
+    expect(element.textContent).not.toContain('Classement selon la salle');
   });
 
   it('opens the description of a feature from the live ranking', () => {

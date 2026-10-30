@@ -47,7 +47,12 @@ public final class WsjfMethod implements PrioritizationMethod {
               "Capacité à réduire un risque ou à permettre une opportunité.",
               "RR/OE"),
           new CriterionDefinition(
-              JS, "JS", "Job Size", "Taille relative du travail nécessaire.", "JS"));
+              JS,
+              "JS",
+              "Job Size",
+              "Taille relative du travail nécessaire : plus le JS est grand, plus le travail est long"
+                  + " et compliqué, et plus le WSJF baisse.",
+              "JS"));
 
   private static final ComputedValueDefinition WSJF_VALUE =
       new ComputedValueDefinition(

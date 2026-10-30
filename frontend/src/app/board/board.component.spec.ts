@@ -73,14 +73,23 @@ describe('BoardComponent', () => {
     expect(chrome.sessionBar()).toBe(false);
   });
 
-  it('shows the participant status line, and only that line for a facilitator on a phone', () => {
-    expect(
-      render({ animate: false }).element.querySelector('app-action-bar')?.textContent,
-    ).toContain('Aucun tour de vote en cours.');
+  it('shows no action bar to a participant, nor to a facilitator on a phone, while the session is open', () => {
+    const participant = render({ animate: false }).element;
+    expect(participant.querySelector('app-action-bar')).toBeNull();
+    expect(participant.textContent).not.toContain('Aucun tour de vote en cours');
     TestBed.resetTestingModule();
-    const phone = render({ phone: true }).element.querySelector('app-action-bar');
-    expect(phone?.textContent).toContain('Aucun tour de vote en cours.');
-    expect(phone?.querySelector('button')).toBeNull();
+    expect(render({ phone: true }).element.querySelector('app-action-bar')).toBeNull();
+  });
+
+  it('shows the AI assistant preview next to the table, but not on a phone', () => {
+    const { element } = render({ animate: false });
+    const assistant = element.querySelector('app-assistant-panel')!;
+    expect(assistant.getAttribute('aria-label')).toContain('Assistant IA');
+    expect(assistant.textContent).toContain('Jira');
+    expect(assistant.querySelectorAll('.assistant-message').length).toBeGreaterThan(2);
+    expect(assistant.querySelector('textarea')?.disabled).toBe(true);
+    TestBed.resetTestingModule();
+    expect(render({ phone: true }).element.querySelector('app-assistant-panel')).toBeNull();
   });
 
   it('shows the read-only banner to a facilitator on a phone when the session is closed', () => {
@@ -247,7 +256,7 @@ describe('BoardComponent', () => {
     expect(headers(element)).not.toContain('Actions');
     expect(button(element, 'Modifier')).toBeUndefined();
     expect(button(element, '+ Fonctionnalité')).toBeUndefined();
-    expect(element.textContent).toContain('Aucun tour de vote en cours');
+    expect(element.querySelector('app-action-bar')).toBeNull();
     expect(button(element, 'Exporter')?.disabled).toBe(false);
     expect(button(element, 'Tours révélés')?.disabled).toBe(true);
     expect(button(element, 'Liens')).toBeUndefined();
@@ -599,7 +608,7 @@ describe('BoardComponent', () => {
 
   // --- Panneau de détail et de méthode ------------------------------------------------------------
 
-  it('opens the detail panel on the id and shows the full description, values and calculation as sent', () => {
+  it('opens the detail panel on the id and shows the full description only', () => {
     const { fixture, element } = render({ animate: false });
 
     element.querySelector<HTMLButtonElement>('.fid')!.click();
@@ -609,19 +618,8 @@ describe('BoardComponent', () => {
     expect(panel.querySelector('[role="dialog"]')).not.toBeNull();
     expect(panel.querySelector('h2')?.textContent).toBe('Paiement en un clic');
     expect(panel.querySelector('.description')?.textContent).toContain('Second paragraphe.');
-    expect(panel.querySelector('.explanation')?.textContent).toBe(
-      'CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00',
-    );
-    expect(
-      [...panel.querySelectorAll('.values li')].map((li) =>
-        [...li.children].map((child) => child.textContent?.trim()).join(' '),
-      ),
-    ).toEqual([
-      'BV · Business Value 8',
-      'TC · Time Criticality 5',
-      'RR/OE · Risk Reduction / Opportunity Enablement 3',
-      'JS · Job Size 4',
-    ]);
+    expect(panel.querySelector('.explanation')).toBeNull();
+    expect(panel.querySelector('.values')).toBeNull();
   });
 
   it('closes the detail panel when its feature is deleted elsewhere', () => {

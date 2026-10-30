@@ -130,6 +130,7 @@ class RankingRoomSocketTest extends PostgresTestBase {
     assertThat(seenByBob.get("draft").get("levels").get(0).get(0).asString())
         .isEqualTo(F1.toString());
     assertThat(seenByBob.get("spotlightFeatureId").isNull()).isTrue();
+    assertThat(seenByBob.get("discussed").isEmpty()).isTrue();
     assertThat(room(alice).get("facilitatorId").isString()).isTrue();
     assertThat(bob.nextContaining("\"type\":\"sessionState\"", 500)).isNull();
     assertThat(jdbc.queryForObject("select version from session", Integer.class)).isZero();
@@ -158,7 +159,9 @@ class RankingRoomSocketTest extends PostgresTestBase {
     alice.send(ContractExamples.read("set-spotlight", "start"));
     assertThat(roomForBoth().get("spotlightFeatureId").asString()).isEqualTo(F2.toString());
     alice.send(ContractExamples.read("set-spotlight", "end"));
-    roomForBoth();
+    JsonNode discussed = roomForBoth().get("discussed");
+    assertThat(discussed.get(0).get("featureId").asString()).isEqualTo(F2.toString());
+    assertThat(discussed.get(0).get("criterionKey").asString()).isEqualTo("bv");
     alice.send(ContractExamples.read("end-ranking", "cancelled"));
     assertThat(roomForBoth().get("endReason").asString()).isEqualTo("CANCELLED");
   }

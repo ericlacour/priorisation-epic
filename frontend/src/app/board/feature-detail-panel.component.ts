@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 
-import { Feature, MethodDefinition } from '../api/session-state';
+import { Feature } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SidePanelComponent } from '../shared/side-panel.component';
@@ -33,12 +33,11 @@ const DESCRIPTION_MAX = 5000;
 const REASON_MAX = 200;
 
 /**
- * Panneau de détail d'une fonctionnalité (FR-016, FR-016b), ouvert au clic sur son identifiant : descriptif complet,
- * valeurs retenues avec le nom complet des critères, détail du calcul tel que le serveur l'écrit (constitution I).
+ * Panneau de détail d'une fonctionnalité (FR-016, FR-016b), ouvert au clic sur son identifiant : le descriptif complet,
+ * seul. Les valeurs retenues sont dans le tableau ; ni elles ni le détail du calcul ne sont repris ici.
  * Les boutons de l'animateur, « Modifier le titre et le descriptif » et « Marquer à revoir », sont en haut du panneau,
  * sous le titre. Pendant la modification, « Enregistrer » (une seule modification émise) et « Annuler » (rien
- * d'émis) restent sous la saisie. Les valeurs et le calcul restent masqués tant que le serveur
- * ne les envoie pas (tour de vote ouvert, pour un participant).
+ * d'émis) restent sous la saisie.
  */
 @Component({
   selector: 'app-feature-detail-panel',
@@ -153,33 +152,6 @@ const REASON_MAX = 200;
             {{ messages.cancel }}
           </button>
         </div>
-      } @else {
-        @if (feature().criteria) {
-          <section>
-            <h3>{{ messages.values }}</h3>
-            <ul class="values">
-              @for (criterion of definition().criteria; track criterion.key) {
-                <li [class.review]="isOutOfScale(criterion.key)">
-                  <span>{{ criterion.code }} · {{ criterion.label }}</span>
-                  <strong>{{ valueOf(criterion.key) }}</strong>
-                </li>
-              }
-            </ul>
-          </section>
-        }
-        @if (feature().score; as score) {
-          <section>
-            <h3>{{ messages.calculation }}</h3>
-            @if (score.explanation) {
-              <p class="explanation">{{ score.explanation }}</p>
-            } @else {
-              <p class="muted">{{ messages.notComputed }}</p>
-            }
-            <button type="button" class="link-button small" (click)="methodRequested.emit()">
-              {{ messages.methodLink }}
-            </button>
-          </section>
-        }
       }
     </app-side-panel>
   `,
@@ -188,13 +160,11 @@ export class FeatureDetailPanelComponent {
   protected readonly messages = MESSAGES.detail;
 
   readonly feature = input.required<Feature>();
-  readonly definition = input.required<MethodDefinition>();
   readonly canAnimate = input(false);
   /** Vrai quand l'enregistrement demandé a été refusé pour version périmée (`STALE_VERSION`). */
   readonly stale = input(false);
 
   readonly closed = output<void>();
-  readonly methodRequested = output<void>();
   /** Un seul envoi pour le titre et le descriptif. */
   readonly textSaved = output<TextEdit>();
   /** Enregistrer malgré la version périmée, avec le texte déjà saisi. */
@@ -249,15 +219,6 @@ export class FeatureDetailPanelComponent {
         this.reason.set('');
       });
     });
-  }
-
-  protected isOutOfScale(key: string): boolean {
-    return this.feature().score?.outOfScale.includes(key) ?? false;
-  }
-
-  protected valueOf(key: string): string {
-    const value = this.feature().criteria?.[key];
-    return value === null || value === undefined ? MESSAGES.board.noValue : String(value);
   }
 
   protected startEdit(): void {

@@ -9,7 +9,7 @@ import { SessionStatusComponent } from '../session/session-status.component';
  * (« Importer », « Échelle ») et, à droite, le cycle de vie (« Démarrer », « Clôturer » ou « Rouvrir la session ») ;
  * le groupe « tours » s'ajoute avec le vote masqué. Une action indisponible reste à sa place, désactivée. Session
  * clôturée : la barre de l'animateur se réduit au bandeau de lecture seule et à « Rouvrir la session ». Pour un
- * participant, un bandeau d'état de même hauteur.
+ * participant, rien tant que la session est ouverte (le tableau ne l'affiche pas), puis le bandeau de lecture seule.
  */
 @Component({
   selector: 'app-action-bar',
@@ -59,10 +59,10 @@ import { SessionStatusComponent } from '../session/session-status.component';
         </button>
       </div>
       <app-session-status />
-    } @else {
+    } @else if (closed()) {
       <p class="action-info">
         <span class="ico" aria-hidden="true">i</span>
-        <span>{{ closed() ? messages.closedBanner : messages.noRound }}</span>
+        <span>{{ messages.closedBanner }}</span>
       </p>
     }
   `,

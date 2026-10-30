@@ -58,23 +58,6 @@
   white-space: pre-wrap;
 }
 
-.panel .values {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.panel .values li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.panel .explanation,
 .panel .formula {
   padding: 8px 10px;
   border-radius: 8px;
