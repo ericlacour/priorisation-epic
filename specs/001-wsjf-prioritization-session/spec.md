@@ -651,7 +651,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      le membre le change dans la liste « Valeur souhaitée ». La valeur se garde tant que
      l'avis garde son sens ; elle se perd s'il change de sens ;
   2c. **Classement selon la salle** (ajout du 2026-10-30) : à droite du classement en direct,
-     chez tous, chaque fonctionnalité prend la moyenne des avis (✓ compte pour la valeur
+     chez les membres (retiré de l'écran de l'animateur le 2026-10-30 : trop d'informations), chaque fonctionnalité prend la moyenne des avis (✓ compte pour la valeur
      actuelle, ↑ et ↓ pour la valeur souhaitée, ou à défaut le cran suivant), ramenée à la
      valeur la plus proche de l'échelle, et les niveaux se refont. Une carte que la salle
      déplace porte « valeur actuelle → valeur selon la salle ». Sans avis, la valeur ne
@@ -664,7 +664,16 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      L'animateur voit en plus, à côté du classement, la liste des cartes qui ont des avis
      ↑ ou ↓, de la plus discutée à la moins discutée, avec les commentaires. Depuis cette
      liste, il peut « Effacer les avis » d'une carte pour le critère en cours, par exemple
-     après l'avoir déplacée ;
+     après l'avoir déplacée, et ouvrir son descriptif depuis l'identifiant.
+     **Gros écarts** (ajout du 2026-10-30) : l'écart d'une carte va de la plus basse à la plus
+     haute des valeurs en jeu (valeur actuelle et valeurs souhaitées, un ↑ ou ↓ sans valeur
+     comptant pour le cran suivant), compté en crans de l'échelle. Un écart de 2 crans est
+     teinté en orange ; un écart de 3 crans ou plus, ou une carte que certains monteraient et
+     d'autres descendraient, en rouge. Ces cartes passent en tête de la liste (rouge, puis
+     orange, l'écart le plus large d'abord) et portent « Écart bas ↔ haut ». La même teinte
+     marque la carte dans le classement. Quand une discussion sur la carte se termine
+     (« Terminer la discussion », ou une autre carte mise en discussion), la teinte s'efface
+     dans le classement et dans la liste ; elle revient si un avis sur la carte change ensuite ;
   4. **Carte en discussion** : depuis la liste des avis, l'animateur peut « Mettre en
      discussion » une fonctionnalité. Elle est mise en avant
      chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer

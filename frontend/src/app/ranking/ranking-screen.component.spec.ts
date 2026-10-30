@@ -400,5 +400,35 @@ describe('RankingScreenComponent', () => {
       expect(room.setSpotlight).toHaveBeenCalledWith('f2');
       expect(room.clearOpinions).toHaveBeenCalledWith('f2', 'bv');
     });
+
+    it('tints the cards with a wide gap until their discussion ends, and again if the opinions change', () => {
+      const { click, fixture, element, room } = render([F1, F2]);
+      click('Commencer le classement');
+      const lowered = {
+        featureId: 'f1',
+        criterionKey: 'bv',
+        participantId: 'p2',
+        opinion: 'LOWER' as const,
+        value: 1,
+      };
+      const show = (overrides: Parameters<typeof rankingRoom>[0]) => {
+        room.rankingRoom.set(rankingRoom({ opinions: [lowered], ...overrides }));
+        fixture.detectChanges();
+      };
+      const gap = () =>
+        element.querySelector<HTMLElement>('app-criterion-ranking [data-id="f1"]')?.dataset['gap'];
+
+      show({});
+      expect(gap()).toBe('strong');
+      expect(element.querySelector('app-opinions-panel .opinion-gap')).not.toBeNull();
+      show({ spotlightFeatureId: 'f1' });
+      expect(gap()).toBe('strong');
+      show({ spotlightFeatureId: null });
+      expect(gap()).toBeUndefined();
+      expect(element.querySelector('app-opinions-panel .opinion-gap')).toBeNull();
+
+      show({ opinions: [lowered, { ...lowered, participantId: 'p3', value: 2 }] });
+      expect(gap()).toBe('strong');
+    });
   });
 });

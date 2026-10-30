@@ -104,10 +104,21 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
     ]);
   });
 
-  test('accessibilité : aucune violation axe avec le panneau des avis', async ({ page }) => {
+  test('accessibilité : aucune violation axe avec le panneau des avis et un gros écart', async ({
+    page,
+  }) => {
     await startRanking(page);
-    await push(page, room([F1, F2, F3], { opinions: [bobRaisesF2], spotlightFeatureId: F1.id }));
+    const anaLowersF2 = { ...bobRaisesF2, participantId: 'p-ana', opinion: 'LOWER', value: 1 };
+    await push(
+      page,
+      room([F1, F2, F3], { opinions: [bobRaisesF2, anaLowersF2], spotlightFeatureId: F1.id }),
+    );
     await expect(page.locator('app-opinions-panel')).toContainText('En discussion');
+    await expect(page.locator(`.opinion-card[data-gap="strong"]`)).toContainText('Écart 1 ↔ 10');
+    await expect(page.locator(`.rank-item[data-id="${F2.id}"]`)).toHaveAttribute(
+      'data-gap',
+      'strong',
+    );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 });

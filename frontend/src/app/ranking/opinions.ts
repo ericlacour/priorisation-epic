@@ -130,3 +130,79 @@ export function roomRanking(
     unranked: entries.filter((e) => e.value === null),
   };
 }
+
+/**
+ * L'écart d'avis sur une fonctionnalité pour le critère en cours (FR-015c) : `low` et `high` bornent la valeur du
+ * brouillon et les valeurs demandées (un ↑ ou ↓ sans valeur compte pour le cran suivant), `steps` compte les crans de
+ * l'échelle qui les séparent. `opposed` : la salle demande à la fois de monter et de descendre la carte.
+ */
+export interface OpinionGap {
+  readonly low: number;
+  readonly high: number;
+  readonly steps: number;
+  readonly opposed: boolean;
+  readonly level: 'strong' | 'notable' | null;
+}
+
+/** À partir de combien de crans d'écart une carte est signalée, puis signalée comme un fort écart. */
+export const NOTABLE_GAP_STEPS = 2;
+export const STRONG_GAP_STEPS = 3;
+
+/** L'écart d'avis sur une fonctionnalité ; `null` sans valeur du brouillon ni valeur demandée. */
+export function opinionGap(
+  room: ActiveRankingRoom,
+  featureId: string,
+  allowed: readonly number[],
+): OpinionGap | null {
+  const current = room.draft.values[featureId] ?? null;
+  const opinions = opinionsOf(room, featureId);
+  const values = [
+    current,
+    ...opinions.map((opinion) =>
+      opinion.opinion === 'AGREE'
+        ? current
+        : (opinion.value ?? nextValue(allowed, current, opinion.opinion)),
+    ),
+  ].filter((value): value is number => value !== null);
+  if (values.length === 0) return null;
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const steps = allowed.filter((v) => v > low && v <= high).length;
+  const kinds = new Set(opinions.map((opinion) => opinion.opinion));
+  const opposed = kinds.has('RAISE') && kinds.has('LOWER');
+  const level =
+    steps >= STRONG_GAP_STEPS || opposed ? 'strong' : steps >= NOTABLE_GAP_STEPS ? 'notable' : null;
+  return { low, high, steps, opposed, level };
+}
+
+/** Les avis d'une fonctionnalité pour le critère en cours, résumés : changent dès qu'un avis change. */
+export function opinionsSignature(room: ActiveRankingRoom, featureId: string): string {
+  return opinionsOf(room, featureId)
+    .map((o) => `${o.participantId}:${o.opinion}:${o.value ?? ''}`)
+    .sort()
+    .join('|');
+}
+
+/** La clé d'une discussion terminée : la fonctionnalité, pour un critère. */
+export const settledKey = (criterionKey: string, featureId: string): string =>
+  `${criterionKey}/${featureId}`;
+
+/**
+ * Les gros écarts du critère en cours, par fonctionnalité (FR-015c) : seulement les cartes signalées, sauf celles
+ * dont la discussion est terminée sans que leurs avis aient changé depuis (`settled` : signature par `settledKey`).
+ */
+export function roomGaps(
+  room: ActiveRankingRoom,
+  allowed: readonly number[],
+  settled: ReadonlyMap<string, string> = new Map(),
+): ReadonlyMap<string, OpinionGap> {
+  const gaps = new Map<string, OpinionGap>();
+  for (const id of new Set(room.opinions.map((o) => o.featureId))) {
+    const gap = opinionGap(room, id, allowed);
+    if (!gap?.level) continue;
+    if (settled.get(settledKey(room.draft.criterionKey, id)) === opinionsSignature(room, id))
+      continue;
+    gaps.set(id, gap);
+  }
+  return gaps;
+}

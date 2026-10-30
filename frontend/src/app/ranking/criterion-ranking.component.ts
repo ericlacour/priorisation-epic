@@ -35,6 +35,7 @@ import {
 } from './ranking';
 import { invalidValueMessage } from '../shared/scale';
 import { CardOpinionsComponent } from './card-opinions.component';
+import { OpinionGap } from './opinions';
 
 /** Une fonctionnalité à classer : seul ce qui s'affiche. */
 export interface RankedItem {
@@ -175,6 +176,8 @@ type Action = 'up' | 'down' | 'join' | 'last';
           [attr.data-id]="id"
           [class.dragging]="dragged() === id"
           [class.spotlight]="spotlightId() === id"
+          [attr.data-gap]="gaps().get(id)?.level ?? null"
+          [attr.title]="gaps().has(id) ? gapLabel : null"
         >
           <span
             class="drag-handle"
@@ -187,6 +190,9 @@ type Action = 'up' | 'down' | 'join' | 'last';
           >
           <span class="fid-text">{{ item.externalId }}</span>
           <span class="rank-title" [attr.title]="item.title">{{ item.title }}</span>
+          @if (gaps().has(id)) {
+            <span class="sr-only">{{ gapLabel }}</span>
+          }
           @if (opinions().get(id); as cardOpinions) {
             <app-card-opinions
               [opinions]="cardOpinions"
@@ -275,6 +281,7 @@ export class CriterionRankingComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   protected readonly messages = MESSAGES.ranking;
+  protected readonly gapLabel = MESSAGES.liveRanking.gapCard;
 
   readonly items = input.required<ReadonlyMap<string, RankedItem>>();
   readonly criterion = input.required<CriterionDefinition>();
@@ -286,6 +293,8 @@ export class CriterionRankingComponent {
   readonly names = input<ReadonlyMap<string, string>>(new Map());
   /** La carte en discussion, mise en avant. */
   readonly spotlightId = input<string | null>(null);
+  /** Les gros écarts d'avis encore à discuter (FR-015c), teintés sur les cartes. */
+  readonly gaps = input<ReadonlyMap<string, OpinionGap>>(new Map());
 
   protected readonly dragged = signal<string | null>(null);
   protected readonly dropTarget = signal<string | null>(null);
