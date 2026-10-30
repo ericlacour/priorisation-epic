@@ -61,6 +61,10 @@ type Changes = Readonly<Record<string, number | null>>;
           </div>
           @if (current(); as criterion) {
             <p class="small ranking-help">{{ shortInstruction(criterion) }}</p>
+            <!-- Ce que mesure le critère : pour JS, plus il est grand, plus le travail est compliqué. -->
+            <p class="small ranking-definition">
+              <b>{{ criterion.code }}</b> : {{ criterion.definition }}
+            </p>
           }
         </div>
         <div class="board-tools ranking-nav">
@@ -93,6 +97,9 @@ type Changes = Readonly<Record<string, number | null>>;
                 </div>
                 @if (current(); as criterion) {
                   <p>{{ instruction(criterion) }}</p>
+                  <p class="ranking-definition">
+                    <b>{{ criterion.code }}</b> : {{ criterion.definition }}
+                  </p>
                 }
                 <ul>
                   @for (line of messages.helpSteps; track line) {

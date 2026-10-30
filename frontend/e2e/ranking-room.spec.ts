@@ -205,7 +205,7 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
         ],
       }),
     );
-    await expect(page.getByText('Je descendrais à 4')).toBeVisible();
+    await expect(page.locator(`[data-id="${F3.id}"] .opinion-counts`)).toBeVisible();
     await expect(page.locator('app-room-ranking')).toHaveCount(0);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 

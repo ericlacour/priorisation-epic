@@ -31,7 +31,8 @@ export const WSJF = {
       key: 'js',
       code: 'JS',
       label: 'Job Size',
-      definition: 'Taille relative du travail nécessaire.',
+      definition:
+        'Taille relative du travail nécessaire : plus le JS est grand, plus le travail est long et compliqué, et plus le WSJF baisse.',
       header: 'JS',
     },
   ],

@@ -329,6 +329,16 @@ describe('RankingScreenComponent', () => {
     expect(room.updateFeature).not.toHaveBeenCalled();
   });
 
+  it('says what the ranked criterion measures, so that a bigger Job Size reads as a harder job', () => {
+    const { click, element } = render([F1, F2]);
+    click('Commencer le classement');
+    expect(element.querySelector('.ranking-definition')?.textContent).toContain('BV');
+    for (let step = 0; step < 3; step++) click('Critère suivant');
+    expect(element.querySelector('.ranking-definition')?.textContent).toContain(
+      'plus le JS est grand, plus le travail est long et compliqué',
+    );
+  });
+
   describe('live ranking (FR-015b, FR-015c)', () => {
     it('broadcasts the ranking of the current criterion once it starts', () => {
       const { click, room } = render([F1, F2]);

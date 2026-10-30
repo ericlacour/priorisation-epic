@@ -67,6 +67,11 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             <span class="muted small">{{ subtitle() }}</span>
           </div>
           <p class="small ranking-help">{{ messages.readOnly }}</p>
+          @if (criterion(); as criterion) {
+            <p class="small ranking-definition">
+              <b>{{ criterion.code }}</b> : {{ criterion.definition }}
+            </p>
+          }
         </div>
       </div>
 
@@ -304,7 +309,7 @@ export class LiveRankingViewComponent {
   /** Les valeurs de l'échelle de la session, croissantes. */
   protected readonly allowed = computed(() => this.room.state()?.scale.allowedValues ?? []);
 
-  private readonly criterion = computed(() => {
+  protected readonly criterion = computed(() => {
     const key = this.room.rankingRoom()?.draft.criterionKey;
     return this.room.state()?.methodDefinition.criteria.find((c) => c.key === key) ?? null;
   });
