@@ -469,48 +469,6 @@
   min-width: 64px;
 }
 
-/*
- * Classement selon la salle (FR-015c) : mêmes niveaux que le classement en direct, en plus serré. Une carte que la
- * salle déplace porte « valeur du brouillon → valeur selon la salle », teintée selon le sens.
- */
-.room-ranking .rank-item {
-  font-size: 14px;
-}
-
-.room-ranking .ranking-levels {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.room-change {
-  flex: none;
-  padding: 0 6px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-
-.rank-item[data-direction='up'] .room-change {
-  background: var(--success-soft);
-  color: var(--success);
-}
-
-.rank-item[data-direction='down'] .room-change {
-  background: var(--warning-soft);
-  color: var(--warning);
-}
-
-.rank-item[data-direction='up'] {
-  box-shadow: inset 3px 0 0 var(--success);
-}
-
-.rank-item[data-direction='down'] {
-  box-shadow: inset 3px 0 0 var(--warning);
-}
-
 /* L'identifiant ouvre le descriptif de la fonctionnalité. */
 .rank-item .fid {
   flex: 0 0 auto;

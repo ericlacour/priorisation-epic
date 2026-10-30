@@ -344,13 +344,6 @@ export const MESSAGES = {
     noMyOpinion: 'Vous n’avez encore donné aucun avis.',
     wantedLabel: 'Valeur souhaitée',
     wantedOpinion: '{opinion} à {value}',
-    roomTitle: 'Classement selon la salle',
-    roomHint:
-      'Moyenne des avis des participants : ✓ garde la valeur, ↑ et ↓ comptent pour la valeur souhaitée.',
-    roomLabel: 'Classement selon les avis de la salle',
-    roomUnranked: 'Sans valeur',
-    roomChange: '{from} → {to}',
-    roomChangeLabel: '{id} : de {from} à {to}',
     spotlight: 'En discussion',
     endSpotlight: 'Terminer la discussion',
     startSpotlight: 'Mettre en discussion',

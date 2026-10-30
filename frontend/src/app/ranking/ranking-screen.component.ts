@@ -8,7 +8,6 @@ import {
   inject,
   output,
   signal,
-  untracked,
 } from '@angular/core';
 
 import { ErrorCode, RankingDraft } from '../api/contract';
@@ -19,7 +18,7 @@ import { SessionRoomService } from '../session/session-room.service';
 import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { OpinionsPanelComponent } from './opinions-panel.component';
-import { opinionsByFeature, opinionsSignature, roomGaps, settledKey } from './opinions';
+import { opinionsByFeature, roomGaps } from './opinions';
 import { RankingStep, draftValues, newStep, reselect, resolveStep } from './ranking';
 import { RankingRoomService } from './ranking-room.service';
 
@@ -338,16 +337,13 @@ export class RankingScreenComponent {
   });
 
   /**
-   * Les discussions terminées : les avis de la carte à la fin de la discussion, par `settledKey`. Son écart ne se
-   * teinte plus, tant que ses avis ne changent pas.
+   * Les gros écarts encore à discuter, teintés dans le classement et dans le panneau des avis. Le serveur retient les
+   * discussions terminées : une page rechargée ne les teinte pas de nouveau.
    */
-  private readonly settled = signal<ReadonlyMap<string, string>>(new Map());
-
-  /** Les gros écarts encore à discuter, teintés dans le classement et dans le panneau des avis. */
   protected readonly gaps = computed(() => {
     const room = this.liveRoom();
     const scale = this.state()?.scale;
-    return room && scale ? roomGaps(room, scale.allowedValues, this.settled()) : new Map();
+    return room && scale ? roomGaps(room, scale.allowedValues) : new Map();
   });
 
   protected readonly names = computed<ReadonlyMap<string, string>>(
@@ -430,23 +426,6 @@ export class RankingScreenComponent {
       const refusal = this.room.refusal();
       if (refusal) this.failure.set(refusal.code);
       else if (this.room.connection() === 'lost') this.failure.set('NOT_CONNECTED');
-    });
-    // Une discussion se termine (« Terminer la discussion », ou une autre carte mise en discussion) : l'écart est vu.
-    let discussed: { criterionKey: string; featureId: string } | null = null;
-    effect(() => {
-      const room = this.room.rankingRoom();
-      const spotlight = room?.spotlightFeatureId ?? null;
-      if (discussed && room && discussed.featureId !== spotlight) {
-        const { criterionKey, featureId } = discussed;
-        const signature = opinionsSignature(room, featureId);
-        untracked(() =>
-          this.settled.update((settled) =>
-            new Map(settled).set(settledKey(criterionKey, featureId), signature),
-          ),
-        );
-      }
-      discussed =
-        room && spotlight ? { criterionKey: room.draft.criterionKey, featureId: spotlight } : null;
     });
     afterNextRender(() => this.focusTitle());
   }

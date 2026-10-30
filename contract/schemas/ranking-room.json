@@ -69,6 +69,24 @@
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Feature under discussion"
+    },
+    "discussed": {
+      "type": "array",
+      "description": "Cards whose discussion ended (setSpotlight to another card or null), for the criterion current when they were put under discussion, oldest first. The facilitator no longer flags their opinion gap. A changed opinion or wanted value on the card (not a comment alone), clearOpinions, or the card or criterion leaving the draft removes the entry.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["featureId", "criterionKey"],
+        "properties": {
+          "featureId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "criterionKey": {
+            "$ref": "criterion-key.json"
+          }
+        }
+      }
     }
   },
   "if": {
@@ -79,7 +97,7 @@
     }
   },
   "then": {
-    "required": ["facilitatorId", "live", "draft", "opinions", "spotlightFeatureId"],
+    "required": ["facilitatorId", "live", "draft", "opinions", "spotlightFeatureId", "discussed"],
     "not": {
       "required": ["endReason"]
     }

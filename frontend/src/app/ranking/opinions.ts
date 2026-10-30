@@ -80,57 +80,6 @@ export function defaultWanted(
   return nextValue(allowed, value, kind) ?? undefined;
 }
 
-/** La valeur de l'échelle la plus proche de `value` ; à égale distance, la plus forte. */
-function nearest(allowed: readonly number[], value: number): number {
-  return allowed.reduce((best, v) => (Math.abs(v - value) <= Math.abs(best - value) ? v : best));
-}
-
-/**
- * La valeur d'une fonctionnalité selon la salle : la moyenne des avis, ramenée à la valeur la plus proche de l'échelle.
- * « D'accord » compte pour la valeur du brouillon ; « Je monterais » ou « Je descendrais » pour la valeur demandée, ou
- * à défaut le cran suivant de l'échelle. Sans avis, la valeur du brouillon reste.
- */
-export function roomValue(
-  room: ActiveRankingRoom,
-  featureId: string,
-  allowed: readonly number[],
-): number | null {
-  const current = room.draft.values[featureId] ?? null;
-  const wanted = opinionsOf(room, featureId)
-    .map((opinion) =>
-      opinion.opinion === 'AGREE'
-        ? current
-        : (opinion.value ?? nextValue(allowed, current, opinion.opinion)),
-    )
-    .filter((value): value is number => value !== null);
-  if (wanted.length === 0 || allowed.length === 0) return current;
-  return nearest(allowed, wanted.reduce((sum, v) => sum + v, 0) / wanted.length);
-}
-
-/** Une fonctionnalité dans le classement selon la salle : sa valeur dans le brouillon et selon la salle. */
-export interface RoomEntry {
-  readonly id: string;
-  readonly current: number | null;
-  readonly value: number | null;
-}
-
-/** Le classement selon la salle : niveaux de valeur décroissante (ordre du brouillon à égalité), puis les sans valeur. */
-export function roomRanking(
-  room: ActiveRankingRoom,
-  allowed: readonly number[],
-): { readonly levels: readonly (readonly RoomEntry[])[]; readonly unranked: readonly RoomEntry[] } {
-  const entries = [...room.draft.levels.flat(), ...room.draft.unranked].map((id) => ({
-    id,
-    current: room.draft.values[id] ?? null,
-    value: roomValue(room, id, allowed),
-  }));
-  const values = [...new Set(entries.map((e) => e.value).filter((v): v is number => v !== null))];
-  return {
-    levels: values.sort((a, b) => b - a).map((v) => entries.filter((e) => e.value === v)),
-    unranked: entries.filter((e) => e.value === null),
-  };
-}
-
 /**
  * L'écart d'avis sur une fonctionnalité pour le critère en cours (FR-015c) : `low` et `high` bornent la valeur du
  * brouillon et les valeurs demandées (un ↑ ou ↓ sans valeur compte pour le cran suivant), `steps` compte les crans de
@@ -175,34 +124,22 @@ export function opinionGap(
   return { low, high, steps, opposed, level };
 }
 
-/** Les avis d'une fonctionnalité pour le critère en cours, résumés : changent dès qu'un avis change. */
-export function opinionsSignature(room: ActiveRankingRoom, featureId: string): string {
-  return opinionsOf(room, featureId)
-    .map((o) => `${o.participantId}:${o.opinion}:${o.value ?? ''}`)
-    .sort()
-    .join('|');
-}
-
-/** La clé d'une discussion terminée : la fonctionnalité, pour un critère. */
-export const settledKey = (criterionKey: string, featureId: string): string =>
-  `${criterionKey}/${featureId}`;
-
 /**
  * Les gros écarts du critère en cours, par fonctionnalité (FR-015c) : seulement les cartes signalées, sauf celles
- * dont la discussion est terminée sans que leurs avis aient changé depuis (`settled` : signature par `settledKey`).
+ * dont la discussion est terminée (`room.discussed`, que le serveur oublie dès qu'un avis sur la carte change).
  */
 export function roomGaps(
   room: ActiveRankingRoom,
   allowed: readonly number[],
-  settled: ReadonlyMap<string, string> = new Map(),
 ): ReadonlyMap<string, OpinionGap> {
+  const criterionKey = room.draft.criterionKey;
+  const discussed = new Set(
+    room.discussed.filter((c) => c.criterionKey === criterionKey).map((c) => c.featureId),
+  );
   const gaps = new Map<string, OpinionGap>();
   for (const id of new Set(room.opinions.map((o) => o.featureId))) {
     const gap = opinionGap(room, id, allowed);
-    if (!gap?.level) continue;
-    if (settled.get(settledKey(room.draft.criterionKey, id)) === opinionsSignature(room, id))
-      continue;
-    gaps.set(id, gap);
+    if (gap?.level && !discussed.has(id)) gaps.set(id, gap);
   }
   return gaps;
 }

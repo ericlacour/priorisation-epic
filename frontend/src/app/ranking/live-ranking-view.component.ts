@@ -28,7 +28,6 @@ import {
   opinionsOf,
   wantedChoices,
 } from './opinions';
-import { RoomRankingComponent } from './room-ranking.component';
 
 /** Une carte déplacée par l'animateur reste signalée ce temps-là. */
 export const MOVED_HIGHLIGHT_MS = 1_500;
@@ -44,7 +43,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 /**
  * Le classement de l'animateur suivi en direct par un participant (FR-015b), à la place du tableau, en lecture seule.
  * Chacun donne son avis sur une carte (✓, ↑, ↓) avec, pour ↑ et ↓, la valeur qu'il donnerait (le cran suivant de
- * l'échelle d'emblée) et un commentaire facultatif (FR-015c) ; à droite, le classement selon la salle. Un clic sur
+ * l'échelle d'emblée) et un commentaire facultatif (FR-015c) ; à droite, ses avis. Un clic sur
  * l'identifiant d'une carte ouvre son descriptif. La carte que l'animateur
  * vient de déplacer est signalée, et ramenée à la vue tant que le participant suit l'animateur. Sur téléphone, la vue
  * est en lecture seule, sans avis.
@@ -56,7 +55,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
     CardOpinionsComponent,
     FeatureDetailPanelComponent,
     OpinionListComponent,
-    RoomRankingComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'board-page ranking-page live-ranking', role: 'main' },
@@ -179,13 +177,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
                 </div>
               </form>
             }
-
-            <app-room-ranking
-              [room]="live"
-              [items]="features()"
-              [allowed]="allowed()"
-              (detailRequested)="detailId.set($event)"
-            />
 
             <section class="opinion-block" aria-labelledby="my-opinions-title">
               <h2 id="my-opinions-title" class="rank-column-title">

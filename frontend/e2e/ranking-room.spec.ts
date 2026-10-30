@@ -39,6 +39,7 @@ function room(features: Feature[], extra: Record<string, unknown> = {}) {
     },
     opinions: [],
     spotlightFeatureId: null,
+    discussed: [],
     ...extra,
   };
 }
@@ -154,7 +155,7 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
     ]);
   });
 
-  test('dit de combien monter une carte, voit le classement selon la salle et ouvre un descriptif', async ({
+  test('dit de combien monter une carte, sans classement selon la salle, et ouvre un descriptif', async ({
     page,
   }) => {
     await open(page, [F1, F2, F3], false);
@@ -204,10 +205,8 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
         ],
       }),
     );
-    const roomRanking = page.locator('app-room-ranking');
-    await expect(roomRanking).toContainText('Classement selon la salle');
-    await expect(roomRanking.locator(`[data-id="${F1.id}"] .room-change`)).toHaveText('10 → 4');
-    await expect(roomRanking.locator(`[data-id="${F3.id}"] .room-change`)).toHaveText('– → 8');
+    await expect(page.getByText('Je descendrais à 4')).toBeVisible();
+    await expect(page.locator('app-room-ranking')).toHaveCount(0);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
     await page.locator('.rank-ranked').getByRole('button', { name: 'F-1', exact: true }).click();

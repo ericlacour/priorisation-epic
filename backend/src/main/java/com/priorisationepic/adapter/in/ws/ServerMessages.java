@@ -72,7 +72,10 @@ final class ServerMessages {
             draft.unranked(),
             draft.values()),
         room.opinions().stream().map(ServerMessages::opinion).toList(),
-        room.spotlightFeatureId());
+        room.spotlightFeatureId(),
+        room.discussed().stream()
+            .map(card -> new Discussed(card.featureId(), card.criterionKey()))
+            .toList());
   }
 
   private static Opinion opinion(CardOpinion opinion) {
@@ -94,7 +97,10 @@ final class ServerMessages {
       boolean live,
       Draft draft,
       List<Opinion> opinions,
-      UUID spotlightFeatureId) {}
+      UUID spotlightFeatureId,
+      List<Discussed> discussed) {}
+
+  record Discussed(UUID featureId, String criterionKey) {}
 
   record Draft(
       List<String> criterionKeys,

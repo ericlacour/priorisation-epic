@@ -401,7 +401,7 @@ describe('RankingScreenComponent', () => {
       expect(room.clearOpinions).toHaveBeenCalledWith('f2', 'bv');
     });
 
-    it('tints the cards with a wide gap until their discussion ends, and again if the opinions change', () => {
+    it('tints the cards with a wide gap, except those whose discussion the server says is over', () => {
       const { click, fixture, element, room } = render([F1, F2]);
       click('Commencer le classement');
       const lowered = {
@@ -421,14 +421,11 @@ describe('RankingScreenComponent', () => {
       show({});
       expect(gap()).toBe('strong');
       expect(element.querySelector('app-opinions-panel .opinion-gap')).not.toBeNull();
-      show({ spotlightFeatureId: 'f1' });
+      show({ discussed: [{ featureId: 'f1', criterionKey: 'js' }] });
       expect(gap()).toBe('strong');
-      show({ spotlightFeatureId: null });
+      show({ discussed: [{ featureId: 'f1', criterionKey: 'bv' }] });
       expect(gap()).toBeUndefined();
       expect(element.querySelector('app-opinions-panel .opinion-gap')).toBeNull();
-
-      show({ opinions: [lowered, { ...lowered, participantId: 'p3', value: 2 }] });
-      expect(gap()).toBe('strong');
     });
   });
 });
