@@ -140,6 +140,7 @@ export class SessionRoomService {
     criterionKey: string,
     opinion: OpinionKind | null,
     comment?: string,
+    value?: number,
   ): boolean {
     return this.send({
       type: 'giveOpinion',
@@ -147,6 +148,7 @@ export class SessionRoomService {
       criterionKey,
       opinion,
       ...(comment === undefined ? {} : { comment }),
+      ...(value === undefined ? {} : { value }),
     });
   }
 

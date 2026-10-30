@@ -645,9 +645,22 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   2. **Commentaire facultatif** : un membre peut ajouter à son avis un petit commentaire
      (140 caractères au plus), sans que ce soit jamais demandé. Changer d'avis garde le
      commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire ;
+  2b. **Valeur souhaitée** (ajout du 2026-10-30) : « Je monterais » et « Je descendrais »
+     portent la valeur que le membre donnerait, une valeur de l'échelle au-dessus (↑) ou
+     au-dessous (↓) de la valeur actuelle. Le cran suivant de l'échelle est proposé d'emblée ;
+     le membre le change dans la liste « Valeur souhaitée ». La valeur se garde tant que
+     l'avis garde son sens ; elle se perd s'il change de sens ;
+  2c. **Classement selon la salle** (ajout du 2026-10-30) : à droite du classement en direct,
+     chez tous, chaque fonctionnalité prend la moyenne des avis (✓ compte pour la valeur
+     actuelle, ↑ et ↓ pour la valeur souhaitée, ou à défaut le cran suivant), ramenée à la
+     valeur la plus proche de l'échelle, et les niveaux se refont. Une carte que la salle
+     déplace porte « valeur actuelle → valeur selon la salle ». Sans avis, la valeur ne
+     change pas. Dans les deux classements, l'identifiant d'une carte ouvre son descriptif,
+     en lecture seule ;
   3. **Affichage** : chaque carte montre, chez tous, le nombre de ✓, de ↑ et de ↓, et un
      signe quand au moins un avis est commenté. Un clic (ou Entrée au clavier) sur ces
-     compteurs ouvre la liste des avis de la carte : pseudo, avis et commentaire.
+     compteurs ouvre la liste des avis de la carte : pseudo, avis (avec la valeur souhaitée) et
+     commentaire.
      L'animateur voit en plus, à côté du classement, la liste des cartes qui ont des avis
      ↑ ou ↓, de la plus discutée à la moins discutée, avec les commentaires. Depuis cette
      liste, il peut « Effacer les avis » d'une carte pour le critère en cours, par exemple

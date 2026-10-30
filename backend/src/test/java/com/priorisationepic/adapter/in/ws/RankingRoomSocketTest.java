@@ -144,7 +144,12 @@ class RankingRoomSocketTest extends PostgresTestBase {
     openRoom();
 
     for (String example :
-        List.of("raise-with-comment", "agree-without-comment", "clear-comment", "withdraw")) {
+        List.of(
+            "raise-with-comment",
+            "raise-with-value",
+            "agree-without-comment",
+            "clear-comment",
+            "withdraw")) {
       bob.send(ContractExamples.read("give-opinion", example));
       roomForBoth();
     }
@@ -172,6 +177,10 @@ class RankingRoomSocketTest extends PostgresTestBase {
 
     bob.send(ContractExamples.read("give-opinion", "clear-comment"));
     assertThat(room(alice).get("opinions").get(0).has("comment")).isFalse();
+    assertThat(room(alice).get("opinions").get(0).has("value")).isFalse();
+
+    bob.send(ContractExamples.read("give-opinion", "raise-with-value"));
+    assertThat(room(alice).get("opinions").get(0).get("value").asInt()).isEqualTo(8);
   }
 
   @Test
@@ -233,6 +242,18 @@ class RankingRoomSocketTest extends PostgresTestBase {
             + F1
             + "\",\"criterionKey\":\"bv\",\"opinion\":\"QUESTION\"}");
     assertThat(error(bob)).isEqualTo("INVALID_MESSAGE");
+
+    bob.send(
+        "{\"type\":\"giveOpinion\",\"featureId\":\""
+            + F1
+            + "\",\"criterionKey\":\"bv\",\"opinion\":\"RAISE\",\"value\":\"8\"}");
+    assertThat(error(bob)).isEqualTo("INVALID_MESSAGE");
+
+    bob.send(
+        "{\"type\":\"giveOpinion\",\"featureId\":\""
+            + F1
+            + "\",\"criterionKey\":\"bv\",\"opinion\":\"RAISE\",\"value\":1000}");
+    assertThat(error(bob)).isEqualTo("INVALID_VALUE");
 
     alice.send("{\"type\":\"updateRankingDraft\",\"live\":true}");
     assertThat(error(alice)).isEqualTo("INVALID_MESSAGE");

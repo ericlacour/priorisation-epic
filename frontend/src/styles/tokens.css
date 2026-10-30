@@ -28,11 +28,12 @@
   --offline: #8a8f98;
   --masked: repeating-linear-gradient(135deg, #f0edea 0 6px, #e7e3de 6px 12px);
   --shadow: 0 1px 2px rgb(47 51 56 / 6%), 0 4px 16px rgb(47 51 56 / 6%);
-  /* Un niveau du classement sur deux : bande et lignes teintées (texte atténué toujours AA sur la ligne), avec un
-   * filet à gauche pour marquer le changement de niveau. */
-  --rank-alt: #c3d2e7;
-  --rank-alt-item: #f0f4fb;
-  --rank-alt-accent: #5b7fb0;
+  /* Un niveau du classement sur deux : bande et lignes d'un bleu soutenu, avec un filet à gauche pour marquer le
+   * changement de niveau. Le texte atténué y prend un gris plus foncé, pour rester AA sur la ligne. */
+  --rank-alt: #8fadd8;
+  --rank-alt-item: #dbe6f6;
+  --rank-alt-accent: #1f4a85;
+  --rank-alt-muted: #565b63;
 }
 
 :root[data-theme='dark'] {
@@ -59,9 +60,10 @@
   --offline: #7a8191;
   --masked: repeating-linear-gradient(135deg, #282c32 0 6px, #2f343b 6px 12px);
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
-  --rank-alt: #3e4b5f;
-  --rank-alt-item: #2e3849;
-  --rank-alt-accent: #7d9fd0;
+  --rank-alt: #4d6894;
+  --rank-alt-item: #2a3a55;
+  --rank-alt-accent: #9bbcf0;
+  --rank-alt-muted: #a3a8b0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -89,8 +91,9 @@
     --offline: #7a8191;
     --masked: repeating-linear-gradient(135deg, #282c32 0 6px, #2f343b 6px 12px);
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
-    --rank-alt: #3e4b5f;
-    --rank-alt-item: #2e3849;
-    --rank-alt-accent: #7d9fd0;
+    --rank-alt: #4d6894;
+    --rank-alt-item: #2a3a55;
+    --rank-alt-accent: #9bbcf0;
+    --rank-alt-muted: #a3a8b0;
   }
 }

@@ -21,6 +21,7 @@ describe('OpinionsPanelComponent', () => {
     fixture.componentRef.setInput('room', room);
     fixture.componentRef.setInput('items', ITEMS);
     fixture.componentRef.setInput('names', NAMES);
+    fixture.componentRef.setInput('allowed', [1, 2, 3, 5, 8, 13, 20]);
     const spotlights: (string | null)[] = [];
     const cleared: string[] = [];
     fixture.componentInstance.spotlightChange.subscribe((id) => spotlights.push(id));
@@ -64,6 +65,23 @@ describe('OpinionsPanelComponent', () => {
     );
     expect(titles).toEqual(['F-2 Notifications', 'F-3 Fidélité']);
     expect(element.textContent).toContain('Urgent');
+  });
+
+  it('ranks the cards as the room would, a move without a value counting for the next value', () => {
+    const { element } = render({
+      ...room,
+      opinions: [
+        ...room.opinions,
+        { featureId: 'f3', criterionKey: 'bv', participantId: 'p3', opinion: 'LOWER', value: 1 },
+      ],
+    });
+    const levels = [...element.querySelectorAll('app-room-ranking .rank-level')].map((level) =>
+      [...level.querySelectorAll<HTMLElement>('.rank-item')].map((r) => r.dataset['id']),
+    );
+    expect(levels).toEqual([['f1', 'f2'], ['f3']]);
+    const f3 = element.querySelector('app-room-ranking [data-id="f3"]')!;
+    expect(f3.querySelector('.room-change')?.textContent?.trim()).toBe('5 → 2');
+    expect(element.textContent).toContain('Je descendrais à 1');
   });
 
   it('says when no card is to move', () => {

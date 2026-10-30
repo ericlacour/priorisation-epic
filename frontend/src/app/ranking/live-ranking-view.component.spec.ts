@@ -44,14 +44,16 @@ describe('LiveRankingViewComponent', () => {
     expect(element.querySelector('[draggable]')).toBeNull();
   });
 
-  it('gives an opinion, then offers an optional comment', () => {
+  it('gives an opinion with the next value of the scale, then offers an optional comment', () => {
     const { room, fixture, element, opinionButton } = render();
 
     opinionButton('f1', 'RAISE').click();
-    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', 'RAISE');
+    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', 'RAISE', undefined, 9);
     room.rankingRoom.set(
       rankingRoom({
-        opinions: [{ featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE' }],
+        opinions: [
+          { featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE', value: 9 },
+        ],
       }),
     );
     fixture.detectChanges();
@@ -66,6 +68,55 @@ describe('LiveRankingViewComponent', () => {
     fixture.detectChanges();
     expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', 'RAISE', 'Le salon de mars.');
     expect(element.querySelector('.opinion-composer')).toBeNull();
+  });
+
+  it('lets the participant say how far to move a card: only values above to raise it', () => {
+    const { room, fixture, element, opinionButton } = render();
+
+    opinionButton('f1', 'RAISE').click();
+    room.rankingRoom.set(
+      rankingRoom({
+        opinions: [
+          { featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE', value: 9 },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+    const select = element.querySelector<HTMLSelectElement>('#opinion-value')!;
+    expect([...select.options].map((o) => o.value)).toEqual(['9', '10']);
+    expect(select.value).toBe('9');
+
+    select.value = '10';
+    select.dispatchEvent(new Event('change'));
+    expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', 'RAISE', undefined, 10);
+  });
+
+  it('shows the ranking according to the room, next to the live ranking', () => {
+    const { room, fixture, element } = render();
+    room.rankingRoom.set(
+      rankingRoom({
+        opinions: [
+          { featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'LOWER', value: 3 },
+          { featureId: 'f2', criterionKey: 'bv', participantId: 'p3', opinion: 'RAISE', value: 5 },
+        ],
+      }),
+    );
+    fixture.detectChanges();
+    const panel = element.querySelector('app-room-ranking')!;
+    const rows = [...panel.querySelectorAll<HTMLElement>('.rank-item')];
+    expect(rows.map((r) => r.dataset['id'])).toEqual(['f2', 'f1']);
+    expect(rows[0]?.querySelector('.room-change')?.textContent?.trim()).toBe('– → 5');
+    expect(rows[1]?.querySelector('.room-change')?.textContent?.trim()).toBe('8 → 3');
+    expect(rows[1]?.dataset['direction']).toBe('down');
+    expect(element.textContent).not.toContain('Survolez une carte');
+  });
+
+  it('opens the description of a feature from the live ranking', () => {
+    const { fixture, element, row } = render();
+    row('f1').querySelector<HTMLButtonElement>('button.fid')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-feature-detail-panel')).not.toBeNull();
+    expect(element.querySelector('#detail-title')?.textContent).toContain('Paiement en un clic');
   });
 
   it('a comment is never required, and a second click withdraws the opinion', () => {
@@ -86,7 +137,7 @@ describe('LiveRankingViewComponent', () => {
     expect(element.querySelector('.opinion-composer')).toBeNull();
 
     opinionButton('f1', 'AGREE').click();
-    expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', null);
+    expect(room.giveOpinion).toHaveBeenLastCalledWith('f1', 'bv', null, undefined, undefined);
   });
 
   it('lists my opinions, to comment or withdraw them', () => {
@@ -113,7 +164,7 @@ describe('LiveRankingViewComponent', () => {
     [...mine.querySelectorAll<HTMLButtonElement>('button')]
       .find((b) => b.textContent?.trim() === 'Retirer')!
       .click();
-    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', null);
+    expect(room.giveOpinion).toHaveBeenCalledWith('f1', 'bv', null, undefined, undefined);
   });
 
   it('highlights the card under discussion with its opinions', () => {

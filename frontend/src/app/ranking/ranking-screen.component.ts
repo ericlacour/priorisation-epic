@@ -15,6 +15,7 @@ import { CriterionDefinition, Feature } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SessionRoomService } from '../session/session-room.service';
+import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { OpinionsPanelComponent } from './opinions-panel.component';
 import { opinionsByFeature } from './opinions';
@@ -41,7 +42,7 @@ type Changes = Readonly<Record<string, number | null>>;
  */
 @Component({
   selector: 'app-ranking-screen',
-  imports: [CriterionRankingComponent, OpinionsPanelComponent],
+  imports: [CriterionRankingComponent, FeatureDetailPanelComponent, OpinionsPanelComponent],
   providers: [RankingRoomService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -182,11 +183,20 @@ type Changes = Readonly<Record<string, number | null>>;
               [room]="liveRoom"
               [items]="items()"
               [names]="names()"
+              [allowed]="state.scale.allowedValues"
               (spotlightChange)="room.setSpotlight($event)"
+              (detailRequested)="detailId.set($event)"
               (clear)="room.clearOpinions($event, criterion.key)"
             />
           }
         </div>
+        @if (detailFeature(); as feature) {
+          <app-feature-detail-panel
+            [feature]="feature"
+            [definition]="state.methodDefinition"
+            (closed)="detailId.set(null)"
+          />
+        }
       } @else {
         <div class="ranking-setup">
           <fieldset class="card ranking-criteria">
@@ -269,6 +279,8 @@ export class RankingScreenComponent {
   protected readonly failure = signal<ErrorCode | 'NOT_CONNECTED' | null>(null);
   /** L'aide « Comment classer » est ouverte. */
   protected readonly helpOpen = signal(false);
+  /** La fonctionnalité dont le descriptif est ouvert, en lecture seule, ou `null`. */
+  protected readonly detailId = signal<string | null>(null);
   /** Les fonctionnalités telles qu'au début du classement : leurs versions et valeurs de départ. */
   private readonly base = signal<readonly Feature[]>([]);
 
@@ -286,6 +298,11 @@ export class RankingScreenComponent {
   protected readonly current = computed(() => {
     const index = this.stepIndex();
     return index === null ? null : (this.criteria()[index] ?? null);
+  });
+
+  protected readonly detailFeature = computed(() => {
+    const id = this.detailId();
+    return id === null ? null : (this.state()?.features.find((f) => f.id === id) ?? null);
   });
 
   protected readonly items = computed<ReadonlyMap<string, RankedItem>>(

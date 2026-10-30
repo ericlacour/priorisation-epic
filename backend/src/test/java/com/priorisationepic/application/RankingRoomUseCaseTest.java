@@ -246,7 +246,8 @@ class RankingRoomUseCaseTest {
     open();
 
     assertThat(
-            rejection(() -> rooms.giveOpinion(session, alice, true, f2, "bv", Opinion.RAISE, null)))
+            rejection(
+                () -> rooms.giveOpinion(session, alice, true, f2, "bv", Opinion.RAISE, null, null)))
         .isEqualTo(ErrorCode.FORBIDDEN);
   }
 
@@ -258,14 +259,16 @@ class RankingRoomUseCaseTest {
 
     assertThat(rejection(() -> open())).isEqualTo(ErrorCode.SESSION_CLOSED);
     assertThat(
-            rejection(() -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null)))
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null, null)))
         .isEqualTo(ErrorCode.SESSION_CLOSED);
   }
 
   @Test
   void withoutAnOpenRoomOnlyADraftIsAccepted() {
     assertThat(
-            rejection(() -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null)))
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null, null)))
         .isEqualTo(ErrorCode.NO_RANKING_IN_PROGRESS);
     assertThat(rejection(() -> rooms.clearOpinions(session, true, f2, "bv")))
         .isEqualTo(ErrorCode.NO_RANKING_IN_PROGRESS);
@@ -283,13 +286,30 @@ class RankingRoomUseCaseTest {
   void aParticipantGivesAnOpinionWithAnOptionalComment() {
     open();
 
-    rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, "Le salon de mars.");
+    rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, "Le salon de mars.", null);
 
     assertThat(last().opinions())
-        .containsExactly(new CardOpinion(f2, "bv", bob, Opinion.RAISE, "Le salon de mars."));
+        .containsExactly(new CardOpinion(f2, "bv", bob, Opinion.RAISE, "Le salon de mars.", null));
 
-    rooms.giveOpinion(session, bob, false, f2, "bv", null, null);
+    rooms.giveOpinion(session, bob, false, f2, "bv", null, null, null);
     assertThat(last().opinions()).isEmpty();
+  }
+
+  @Test
+  void theWantedValueIsOnTheSessionScale() {
+    open();
+
+    rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, null, 8);
+    assertThat(last().opinions().getFirst().value()).isEqualTo(8);
+
+    assertThat(
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, null, 1000)))
+        .isEqualTo(ErrorCode.INVALID_VALUE);
+    assertThat(
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null, 8)))
+        .isEqualTo(ErrorCode.INVALID_MESSAGE);
   }
 
   @Test
@@ -300,23 +320,24 @@ class RankingRoomUseCaseTest {
             rejection(
                 () ->
                     rooms.giveOpinion(
-                        session, bob, false, UUID.randomUUID(), "bv", Opinion.AGREE, null)))
+                        session, bob, false, UUID.randomUUID(), "bv", Opinion.AGREE, null, null)))
         .isEqualTo(ErrorCode.NOT_IN_RANKING);
     assertThat(
-            rejection(() -> rooms.giveOpinion(session, bob, false, f2, "tc", Opinion.AGREE, null)))
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "tc", Opinion.AGREE, null, null)))
         .isEqualTo(ErrorCode.NOT_IN_RANKING);
     assertThat(
             rejection(
                 () ->
                     rooms.giveOpinion(
-                        session, bob, false, f2, "bv", Opinion.AGREE, "x".repeat(141))))
+                        session, bob, false, f2, "bv", Opinion.AGREE, "x".repeat(141), null)))
         .isEqualTo(ErrorCode.INVALID_MESSAGE);
   }
 
   @Test
   void theFacilitatorClearsOpinionsAndPutsACardUnderDiscussion() {
     open();
-    rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, null);
+    rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.RAISE, null, null);
 
     rooms.setSpotlight(session, true, f2);
     assertThat(last().spotlightFeatureId()).isEqualTo(f2);
@@ -353,7 +374,8 @@ class RankingRoomUseCaseTest {
     assertThat(last().active()).isFalse();
     assertThat(last().endReason()).isEqualTo(EndReason.SAVED);
     assertThat(
-            rejection(() -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null)))
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null, null)))
         .isEqualTo(ErrorCode.NO_RANKING_IN_PROGRESS);
   }
 

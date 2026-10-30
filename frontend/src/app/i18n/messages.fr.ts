@@ -342,16 +342,21 @@ export const MESSAGES = {
     withdraw: 'Retirer',
     myOpinions: 'Vos avis',
     noMyOpinion: 'Vous n’avez encore donné aucun avis.',
-    howTo:
-      'Survolez une carte ou atteignez-la au clavier : ✓ d’accord, ↑ je monterais, ↓ je descendrais. Un commentaire est possible, jamais obligatoire. Un second clic retire l’avis.',
+    wantedLabel: 'Valeur souhaitée',
+    wantedOpinion: '{opinion} à {value}',
+    roomTitle: 'Classement selon la salle',
+    roomHint:
+      'Moyenne des avis des participants : ✓ garde la valeur, ↑ et ↓ comptent pour la valeur souhaitée.',
+    roomLabel: 'Classement selon les avis de la salle',
+    roomUnranked: 'Sans valeur',
+    roomChange: '{from} → {to}',
+    roomChangeLabel: '{id} : de {from} à {to}',
     spotlight: 'En discussion',
     endSpotlight: 'Terminer la discussion',
     startSpotlight: 'Mettre en discussion',
     clear: 'Effacer les avis',
     toMove: 'À monter ou descendre',
     nothingToMove: 'Aucune carte à déplacer selon la salle.',
-    panelHelp:
-      'Les participants donnent leur avis sur vos cartes. Cliquez sur les compteurs d’une carte pour lire ses avis.',
     ended: {
       SAVED: 'Le classement est terminé : le tableau est à jour.',
       CANCELLED: 'Le classement a été annulé : aucune valeur n’a changé.',

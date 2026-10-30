@@ -207,39 +207,57 @@ class RankingRoomTest {
   void eachMemberHasOneOpinionPerFeatureAndCriterion() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null);
-    room.giveOpinion(BOB, F2, "bv", Opinion.AGREE, null);
-    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, null);
-    room.giveOpinion(ALICE, F2, "js", Opinion.AGREE, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null, null);
+    room.giveOpinion(BOB, F2, "bv", Opinion.AGREE, null, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, null, null);
+    room.giveOpinion(ALICE, F2, "js", Opinion.AGREE, null, null);
 
     assertThat(room.opinions())
         .containsExactly(
-            new CardOpinion(F2, "bv", ALICE, Opinion.LOWER, null),
-            new CardOpinion(F2, "bv", BOB, Opinion.AGREE, null),
-            new CardOpinion(F2, "js", ALICE, Opinion.AGREE, null));
+            new CardOpinion(F2, "bv", ALICE, Opinion.LOWER, null, null),
+            new CardOpinion(F2, "bv", BOB, Opinion.AGREE, null, null),
+            new CardOpinion(F2, "js", ALICE, Opinion.AGREE, null, null));
   }
 
   @Test
   void theCommentIsOptionalKeptWhenTheOpinionChangesAndClearedByAnEmptyText() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Le salon de mars en dépend.");
-    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Le salon de mars en dépend.", null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, null, null);
     assertThat(room.opinions().getFirst().comment()).isEqualTo("Le salon de mars en dépend.");
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, "Plutôt après F-3.");
+    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, "Plutôt après F-3.", null);
     assertThat(room.opinions().getFirst().comment()).isEqualTo("Plutôt après F-3.");
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, "");
+    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, "", null);
     assertThat(room.opinions().getFirst().comment()).isNull();
+  }
+
+  @Test
+  void aMoveCarriesTheWantedValueKeptUntilItsDirectionChanges() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null, 13);
+    assertThat(room.opinions().getFirst().value()).isEqualTo(13);
+
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent.", null);
+    assertThat(room.opinions().getFirst().value()).isEqualTo(13);
+
+    room.giveOpinion(ALICE, F2, "bv", Opinion.LOWER, null, null);
+    assertThat(room.opinions().getFirst().value()).isNull();
+
+    assertThat(refusal(() -> room.giveOpinion(ALICE, F2, "bv", Opinion.AGREE, null, 5)))
+        .isEqualTo(Reason.VALUE_WITHOUT_MOVE);
   }
 
   @Test
   void aCommentHasAtMost140Characters() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "é".repeat(140));
-    assertThat(refusal(() -> room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "é".repeat(141))))
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "é".repeat(140), null);
+    assertThat(
+            refusal(() -> room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "é".repeat(141), null)))
         .isEqualTo(Reason.COMMENT_TOO_LONG);
     assertThat(room.opinions().getFirst().comment()).hasSize(140);
   }
@@ -247,16 +265,16 @@ class RankingRoomTest {
   @Test
   void withdrawingAnOpinionRemovesItsComment() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent.");
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent.", null);
 
-    room.giveOpinion(ALICE, F2, "bv", null, null);
+    room.giveOpinion(ALICE, F2, "bv", null, null, null);
     assertThat(room.opinions()).isEmpty();
 
-    room.giveOpinion(ALICE, F2, "bv", Opinion.AGREE, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.AGREE, null, null);
     assertThat(room.opinions().getFirst().comment()).isNull();
 
     // Retirer un avis absent ne change rien.
-    room.giveOpinion(BOB, F2, "bv", null, null);
+    room.giveOpinion(BOB, F2, "bv", null, null, null);
     assertThat(room.opinions()).hasSize(1);
   }
 
@@ -264,9 +282,11 @@ class RankingRoomTest {
   void anOpinionIsOnlyGivenOnTheDraft() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
 
-    assertThat(refusal(() -> room.giveOpinion(ALICE, UUID.randomUUID(), "bv", Opinion.AGREE, null)))
+    assertThat(
+            refusal(
+                () -> room.giveOpinion(ALICE, UUID.randomUUID(), "bv", Opinion.AGREE, null, null)))
         .isEqualTo(Reason.NOT_IN_RANKING);
-    assertThat(refusal(() -> room.giveOpinion(ALICE, F2, "tc", Opinion.AGREE, null)))
+    assertThat(refusal(() -> room.giveOpinion(ALICE, F2, "tc", Opinion.AGREE, null, null)))
         .isEqualTo(Reason.NOT_IN_RANKING);
     assertThat(room.opinions()).isEmpty();
   }
@@ -274,7 +294,7 @@ class RankingRoomTest {
   @Test
   void opinionsStayWithTheirCriterionWhenTheCardMoves() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, null, null);
 
     room.broadcast(
         new RankingDraft(
@@ -285,15 +305,15 @@ class RankingRoomTest {
             Map.of(F2, 8, F1, 5, F3, 5)));
 
     assertThat(room.opinions())
-        .containsExactly(new CardOpinion(F2, "bv", ALICE, Opinion.RAISE, null));
+        .containsExactly(new CardOpinion(F2, "bv", ALICE, Opinion.RAISE, null, null));
   }
 
   @Test
   void opinionsOnFeaturesOrCriteriaLeftOutOfTheDraftAreDropped() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
-    room.giveOpinion(ALICE, F1, "bv", Opinion.AGREE, null);
-    room.giveOpinion(ALICE, F2, "js", Opinion.RAISE, null);
-    room.giveOpinion(BOB, F3, "bv", Opinion.LOWER, null);
+    room.giveOpinion(ALICE, F1, "bv", Opinion.AGREE, null, null);
+    room.giveOpinion(ALICE, F2, "js", Opinion.RAISE, null, null);
+    room.giveOpinion(BOB, F3, "bv", Opinion.LOWER, null, null);
 
     room.broadcast(
         new RankingDraft(
@@ -304,23 +324,23 @@ class RankingRoomTest {
             Map.of(F1, 8, F2, 5)));
 
     assertThat(room.opinions())
-        .containsExactly(new CardOpinion(F1, "bv", ALICE, Opinion.AGREE, null));
+        .containsExactly(new CardOpinion(F1, "bv", ALICE, Opinion.AGREE, null, null));
   }
 
   @Test
   void theFacilitatorClearsTheOpinionsOfACardForACriterion() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
-    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent.");
-    room.giveOpinion(BOB, F2, "bv", Opinion.LOWER, null);
-    room.giveOpinion(BOB, F2, "js", Opinion.AGREE, null);
-    room.giveOpinion(BOB, F1, "bv", Opinion.AGREE, null);
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent.", null);
+    room.giveOpinion(BOB, F2, "bv", Opinion.LOWER, null, null);
+    room.giveOpinion(BOB, F2, "js", Opinion.AGREE, null, null);
+    room.giveOpinion(BOB, F1, "bv", Opinion.AGREE, null, null);
 
     room.clearOpinions(F2, "bv");
 
     assertThat(room.opinions())
         .containsExactly(
-            new CardOpinion(F2, "js", BOB, Opinion.AGREE, null),
-            new CardOpinion(F1, "bv", BOB, Opinion.AGREE, null));
+            new CardOpinion(F2, "js", BOB, Opinion.AGREE, null, null),
+            new CardOpinion(F1, "bv", BOB, Opinion.AGREE, null, null));
     assertThat(refusal(() -> room.clearOpinions(UUID.randomUUID(), "bv")))
         .isEqualTo(Reason.NOT_IN_RANKING);
     assertThat(refusal(() -> room.clearOpinions(F2, "tc"))).isEqualTo(Reason.NOT_IN_RANKING);

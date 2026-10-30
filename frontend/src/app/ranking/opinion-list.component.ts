@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 import { CardOpinion } from '../api/contract';
 import { MESSAGES } from '../i18n/messages.fr';
-import { OPINION_SYMBOLS } from './opinions';
+import { OPINION_SYMBOLS, opinionText } from './opinions';
 
-/** La liste des avis d'une carte : pseudo, avis et commentaire (FR-015c). */
+/** La liste des avis d'une carte : pseudo, avis avec sa valeur souhaitée, et commentaire (FR-015c). */
 @Component({
   selector: 'app-opinion-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,7 +15,7 @@ import { OPINION_SYMBOLS } from './opinions';
         <li>
           <b>{{ names().get(opinion.participantId) ?? '?' }}</b>
           <span class="opinion-kind" [attr.data-opinion]="opinion.opinion">
-            {{ symbols[opinion.opinion] }} {{ messages.opinions[opinion.opinion] }}
+            {{ symbols[opinion.opinion] }} {{ opinionText(opinion) }}
           </span>
           @if (opinion.comment) {
             <q class="opinion-comment">{{ opinion.comment }}</q>
@@ -34,4 +34,6 @@ export class OpinionListComponent {
   readonly opinions = input.required<readonly CardOpinion[]>();
   /** Pseudo de chaque membre, par identifiant de participant. */
   readonly names = input.required<ReadonlyMap<string, string>>();
+
+  protected readonly opinionText = opinionText;
 }

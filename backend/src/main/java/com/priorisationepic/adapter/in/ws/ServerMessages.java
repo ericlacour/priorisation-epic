@@ -81,7 +81,8 @@ final class ServerMessages {
         opinion.criterionKey(),
         opinion.participantId(),
         opinion.opinion().name(),
-        opinion.comment());
+        opinion.comment(),
+        opinion.value());
   }
 
   record EndedRankingRoom(String type, boolean active, String endReason) {}
@@ -102,8 +103,13 @@ final class ServerMessages {
       List<UUID> unranked,
       Map<UUID, Integer> values) {}
 
-  /** Un avis : {@code comment} est absent quand il n'y en a pas. */
+  /** Un avis : {@code comment} et {@code value} sont absents quand il n'y en a pas. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   record Opinion(
-      UUID featureId, String criterionKey, UUID participantId, String opinion, String comment) {}
+      UUID featureId,
+      String criterionKey,
+      UUID participantId,
+      String opinion,
+      String comment,
+      Integer value) {}
 }
