@@ -480,9 +480,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      à l'accueil), le nom de la session (tronqué, en entier au survol), son badge de statut
      et le lien « Comprendre le WSJF » (FR-016a) ; à droite, les outils, les mêmes pour
      tous les membres : « Participants (n) ▾ » (FR-005, avec « Transmettre le rôle
-     d'animateur », FR-002a), « Tours révélés (n) » (FR-022, avec le vote masqué),
-     « Exporter ▾ » (FR-023, FR-024), « Liens ▾ » (animateur seulement, FR-014b) et le
-     choix du thème ;
+     d'animateur », FR-002a), « Exporter ▾ » (FR-023, FR-024), « Liens ▾ » (animateur
+     seulement, FR-014b), « ✦ Assistant IA » (FR-014d) et le choix du thème. « Tours
+     révélés (n) » (FR-022, avec le vote masqué), qui y était réservé désactivé, est retiré
+     le 2026-10-30 : il reviendra avec le vote masqué ;
   2. la **barre d'actions**, juste en dessous, sur une ligne, avec des groupes séparés
      d'un filet :
      - pour l'animateur : **saisie** (« + Fonctionnalité », action principale, et
@@ -530,7 +531,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     pendant un tour ouvert (maquettes, écrans 4 et 4 quinquies, T097a) ;
   - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état (absente
     sans tour ouvert, sauf session clôturée), et les
-    outils de la barre de session à « Participants », « Tours révélés », « Exporter » et,
+    outils de la barre de session à « Participants », « Exporter » et,
     pour l'animateur, « Liens » (lien d'invitation seulement), sur une deuxième ligne.
 - **FR-014d** (ajout du 2026-10-30, **aperçu**) : sur ordinateur (1100 px de large ou
   plus), un panneau **« Assistant IA »** occupe la droite de l'écran de session, à côté

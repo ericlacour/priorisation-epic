@@ -116,8 +116,6 @@ export const MESSAGES = {
       IN_PROGRESS: 'En cours',
       CLOSED: 'Clôturée',
     },
-    soon: 'Disponible dans une prochaine version.',
-    revealedRounds: 'Tours révélés',
     addFeature: '+ Fonctionnalité',
     rank: 'Prioriser par classement',
     rankHint: 'Classer les fonctionnalités critère par critère, puis proposer les valeurs',

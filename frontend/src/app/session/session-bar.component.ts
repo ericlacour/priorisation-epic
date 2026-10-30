@@ -25,8 +25,8 @@ import { SessionRoomService } from './session-room.service';
  * Barre de session (FR-014c), sur une ligne, à la place de la barre de l'application : à gauche la pastille « PF »
  * (retour à l'accueil), le nom de la session tronqué (en entier au survol), son statut et une ligne d'information,
  * puis le lien « Comprendre le <méthode> » (FR-016a) ; à droite les outils, les mêmes pour tous : participants
- * (FR-005), « Tours révélés » (place réservée, active avec le vote masqué), le menu « Exporter » (FR-023, FR-024),
- * les liens de l'animateur (FR-014b) et le thème.
+ * (FR-005), le menu « Exporter » (FR-023, FR-024), les liens de l'animateur (FR-014b), l'assistant IA (FR-014d) et
+ * le thème.
  */
 @Component({
   selector: 'app-session-bar',
@@ -64,9 +64,6 @@ import { SessionRoomService } from './session-room.service';
           [participants]="state.participants"
           [meId]="state.me?.participantId ?? null"
         />
-        <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-          {{ messages.revealedRounds }}
-        </button>
         <app-export-menu [sessionId]="state.sessionId" />
         @if (room.canAnimate()) {
           <app-links-menu
