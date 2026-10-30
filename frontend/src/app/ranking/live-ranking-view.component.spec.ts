@@ -108,7 +108,12 @@ describe('LiveRankingViewComponent', () => {
 
   it('marks an agreed card for the participant, with no opinion button left on it', () => {
     const { room, fixture, row } = render();
-    room.rankingRoom.set(rankingRoom({ agreed: [{ featureId: 'f1', criterionKey: 'bv' }] }));
+    room.rankingRoom.set(
+      rankingRoom({
+        draft: { ...rankingRoom().draft, levels: [['f1'], ['f2']], unranked: [] },
+        agreed: [{ featureId: 'f1', criterionKey: 'bv' }],
+      }),
+    );
     fixture.detectChanges();
     expect(row('f1').dataset['agreed']).toBe('true');
     expect(row('f1').querySelector('.agreed-badge')?.textContent?.trim()).toBe('✓ Accord');
@@ -118,6 +123,14 @@ describe('LiveRankingViewComponent', () => {
     expect(row('f1').querySelector('.opinion-buttons')).toBeNull();
     expect(row('f2').querySelector('.opinion-buttons')).not.toBeNull();
     expect(row('f2').dataset['agreed']).toBeUndefined();
+  });
+
+  it('gives no opinion on an unranked card: it has no place yet', () => {
+    const { element, row } = render();
+    expect(row('f2').closest('.rank-unranked')).not.toBeNull();
+    expect(row('f2').querySelector('.opinion-buttons')).toBeNull();
+    expect(element.querySelector('[aria-label="Je monterais : F-2"]')).toBeNull();
+    expect(row('f1').querySelector('.opinion-buttons')).not.toBeNull();
   });
 
   it('opens the description of a feature from the live ranking', () => {

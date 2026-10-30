@@ -728,7 +728,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   Les avis et la carte en discussion ne vivent que le temps de l'écran de classement : ils
   ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025), et repartent de zéro
   au classement suivant. L'animateur ne donne pas d'avis : il déplace la carte. Ils ne
-  sont pas disponibles pendant le vote d'un tour masqué (FR-019), ni sur téléphone
+  sont pas disponibles pendant le vote d'un tour masqué (FR-019), ni sur une carte encore
+  « Non classée » pour le critère en cours (ajout du 2026-10-30 : sans place, il n'y a rien
+  à monter ou descendre ; le serveur refuse avec `NOT_IN_RANKING`, un avis déjà donné peut
+  être retiré), ni sur téléphone
   (lecture seule). Tous ces éléments ont un nom accessible et se pilotent au clavier, comme
   le glisser-déposer de FR-015a.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du

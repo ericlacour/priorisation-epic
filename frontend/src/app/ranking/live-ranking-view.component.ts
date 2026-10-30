@@ -110,7 +110,10 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               </h2>
               <ul class="rank-items rank-scroll">
                 @for (id of live.draft.unranked; track id) {
-                  <ng-container [ngTemplateOutlet]="row" [ngTemplateOutletContext]="{ id }" />
+                  <ng-container
+                    [ngTemplateOutlet]="row"
+                    [ngTemplateOutletContext]="{ id, unranked: true }"
+                  />
                 }
               </ul>
             </section>
@@ -249,7 +252,8 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
         }
       </div>
 
-      <ng-template #row let-id="id">
+      <!-- Une carte « Non classée » n'a pas de place : pas d'avis à donner sur elle. -->
+      <ng-template #row let-id="id" let-unranked="unranked">
         @if (featureOf(id); as feature) {
           <li
             class="rank-item"
@@ -280,7 +284,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               <span class="agreed-badge" [attr.title]="messages.agreedHint">{{
                 messages.agreed
               }}</span>
-            } @else if (!screen.isPhone()) {
+            } @else if (!screen.isPhone() && !unranked) {
               <span class="rank-actions opinion-buttons">
                 @for (kind of kinds; track kind) {
                   <button

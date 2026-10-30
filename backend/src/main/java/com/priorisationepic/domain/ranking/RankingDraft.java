@@ -73,6 +73,11 @@ public record RankingDraft(
     return features().contains(featureId);
   }
 
+  /** La fonctionnalité attend dans « Non classées » : elle n'a pas encore de place. */
+  public boolean isUnranked(UUID featureId) {
+    return unranked.contains(featureId);
+  }
+
   /**
    * Vérifie le brouillon contre la session : critères de la méthode, valeurs de l'échelle,
    * fonctionnalités hors d'un tour de vote ouvert (FR-018).

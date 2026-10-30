@@ -459,7 +459,7 @@ export const MESSAGES = {
     NO_RANKING_IN_PROGRESS:
       "Le classement en direct est terminé : votre avis n'a pas été envoyé. Revenez au tableau.",
     NOT_IN_RANKING:
-      "Cette fonctionnalité n'est plus dans le classement en cours : attendez la mise à jour du classement, puis réessayez.",
+      "Cette fonctionnalité n'est pas classée en ce moment : attendez que l'animateur lui donne une place, puis réessayez.",
     CARD_AGREED:
       'La salle s’est déjà mise d’accord sur cette fonctionnalité : demandez à l’animateur de la rouvrir pour en discuter de nouveau.',
     NOT_CONNECTED:
