@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 
 import { MESSAGES } from '../i18n/messages.fr';
 
 /**
  * Aperçu de l'assistant IA de priorisation, à droite du tableau : une maquette qui montre l'échange visé (questions
  * sur le classement, appuyées sur la session, Jira et la documentation des fonctionnalités). Rien n'est envoyé : le
- * dialogue est un exemple écrit, la saisie et les suggestions sont désactivées.
+ * dialogue est un exemple écrit, la saisie et les suggestions sont désactivées. Masqué par défaut, il s'affiche par
+ * « ✦ Assistant IA » dans la barre de session et se masque par la même bascule ou par sa croix.
  */
 @Component({
   selector: 'app-assistant-panel',
@@ -16,6 +17,15 @@ import { MESSAGES } from '../i18n/messages.fr';
       <h2 class="assistant-title">
         <span class="assistant-mark" aria-hidden="true">✦</span> {{ messages.title }}
         <span class="badge assistant-preview">{{ messages.preview }}</span>
+        <button
+          type="button"
+          class="btn btn-ghost btn-icon assistant-close"
+          [attr.aria-label]="messages.close"
+          [attr.title]="messages.close"
+          (click)="closed.emit()"
+        >
+          ✕
+        </button>
       </h2>
       <p class="assistant-lead">{{ messages.lead }}</p>
       <ul class="assistant-sources">
@@ -67,4 +77,7 @@ import { MESSAGES } from '../i18n/messages.fr';
 })
 export class AssistantPanelComponent {
   protected readonly messages = MESSAGES.assistant;
+
+  /** La croix masque l'aperçu. */
+  readonly closed = output<void>();
 }

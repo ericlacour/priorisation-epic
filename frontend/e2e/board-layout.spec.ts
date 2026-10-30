@@ -209,6 +209,8 @@ test('avec l’assistant IA, un message ne couvre pas le bouton « Enregistrer �
 }) => {
   await open(page, true, 'IN_PROGRESS');
   await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+  await expect(page.locator('app-assistant-panel')).toBeVisible();
   await page.locator('tbody tr').first().getByRole('button', { name: 'Modifier' }).click();
   const save = page.getByRole('button', { name: 'Enregistrer' });
   await expect(save).toBeVisible();
@@ -221,4 +223,26 @@ test('avec l’assistant IA, un message ne couvre pas le bouton « Enregistrer �
   const message = await alert.boundingBox();
   expect(message!.x).toBeGreaterThanOrEqual(table!.x + table!.width);
   await save.click({ trial: true, timeout: 2_000 });
+});
+
+test('l’aperçu de l’assistant IA est masqué par défaut, s’affiche et se masque d’un clic, choix gardé', async ({
+  page,
+}) => {
+  await open(page, false, 'IN_PROGRESS');
+  const toggle = page.getByRole('button', { name: 'Assistant IA', exact: true });
+  await expect(page.locator('app-assistant-panel')).toHaveCount(0);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+  await toggle.click();
+  await expect(page.locator('app-assistant-panel')).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await push(page, {
+    ...sessionState(manyFeatures(20), { animate: false }),
+    status: 'IN_PROGRESS',
+  });
+  await expect(page.locator('app-assistant-panel')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Masquer l’assistant IA' }).click();
+  await expect(page.locator('app-assistant-panel')).toHaveCount(0);
 });

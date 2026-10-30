@@ -762,6 +762,12 @@ app-method-info {
   margin-left: auto;
 }
 
+/* La bascule de la barre de session, enfoncée tant que l'aperçu est affiché. */
+.assistant-toggle[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
 .assistant-lead {
   margin: 4px 0 6px;
   font-size: 13px;

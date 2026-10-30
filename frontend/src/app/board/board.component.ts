@@ -32,6 +32,7 @@ import { SessionBarComponent } from '../session/session-bar.component';
 import { SessionChromeService } from '../layout/session-chrome.service';
 import { ActionBarComponent } from './action-bar.component';
 import { AssistantPanelComponent } from './assistant-panel.component';
+import { AssistantPreviewService } from './assistant-preview.service';
 import { scaleLabel } from '../shared/scale';
 
 /** Ce que le dernier envoi voulait faire, pour proposer « Remplacer par les miennes » après un conflit. */
@@ -94,7 +95,7 @@ const NEW_ROW = 'new';
         />
       }
 
-      <div class="layout-board" [class.with-assistant]="!screen.isPhone()">
+      <div class="layout-board" [class.with-assistant]="showAssistant()">
         <!-- Messages en superposition : ils ne décalent pas le tableau (FR-014c). -->
         <div class="board-messages">
           @if (room.connection() === 'lost') {
@@ -315,8 +316,8 @@ const NEW_ROW = 'new';
             </div>
           }
         </div>
-        @if (!screen.isPhone()) {
-          <app-assistant-panel />
+        @if (showAssistant()) {
+          <app-assistant-panel (closed)="assistant.hide()" />
         }
       </div>
 
@@ -361,6 +362,11 @@ export class BoardComponent {
 
   protected readonly room = inject(SessionRoomService);
   protected readonly screen = inject(ScreenSizeService);
+  protected readonly assistant = inject(AssistantPreviewService);
+  /** L'aperçu de l'assistant IA, sur ordinateur, quand on l'a affiché (FR-014d). */
+  protected readonly showAssistant = computed(
+    () => this.assistant.shown() && !this.screen.isPhone(),
+  );
 
   protected readonly messages = MESSAGES.board;
   protected readonly conflictMessages = MESSAGES.conflict;

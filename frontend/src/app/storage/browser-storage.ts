@@ -18,11 +18,13 @@ export const LOCAL_STORAGE = new InjectionToken<() => Storage | null>('LOCAL_STO
 const PSEUDO_KEY = 'pe.pseudo';
 /** Clé du thème choisi, lue aussi par `main.ts` avant le démarrage d'Angular. */
 export const THEME_KEY = 'pe.theme';
+/** Aperçu de l'assistant IA affiché (`on`) ou masqué (autre valeur, ou absent). */
+const ASSISTANT_KEY = 'pe.assistant';
 const tokenKey = (sessionId: string) => `pe.token.${sessionId}`;
 const animationKey = (sessionId: string) => `pe.animation.${sessionId}`;
 
 /**
- * Jeton par session (`pe.token.{sessionId}`), jeton d'animation (`pe.animation.{sessionId}`), dernier pseudo (`pe.pseudo`) et thème choisi (`pe.theme`). Aucune
+ * Jeton par session (`pe.token.{sessionId}`), jeton d'animation (`pe.animation.{sessionId}`), dernier pseudo (`pe.pseudo`), thème choisi (`pe.theme`) et aperçu de l'assistant IA affiché ou non (`pe.assistant`). Aucune
  * méthode ne lève. Quand le `localStorage` est indisponible ou refuse l'écriture, les valeurs sont gardées en mémoire
  * pour la durée de la page : le jeton obtenu en rejoignant reste ainsi utilisable par la connexion de session.
  */
@@ -46,6 +48,15 @@ export class BrowserStorage {
 
   saveTheme(theme: string): void {
     this.write(THEME_KEY, theme);
+  }
+
+  /** L'aperçu de l'assistant IA est-il affiché ? Masqué par défaut. */
+  readAssistantShown(): boolean {
+    return this.read(ASSISTANT_KEY) === 'on';
+  }
+
+  saveAssistantShown(shown: boolean): void {
+    this.write(ASSISTANT_KEY, shown ? 'on' : 'off');
   }
 
   readToken(sessionId: string): string | null {

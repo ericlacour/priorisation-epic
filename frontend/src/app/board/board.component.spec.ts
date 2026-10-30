@@ -19,6 +19,8 @@ import {
   state,
 } from '../testing/fixtures';
 import { memoryStorage } from '../testing/helpers';
+import { LOCAL_STORAGE } from '../storage/browser-storage';
+import { AssistantPreviewService } from './assistant-preview.service';
 import { BoardComponent } from './board.component';
 
 describe('BoardComponent', () => {
@@ -81,15 +83,36 @@ describe('BoardComponent', () => {
     expect(render({ phone: true }).element.querySelector('app-action-bar')).toBeNull();
   });
 
-  it('shows the AI assistant preview next to the table, but not on a phone', () => {
-    const { element } = render({ animate: false });
+  it('hides the AI assistant preview by default; the session bar toggle shows it and remembers it', () => {
+    const { fixture, element } = render({ animate: false });
+    const stored = () => TestBed.inject(LOCAL_STORAGE)()?.getItem('pe.assistant');
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(element.querySelector('.layout-board.with-assistant')).toBeNull();
+
+    const toggle = element.querySelector<HTMLButtonElement>('.assistant-toggle')!;
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    toggle.click();
+    fixture.detectChanges();
     const assistant = element.querySelector('app-assistant-panel')!;
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(stored()).toBe('on');
     expect(assistant.getAttribute('aria-label')).toContain('Assistant IA');
     expect(assistant.textContent).toContain('Jira');
     expect(assistant.querySelectorAll('.assistant-message').length).toBeGreaterThan(2);
     expect(assistant.querySelector('textarea')?.disabled).toBe(true);
-    TestBed.resetTestingModule();
-    expect(render({ phone: true }).element.querySelector('app-assistant-panel')).toBeNull();
+
+    assistant.querySelector<HTMLButtonElement>('.assistant-close')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(stored()).toBe('off');
+  });
+
+  it('never shows the AI assistant preview nor its toggle on a phone', () => {
+    const { fixture, element } = render({ phone: true });
+    TestBed.inject(AssistantPreviewService).toggle();
+    fixture.detectChanges();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(element.querySelector('.assistant-toggle')).toBeNull();
   });
 
   it('shows the read-only banner to a facilitator on a phone when the session is closed', () => {

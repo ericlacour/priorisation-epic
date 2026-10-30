@@ -534,7 +534,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   complète** des fonctionnalités (expliquer un rang, justifier une valeur, repérer les
   fonctionnalités mal décrites ou en doublon, proposer une mise en discussion). Pour
   l'instant, c'est une **maquette** : un exemple de dialogue écrit, des suggestions et une
-  saisie désactivées, et la mention « l'assistant n'est pas encore branché ». Pour lui
+  saisie désactivées, et la mention « l'assistant n'est pas encore branché ». Depuis le
+  2026-10-30, il est **masqué par défaut** : le bouton « ✦ Assistant IA » de la barre de
+  session l'affiche ou le masque, sa croix le masque aussi, et le choix est gardé dans le
+  navigateur (`pe.assistant`), jamais envoyé au serveur. Pour lui
   faire de la place, la colonne du titre (100 caractères au plus) se tronque, le titre
   complet restant au survol : au-delà d'environ 1500 px pour le tableau, la largeur va à
   l'assistant. Sur téléphone, il n'est pas affiché.
@@ -694,8 +697,18 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   4. **Carte en discussion** : depuis la liste des avis, l'animateur peut « Mettre en
      discussion » une fonctionnalité. Elle est mise en avant
      chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer
-     la discussion » ou mette une autre carte en discussion. Une seule carte est en
-     discussion à la fois.
+     sans accord » (« Terminer la discussion » avant le 2026-10-30), « Accord trouvé » ou
+     mette une autre carte en discussion. Une seule carte est en discussion à la fois ;
+  5. **Accord trouvé** (ajout du 2026-10-30) : quand la salle s'est mise d'accord sur une
+     carte, l'animateur clique sur « ✓ Accord trouvé », depuis la carte en discussion ou
+     depuis la liste des cartes à monter ou descendre. Pour le critère en cours, la carte est
+     alors marquée **chez tous** d'un fond vert et d'un badge « ✓ Accord » (au survol :
+     « Discutée en séance : la salle s'est mise d'accord, on n'y revient pas »). Ses avis
+     sont effacés, sa discussion se termine, et chez les participants le badge **remplace
+     les boutons d'avis** : on ne peut plus donner d'avis sur elle (le serveur refuse avec
+     `CARD_AGREED`). L'animateur retrouve ces cartes sous « Accords trouvés », dans son
+     panneau, et peut les « Rouvrir ». Le serveur les retient dans la salle
+     (`rankingRoom.agreed`, intention `settleCard`) : une page rechargée les montre toujours.
 
   Les avis et la carte en discussion ne vivent que le temps de l'écran de classement : ils
   ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025), et repartent de zéro
