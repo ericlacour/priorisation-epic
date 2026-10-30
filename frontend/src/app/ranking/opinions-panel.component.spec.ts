@@ -163,7 +163,52 @@ describe('OpinionsPanelComponent', () => {
     expect(
       [...element.querySelectorAll('.opinion-card-title')].map((t) => t.textContent),
     ).toHaveLength(2);
-    click(spotlight, 'Terminer la discussion');
+    click(spotlight, 'Terminer sans accord');
     expect(spotlights).toEqual([null]);
+  });
+
+  it('settles the card under discussion or a card to move with « Accord trouvé »', () => {
+    const fixture = TestBed.createComponent(OpinionsPanelComponent);
+    fixture.componentRef.setInput('room', { ...room, spotlightFeatureId: 'f3' });
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.componentRef.setInput('names', NAMES);
+    const settled: { id: string; agreed: boolean }[] = [];
+    fixture.componentInstance.settle.subscribe((s) => settled.push(s));
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    for (const card of element.querySelectorAll('.opinion-card')) {
+      [...card.querySelectorAll<HTMLButtonElement>('button')]
+        .find((b) => b.textContent?.trim() === '✓ Accord trouvé')!
+        .click();
+    }
+    expect(settled).toEqual([
+      { id: 'f3', agreed: true },
+      { id: 'f2', agreed: true },
+    ]);
+  });
+
+  it('lists the agreements of the current criterion, each one can be reopened', () => {
+    const fixture = TestBed.createComponent(OpinionsPanelComponent);
+    fixture.componentRef.setInput('room', {
+      ...room,
+      agreed: [
+        { featureId: 'f3', criterionKey: 'bv' },
+        { featureId: 'f1', criterionKey: 'js' },
+      ],
+    });
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.componentRef.setInput('names', NAMES);
+    const settled: { id: string; agreed: boolean }[] = [];
+    fixture.componentInstance.settle.subscribe((s) => settled.push(s));
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const list = element.querySelector('.agreed-list')!;
+    expect(list.querySelectorAll('li')).toHaveLength(1);
+    expect(list.textContent).toContain('F-3');
+    expect(list.textContent).toContain('✓ Accord');
+    list
+      .querySelector<HTMLButtonElement>('button[aria-label="Rouvrir la discussion sur F-3"]')!
+      .click();
+    expect(settled).toEqual([{ id: 'f3', agreed: false }]);
   });
 });

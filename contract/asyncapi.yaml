@@ -20,7 +20,7 @@ info:
     - The contract only evolves by addition. The messages of the user journeys are added to this
       file with their schemas, task by task.
     - Exception, the live ranking room (FR-015b, FR-015c): `updateRankingDraft`, `endRanking`,
-      `giveOpinion`, `clearOpinions` and `setSpotlight` write nothing to the database, do not
+      `giveOpinion`, `clearOpinions`, `setSpotlight` and `settleCard` write nothing to the database, do not
       increment `version` and do not trigger `sessionState`. After each accepted one, every
       connection of the session gets `rankingRoom`. The room lives in memory, one per session,
       from the first `updateRankingDraft` to its end; a server restart only ends it. Opinions and
@@ -87,6 +87,8 @@ channels:
         $ref: '#/components/messages/clearOpinions'
       setSpotlight:
         $ref: '#/components/messages/setSpotlight'
+      settleCard:
+        $ref: '#/components/messages/settleCard'
       rankingRoom:
         $ref: '#/components/messages/rankingRoom'
     x-close-codes:
@@ -184,6 +186,13 @@ operations:
     summary: Start or end the card under discussion (FR-015c), facilitator only.
     messages:
       - $ref: '#/channels/session/messages/setSpotlight'
+  receiveSettleCard:
+    action: receive
+    channel:
+      $ref: '#/channels/session'
+    summary: Mark a card as agreed for a criterion, or reopen it (FR-015c), facilitator only.
+    messages:
+      - $ref: '#/channels/session/messages/settleCard'
   sendRankingRoom:
     action: send
     channel:
@@ -306,6 +315,12 @@ components:
       summary: Start or end the card under discussion (FR-015c), facilitator only.
       payload:
         $ref: './schemas/set-spotlight.json'
+    settleCard:
+      name: settleCard
+      title: settleCard
+      summary: Mark a card as agreed for a criterion, or reopen it (FR-015c), facilitator only.
+      payload:
+        $ref: './schemas/settle-card.json'
     rankingRoom:
       name: rankingRoom
       title: rankingRoom

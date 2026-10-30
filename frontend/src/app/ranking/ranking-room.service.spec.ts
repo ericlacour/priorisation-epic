@@ -110,6 +110,7 @@ describe('RankingRoomService', () => {
       opinions: [],
       spotlightFeatureId: null,
       discussed: [],
+      agreed: [],
     });
     TestBed.tick();
     connection.set('lost');

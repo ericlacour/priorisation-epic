@@ -18,7 +18,7 @@ import { SessionRoomService } from '../session/session-room.service';
 import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { OpinionsPanelComponent } from './opinions-panel.component';
-import { opinionsByFeature, roomGaps } from './opinions';
+import { agreedIds, opinionsByFeature, roomGaps } from './opinions';
 import { RankingStep, draftValues, newStep, reselect, resolveStep } from './ranking';
 import { RankingRoomService } from './ranking-room.service';
 
@@ -168,6 +168,7 @@ type Changes = Readonly<Record<string, number | null>>;
             [names]="names()"
             [spotlightId]="liveRoom()?.spotlightFeatureId ?? null"
             [gaps]="gaps()"
+            [agreedIds]="agreedIds()"
             (stepChange)="setStep(criterion.key, $event)"
           >
             <button
@@ -195,6 +196,7 @@ type Changes = Readonly<Record<string, number | null>>;
               (spotlightChange)="room.setSpotlight($event)"
               (detailRequested)="detailId.set($event)"
               (clear)="room.clearOpinions($event, criterion.key)"
+              (settle)="room.settleCard($event.id, criterion.key, $event.agreed)"
             />
           }
         </div>
@@ -337,6 +339,12 @@ export class RankingScreenComponent {
   protected readonly opinions = computed(() => {
     const room = this.liveRoom();
     return room ? opinionsByFeature(room) : new Map();
+  });
+
+  /** Les cartes où la salle s'est mise d'accord pour le critère affiché. */
+  protected readonly agreedIds = computed(() => {
+    const room = this.liveRoom();
+    return room ? agreedIds(room) : new Set<string>();
   });
 
   /**

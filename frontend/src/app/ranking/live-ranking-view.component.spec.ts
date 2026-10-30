@@ -105,6 +105,20 @@ describe('LiveRankingViewComponent', () => {
     expect(element.textContent).not.toContain('Classement selon la salle');
   });
 
+  it('marks an agreed card for the participant, with no opinion button left on it', () => {
+    const { room, fixture, row } = render();
+    room.rankingRoom.set(rankingRoom({ agreed: [{ featureId: 'f1', criterionKey: 'bv' }] }));
+    fixture.detectChanges();
+    expect(row('f1').dataset['agreed']).toBe('true');
+    expect(row('f1').querySelector('.agreed-badge')?.textContent?.trim()).toBe('✓ Accord');
+    expect(row('f1').querySelector('.agreed-badge')?.getAttribute('title')).toContain(
+      'on n’y revient pas',
+    );
+    expect(row('f1').querySelector('.opinion-buttons')).toBeNull();
+    expect(row('f2').querySelector('.opinion-buttons')).not.toBeNull();
+    expect(row('f2').dataset['agreed']).toBeUndefined();
+  });
+
   it('opens the description of a feature from the live ranking', () => {
     const { fixture, element, row } = render();
     row('f1').querySelector<HTMLButtonElement>('button.fid')!.click();

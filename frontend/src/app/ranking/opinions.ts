@@ -37,6 +37,14 @@ export function opinionsByFeature(
   return byFeature;
 }
 
+/** Les fonctionnalités où la salle s'est mise d'accord pour le critère en cours (FR-015c, point 5). */
+export function agreedIds(room: ActiveRankingRoom): ReadonlySet<string> {
+  const criterionKey = room.draft.criterionKey;
+  return new Set(
+    room.agreed.filter((c) => c.criterionKey === criterionKey).map((c) => c.featureId),
+  );
+}
+
 /**
  * Les fonctionnalités que la salle voudrait monter ou descendre pour le critère en cours, de la plus demandée à la
  * moins demandée (à égalité, dans l'ordre du brouillon).

@@ -196,6 +196,7 @@ describe('contract: rankingRoom', () => {
     ],
     spotlightFeatureId: null,
     discussed: [],
+    agreed: [],
   };
 
   it('reads an open room and a closed one', () => {
@@ -215,6 +216,8 @@ describe('contract: rankingRoom', () => {
     expect(parseServerMessage({ ...room, live: 'yes' })).toBeNull();
     expect(parseServerMessage({ ...room, spotlightFeatureId: 3 })).toBeNull();
     expect(parseServerMessage({ ...room, discussed: undefined })).toBeNull();
+    expect(parseServerMessage({ ...room, agreed: undefined })).toBeNull();
+    expect(parseServerMessage({ ...room, agreed: [{ criterionKey: 'bv' }] })).toBeNull();
     expect(parseServerMessage({ ...room, discussed: [{ featureId: 'f1' }] })).toBeNull();
     expect(parseServerMessage({ ...room, draft: { ...room.draft, levels: [[1]] } })).toBeNull();
     expect(

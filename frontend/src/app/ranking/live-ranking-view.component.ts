@@ -22,6 +22,7 @@ import { CardOpinionsComponent } from './card-opinions.component';
 import { OpinionListComponent } from './opinion-list.component';
 import {
   OPINION_SYMBOLS,
+  agreedIds,
   defaultWanted,
   opinionText,
   opinionsByFeature,
@@ -145,42 +146,50 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             }
 
             @if (composing(); as draft) {
-              <form class="opinion-card opinion-composer" (submit)="sendComment($event)">
-                <p class="opinion-card-title">{{ composerTitle(draft.id, draft.kind) }}</p>
-                @if (choices(live, draft.id, draft.kind).length > 0) {
-                  <div class="opinion-wanted">
-                    <label class="small" for="opinion-value">{{ messages.wantedLabel }}</label>
-                    <select
-                      id="opinion-value"
-                      class="input"
-                      [value]="wantedOf(draft.id)"
-                      (change)="setWanted(draft.id, draft.kind, $any($event.target).value)"
+              @if (agreed().has(draft.id)) {
+                <!-- Un accord vient d'être trouvé sur la carte : le commentaire n'a plus lieu d'être. -->
+              } @else {
+                <form class="opinion-card opinion-composer" (submit)="sendComment($event)">
+                  <p class="opinion-card-title">{{ composerTitle(draft.id, draft.kind) }}</p>
+                  @if (choices(live, draft.id, draft.kind).length > 0) {
+                    <div class="opinion-wanted">
+                      <label class="small" for="opinion-value">{{ messages.wantedLabel }}</label>
+                      <select
+                        id="opinion-value"
+                        class="input"
+                        [value]="wantedOf(draft.id)"
+                        (change)="setWanted(draft.id, draft.kind, $any($event.target).value)"
+                      >
+                        @for (value of choices(live, draft.id, draft.kind); track value) {
+                          <option [value]="value" [selected]="value === wantedOf(draft.id)">
+                            {{ value }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  }
+                  <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
+                  <input
+                    id="opinion-comment"
+                    class="input"
+                    maxlength="140"
+                    [placeholder]="messages.commentPlaceholder"
+                    [value]="mine().get(draft.id)?.comment ?? ''"
+                  />
+                  <div class="board-actions">
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      (click)="composing.set(null)"
                     >
-                      @for (value of choices(live, draft.id, draft.kind); track value) {
-                        <option [value]="value" [selected]="value === wantedOf(draft.id)">
-                          {{ value }}
-                        </option>
-                      }
-                    </select>
+                      {{ messages.commentSkip }}
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      {{ messages.commentSend }}
+                    </button>
                   </div>
-                }
-                <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
-                <input
-                  id="opinion-comment"
-                  class="input"
-                  maxlength="140"
-                  [placeholder]="messages.commentPlaceholder"
-                  [value]="mine().get(draft.id)?.comment ?? ''"
-                />
-                <div class="board-actions">
-                  <button type="button" class="btn btn-ghost btn-sm" (click)="composing.set(null)">
-                    {{ messages.commentSkip }}
-                  </button>
-                  <button type="submit" class="btn btn-primary btn-sm">
-                    {{ messages.commentSend }}
-                  </button>
-                </div>
-              </form>
+                </form>
+              }
             }
 
             <section class="opinion-block" aria-labelledby="my-opinions-title">
@@ -230,6 +239,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             [attr.data-id]="id"
             [class.spotlight]="live.spotlightFeatureId === id"
             [class.just-moved]="moved().has(id)"
+            [attr.data-agreed]="agreed().has(id) || null"
           >
             <button
               type="button"
@@ -248,7 +258,12 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               />
             }
             <span class="rank-value live-value">{{ valueOf(live, id) }}</span>
-            @if (!screen.isPhone()) {
+            @if (agreed().has(id)) {
+              <!-- Accord trouvé : plus d'avis sur cette carte, on n'y revient pas. -->
+              <span class="agreed-badge" [attr.title]="messages.agreedHint">{{
+                messages.agreed
+              }}</span>
+            } @else if (!screen.isPhone()) {
               <span class="rank-actions opinion-buttons">
                 @for (kind of kinds; track kind) {
                   <button
@@ -322,6 +337,12 @@ export class LiveRankingViewComponent {
   protected readonly opinions = computed(() => {
     const room = this.room.rankingRoom();
     return room ? opinionsByFeature(room) : new Map<string, readonly CardOpinion[]>();
+  });
+
+  /** Les cartes où la salle s'est mise d'accord pour le critère en cours : elles ne reçoivent plus d'avis. */
+  protected readonly agreed = computed(() => {
+    const room = this.room.rankingRoom();
+    return room ? agreedIds(room) : new Set<string>();
   });
 
   /** Mes avis sur le critère en cours, par fonctionnalité. */

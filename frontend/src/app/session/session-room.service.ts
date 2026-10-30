@@ -162,6 +162,11 @@ export class SessionRoomService {
     return this.send({ type: 'setSpotlight', featureId });
   }
 
+  /** « Accord trouvé » sur une carte pour un critère, ou sa réouverture avec `false` (animateur). */
+  settleCard(featureId: string, criterionKey: string, agreed: boolean): boolean {
+    return this.send({ type: 'settleCard', featureId, criterionKey, agreed });
+  }
+
   /** Le message de fin de la salle a été lu. */
   dismissRankingEnd(): void {
     this.rankingEndSignal.set(null);

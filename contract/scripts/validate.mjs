@@ -48,6 +48,7 @@ const MESSAGE_ACTIONS = {
   giveOpinion: 'receive',
   clearOpinions: 'receive',
   setSpotlight: 'receive',
+  settleCard: 'receive',
   sessionState: 'send',
   rankingRoom: 'send',
   facilitatorHandover: 'send',

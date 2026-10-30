@@ -75,6 +75,9 @@ final class ServerMessages {
         room.spotlightFeatureId(),
         room.discussed().stream()
             .map(card -> new Discussed(card.featureId(), card.criterionKey()))
+            .toList(),
+        room.agreed().stream()
+            .map(card -> new Discussed(card.featureId(), card.criterionKey()))
             .toList());
   }
 
@@ -98,7 +101,8 @@ final class ServerMessages {
       Draft draft,
       List<Opinion> opinions,
       UUID spotlightFeatureId,
-      List<Discussed> discussed) {}
+      List<Discussed> discussed,
+      List<Discussed> agreed) {}
 
   record Discussed(UUID featureId, String criterionKey) {}
 

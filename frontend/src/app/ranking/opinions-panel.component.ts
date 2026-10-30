@@ -6,17 +6,18 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { RankedItem } from './criterion-ranking.component';
 import { OpinionListComponent } from './opinion-list.component';
-import { OpinionGap, cardsToMove, opinionsOf } from './opinions';
+import { OpinionGap, agreedIds, cardsToMove, opinionsOf } from './opinions';
+
+/** L'ordre des cartes à déplacer selon leur écart d'avis. */
+const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
 
 /**
  * Le panneau de l'animateur pendant un classement diffusé (FR-015c) : la carte en discussion avec ses avis, puis les
  * cartes que la salle voudrait monter ou descendre, avec les valeurs souhaitées et les commentaires. Les cartes aux
  * avis les plus éloignés (`gaps`, voir `roomGaps`) passent en tête, teintées selon l'écart ; à écart égal, de la plus
- * demandée à la moins demandée. Chacune se met en discussion ou voit ses avis effacés d'un clic ; son identifiant
- * ouvre le descriptif.
+ * demandée à la moins demandée. Chacune se met en discussion, reçoit « Accord trouvé » ou voit ses avis effacés d'un
+ * clic ; son identifiant ouvre le descriptif. En bas, les accords trouvés, que l'animateur peut rouvrir.
  */
-/** L'ordre des cartes à déplacer selon leur écart d'avis. */
-const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
 
 @Component({
   selector: 'app-opinions-panel',
@@ -31,6 +32,14 @@ const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
           <ng-container [ngTemplateOutlet]="title" [ngTemplateOutletContext]="{ id }" />
           <app-opinion-list [opinions]="opinionsOf(id)" [names]="names()" />
           <div class="board-actions">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              [attr.title]="messages.settleHint"
+              (click)="settle.emit({ id, agreed: true })"
+            >
+              {{ messages.settle }}
+            </button>
             <button
               type="button"
               class="btn btn-secondary btn-sm"
@@ -61,6 +70,14 @@ const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
             >
               {{ messages.startSpotlight }}
             </button>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [attr.title]="messages.settleHint"
+              (click)="settle.emit({ id, agreed: true })"
+            >
+              {{ messages.settle }}
+            </button>
             <button type="button" class="btn btn-ghost btn-sm" (click)="clear.emit(id)">
               {{ messages.clear }}
             </button>
@@ -70,6 +87,34 @@ const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
         <p class="muted small">{{ messages.nothingToMove }}</p>
       }
     </section>
+    @if (agreed().length > 0) {
+      <section class="opinion-block" aria-labelledby="agreed-title">
+        <h2 id="agreed-title" class="rank-column-title">
+          {{ messages.agreedTitle }} <span class="rank-count">{{ agreed().length }}</span>
+        </h2>
+        <ul class="agreed-list">
+          @for (id of agreed(); track id) {
+            <li>
+              <span class="agreed-badge" [attr.title]="messages.agreedHint">{{
+                messages.agreed
+              }}</span>
+              <span class="agreed-name">
+                <span class="fid-text">{{ items().get(id)?.externalId }}</span>
+                {{ items().get(id)?.title }}
+              </span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm"
+                [attr.aria-label]="reopenLabel(id)"
+                (click)="settle.emit({ id, agreed: false })"
+              >
+                {{ messages.reopen }}
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
 
     <ng-template #title let-id="id">
       <p class="opinion-card-title">
@@ -102,6 +147,8 @@ export class OpinionsPanelComponent {
 
   /** Mettre une carte en discussion, ou terminer la discussion (`null`). */
   readonly spotlightChange = output<string | null>();
+  /** « Accord trouvé » sur une carte pour le critère en cours, ou sa réouverture. */
+  readonly settle = output<{ readonly id: string; readonly agreed: boolean }>();
   /** « Effacer les avis » d'une carte pour le critère en cours. */
   readonly clear = output<string>();
   /** Ouvrir le descriptif d'une fonctionnalité. */
@@ -119,6 +166,17 @@ export class OpinionsPanelComponent {
       .filter((id) => id !== this.spotlight())
       .sort((a, b) => rank(a) - rank(b) || steps(b) - steps(a));
   });
+
+  /** Les cartes où la salle s'est mise d'accord pour ce critère, dans l'ordre du brouillon. */
+  protected readonly agreed = computed(() => {
+    const ids = agreedIds(this.room());
+    const draft = this.room().draft;
+    return [...draft.levels.flat(), ...draft.unranked].filter((id) => ids.has(id));
+  });
+
+  protected reopenLabel(id: string): string {
+    return format(this.messages.reopenLabel, { id: this.items().get(id)?.externalId ?? id });
+  }
 
   protected gapText(gap: OpinionGap): string {
     return format(this.messages.gap, { low: gap.low, high: gap.high });

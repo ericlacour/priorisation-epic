@@ -177,6 +177,7 @@ type Action = 'up' | 'down' | 'join' | 'last';
           [class.dragging]="dragged() === id"
           [class.spotlight]="spotlightId() === id"
           [attr.data-gap]="gaps().get(id)?.level ?? null"
+          [attr.data-agreed]="agreedIds().has(id) || null"
           [attr.title]="gaps().has(id) ? gapLabel : null"
         >
           <span
@@ -192,6 +193,9 @@ type Action = 'up' | 'down' | 'join' | 'last';
           <span class="rank-title" [attr.title]="item.title">{{ item.title }}</span>
           @if (gaps().has(id)) {
             <span class="sr-only">{{ gapLabel }}</span>
+          }
+          @if (agreedIds().has(id)) {
+            <span class="agreed-badge" [attr.title]="agreedHint">{{ agreedLabel }}</span>
           }
           @if (opinions().get(id); as cardOpinions) {
             <app-card-opinions
@@ -282,6 +286,8 @@ export class CriterionRankingComponent {
   private readonly injector = inject(Injector);
   protected readonly messages = MESSAGES.ranking;
   protected readonly gapLabel = MESSAGES.liveRanking.gapCard;
+  protected readonly agreedLabel = MESSAGES.liveRanking.agreed;
+  protected readonly agreedHint = MESSAGES.liveRanking.agreedHint;
 
   readonly items = input.required<ReadonlyMap<string, RankedItem>>();
   readonly criterion = input.required<CriterionDefinition>();
@@ -295,6 +301,8 @@ export class CriterionRankingComponent {
   readonly spotlightId = input<string | null>(null);
   /** Les gros écarts d'avis encore à discuter (FR-015c), teintés sur les cartes. */
   readonly gaps = input<ReadonlyMap<string, OpinionGap>>(new Map());
+  /** Les cartes où la salle s'est mise d'accord (FR-015c, point 5), marquées « ✓ Accord ». */
+  readonly agreedIds = input<ReadonlySet<string>>(new Set());
 
   protected readonly dragged = signal<string | null>(null);
   protected readonly dropTarget = signal<string | null>(null);

@@ -593,6 +593,52 @@
   box-shadow: inset 4px 0 0 var(--danger);
 }
 
+/*
+ * Accord trouvé (FR-015c, point 5) : la carte est discutée et validée, on n'y revient pas. Vert, chez tous, avec un
+ * badge « ✓ Accord » qui remplace les boutons d'avis des participants.
+ */
+.rank-item[data-agreed] {
+  background: var(--success-soft);
+  box-shadow: inset 4px 0 0 var(--success);
+}
+
+.agreed-badge {
+  flex: none;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px var(--success);
+}
+
+.agreed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agreed-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.agreed-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* La carte en discussion, et celle que l'animateur vient de déplacer. */
 .rank-item.spotlight {
   outline: 2px solid var(--primary);

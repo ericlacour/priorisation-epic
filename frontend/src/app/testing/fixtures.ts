@@ -213,6 +213,7 @@ export function rankingRoom(overrides: Partial<ActiveRankingRoom> = {}): ActiveR
     opinions: [],
     spotlightFeatureId: null,
     discussed: [],
+    agreed: [],
     ...overrides,
   };
 }

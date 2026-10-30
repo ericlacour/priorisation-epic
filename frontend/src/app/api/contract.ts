@@ -58,6 +58,7 @@ export const ERROR_CODES = [
   'SESSION_NAME_TAKEN',
   'NO_RANKING_IN_PROGRESS',
   'NOT_IN_RANKING',
+  'CARD_AGREED',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -194,6 +195,8 @@ export interface ActiveRankingRoom {
   readonly spotlightFeatureId: string | null;
   /** Les cartes dont la discussion est terminée, par critère : leur écart d'avis ne se signale plus (FR-015c). */
   readonly discussed: readonly DiscussedCard[];
+  /** Les cartes où la salle s'est mise d'accord, par critère : on n'y revient pas (FR-015c, point 5). */
+  readonly agreed: readonly DiscussedCard[];
 }
 
 /** Une carte dont la discussion est terminée, pour un critère. */
@@ -397,7 +400,9 @@ function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | n
     !json['opinions'].every(isCardOpinion) ||
     !(spotlight === null || isText(spotlight)) ||
     !Array.isArray(json['discussed']) ||
-    !json['discussed'].every(isDiscussedCard)
+    !json['discussed'].every(isDiscussedCard) ||
+    !Array.isArray(json['agreed']) ||
+    !json['agreed'].every(isDiscussedCard)
   ) {
     return null;
   }
@@ -410,6 +415,7 @@ function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | n
     opinions: json['opinions'],
     spotlightFeatureId: spotlight,
     discussed: json['discussed'],
+    agreed: json['agreed'],
   };
 }
 

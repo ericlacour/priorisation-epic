@@ -10,6 +10,7 @@ import com.priorisationepic.adapter.in.ws.ClientMessages.GiveOpinionMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HeartbeatMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.HelloMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.SetSpotlightMessage;
+import com.priorisationepic.adapter.in.ws.ClientMessages.SettleCardMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateFeatureMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateRankingDraftMessage;
 import com.priorisationepic.adapter.in.ws.ClientMessages.UpdateSettingsMessage;
@@ -255,6 +256,16 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
               (at) ->
                   rankingRooms.setSpotlight(
                       at.sessionId(), at.facilitator(), spotlight.featureId()));
+      case SettleCardMessage settle ->
+          intent(
+              session,
+              (at) ->
+                  rankingRooms.settleCard(
+                      at.sessionId(),
+                      at.facilitator(),
+                      settle.featureId(),
+                      settle.criterionKey(),
+                      settle.agreed()));
       default -> broadcaster.sendError(session.getId(), ErrorCode.INVALID_MESSAGE);
     }
   }

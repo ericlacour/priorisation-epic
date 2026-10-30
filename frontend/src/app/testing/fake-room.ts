@@ -40,5 +40,8 @@ export class FakeRoom {
   >(() => true);
   readonly clearOpinions = vi.fn<(featureId: string, criterionKey: string) => boolean>(() => true);
   readonly setSpotlight = vi.fn<(featureId: string | null) => boolean>(() => true);
+  readonly settleCard = vi.fn<
+    (featureId: string, criterionKey: string, agreed: boolean) => boolean
+  >(() => true);
   readonly dismissRankingEnd = vi.fn(() => this.rankingEnd.set(null));
 }

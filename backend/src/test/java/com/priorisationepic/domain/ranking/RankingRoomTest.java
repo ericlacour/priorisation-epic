@@ -425,6 +425,39 @@ class RankingRoomTest {
     assertThat(room.discussed()).isEmpty();
   }
 
+  // --- Accord trouvé -----------------------------------------------------------------------------
+
+  @Test
+  void anAgreementClearsTheOpinionsEndsTheDiscussionAndRefusesNewOpinions() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.giveOpinion(ALICE, F2, "bv", Opinion.RAISE, "Urgent", 8);
+    room.giveOpinion(ALICE, F2, "js", Opinion.LOWER, null, null);
+    room.spotlight(F2);
+
+    room.settle(F2, "bv", true);
+
+    assertThat(room.agreed()).containsExactly(new DiscussedCard(F2, "bv"));
+    assertThat(room.spotlightFeatureId()).isNull();
+    assertThat(room.opinions()).extracting(CardOpinion::criterionKey).containsExactly("js");
+    assertThat(refusal(() -> room.giveOpinion(BOB, F2, "bv", Opinion.AGREE, null, null)))
+        .isEqualTo(Reason.CARD_AGREED);
+    room.giveOpinion(BOB, F2, "js", Opinion.AGREE, null, null);
+  }
+
+  @Test
+  void anAgreementIsReopenedOrForgottenWithItsCard() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.settle(F2, "bv", true);
+    room.settle(F3, "bv", true);
+
+    room.settle(F2, "bv", false);
+    room.giveOpinion(BOB, F2, "bv", Opinion.AGREE, null, null);
+    room.broadcast(draft().retainOnly(Set.of(F1, F2)));
+
+    assertThat(room.agreed()).isEmpty();
+    assertThat(refusal(() -> room.settle(F2, "tc", true))).isEqualTo(Reason.NOT_IN_RANKING);
+  }
+
   @Test
   void theDiscussionEndsWhenItsCardLeavesTheDraft() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
