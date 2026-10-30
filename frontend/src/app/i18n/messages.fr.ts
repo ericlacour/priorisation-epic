@@ -513,6 +513,12 @@ export const MESSAGES = {
     done: '{imported} fonctionnalité(s) importée(s), {rejected} ligne(s) rejetée(s).',
     close: 'Terminer',
     anotherFile: 'Choisir un autre fichier',
+    jira: {
+      or: 'ou',
+      button: 'Importer depuis Jira',
+      soon: 'Bientôt',
+      hint: 'Un projet, une epic ou un filtre JQL : les tickets deviendront des fonctionnalités, avec leur identifiant et leur titre. Pas encore disponible.',
+    },
     errors: {
       tooLarge: 'Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.',
       expired: 'L’aperçu a expiré : importez de nouveau le fichier.',

@@ -23,6 +23,7 @@ type Tab = 'valid' | 'rejected' | 'warnings';
  * JSON ; l'aperçu montre les lignes valides, les lignes rejetées avec leur motif et les avertissements, sans rien
  * écrire. Il confirme (une seule transaction côté serveur, puis le tableau se met à jour chez tous) ou annule, et
  * voit le récapitulatif. Les en-têtes attendus et le modèle viennent de la méthode de la session (FR-017b).
+ * « Importer depuis Jira » est montré, désactivé : une illustration de l'import à venir (FR-007b).
  */
 @Component({
   selector: 'app-import-dialog',
@@ -53,6 +54,20 @@ type Tab = 'valid' | 'rejected' | 'warnings';
               (change)="read($event)"
             />
             <span class="muted">{{ messages.formats }}</span>
+          </div>
+          <!-- Une illustration : l'import depuis Jira n'est pas encore branché. -->
+          <div class="import-jira">
+            <span class="muted small">{{ messages.jira.or }}</span>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              disabled
+              aria-describedby="import-jira-hint"
+            >
+              {{ messages.jira.button }}
+              <span class="badge">{{ messages.jira.soon }}</span>
+            </button>
+            <p id="import-jira-hint" class="muted small">{{ messages.jira.hint }}</p>
           </div>
         } @else if (preview(); as preview) {
           <div class="dropzone small">

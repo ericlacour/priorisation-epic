@@ -80,6 +80,15 @@ describe('ImportDialogComponent', () => {
       b.textContent?.includes(label),
     );
 
+  it('shows « Importer depuis Jira », disabled: an illustration of the import to come', () => {
+    const { element } = render();
+    const jira = button(element, 'Importer depuis Jira')!;
+    expect(jira.disabled).toBe(true);
+    expect(jira.textContent).toContain('Bientôt');
+    const hint = element.querySelector(`#${jira.getAttribute('aria-describedby')}`);
+    expect(hint?.textContent).toContain('Pas encore disponible');
+  });
+
   it('shows the expected headers of the method and the template link', () => {
     const { element } = render();
     expect(text(element)).toContain(

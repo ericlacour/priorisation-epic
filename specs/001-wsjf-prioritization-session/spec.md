@@ -417,6 +417,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   colonnes en v1.
 - **FR-007a**: Le système DOIT proposer au téléchargement un modèle Excel vierge, qui
   contient exactement ces en-têtes et une ligne d'exemple.
+- **FR-007b** (ajout du 2026-10-30) : La fenêtre d'import montre, sous le choix du fichier,
+  un bouton « Importer depuis Jira » **désactivé**, marqué « Bientôt », avec l'explication
+  « Un projet, une epic ou un filtre JQL : les tickets deviendront des fonctionnalités, avec
+  leur identifiant et leur titre. Pas encore disponible. ». C'est une illustration : aucune
+  connexion à Jira n'existe.
 - **FR-008**: Avant tout import, le système DOIT afficher un aperçu des lignes valides et
   des lignes rejetées avec leur motif. Il n'importe rien sans confirmation de l'animateur
   et affiche ensuite le nombre de lignes importées et rejetées.

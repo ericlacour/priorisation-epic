@@ -66,6 +66,23 @@
   text-align: center;
 }
 
+/* « Importer depuis Jira », sous le choix du fichier : désactivé, pour illustrer l'import à venir. */
+.import-jira {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.import-jira p {
+  margin: 0;
+}
+
+.import-jira .badge {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
 .stats {
   display: flex;
   flex-wrap: wrap;
