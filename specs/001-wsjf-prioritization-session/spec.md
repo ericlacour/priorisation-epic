@@ -487,9 +487,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
        vote », et « Révéler » ; un seul tour est ouvert à la fois, FR-018) ; à droite, le **cycle de vie**, un seul bouton selon le
        statut : « Démarrer la session », « Clôturer la session » (après confirmation,
        FR-004) ou « Rouvrir la session » ;
-     - pour un participant : le bandeau d'état (« Aucun tour de vote en cours », « Tour N
-       ouvert : Voter », « Vote envoyé · Modifier mon vote », « Session clôturée : lecture
-       seule »).
+     - pour un participant : le bandeau d'état d'un tour (« Tour N ouvert : Voter »,
+       « Vote envoyé · Modifier mon vote ») ou « Session clôturée : lecture seule ». Sans
+       tour ouvert, la barre n'est pas affichée : « Aucun tour de vote en cours » a été
+       retiré le 2026-10-30 (information inutile, place rendue au tableau).
 
   Règles de la mise en page :
   - les deux barres réunies ne dépassent pas **105 px** de haut, la hauteur occupée le
@@ -522,9 +523,21 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     Après la révélation, la zone des tours affiche « Tour N révélé » et « Résultats et
     consensus » jusqu'à l'ouverture du tour suivant. « Clôturer la session » est désactivé
     pendant un tour ouvert (maquettes, écrans 4 et 4 quinquies, T097a) ;
-  - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état, et les
+  - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état (absente
+    sans tour ouvert, sauf session clôturée), et les
     outils de la barre de session à « Participants », « Tours révélés », « Exporter » et,
     pour l'animateur, « Liens » (lien d'invitation seulement), sur une deuxième ligne.
+- **FR-014d** (ajout du 2026-10-30, **aperçu**) : sur ordinateur (1100 px de large ou
+  plus), un panneau **« Assistant IA »** occupe la droite de l'écran de session, à côté
+  du tableau. Il illustre une fonctionnalité à venir : échanger avec une IA sur la
+  priorisation, l'IA ayant accès à la session, à **Jira** et à la **documentation
+  complète** des fonctionnalités (expliquer un rang, justifier une valeur, repérer les
+  fonctionnalités mal décrites ou en doublon, proposer une mise en discussion). Pour
+  l'instant, c'est une **maquette** : un exemple de dialogue écrit, des suggestions et une
+  saisie désactivées, et la mention « l'assistant n'est pas encore branché ». Pour lui
+  faire de la place, la colonne du titre (100 caractères au plus) se tronque, le titre
+  complet restant au survol : au-delà d'environ 1500 px pour le tableau, la largeur va à
+  l'assistant. Sur téléphone, il n'est pas affiché.
 - **FR-014b**: Quand **aucun tour n'est ouvert**, un participant (non animateur) DOIT voir
   le tableau complet, comme l'animateur : rang, identifiant, titre, critères, valeurs
   calculées, badges « à revoir » et « hors échelle », mis à jour en direct (FR-015). Il voit
@@ -537,7 +550,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   panneau de détail en lecture seule (FR-016b), consulter les tours révélés (FR-022) et
   exporter (FR-023, FR-024). Il ne voit **aucune action d'animation** : ni « Modifier »,
   ni ajout, import, échelle, ouverture de tour, démarrage ou clôture, ni édition du titre
-  et du descriptif. Un bandeau indique qu'aucun tour n'est en cours. Pendant un tour, les
+  et du descriptif. Pendant un tour, les
   fonctionnalités du tour sont masquées (FR-019a). Après une révélation, il voit les
   résultats du tour (FR-020), sans les champs de consensus, réservés à l'animateur
   (FR-021).
@@ -650,13 +663,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      au-dessous (↓) de la valeur actuelle. Le cran suivant de l'échelle est proposé d'emblée ;
      le membre le change dans la liste « Valeur souhaitée ». La valeur se garde tant que
      l'avis garde son sens ; elle se perd s'il change de sens ;
-  2c. **Classement selon la salle** (ajout du 2026-10-30) : à droite du classement en direct,
-     chez les membres (retiré de l'écran de l'animateur le 2026-10-30 : trop d'informations), chaque fonctionnalité prend la moyenne des avis (✓ compte pour la valeur
+  2c. ~~**Classement selon la salle**~~ (ajout du 2026-10-30, **retiré** le même jour, chez
+     l'animateur puis chez les membres : trop d'informations). Il montrait, à droite du
+     classement en direct, chaque fonctionnalité prend la moyenne des avis (✓ compte pour la valeur
      actuelle, ↑ et ↓ pour la valeur souhaitée, ou à défaut le cran suivant), ramenée à la
      valeur la plus proche de l'échelle, et les niveaux se refont. Une carte que la salle
      déplace porte « valeur actuelle → valeur selon la salle ». Sans avis, la valeur ne
-     change pas. Dans les deux classements, l'identifiant d'une carte ouvre son descriptif,
-     en lecture seule ;
+     change pas. L'identifiant d'une carte, dans le classement en direct et dans la liste
+     des avis de l'animateur, ouvre son descriptif, en lecture seule ;
   3. **Affichage** : chaque carte montre, chez tous, le nombre de ✓, de ↑ et de ↓, et un
      signe quand au moins un avis est commenté. Un clic (ou Entrée au clavier) sur ces
      compteurs ouvre la liste des avis de la carte : pseudo, avis (avec la valeur souhaitée) et
@@ -673,7 +687,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      orange, l'écart le plus large d'abord) et portent « Écart bas ↔ haut ». La même teinte
      marque la carte dans le classement. Quand une discussion sur la carte se termine
      (« Terminer la discussion », ou une autre carte mise en discussion), la teinte s'efface
-     dans le classement et dans la liste ; elle revient si un avis sur la carte change ensuite ;
+     dans le classement et dans la liste ; elle revient si un avis ou une valeur souhaitée
+     sur la carte change ensuite (un commentaire seul ne la fait pas revenir). Le serveur
+     retient ces discussions terminées, par critère, dans la salle (`rankingRoom.discussed`) :
+     une page rechargée ne teinte pas de nouveau un écart déjà discuté ;
   4. **Carte en discussion** : depuis la liste des avis, l'animateur peut « Mettre en
      discussion » une fonctionnalité. Elle est mise en avant
      chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer
@@ -688,12 +705,15 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   le glisser-déposer de FR-015a.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du
   calcul avec les valeurs réelles (voir User Story 1, scénario 5), ainsi que la formule et
-  l'échelle utilisées.
+  l'échelle utilisées. *Le 2026-10-30, le détail du calcul a été retiré du panneau de détail
+  (FR-016b), à la demande du métier : le serveur l'envoie toujours ; la formule reste dans
+  la méthode (FR-017c).*
 - **FR-016b**: Pour lire le descriptif d'une fonctionnalité sans surcharger les écrans, un
   clic sur son **identifiant** (dans le tableau, l'écran de classement ou de vote, la révélation ou le
   choix des fonctionnalités d'un tour) DOIT ouvrir un **panneau de détail** par-dessus
-  l'écran. Ce panneau affiche l'identifiant, le rang, le titre, le **descriptif complet**,
-  les valeurs retenues et le détail du calcul (FR-016). Il se ferme par une croix, la touche
+  l'écran. Ce panneau affiche l'identifiant, le rang, le titre et le **descriptif complet**,
+  seul : ni les valeurs retenues (déjà dans le tableau), ni le détail du calcul (retirés le
+  2026-10-30). Il se ferme par une croix, la touche
   Échap ou un clic à côté, sans perdre la saisie en cours. Sur téléphone, il occupe tout
   l'écran. Pendant un tour ouvert, un participant y lit le descriptif, mais les valeurs et
   le calcul d'une fonctionnalité du tour restent masqués (FR-019a). L'animateur peut y
@@ -717,7 +737,9 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   - **TC · Time Criticality** : importance de réaliser rapidement la fonctionnalité ;
   - **RR/OE · Risk Reduction / Opportunity Enablement** : capacité à réduire un risque ou
     à permettre une opportunité ;
-  - **JS · Job Size** : taille relative du travail nécessaire ;
+  - **JS · Job Size** : taille relative du travail nécessaire ; plus le JS est grand, plus le
+    travail est long et compliqué, et plus le WSJF baisse. L'écran de classement rappelle
+    ce que mesure le critère classé, sous la consigne et dans l'aide ;
   - **CoD · Cost of Delay** : coût du retard, BV + TC + RR/OE ;
   - **WSJF** : CoD / JS ; plus il est élevé, plus la fonctionnalité est prioritaire.
 

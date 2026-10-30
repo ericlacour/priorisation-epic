@@ -31,6 +31,7 @@ import { FeatureEdit, FeatureEditorComponent } from './feature-editor.component'
 import { SessionBarComponent } from '../session/session-bar.component';
 import { SessionChromeService } from '../layout/session-chrome.service';
 import { ActionBarComponent } from './action-bar.component';
+import { AssistantPanelComponent } from './assistant-panel.component';
 import { scaleLabel } from '../shared/scale';
 
 /** Ce que le dernier envoi voulait faire, pour proposer « Remplacer par les miennes » après un conflit. */
@@ -54,8 +55,8 @@ const NEW_ROW = 'new';
  * (FR-014b). Au-dessus, la barre de session et la barre d'actions, d'une ligne chacune (FR-014c). Tient dans la
  * fenêtre sans défilement de la page : seule la liste défile, en-tête figé ; une ligne par fonctionnalité, titre
  * tronqué et en entier au survol, pour voir au moins 15 fonctionnalités (FR-014a). Les messages se superposent au
- * tableau sans le décaler. Les définitions de la méthode s'ouvrent dans un panneau : le tableau garde toute la largeur
- * (FR-016a).
+ * tableau sans le décaler. Les définitions de la méthode s'ouvrent dans un panneau (FR-016a). À droite du tableau,
+ * l'aperçu de l'assistant IA ; la colonne du titre, tronqué, lui laisse la place.
  * Sur téléphone, des cartes en lecture seule remplacent le tableau.
  */
 @Component({
@@ -70,6 +71,7 @@ const NEW_ROW = 'new';
     MethodPanelComponent,
     SessionBarComponent,
     ActionBarComponent,
+    AssistantPanelComponent,
     SettingsDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,19 +80,21 @@ const NEW_ROW = 'new';
     @if (state(); as state) {
       <!-- Deux barres d'une ligne (FR-014c) ; toute la hauteur restante va au tableau (FR-014a). -->
       <app-session-bar (glossaryRequested)="showGlossary.set(true)" />
-      <!-- Sur téléphone (lecture seule), la barre se réduit au bandeau d'état, animateur compris (FR-014c). -->
-      <app-action-bar
-        [animate]="canAnimate() && !screen.isPhone()"
-        [editing]="editing() !== null"
-        [hasFeatures]="state.features.length > 0"
-        [closed]="state.status === 'CLOSED'"
-        (add)="startNew()"
-        (rank)="rankingRequested.emit()"
-        (import)="openImport()"
-        (scale)="openSettings()"
-      />
+      <!-- Sans action (participant, téléphone), la barre ne reste que pour dire la session clôturée (FR-014c). -->
+      @if ((canAnimate() && !screen.isPhone()) || state.status === 'CLOSED') {
+        <app-action-bar
+          [animate]="canAnimate() && !screen.isPhone()"
+          [editing]="editing() !== null"
+          [hasFeatures]="state.features.length > 0"
+          [closed]="state.status === 'CLOSED'"
+          (add)="startNew()"
+          (rank)="rankingRequested.emit()"
+          (import)="openImport()"
+          (scale)="openSettings()"
+        />
+      }
 
-      <div class="layout-board">
+      <div class="layout-board" [class.with-assistant]="!screen.isPhone()">
         <!-- Messages en superposition : ils ne décalent pas le tableau (FR-014c). -->
         <div class="board-messages">
           @if (room.connection() === 'lost') {
@@ -311,6 +315,9 @@ const NEW_ROW = 'new';
             </div>
           }
         </div>
+        @if (!screen.isPhone()) {
+          <app-assistant-panel />
+        }
       </div>
 
       @if (selected(); as feature) {

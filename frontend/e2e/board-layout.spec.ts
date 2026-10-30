@@ -38,7 +38,9 @@ async function open(page: Page, animate: boolean, status: string): Promise<void>
 async function bars(page: Page) {
   return page.evaluate(() => {
     const measure = (selector: string) => {
-      const bar = document.querySelector(selector) as HTMLElement;
+      // Un participant n'a pas de barre d'actions tant que la session est ouverte.
+      const bar = document.querySelector(selector) as HTMLElement | null;
+      if (!bar) return { height: 0, overflow: false };
       return {
         height: bar.getBoundingClientRect().height,
         overflow: bar.scrollWidth > bar.clientWidth,

@@ -205,6 +205,25 @@ app-root > app-session-entry {
   min-height: 0;
 }
 
+/*
+ * Avec l'assistant IA : le tableau à gauche, l'assistant à droite. Un titre fait 100 caractères au plus : au-delà de
+ * ~1500 px pour le tableau, la place va à l'assistant. Trop étroit pour les deux (moins de 1100 px), le tableau seul.
+ */
+.layout-board.with-assistant {
+  grid-template-columns: minmax(0, 1fr) max(340px, calc(100vw - 1500px));
+  gap: 12px;
+}
+
+@media (max-width: 1099px) {
+  .layout-board.with-assistant {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout-board .assistant-panel {
+    display: none;
+  }
+}
+
 .board-main {
   display: flex;
   flex-direction: column;
@@ -693,4 +712,150 @@ app-method-info {
     flex-wrap: wrap;
     margin-left: 0;
   }
+}
+
+/* Aperçu de l'assistant IA : en-tête, dialogue d'exemple qui défile, saisie désactivée en bas. */
+.assistant-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.assistant-head {
+  flex: none;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.assistant-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.assistant-mark {
+  color: var(--primary-ink);
+}
+
+.assistant-preview {
+  margin-left: auto;
+}
+
+.assistant-lead {
+  margin: 4px 0 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.assistant-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assistant-sources li {
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.assistant-dialogue {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  list-style: none;
+}
+
+.assistant-message {
+  max-width: 92%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.assistant-message p,
+.assistant-message ul {
+  margin: 0;
+}
+
+.assistant-message ul {
+  padding-left: 18px;
+}
+
+.assistant-message[data-from='user'] {
+  align-self: flex-end;
+  background: var(--primary-soft);
+}
+
+.assistant-message[data-from='assistant'] {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.assistant-author {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.assistant-compose {
+  display: grid;
+  flex: none;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.assistant-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.assistant-suggestions .btn {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.assistant-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.assistant-input .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  resize: none;
+}
+
+.assistant-notice {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
 }

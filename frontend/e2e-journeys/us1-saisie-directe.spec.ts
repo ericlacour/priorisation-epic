@@ -86,9 +86,9 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
       '2 F-2 Notifications de livraison 2 2 2 3 6 2,00 Modifier',
     ]);
   await page.getByRole('button', { name: 'F-1', exact: true }).click();
-  await expect(page.getByRole('dialog')).toContainText(
-    'CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00',
-  );
+  // Le panneau de détail ne montre que le descriptif : ni valeurs, ni calcul.
+  await expect(page.getByRole('dialog')).toContainText('Descriptif');
+  await expect(page.getByRole('dialog')).not.toContainText('Détail du calcul');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
@@ -143,7 +143,7 @@ test('V4 (partie US1), SC-002 : un participant voit le tableau en direct, sans a
   await addFeature(page, 'F-1', 'Paiement en un clic', { BV: '8', TC: '5', 'RR/OE': '3', JS: '4' });
 
   const alice = await openParticipant(await browser.newContext(), invitation);
-  await expect(alice.getByText('Aucun tour de vote en cours')).toBeVisible();
+  await expect(alice.locator('.action-bar')).toHaveCount(0);
   await expect(alice.getByRole('button', { name: 'Modifier', exact: true })).toHaveCount(0);
   await expect(alice.getByRole('button', { name: '+ Fonctionnalité' })).toHaveCount(0);
   await expect.poll(() => rowTexts(alice)).toEqual(['1 F-1 Paiement en un clic 8 5 3 4 16 4,00']);

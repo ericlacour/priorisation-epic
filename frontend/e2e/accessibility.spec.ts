@@ -373,7 +373,9 @@ test.describe('écran de portable de 1280 px : budget de place de T097b dans tou
   async function expectBudget(page: Page): Promise<void> {
     const bars = await page.evaluate(() =>
       ['.session-bar', '.action-bar'].map((selector) => {
-        const bar = document.querySelector(selector) as HTMLElement;
+        // Un participant n'a pas de barre d'actions tant que la session est ouverte.
+        const bar = document.querySelector(selector) as HTMLElement | null;
+        if (!bar) return { height: 0, overflow: false };
         return {
           height: bar.getBoundingClientRect().height,
           overflow: bar.scrollWidth > bar.clientWidth,

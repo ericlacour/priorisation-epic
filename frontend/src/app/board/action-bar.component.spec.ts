@@ -79,12 +79,14 @@ describe('ActionBarComponent', () => {
     expect(button('+ Fonctionnalité').disabled).toBe(false);
   });
 
-  it('gives a participant a status line instead of actions', () => {
-    const { element } = render({ animate: false });
+  it('gives a participant nothing while the session is open, then the read-only banner', () => {
+    expect(render({ animate: false }).element.textContent?.trim()).toBe('');
+    TestBed.resetTestingModule();
+    const { element } = render({ animate: false, closed: true });
     expect(element.getAttribute('role')).toBe('status');
     expect(element.getAttribute('aria-label')).toBe('État de la session');
     expect(element.querySelectorAll('button')).toHaveLength(0);
-    expect(element.textContent).toContain('Aucun tour de vote en cours.');
+    expect(element.textContent).toContain('Session clôturée : lecture seule');
   });
 
   it('reduces the facilitator bar of a closed session to the read-only banner and « Rouvrir la session »', () => {
