@@ -343,7 +343,15 @@ export const MESSAGES = {
     wantedLabel: 'Valeur souhaitée',
     wantedOpinion: '{opinion} à {value}',
     spotlight: 'En discussion',
-    endSpotlight: 'Terminer la discussion',
+    endSpotlight: 'Terminer sans accord',
+    settle: '✓ Accord trouvé',
+    settleHint:
+      'La salle est d’accord : la carte est marquée pour tous, ses avis sont effacés et elle n’en reçoit plus.',
+    agreed: '✓ Accord',
+    agreedHint: 'Discutée en séance : la salle s’est mise d’accord, on n’y revient pas.',
+    agreedTitle: 'Accords trouvés',
+    reopen: 'Rouvrir',
+    reopenLabel: 'Rouvrir la discussion sur {id}',
     startSpotlight: 'Mettre en discussion',
     clear: 'Effacer les avis',
     toMove: 'À monter ou descendre',
@@ -454,6 +462,8 @@ export const MESSAGES = {
       "Le classement en direct est terminé : votre avis n'a pas été envoyé. Revenez au tableau.",
     NOT_IN_RANKING:
       "Cette fonctionnalité n'est plus dans le classement en cours : attendez la mise à jour du classement, puis réessayez.",
+    CARD_AGREED:
+      'La salle s’est déjà mise d’accord sur cette fonctionnalité : demandez à l’animateur de la rouvrir pour en discuter de nouveau.',
     NOT_CONNECTED:
       'Connexion perdue : votre modification n’a pas été envoyée. Réessayez dans un instant.',
   },
@@ -531,6 +541,10 @@ export const MESSAGES = {
     confirm: 'Confirmer le changement',
   },
   assistant: {
+    toggle: 'Assistant IA',
+    show: 'Afficher l’aperçu de l’assistant IA, à droite du tableau',
+    hide: 'Masquer l’aperçu de l’assistant IA',
+    close: 'Masquer l’assistant IA',
     title: 'Assistant IA',
     preview: 'Aperçu',
     label: 'Assistant IA de priorisation (aperçu, pas encore disponible)',

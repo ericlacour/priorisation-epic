@@ -191,6 +191,10 @@ for (const scheme of SCHEMES) {
         await expectNoViolations(page);
       }
       await openSession(page, { animate: true, status: 'IN_PROGRESS' });
+      // L'aperçu de l'assistant IA, affiché à la demande (FR-014d).
+      await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+      await expect(page.locator('app-assistant-panel')).toBeVisible();
+      await expectNoViolations(page);
 
       await page.locator('tbody tr').first().getByRole('button', { name: 'Modifier' }).click();
       await page.getByRole('textbox', { name: 'JS', exact: true }).fill('0');

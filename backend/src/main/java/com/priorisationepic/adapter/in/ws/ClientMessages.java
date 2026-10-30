@@ -108,6 +108,10 @@ final class ClientMessages {
   /** {@code clear-opinions.json} */
   record ClearOpinionsMessage(UUID featureId, String criterionKey) implements ClientMessage {}
 
+  /** {@code settle-card.json} : {@code agreed} faux rouvre la carte. */
+  record SettleCardMessage(UUID featureId, String criterionKey, boolean agreed)
+      implements ClientMessage {}
+
   /** {@code set-spotlight.json} : {@code featureId} nul termine la discussion. */
   record SetSpotlightMessage(UUID featureId) implements ClientMessage {}
 
@@ -137,6 +141,7 @@ final class ClientMessages {
       case "giveOpinion" -> giveOpinion(node);
       case "clearOpinions" -> clearOpinions(node);
       case "setSpotlight" -> setSpotlight(node);
+      case "settleCard" -> settleCard(node);
       default -> new Invalid();
     };
   }
@@ -381,6 +386,20 @@ final class ClientMessages {
     }
     return new ClearOpinionsMessage(
         UUID.fromString(node.get("featureId").asString()), node.get("criterionKey").asString());
+  }
+
+  private static ClientMessage settleCard(JsonNode node) {
+    if (node.size() != 4
+        || !isUuid(node.get("featureId"))
+        || !isCriterionKey(node.get("criterionKey"))
+        || node.get("agreed") == null
+        || !node.get("agreed").isBoolean()) {
+      return new Invalid();
+    }
+    return new SettleCardMessage(
+        UUID.fromString(node.get("featureId").asString()),
+        node.get("criterionKey").asString(),
+        node.get("agreed").asBoolean());
   }
 
   private static ClientMessage setSpotlight(JsonNode node) {

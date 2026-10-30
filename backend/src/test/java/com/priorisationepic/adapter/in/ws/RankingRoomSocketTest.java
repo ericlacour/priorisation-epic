@@ -162,6 +162,13 @@ class RankingRoomSocketTest extends PostgresTestBase {
     JsonNode discussed = roomForBoth().get("discussed");
     assertThat(discussed.get(0).get("featureId").asString()).isEqualTo(F2.toString());
     assertThat(discussed.get(0).get("criterionKey").asString()).isEqualTo("bv");
+    alice.send(ContractExamples.read("settle-card", "agree"));
+    JsonNode agreed = roomForBoth().get("agreed");
+    assertThat(agreed.get(0).get("featureId").asString()).isEqualTo(F2.toString());
+    bob.send(ContractExamples.read("give-opinion", "raise-with-comment"));
+    assertThat(error(bob)).isEqualTo("CARD_AGREED");
+    alice.send(ContractExamples.read("settle-card", "reopen"));
+    assertThat(roomForBoth().get("agreed").isEmpty()).isTrue();
     alice.send(ContractExamples.read("end-ranking", "cancelled"));
     assertThat(roomForBoth().get("endReason").asString()).isEqualTo("CANCELLED");
   }

@@ -40,6 +40,7 @@ function room(features: Feature[], extra: Record<string, unknown> = {}) {
     opinions: [],
     spotlightFeatureId: null,
     discussed: [],
+    agreed: [],
     ...extra,
   };
 }
@@ -112,7 +113,11 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
     const anaLowersF2 = { ...bobRaisesF2, participantId: 'p-ana', opinion: 'LOWER', value: 1 };
     await push(
       page,
-      room([F1, F2, F3], { opinions: [bobRaisesF2, anaLowersF2], spotlightFeatureId: F1.id }),
+      room([F1, F2, F3], {
+        opinions: [bobRaisesF2, anaLowersF2],
+        spotlightFeatureId: F1.id,
+        agreed: [{ featureId: F3.id, criterionKey: 'bv' }],
+      }),
     );
     await expect(page.locator('app-opinions-panel')).toContainText('En discussion');
     await expect(page.locator(`.opinion-card[data-gap="strong"]`)).toContainText('Écart 1 ↔ 10');
@@ -251,6 +256,17 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
     await expect(page.locator('.opinion-buttons')).toHaveCount(0);
   });
 
+  test('une carte où la salle s’est mise d’accord est marquée, sans bouton d’avis', async ({
+    page,
+  }) => {
+    await open(page, [F1, F2, F3], false);
+    await push(page, room([F1, F2, F3], { agreed: [{ featureId: F1.id, criterionKey: 'bv' }] }));
+    const agreed = page.locator(`.rank-item[data-id="${F1.id}"]`);
+    await expect(agreed.locator('.agreed-badge')).toHaveText('✓ Accord');
+    await expect(agreed.locator('.opinion-buttons')).toHaveCount(0);
+    await expect(page.locator(`.rank-item[data-id="${F2.id}"] .opinion-buttons`)).toHaveCount(1);
+  });
+
   test('accessibilité : aucune violation axe sur la vue suivie', async ({ page }) => {
     await open(page, [F1, F2, F3], false);
     await push(
@@ -258,9 +274,11 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
       room([F1, F2, F3], {
         spotlightFeatureId: F2.id,
         opinions: [{ ...bobRaisesF2, participantId: 'p-me' }],
+        agreed: [{ featureId: F1.id, criterionKey: 'bv' }],
       }),
     );
     await expect(page.getByRole('heading', { name: 'Classement en direct' })).toBeVisible();
+    await expect(page.locator('.agreed-badge')).toHaveCount(1);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 });

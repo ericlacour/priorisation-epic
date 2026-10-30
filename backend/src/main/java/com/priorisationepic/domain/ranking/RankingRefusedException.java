@@ -24,7 +24,9 @@ public final class RankingRefusedException extends RuntimeException {
     /**
      * Une valeur souhaitée avec « D'accord » : seuls « Je monterais » et « Je descendrais » en ont.
      */
-    VALUE_WITHOUT_MOVE
+    VALUE_WITHOUT_MOVE,
+    /** Un avis sur une carte où la salle s'est mise d'accord : on n'y revient pas. */
+    CARD_AGREED
   }
 
   private final Reason reason;

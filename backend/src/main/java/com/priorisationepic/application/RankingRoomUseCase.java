@@ -159,6 +159,24 @@ public class RankingRoomUseCase {
         });
   }
 
+  /** {@code settleCard} : « Accord trouvé » sur une carte pour un critère, ou sa réouverture. */
+  public void settleCard(
+      SessionId sessionId,
+      boolean facilitator,
+      UUID featureId,
+      String criterionKey,
+      boolean agreed) {
+    run(
+        sessionId,
+        () -> {
+          requireFacilitator(facilitator);
+          writableSession(sessionId);
+          RankingRoom room = requireRoom(rooms.get(sessionId));
+          room.settle(featureId, criterionKey, agreed);
+          publish(sessionId, room);
+        });
+  }
+
   /** Une connexion vient de s'ouvrir : elle reçoit la salle en cours, s'il y en a une. */
   public void connected(SessionId sessionId, String connectionId) {
     locks.withLock(
@@ -271,6 +289,7 @@ public class RankingRoomUseCase {
       case FEATURE_IN_OPEN_ROUND ->
           new IntentRejectedException(ErrorCode.FEATURE_IN_OPEN_ROUND, e.featureId());
       case NOT_IN_RANKING -> new IntentRejectedException(ErrorCode.NOT_IN_RANKING);
+      case CARD_AGREED -> new IntentRejectedException(ErrorCode.CARD_AGREED, e.featureId());
       case INVALID_DRAFT, DUPLICATE_FEATURE, COMMENT_TOO_LONG, VALUE_WITHOUT_MOVE ->
           new IntentRejectedException(ErrorCode.INVALID_MESSAGE);
     };

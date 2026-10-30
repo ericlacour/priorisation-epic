@@ -8,6 +8,7 @@ import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.SessionStatus.Action;
 import com.priorisationepic.domain.method.MethodRegistry;
 import com.priorisationepic.domain.ranking.CardOpinion;
+import com.priorisationepic.domain.ranking.DiscussedCard;
 import com.priorisationepic.domain.ranking.Opinion;
 import java.time.Duration;
 import java.time.Instant;
@@ -350,6 +351,23 @@ class RankingRoomUseCaseTest {
 
     assertThat(rejection(() -> rooms.setSpotlight(session, true, UUID.randomUUID())))
         .isEqualTo(ErrorCode.NOT_IN_RANKING);
+  }
+
+  @Test
+  void onlyTheFacilitatorSettlesACardAndAnOpinionOnItIsThenRefused() {
+    open();
+    assertThat(rejection(() -> rooms.settleCard(session, false, f2, "bv", true)))
+        .isEqualTo(ErrorCode.FORBIDDEN);
+
+    rooms.settleCard(session, true, f2, "bv", true);
+    assertThat(last().agreed()).extracting(DiscussedCard::featureId).containsExactly(f2);
+    assertThat(
+            rejection(
+                () -> rooms.giveOpinion(session, bob, false, f2, "bv", Opinion.AGREE, null, null)))
+        .isEqualTo(ErrorCode.CARD_AGREED);
+
+    rooms.settleCard(session, true, f2, "bv", false);
+    assertThat(last().agreed()).isEmpty();
   }
 
   // --- Connexions et fin -----------------------------------------------------------------------

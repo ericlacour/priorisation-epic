@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "settle-card.json",
+  "title": "settleCard (client → server)",
+  "description": "Facilitator only (FR-015c point 5). agreed true: the room reached an agreement on the feature for the criterion, everyone sees it as settled and does not come back to it. Its opinions are cleared, a discussion on it ends, and a new opinion on it gets error CARD_AGREED. agreed false reopens it. Errors as clearOpinions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "featureId", "criterionKey", "agreed"],
+  "properties": {
+    "type": {
+      "const": "settleCard"
+    },
+    "featureId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criterionKey": {
+      "$ref": "criterion-key.json"
+    },
+    "agreed": {
+      "type": "boolean"
+    }
+  }
+}

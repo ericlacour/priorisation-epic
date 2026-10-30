@@ -409,6 +409,16 @@ describe('RankingScreenComponent', () => {
         .click();
       expect(room.setSpotlight).toHaveBeenCalledWith('f2');
       expect(room.clearOpinions).toHaveBeenCalledWith('f2', 'bv');
+      [...panel.querySelectorAll<HTMLButtonElement>('button')]
+        .find((b) => b.textContent?.trim() === '✓ Accord trouvé')!
+        .click();
+      expect(room.settleCard).toHaveBeenCalledWith('f2', 'bv', true);
+
+      room.rankingRoom.set(rankingRoom({ agreed: [{ featureId: 'f2', criterionKey: 'bv' }] }));
+      fixture.detectChanges();
+      const card = element.querySelector<HTMLElement>('app-criterion-ranking [data-id="f2"]')!;
+      expect(card.dataset['agreed']).toBe('true');
+      expect(card.querySelector('.agreed-badge')?.textContent?.trim()).toBe('✓ Accord');
     });
 
     it('tints the cards with a wide gap, except those whose discussion the server says is over', () => {

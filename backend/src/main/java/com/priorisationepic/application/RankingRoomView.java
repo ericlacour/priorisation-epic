@@ -19,7 +19,8 @@ public record RankingRoomView(
     RankingDraft draft,
     List<CardOpinion> opinions,
     UUID spotlightFeatureId,
-    List<DiscussedCard> discussed) {
+    List<DiscussedCard> discussed,
+    List<DiscussedCard> agreed) {
 
   /** Pourquoi la salle s'est fermée. */
   public enum EndReason {
@@ -39,10 +40,12 @@ public record RankingRoomView(
         room.draft(),
         room.opinions(),
         room.spotlightFeatureId(),
-        room.discussed());
+        room.discussed(),
+        room.agreed());
   }
 
   static RankingRoomView ended(EndReason reason) {
-    return new RankingRoomView(false, reason, null, false, null, List.of(), null, List.of());
+    return new RankingRoomView(
+        false, reason, null, false, null, List.of(), null, List.of(), List.of());
   }
 }

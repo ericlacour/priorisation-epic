@@ -81,6 +81,7 @@ describe('SessionBarComponent', () => {
       { text: 'Tours révélés', disabled: true },
       { text: 'Exporter', disabled: false },
       { text: 'Liens', disabled: false },
+      { text: '✦ Assistant IA', disabled: false },
       { text: 'Thème', disabled: false },
     ]);
   });
@@ -91,6 +92,7 @@ describe('SessionBarComponent', () => {
       { text: 'Participants (2)', disabled: false },
       { text: 'Tours révélés', disabled: true },
       { text: 'Exporter', disabled: false },
+      { text: '✦ Assistant IA', disabled: false },
       { text: 'Thème', disabled: false },
     ]);
   });

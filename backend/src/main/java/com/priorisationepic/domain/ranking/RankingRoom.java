@@ -11,9 +11,10 @@ import java.util.UUID;
 
 /**
  * La salle d'un classement collaboratif (FR-015b, FR-015c) : le dernier brouillon diffusé par
- * l'animateur, la diffusion en cours ou en pause, les avis des membres, la carte en discussion et
- * les cartes dont la discussion est terminée. Elle n'est jamais enregistrée en base, mais survit au
- * rechargement d'une page. Non synchronisée : l'appelant la protège par le verrou de la session.
+ * l'animateur, la diffusion en cours ou en pause, les avis des membres, la carte en discussion, les
+ * cartes dont la discussion est terminée et celles où la salle s'est mise d'accord. Elle n'est
+ * jamais enregistrée en base, mais survit au rechargement d'une page. Non synchronisée : l'appelant
+ * la protège par le verrou de la session.
  */
 public final class RankingRoom {
 
@@ -32,6 +33,7 @@ public final class RankingRoom {
   private String spotlightCriterionKey;
 
   private final Set<DiscussedCard> discussed = new LinkedHashSet<>();
+  private final Set<DiscussedCard> agreed = new LinkedHashSet<>();
 
   private RankingRoom(UUID facilitatorId, RankingDraft draft) {
     this.facilitatorId = Objects.requireNonNull(facilitatorId, "facilitatorId");
@@ -53,6 +55,7 @@ public final class RankingRoom {
     live = true;
     opinions.values().removeIf(opinion -> !concerns(opinion.featureId(), opinion.criterionKey()));
     discussed.removeIf(card -> !concerns(card.featureId(), card.criterionKey()));
+    agreed.removeIf(card -> !concerns(card.featureId(), card.criterionKey()));
     if (spotlightFeatureId != null && !draft.contains(spotlightFeatureId)) {
       spotlightFeatureId = null;
     }
@@ -68,8 +71,8 @@ public final class RankingRoom {
    * commentaire précédent, vide l'efface ; retirer l'avis retire son commentaire. {@code value} est
    * la valeur souhaitée d'un « Je monterais » ou « Je descendrais » ; nulle, elle garde la valeur
    * précédente du même avis (un avis changé de sens la perd). Un avis ou une valeur souhaitée qui
-   * change rouvre la discussion terminée de la carte ; un commentaire seul, non. L'appelant vérifie
-   * l'échelle.
+   * change rouvre la discussion terminée de la carte ; un commentaire seul, non. Une carte où la
+   * salle s'est mise d'accord ne reçoit plus d'avis. L'appelant vérifie l'échelle.
    */
   public void giveOpinion(
       UUID participantId,
@@ -79,6 +82,9 @@ public final class RankingRoom {
       String comment,
       Integer value) {
     requireInDraft(featureId, criterionKey);
+    if (agreed.contains(new DiscussedCard(featureId, criterionKey))) {
+      throw new RankingRefusedException(Reason.CARD_AGREED, featureId);
+    }
     Key key = new Key(participantId, featureId, criterionKey);
     if (opinion == null) {
       if (opinions.remove(key) != null) {
@@ -126,6 +132,25 @@ public final class RankingRoom {
   }
 
   /**
+   * « Accord trouvé » ({@code true}) : la salle s'est mise d'accord sur la carte pour ce critère,
+   * on n'y revient pas. Ses avis sont effacés et sa discussion, si elle est en cours, se termine.
+   * {@code false} la rouvre.
+   */
+  public void settle(UUID featureId, String criterionKey, boolean agreement) {
+    requireInDraft(featureId, criterionKey);
+    DiscussedCard card = new DiscussedCard(featureId, criterionKey);
+    if (!agreement) {
+      agreed.remove(card);
+      return;
+    }
+    clearOpinions(featureId, criterionKey);
+    if (featureId.equals(spotlightFeatureId)) {
+      spotlight(null);
+    }
+    agreed.add(card);
+  }
+
+  /**
    * Met une carte en discussion à la place de la précédente ; {@code null} termine la discussion.
    * La carte qui quitte la discussion est marquée discutée, pour le critère où elle y est entrée.
    */
@@ -167,6 +192,11 @@ public final class RankingRoom {
   /** Les cartes dont la discussion est terminée, de la plus ancienne à la plus récente. */
   public List<DiscussedCard> discussed() {
     return List.copyOf(discussed);
+  }
+
+  /** Les cartes où la salle s'est mise d'accord, de la plus ancienne à la plus récente. */
+  public List<DiscussedCard> agreed() {
+    return List.copyOf(agreed);
   }
 
   private boolean concerns(UUID featureId, String criterionKey) {
