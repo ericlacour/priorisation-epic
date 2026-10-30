@@ -377,11 +377,6 @@ export const MESSAGES = {
     unranked: 'non classée',
     description: 'Descriptif',
     noDescription: 'Aucun descriptif.',
-    values: 'Valeurs retenues',
-    calculation: 'Détail du calcul',
-    notComputed:
-      'Calcul impossible : il manque une valeur nécessaire au calcul, ou une valeur est hors échelle.',
-    methodLink: 'Voir la méthode complète',
     editText: 'Modifier le titre et le descriptif',
     titleLabel: 'Titre',
     descriptionLabel: 'Descriptif',

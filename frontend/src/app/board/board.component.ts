@@ -316,11 +316,9 @@ const NEW_ROW = 'new';
       @if (selected(); as feature) {
         <app-feature-detail-panel
           [feature]="feature"
-          [definition]="state.methodDefinition"
           [canAnimate]="canEdit()"
           [stale]="detailStale()"
           (closed)="selectedId.set(null)"
-          (methodRequested)="showMethod.set(true)"
           (textSaved)="saveText(feature, $event)"
           (overwrite)="overwriteText(feature)"
           (staleDismissed)="room.clearRefusal()"

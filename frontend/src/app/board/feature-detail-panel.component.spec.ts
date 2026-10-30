@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 
 import { Feature } from '../api/session-state';
-import { F1, WSJF, feature } from '../testing/fixtures';
+import { F1, feature } from '../testing/fixtures';
 import {
   FeatureDetailPanelComponent,
   ReviewChange,
@@ -13,19 +13,17 @@ describe('FeatureDetailPanelComponent', () => {
   function render(options: { feature?: Feature; animate?: boolean; stale?: boolean } = {}) {
     const fixture = TestBed.createComponent(FeatureDetailPanelComponent);
     fixture.componentRef.setInput('feature', options.feature ?? F1);
-    fixture.componentRef.setInput('definition', WSJF);
     fixture.componentRef.setInput('canAnimate', options.animate ?? false);
     fixture.componentRef.setInput('stale', options.stale ?? false);
     const saved: TextEdit[] = [];
     const reviews: ReviewChange[] = [];
-    const log = { closed: 0, overwrite: 0, dismissed: 0, method: 0 };
+    const log = { closed: 0, overwrite: 0, dismissed: 0 };
     const c = fixture.componentInstance;
     c.textSaved.subscribe((edit) => saved.push(edit));
     c.review.subscribe((change) => reviews.push(change));
     c.closed.subscribe(() => log.closed++);
     c.overwrite.subscribe(() => log.overwrite++);
     c.staleDismissed.subscribe(() => log.dismissed++);
-    c.methodRequested.subscribe(() => log.method++);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     const button = (text: string) =>
@@ -56,50 +54,15 @@ describe('FeatureDetailPanelComponent', () => {
     const { element } = render({ feature: feature({ id: 'x', externalId: 'X-1' }) });
     expect(element.querySelector('.description')?.textContent).toBe('Aucun descriptif.');
     expect(element.querySelector('.panel-head .muted')?.textContent).toContain('non classée');
-    expect(element.textContent).toContain('Calcul impossible');
   });
 
-  it('shows the retained values with the full names and the calculation exactly as sent', () => {
+  it('shows only the description: neither the retained values nor the calculation', () => {
     const { element } = render();
-    expect(element.querySelector('.explanation')?.textContent).toBe(
-      'CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00',
-    );
-    expect(element.querySelectorAll('.values li')).toHaveLength(4);
-    expect(element.querySelector('.values li')?.textContent).toContain('Business Value');
-  });
-
-  it('hides the values and the calculation while the server masks them (open round)', () => {
-    const { element } = render({
-      feature: feature({
-        id: 'm',
-        externalId: 'M-1',
-        votingInProgress: true,
-        criteria: null,
-        score: null,
-      }),
-    });
     expect(element.querySelector('.values')).toBeNull();
     expect(element.querySelector('.explanation')).toBeNull();
+    expect(element.textContent).not.toContain('Valeurs retenues');
     expect(element.textContent).not.toContain('Détail du calcul');
-  });
-
-  it('marks a value outside the scale', () => {
-    const { element } = render({
-      feature: feature({
-        id: 'o',
-        externalId: 'O-1',
-        criteria: { bv: 13 },
-        score: {
-          complete: false,
-          outOfScale: ['bv'],
-          computed: null,
-          explanation: null,
-          rank: null,
-        },
-      }),
-    });
-    expect(element.querySelector('.values li.review')?.textContent).toContain('13');
-    expect(element.querySelectorAll('.values li')[1].textContent).toContain('—');
+    expect(element.textContent).not.toContain('Voir la méthode complète');
   });
 
   it('shows the review badge with its reason', () => {
@@ -124,12 +87,6 @@ describe('FeatureDetailPanelComponent', () => {
     expect(
       actions.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-  });
-
-  it('asks for the full method from the calculation', () => {
-    const { button, log } = render();
-    button('Voir la méthode complète')!.click();
-    expect(log.method).toBe(1);
   });
 
   it('closes with the cross, Escape and a click outside', () => {

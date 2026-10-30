@@ -266,11 +266,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 
       @if (detailId(); as detail) {
         @if (featureOf(detail); as feature) {
-          <app-feature-detail-panel
-            [feature]="feature"
-            [definition]="definition()!"
-            (closed)="detailId.set(null)"
-          />
+          <app-feature-detail-panel [feature]="feature" (closed)="detailId.set(null)" />
         }
       }
     }
@@ -304,8 +300,6 @@ export class LiveRankingViewComponent {
   protected readonly features = computed(
     () => new Map((this.room.state()?.features ?? []).map((f) => [f.id, f])),
   );
-
-  protected readonly definition = computed(() => this.room.state()?.methodDefinition ?? null);
 
   /** Les valeurs de l'échelle de la session, croissantes. */
   protected readonly allowed = computed(() => this.room.state()?.scale.allowedValues ?? []);

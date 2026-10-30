@@ -599,7 +599,7 @@ describe('BoardComponent', () => {
 
   // --- Panneau de détail et de méthode ------------------------------------------------------------
 
-  it('opens the detail panel on the id and shows the full description, values and calculation as sent', () => {
+  it('opens the detail panel on the id and shows the full description only', () => {
     const { fixture, element } = render({ animate: false });
 
     element.querySelector<HTMLButtonElement>('.fid')!.click();
@@ -609,19 +609,8 @@ describe('BoardComponent', () => {
     expect(panel.querySelector('[role="dialog"]')).not.toBeNull();
     expect(panel.querySelector('h2')?.textContent).toBe('Paiement en un clic');
     expect(panel.querySelector('.description')?.textContent).toContain('Second paragraphe.');
-    expect(panel.querySelector('.explanation')?.textContent).toBe(
-      'CoD = 8 + 5 + 3 = 16 ; WSJF = 16 / 4 = 4,00',
-    );
-    expect(
-      [...panel.querySelectorAll('.values li')].map((li) =>
-        [...li.children].map((child) => child.textContent?.trim()).join(' '),
-      ),
-    ).toEqual([
-      'BV · Business Value 8',
-      'TC · Time Criticality 5',
-      'RR/OE · Risk Reduction / Opportunity Enablement 3',
-      'JS · Job Size 4',
-    ]);
+    expect(panel.querySelector('.explanation')).toBeNull();
+    expect(panel.querySelector('.values')).toBeNull();
   });
 
   it('closes the detail panel when its feature is deleted elsewhere', () => {

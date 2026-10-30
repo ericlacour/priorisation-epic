@@ -192,11 +192,7 @@ type Changes = Readonly<Record<string, number | null>>;
           }
         </div>
         @if (detailFeature(); as feature) {
-          <app-feature-detail-panel
-            [feature]="feature"
-            [definition]="state.methodDefinition"
-            (closed)="detailId.set(null)"
-          />
+          <app-feature-detail-panel [feature]="feature" (closed)="detailId.set(null)" />
         }
       } @else {
         <div class="ranking-setup">
