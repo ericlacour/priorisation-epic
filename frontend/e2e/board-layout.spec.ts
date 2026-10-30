@@ -203,3 +203,22 @@ test('le menu « Exporter » et son message se superposent au tableau sans le d�
     await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight),
   ).toBe(true);
 });
+
+test('avec l’assistant IA, un message ne couvre pas le bouton « Enregistrer » de la ligne en édition', async ({
+  page,
+}) => {
+  await open(page, true, 'IN_PROGRESS');
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.locator('tbody tr').first().getByRole('button', { name: 'Modifier' }).click();
+  const save = page.getByRole('button', { name: 'Enregistrer' });
+  await expect(save).toBeVisible();
+  await push(page, { type: 'error', code: 'INVALID_VALUE' });
+  const alert = page.getByRole('alert');
+  await expect(alert).toContainText("Une valeur est en dehors de l'échelle");
+
+  // Le message est à droite du tableau, sur l'assistant : « Enregistrer » reste cliquable.
+  const table = await page.locator('.table-wrap').boundingBox();
+  const message = await alert.boundingBox();
+  expect(message!.x).toBeGreaterThanOrEqual(table!.x + table!.width);
+  await save.click({ trial: true, timeout: 2_000 });
+});

@@ -129,9 +129,9 @@ test('V1, V1a, V2, V3 : saisie directe, méthode, recalcul et validation', async
       '— F-4 Mode hors ligne 5 — — — — non calculé Modifier',
     ]);
   await page.getByRole('button', { name: 'F-3', exact: true }).click();
-  await expect(page.getByRole('dialog')).toContainText(
-    'CoD = 9 + 0 + 0 = 9 (TC et RR/OE sans valeur, comptés 0) ; WSJF = 9 / 3 = 3,00',
-  );
+  // Le panneau de détail ne montre que le descriptif, sans le calcul.
+  await expect(page.getByRole('dialog')).toContainText('Export comptable');
+  await expect(page.getByRole('dialog')).not.toContainText('CoD =');
   await page.keyboard.press('Escape');
 });
 
