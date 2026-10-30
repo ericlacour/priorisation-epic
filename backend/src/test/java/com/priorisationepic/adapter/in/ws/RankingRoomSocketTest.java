@@ -176,8 +176,9 @@ class RankingRoomSocketTest extends PostgresTestBase {
         .isEqualTo("Le salon de mars impose la nouvelle recherche.");
 
     bob.send(ContractExamples.read("give-opinion", "clear-comment"));
-    assertThat(room(alice).get("opinions").get(0).has("comment")).isFalse();
-    assertThat(room(alice).get("opinions").get(0).has("value")).isFalse();
+    JsonNode cleared = room(alice).get("opinions").get(0);
+    assertThat(cleared.has("comment")).isFalse();
+    assertThat(cleared.has("value")).isFalse();
 
     bob.send(ContractExamples.read("give-opinion", "raise-with-value"));
     assertThat(room(alice).get("opinions").get(0).get("value").asInt()).isEqualTo(8);
