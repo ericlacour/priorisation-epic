@@ -67,21 +67,61 @@ describe('OpinionsPanelComponent', () => {
     expect(element.textContent).toContain('Urgent');
   });
 
-  it('ranks the cards as the room would, a move without a value counting for the next value', () => {
+  it('no longer shows the ranking according to the room', () => {
+    const { element } = render(room);
+    expect(element.querySelector('app-room-ranking')).toBeNull();
+    expect(element.textContent).not.toContain('Classement selon la salle');
+  });
+
+  it('puts the cards with the widest gap first, tinted by how wide it is', () => {
     const { element } = render({
       ...room,
       opinions: [
         ...room.opinions,
+        // F-3 : 5 → 1, trois crans, et F-1 : 8 monté et descendu.
         { featureId: 'f3', criterionKey: 'bv', participantId: 'p3', opinion: 'LOWER', value: 1 },
+        { featureId: 'f1', criterionKey: 'bv', participantId: 'p2', opinion: 'LOWER' },
+        { featureId: 'f1', criterionKey: 'bv', participantId: 'p4', opinion: 'RAISE' },
       ],
     });
-    const levels = [...element.querySelectorAll('app-room-ranking .rank-level')].map((level) =>
-      [...level.querySelectorAll<HTMLElement>('.rank-item')].map((r) => r.dataset['id']),
+    const cards = [...element.querySelectorAll<HTMLElement>('.opinion-card')];
+    expect(cards.map((c) => c.querySelector('.fid')?.textContent?.trim())).toEqual([
+      'F-3',
+      'F-1',
+      'F-2',
+    ]);
+    expect(cards.map((c) => c.dataset['gap'] ?? null)).toEqual(['strong', 'strong', null]);
+    expect(cards[0]!.querySelector('.opinion-gap')?.textContent?.trim()).toBe('Écart 1 ↔ 5');
+    expect(cards[1]!.querySelector('.opinion-gap')?.getAttribute('title')).toContain(
+      'd’autres la descendraient',
     );
-    expect(levels).toEqual([['f1', 'f2'], ['f3']]);
-    const f3 = element.querySelector('app-room-ranking [data-id="f3"]')!;
-    expect(f3.querySelector('.room-change')?.textContent?.trim()).toBe('5 → 2');
+    expect(cards[2]!.querySelector('.opinion-gap')).toBeNull();
     expect(element.textContent).toContain('Je descendrais à 1');
+  });
+
+  it('flags a notable gap of two steps', () => {
+    const { element } = render({
+      ...room,
+      opinions: [
+        { featureId: 'f2', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE', value: 13 },
+      ],
+    });
+    const card = element.querySelector<HTMLElement>('.opinion-card')!;
+    expect(card.dataset['gap']).toBe('notable');
+    expect(card.querySelector('.opinion-gap')?.textContent?.trim()).toBe('Écart 5 ↔ 13');
+  });
+
+  it('opens the description from the identifier', () => {
+    const fixture = TestBed.createComponent(OpinionsPanelComponent);
+    fixture.componentRef.setInput('room', room);
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.componentRef.setInput('names', NAMES);
+    fixture.componentRef.setInput('allowed', [1, 2, 3, 5, 8, 13, 20]);
+    const opened: string[] = [];
+    fixture.componentInstance.detailRequested.subscribe((id) => opened.push(id));
+    fixture.detectChanges();
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.fid')!.click();
+    expect(opened).toEqual(['f2']);
   });
 
   it('says when no card is to move', () => {

@@ -357,6 +357,9 @@ export const MESSAGES = {
     clear: 'Effacer les avis',
     toMove: 'À monter ou descendre',
     nothingToMove: 'Aucune carte à déplacer selon la salle.',
+    gap: 'Écart {low} ↔ {high}',
+    gapHint: 'Gros écart : les avis vont de {low} à {high} ({steps} crans de l’échelle).',
+    gapOpposed: 'Certains monteraient la carte, d’autres la descendraient.',
     ended: {
       SAVED: 'Le classement est terminé : le tableau est à jour.',
       CANCELLED: 'Le classement a été annulé : aucune valeur n’a changé.',

@@ -130,3 +130,47 @@ export function roomRanking(
     unranked: entries.filter((e) => e.value === null),
   };
 }
+
+/**
+ * L'écart d'avis sur une fonctionnalité pour le critère en cours (FR-015c) : `low` et `high` bornent la valeur du
+ * brouillon et les valeurs demandées (un ↑ ou ↓ sans valeur compte pour le cran suivant), `steps` compte les crans de
+ * l'échelle qui les séparent. `opposed` : la salle demande à la fois de monter et de descendre la carte.
+ */
+export interface OpinionGap {
+  readonly low: number;
+  readonly high: number;
+  readonly steps: number;
+  readonly opposed: boolean;
+  readonly level: 'strong' | 'notable' | null;
+}
+
+/** À partir de combien de crans d'écart une carte est signalée, puis signalée comme un fort écart. */
+export const NOTABLE_GAP_STEPS = 2;
+export const STRONG_GAP_STEPS = 3;
+
+/** L'écart d'avis sur une fonctionnalité ; `null` sans valeur du brouillon ni valeur demandée. */
+export function opinionGap(
+  room: ActiveRankingRoom,
+  featureId: string,
+  allowed: readonly number[],
+): OpinionGap | null {
+  const current = room.draft.values[featureId] ?? null;
+  const opinions = opinionsOf(room, featureId);
+  const values = [
+    current,
+    ...opinions.map((opinion) =>
+      opinion.opinion === 'AGREE'
+        ? current
+        : (opinion.value ?? nextValue(allowed, current, opinion.opinion)),
+    ),
+  ].filter((value): value is number => value !== null);
+  if (values.length === 0) return null;
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const steps = allowed.filter((v) => v > low && v <= high).length;
+  const kinds = new Set(opinions.map((opinion) => opinion.opinion));
+  const opposed = kinds.has('RAISE') && kinds.has('LOWER');
+  const level =
+    steps >= STRONG_GAP_STEPS || opposed ? 'strong' : steps >= NOTABLE_GAP_STEPS ? 'notable' : null;
+  return { low, high, steps, opposed, level };
+}

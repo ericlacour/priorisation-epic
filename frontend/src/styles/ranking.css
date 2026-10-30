@@ -414,8 +414,44 @@
 }
 
 .opinion-card-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: baseline;
   margin: 0;
   font-weight: 600;
+}
+
+/*
+ * Écart d'avis (FR-015c) : une carte dont les avis vont loin de la valeur du brouillon, ou dans les deux sens, est
+ * teintée — orange pour un écart notable, rouge pour un fort écart — et porte les valeurs extrêmes demandées.
+ */
+.opinion-card[data-gap] {
+  box-shadow: inset 4px 0 0 var(--gap-color);
+  background: linear-gradient(to right, var(--gap-soft), var(--surface) 60%);
+}
+
+.opinion-card[data-gap='notable'] {
+  --gap-color: var(--warning);
+  --gap-soft: var(--warning-soft);
+}
+
+.opinion-card[data-gap='strong'] {
+  --gap-color: var(--danger);
+  --gap-soft: var(--danger-soft);
+}
+
+.opinion-gap {
+  flex: none;
+  margin-left: auto;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--gap-soft);
+  color: var(--gap-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
 .opinion-composer .input {
