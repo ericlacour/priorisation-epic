@@ -281,7 +281,7 @@ describe('BoardComponent', () => {
     expect(button(element, '+ Fonctionnalité')).toBeUndefined();
     expect(element.querySelector('app-action-bar')).toBeNull();
     expect(button(element, 'Exporter')?.disabled).toBe(false);
-    expect(button(element, 'Tours révélés')?.disabled).toBe(true);
+    expect(button(element, 'Tours révélés')).toBeUndefined();
     expect(button(element, 'Liens')).toBeUndefined();
     expect(button(element, 'Importer')).toBeUndefined();
     expect(button(element, 'Échelle')).toBeUndefined();

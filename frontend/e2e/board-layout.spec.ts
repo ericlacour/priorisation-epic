@@ -113,7 +113,7 @@ test('les actions de l’animateur gardent leur libellé, en groupes, dans la ba
   }
   // Outils communs, en haut à droite.
   const tools = page.locator('.session-bar');
-  for (const name of [/^Participants \(2\)/, /^Liens/, 'Exporter', 'Tours révélés', /thème$/]) {
+  for (const name of [/^Participants \(2\)/, /^Liens/, 'Exporter', /thème$/]) {
     await expect(tools.getByRole('button', { name })).toBeVisible();
   }
 });

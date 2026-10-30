@@ -412,8 +412,10 @@ components:
         One opinion per member, feature and criterion: a new one replaces the previous one;
         `opinion: null` withdraws it with its comment. `comment` is optional and never
         required; when absent, a changed opinion keeps the previous comment, and an empty
-        string clears it. A feature outside the draft or a criterion outside
-        `draft.criterionKeys` gets `error NOT_IN_RANKING`.
+        string clears it. A feature outside the draft, a criterion outside
+        `draft.criterionKeys`, or a feature in `draft.unranked` for `draft.criterionKey` (no
+        place yet, nothing to raise or lower; withdrawing stays possible) gets
+        `error NOT_IN_RANKING`.
       properties:
         type: { const: giveOpinion }
         featureId: { type: string, format: uuid }

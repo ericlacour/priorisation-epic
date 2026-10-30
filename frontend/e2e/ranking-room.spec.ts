@@ -45,6 +45,15 @@ function room(features: Feature[], extra: Record<string, unknown> = {}) {
   };
 }
 
+/** Mon avis (`p-me` dans sessionState), tel que le serveur le renvoie. */
+const iRaiseF2 = {
+  featureId: F2.id,
+  criterionKey: 'bv',
+  participantId: 'p-me',
+  opinion: 'RAISE',
+  value: 10,
+};
+
 const bobRaisesF2 = {
   featureId: F2.id,
   criterionKey: 'bv',
@@ -127,10 +136,26 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
     );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
+
+  test('l’assistant IA s’affiche à droite du panneau des avis, sans le recouvrir, et sans violation axe', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await startRanking(page);
+    await push(page, room([F1, F2, F3], { opinions: [bobRaisesF2] }));
+    await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+    const assistant = page.locator('app-assistant-panel');
+    await expect(assistant).toContainText('Avis de la salle');
+    const panel = await page.locator('app-opinions-panel').boundingBox();
+    const box = await assistant.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(panel!.x + panel!.width);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(1440);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
 });
 
 test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () => {
-  test('suit le classement en lecture seule, donne un avis au clavier avec un commentaire', async ({
+  test('suit le classement en lecture seule, donne un avis au clavier, puis un commentaire à la demande', async ({
     page,
   }) => {
     await open(page, [F1, F2, F3], false);
@@ -142,9 +167,13 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
 
     await page.getByRole('button', { name: 'Je monterais : F-2' }).focus();
     await page.keyboard.press('Enter');
-    await expect(
-      page.getByLabel('Un commentaire ? (facultatif, 140 caractères au plus)'),
-    ).toBeFocused();
+    const comment = page.getByLabel('Un commentaire ? (facultatif, 140 caractères au plus)');
+    await push(page, room([F1, F2, F3], { opinions: [iRaiseF2] }));
+    await expect(page.getByRole('button', { name: 'Ajouter un commentaire' })).toBeVisible();
+    await expect(comment).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Ajouter un commentaire' }).click();
+    await expect(comment).toBeFocused();
     await page.keyboard.type('Le transporteur est prêt en mars.');
     await page.keyboard.press('Enter');
 
@@ -173,14 +202,16 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
           {
             featureId: F1.id,
             criterionKey: 'bv',
-            participantId: 'p-bob',
+            participantId: 'p-me',
             opinion: 'LOWER',
             value: 9,
           },
         ],
       }),
     );
-    await page.getByLabel('Valeur souhaitée').selectOption('4');
+    // La valeur souhaitée se change dans « Vos avis », sans ouvrir le commentaire.
+    await page.getByLabel('Valeur souhaitée : F-1').selectOption('4');
+    await expect(page.locator('.opinion-composer')).toHaveCount(0);
     expect((await sentOfType(page, 'giveOpinion')).at(-1)).toEqual({
       type: 'giveOpinion',
       featureId: F1.id,
@@ -280,5 +311,23 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
     await expect(page.getByRole('heading', { name: 'Classement en direct' })).toBeVisible();
     await expect(page.locator('.agreed-badge')).toHaveCount(1);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+
+  test('l’assistant IA s’affiche à la demande, à droite de « Mes avis », sans violation axe', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await open(page, [F1, F2, F3], false);
+    await push(page, room([F1, F2, F3]));
+    await expect(page.locator('app-assistant-panel')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+    const assistant = page.locator('app-assistant-panel');
+    await expect(assistant).toContainText('Mes avis');
+    const panel = await page.locator('.opinions-panel').boundingBox();
+    const box = await assistant.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(panel!.x + panel!.width);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.getByRole('button', { name: 'Masquer l’assistant IA' }).click();
+    await expect(assistant).toHaveCount(0);
   });
 });

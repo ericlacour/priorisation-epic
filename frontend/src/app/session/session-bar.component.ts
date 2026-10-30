@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AssistantPreviewService } from '../board/assistant-preview.service';
+import { AssistantToggleComponent } from '../board/assistant-toggle.component';
 import { LinksMenuComponent } from '../board/links-menu.component';
 import { ExportMenuComponent } from '../import-export/export-menu.component';
 import { ParticipantsMenuComponent } from '../board/participants-menu.component';
@@ -25,12 +25,13 @@ import { SessionRoomService } from './session-room.service';
  * Barre de session (FR-014c), sur une ligne, à la place de la barre de l'application : à gauche la pastille « PF »
  * (retour à l'accueil), le nom de la session tronqué (en entier au survol), son statut et une ligne d'information,
  * puis le lien « Comprendre le <méthode> » (FR-016a) ; à droite les outils, les mêmes pour tous : participants
- * (FR-005), « Tours révélés » (place réservée, active avec le vote masqué), le menu « Exporter » (FR-023, FR-024),
- * les liens de l'animateur (FR-014b) et le thème.
+ * (FR-005), le menu « Exporter » (FR-023, FR-024), les liens de l'animateur (FR-014b), l'assistant IA (FR-014d) et
+ * le thème.
  */
 @Component({
   selector: 'app-session-bar',
   imports: [
+    AssistantToggleComponent,
     ExportMenuComponent,
     LinksMenuComponent,
     ParticipantsMenuComponent,
@@ -63,9 +64,6 @@ import { SessionRoomService } from './session-room.service';
           [participants]="state.participants"
           [meId]="state.me?.participantId ?? null"
         />
-        <button type="button" class="btn btn-secondary" disabled [attr.title]="messages.soon">
-          {{ messages.revealedRounds }}
-        </button>
         <app-export-menu [sessionId]="state.sessionId" />
         @if (room.canAnimate()) {
           <app-links-menu
@@ -76,15 +74,7 @@ import { SessionRoomService } from './session-room.service';
         }
         @if (!screen.isPhone()) {
           <!-- L'aperçu de l'assistant IA, une illustration : affiché ou masqué d'un clic (FR-014d). -->
-          <button
-            type="button"
-            class="btn btn-secondary assistant-toggle"
-            [attr.aria-pressed]="assistant.shown()"
-            [attr.title]="assistant.shown() ? assistantMessages.hide : assistantMessages.show"
-            (click)="assistant.toggle()"
-          >
-            <span aria-hidden="true">✦</span> {{ assistantMessages.toggle }}
-          </button>
+          <app-assistant-toggle />
         }
         <app-theme-menu />
       </div>
@@ -97,8 +87,6 @@ export class SessionBarComponent {
 
   protected readonly room = inject(SessionRoomService);
   protected readonly screen = inject(ScreenSizeService);
-  protected readonly assistant = inject(AssistantPreviewService);
-  protected readonly assistantMessages = MESSAGES.assistant;
   private readonly document = inject(DOCUMENT);
   protected readonly messages = MESSAGES.board;
   protected readonly appMessages = MESSAGES.app;

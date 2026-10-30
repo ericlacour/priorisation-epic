@@ -72,7 +72,9 @@ public final class RankingRoom {
    * la valeur souhaitée d'un « Je monterais » ou « Je descendrais » ; nulle, elle garde la valeur
    * précédente du même avis (un avis changé de sens la perd). Un avis ou une valeur souhaitée qui
    * change rouvre la discussion terminée de la carte ; un commentaire seul, non. Une carte où la
-   * salle s'est mise d'accord ne reçoit plus d'avis. L'appelant vérifie l'échelle.
+   * salle s'est mise d'accord ne reçoit plus d'avis, ni une carte « Non classée » pour le critère
+   * en cours : sans place, il n'y a rien à monter ou descendre (un avis déjà donné peut être
+   * retiré). L'appelant vérifie l'échelle.
    */
   public void giveOpinion(
       UUID participantId,
@@ -91,6 +93,9 @@ public final class RankingRoom {
         discussed.remove(new DiscussedCard(featureId, criterionKey));
       }
       return;
+    }
+    if (criterionKey.equals(draft.criterionKey()) && draft.isUnranked(featureId)) {
+      throw new RankingRefusedException(Reason.NOT_IN_RANKING, featureId);
     }
     if (comment != null && comment.codePointCount(0, comment.length()) > COMMENT_MAX_LENGTH) {
       throw new RankingRefusedException(Reason.COMMENT_TOO_LONG, featureId);

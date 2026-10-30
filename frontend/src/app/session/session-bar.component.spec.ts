@@ -74,11 +74,10 @@ describe('SessionBarComponent', () => {
     expect(asked).toBe(1);
   });
 
-  it('gives the facilitator the tools, with « Tours révélés » reserved and « Exporter » active', () => {
+  it('gives the facilitator the tools, without « Tours révélés », and « Exporter » active', () => {
     const { buttons } = render({ animate: true });
     expect(buttons()).toEqual([
       { text: 'Participants (2)', disabled: false },
-      { text: 'Tours révélés', disabled: true },
       { text: 'Exporter', disabled: false },
       { text: 'Liens', disabled: false },
       { text: '✦ Assistant IA', disabled: false },
@@ -90,7 +89,6 @@ describe('SessionBarComponent', () => {
     const { buttons } = render({ animate: false });
     expect(buttons()).toEqual([
       { text: 'Participants (2)', disabled: false },
-      { text: 'Tours révélés', disabled: true },
       { text: 'Exporter', disabled: false },
       { text: '✦ Assistant IA', disabled: false },
       { text: 'Thème', disabled: false },

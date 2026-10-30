@@ -445,6 +445,25 @@ class RankingRoomTest {
   }
 
   @Test
+  void anUnrankedCardGetsNoOpinionForTheCurrentCriterionButOneGivenBeforeCanBeWithdrawn() {
+    RankingRoom room = RankingRoom.open(ERIC, draft());
+    room.giveOpinion(ALICE, F3, "bv", Opinion.RAISE, null, null);
+    room.broadcast(
+        new RankingDraft(
+            List.of("bv", "js"),
+            "bv",
+            List.of(List.of(F1), List.of(F2)),
+            List.of(F3),
+            Map.of(F1, 8, F2, 5)));
+
+    assertThat(refusal(() -> room.giveOpinion(BOB, F3, "bv", Opinion.AGREE, null, null)))
+        .isEqualTo(Reason.NOT_IN_RANKING);
+    room.giveOpinion(ALICE, F3, "bv", null, null, null);
+    assertThat(room.opinions()).isEmpty();
+    room.giveOpinion(BOB, F3, "js", Opinion.AGREE, null, null);
+  }
+
+  @Test
   void anAgreementIsReopenedOrForgottenWithItsCard() {
     RankingRoom room = RankingRoom.open(ERIC, draft());
     room.settle(F2, "bv", true);

@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AssistantPreviewService } from '../board/assistant-preview.service';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
 import { FakeRoom } from '../testing/fake-room';
@@ -31,6 +32,14 @@ describe('LiveRankingViewComponent', () => {
     return { room, fixture, element, row, opinionButton };
   }
 
+  /** « Ajouter un commentaire », dans « Vos avis » : seul moyen d'ouvrir le champ du commentaire. */
+  function openComment(element: HTMLElement, fixture: { detectChanges(): void }): void {
+    [...element.querySelectorAll<HTMLButtonElement>('.opinion-block button')]
+      .find((b) => b.textContent?.trim() === 'Ajouter un commentaire')!
+      .click();
+    fixture.detectChanges();
+  }
+
   it('shows the facilitator ranking read-only, with the criterion and the values', () => {
     const { element, row } = render();
     expect(element.querySelector('h1')?.textContent).toBe('Classement en direct');
@@ -44,7 +53,7 @@ describe('LiveRankingViewComponent', () => {
     expect(element.querySelector('[draggable]')).toBeNull();
   });
 
-  it('gives an opinion with the next value of the scale, then offers an optional comment', () => {
+  it('gives an opinion with the next value of the scale; the comment opens only on demand', () => {
     const { room, fixture, element, opinionButton } = render();
 
     opinionButton('f1', 'RAISE').click();
@@ -58,7 +67,9 @@ describe('LiveRankingViewComponent', () => {
     );
     fixture.detectChanges();
     expect(opinionButton('f1', 'RAISE').getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('.opinion-composer')).toBeNull();
 
+    openComment(element, fixture);
     const input = element.querySelector<HTMLInputElement>('#opinion-comment')!;
     expect(element.querySelector('.opinion-composer')?.textContent).toContain(
       'Votre avis sur F-1 : ↑ Je monterais',
@@ -82,7 +93,10 @@ describe('LiveRankingViewComponent', () => {
       }),
     );
     fixture.detectChanges();
-    const select = element.querySelector<HTMLSelectElement>('#opinion-value')!;
+    // Dans « Vos avis », sans ouvrir le commentaire.
+    const select = element.querySelector<HTMLSelectElement>('#opinion-value-f1')!;
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+    expect(select.getAttribute('aria-label')).toBe('Valeur souhaitée : F-1');
     expect([...select.options].map((o) => o.value)).toEqual(['9', '10']);
     expect(select.value).toBe('9');
 
@@ -107,7 +121,12 @@ describe('LiveRankingViewComponent', () => {
 
   it('marks an agreed card for the participant, with no opinion button left on it', () => {
     const { room, fixture, row } = render();
-    room.rankingRoom.set(rankingRoom({ agreed: [{ featureId: 'f1', criterionKey: 'bv' }] }));
+    room.rankingRoom.set(
+      rankingRoom({
+        draft: { ...rankingRoom().draft, levels: [['f1'], ['f2']], unranked: [] },
+        agreed: [{ featureId: 'f1', criterionKey: 'bv' }],
+      }),
+    );
     fixture.detectChanges();
     expect(row('f1').dataset['agreed']).toBe('true');
     expect(row('f1').querySelector('.agreed-badge')?.textContent?.trim()).toBe('✓ Accord');
@@ -117,6 +136,14 @@ describe('LiveRankingViewComponent', () => {
     expect(row('f1').querySelector('.opinion-buttons')).toBeNull();
     expect(row('f2').querySelector('.opinion-buttons')).not.toBeNull();
     expect(row('f2').dataset['agreed']).toBeUndefined();
+  });
+
+  it('gives no opinion on an unranked card: it has no place yet', () => {
+    const { element, row } = render();
+    expect(row('f2').closest('.rank-unranked')).not.toBeNull();
+    expect(row('f2').querySelector('.opinion-buttons')).toBeNull();
+    expect(element.querySelector('[aria-label="Je monterais : F-2"]')).toBeNull();
+    expect(row('f1').querySelector('.opinion-buttons')).not.toBeNull();
   });
 
   it('opens the description of a feature from the live ranking', () => {
@@ -138,6 +165,8 @@ describe('LiveRankingViewComponent', () => {
 
     opinionButton('f1', 'LOWER').click();
     fixture.detectChanges();
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+    openComment(element, fixture);
     [...element.querySelectorAll<HTMLButtonElement>('.opinion-composer button')]
       .find((b) => b.textContent?.trim() === 'Sans commentaire')!
       .click();
@@ -220,6 +249,26 @@ describe('LiveRankingViewComponent', () => {
     room.rankingRoom.set(rankingRoom({ live: false }));
     fixture.detectChanges();
     expect(element.textContent).toContain('Diffusion en pause');
+  });
+
+  it('shows the participant the AI assistant preview on demand, beside their opinions', () => {
+    const { fixture, element } = render();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    element.querySelector<HTMLButtonElement>('.assistant-toggle')!.click();
+    fixture.detectChanges();
+    const assistant = element.querySelector('app-assistant-panel')!;
+    expect(element.querySelector('.ranking-with-room.with-panel.with-assistant')).not.toBeNull();
+    expect(assistant.textContent).toContain('Mes avis');
+    expect(assistant.textContent).toContain('Proposer une valeur');
+    expect(assistant.querySelector('textarea')?.disabled).toBe(true);
+  });
+
+  it('never shows the AI assistant preview nor its toggle on a phone', () => {
+    const { fixture, element } = render(true);
+    TestBed.inject(AssistantPreviewService).toggle();
+    fixture.detectChanges();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(element.querySelector('.assistant-toggle')).toBeNull();
   });
 
   it('is read-only on a phone, without opinion buttons', () => {

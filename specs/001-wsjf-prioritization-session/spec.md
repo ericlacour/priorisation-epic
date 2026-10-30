@@ -417,6 +417,11 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   colonnes en v1.
 - **FR-007a**: Le système DOIT proposer au téléchargement un modèle Excel vierge, qui
   contient exactement ces en-têtes et une ligne d'exemple.
+- **FR-007b** (ajout du 2026-10-30) : La fenêtre d'import montre, sous le choix du fichier,
+  un bouton « Importer depuis Jira » **désactivé**, marqué « Bientôt », avec l'explication
+  « Un projet, une epic ou un filtre JQL : les tickets deviendront des fonctionnalités, avec
+  leur identifiant et leur titre. Pas encore disponible. ». C'est une illustration : aucune
+  connexion à Jira n'existe.
 - **FR-008**: Avant tout import, le système DOIT afficher un aperçu des lignes valides et
   des lignes rejetées avec leur motif. Il n'importe rien sans confirmation de l'animateur
   et affiche ensuite le nombre de lignes importées et rejetées.
@@ -475,9 +480,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      à l'accueil), le nom de la session (tronqué, en entier au survol), son badge de statut
      et le lien « Comprendre le WSJF » (FR-016a) ; à droite, les outils, les mêmes pour
      tous les membres : « Participants (n) ▾ » (FR-005, avec « Transmettre le rôle
-     d'animateur », FR-002a), « Tours révélés (n) » (FR-022, avec le vote masqué),
-     « Exporter ▾ » (FR-023, FR-024), « Liens ▾ » (animateur seulement, FR-014b) et le
-     choix du thème ;
+     d'animateur », FR-002a), « Exporter ▾ » (FR-023, FR-024), « Liens ▾ » (animateur
+     seulement, FR-014b), « ✦ Assistant IA » (FR-014d) et le choix du thème. « Tours
+     révélés (n) » (FR-022, avec le vote masqué), qui y était réservé désactivé, est retiré
+     le 2026-10-30 : il reviendra avec le vote masqué ;
   2. la **barre d'actions**, juste en dessous, sur une ligne, avec des groupes séparés
      d'un filet :
      - pour l'animateur : **saisie** (« + Fonctionnalité », action principale, et
@@ -525,7 +531,7 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
     pendant un tour ouvert (maquettes, écrans 4 et 4 quinquies, T097a) ;
   - sur téléphone (lecture seule), la barre d'actions se réduit au bandeau d'état (absente
     sans tour ouvert, sauf session clôturée), et les
-    outils de la barre de session à « Participants », « Tours révélés », « Exporter » et,
+    outils de la barre de session à « Participants », « Exporter » et,
     pour l'animateur, « Liens » (lien d'invitation seulement), sur une deuxième ligne.
 - **FR-014d** (ajout du 2026-10-30, **aperçu**) : sur ordinateur (1100 px de large ou
   plus), un panneau **« Assistant IA »** occupe la droite de l'écran de session, à côté
@@ -660,11 +666,15 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      même si la carte est déplacée ;
   2. **Commentaire facultatif** : un membre peut ajouter à son avis un petit commentaire
      (140 caractères au plus), sans que ce soit jamais demandé. Changer d'avis garde le
-     commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire ;
+     commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire.
+     Depuis le 2026-10-30, le champ du commentaire **ne s'ouvre plus** quand le membre donne
+     son avis : il l'ouvre en cliquant sur « Ajouter un commentaire » (ou « Modifier le
+     commentaire »), dans « Vos avis » ;
   2b. **Valeur souhaitée** (ajout du 2026-10-30) : « Je monterais » et « Je descendrais »
      portent la valeur que le membre donnerait, une valeur de l'échelle au-dessus (↑) ou
      au-dessous (↓) de la valeur actuelle. Le cran suivant de l'échelle est proposé d'emblée ;
-     le membre le change dans la liste « Valeur souhaitée ». La valeur se garde tant que
+     le membre le change dans la liste « Valeur souhaitée », sous son avis dans « Vos avis », sans
+     ouvrir le commentaire (depuis le 2026-10-30). La valeur se garde tant que
      l'avis garde son sens ; elle se perd s'il change de sens ;
   2c. ~~**Classement selon la salle**~~ (ajout du 2026-10-30, **retiré** le même jour, chez
      l'animateur puis chez les membres : trop d'informations). Il montrait, à droite du
@@ -709,11 +719,23 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      `CARD_AGREED`). L'animateur retrouve ces cartes sous « Accords trouvés », dans son
      panneau, et peut les « Rouvrir ». Le serveur les retient dans la salle
      (`rankingRoom.agreed`, intention `settleCard`) : une page rechargée les montre toujours.
+  6. **Assistant IA** (ajout du 2026-10-30) : l'aperçu de l'assistant IA (FR-014d) est
+     aussi proposé pendant le classement, à l'animateur comme aux participants. La bascule
+     « ✦ Assistant IA » est au-dessus du classement chez l'animateur (à côté de « Diffusé en
+     direct ») et dans l'en-tête chez les participants ; l'aperçu s'affiche à droite, après
+     le panneau des avis, et se masque par la même bascule ou par sa croix. Le choix est le
+     même que sur le tableau (`pe.assistant`). L'exemple d'échange porte sur le critère en
+     cours : chez l'animateur, où la salle n'est pas d'accord et quelle carte mettre en
+     discussion ; chez un participant, pourquoi une carte est classée là et quelle valeur
+     proposer. C'est toujours une maquette, absente sur téléphone et sous 1100 px de large.
 
   Les avis et la carte en discussion ne vivent que le temps de l'écran de classement : ils
   ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025), et repartent de zéro
   au classement suivant. L'animateur ne donne pas d'avis : il déplace la carte. Ils ne
-  sont pas disponibles pendant le vote d'un tour masqué (FR-019), ni sur téléphone
+  sont pas disponibles pendant le vote d'un tour masqué (FR-019), ni sur une carte encore
+  « Non classée » pour le critère en cours (ajout du 2026-10-30 : sans place, il n'y a rien
+  à monter ou descendre ; le serveur refuse avec `NOT_IN_RANKING`, un avis déjà donné peut
+  être retiré), ni sur téléphone
   (lecture seule). Tous ces éléments ont un nom accessible et se pilotent au clavier, comme
   le glisser-déposer de FR-015a.
 - **FR-016**: Pour chaque fonctionnalité, le système DOIT pouvoir afficher le détail du

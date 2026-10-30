@@ -116,8 +116,6 @@ export const MESSAGES = {
       IN_PROGRESS: 'En cours',
       CLOSED: 'Clôturée',
     },
-    soon: 'Disponible dans une prochaine version.',
-    revealedRounds: 'Tours révélés',
     addFeature: '+ Fonctionnalité',
     rank: 'Prioriser par classement',
     rankHint: 'Classer les fonctionnalités critère par critère, puis proposer les valeurs',
@@ -341,6 +339,7 @@ export const MESSAGES = {
     myOpinions: 'Vos avis',
     noMyOpinion: 'Vous n’avez encore donné aucun avis.',
     wantedLabel: 'Valeur souhaitée',
+    wantedFor: 'Valeur souhaitée : {id}',
     wantedOpinion: '{opinion} à {value}',
     spotlight: 'En discussion',
     endSpotlight: 'Terminer sans accord',
@@ -461,7 +460,7 @@ export const MESSAGES = {
     NO_RANKING_IN_PROGRESS:
       "Le classement en direct est terminé : votre avis n'a pas été envoyé. Revenez au tableau.",
     NOT_IN_RANKING:
-      "Cette fonctionnalité n'est plus dans le classement en cours : attendez la mise à jour du classement, puis réessayez.",
+      "Cette fonctionnalité n'est pas classée en ce moment : attendez que l'animateur lui donne une place, puis réessayez.",
     CARD_AGREED:
       'La salle s’est déjà mise d’accord sur cette fonctionnalité : demandez à l’animateur de la rouvrir pour en discuter de nouveau.',
     NOT_CONNECTED:
@@ -513,6 +512,12 @@ export const MESSAGES = {
     done: '{imported} fonctionnalité(s) importée(s), {rejected} ligne(s) rejetée(s).',
     close: 'Terminer',
     anotherFile: 'Choisir un autre fichier',
+    jira: {
+      or: 'ou',
+      button: 'Importer depuis Jira',
+      soon: 'Bientôt',
+      hint: 'Un projet, une epic ou un filtre JQL : les tickets deviendront des fonctionnalités, avec leur identifiant et leur titre. Pas encore disponible.',
+    },
     errors: {
       tooLarge: 'Le fichier dépasse 5 Mo : découpez-le en plusieurs imports.',
       expired: 'L’aperçu a expiré : importez de nouveau le fichier.',
@@ -543,6 +548,7 @@ export const MESSAGES = {
   assistant: {
     toggle: 'Assistant IA',
     show: 'Afficher l’aperçu de l’assistant IA, à droite du tableau',
+    showRanking: 'Afficher l’aperçu de l’assistant IA, à droite du classement',
     hide: 'Masquer l’aperçu de l’assistant IA',
     close: 'Masquer l’assistant IA',
     title: 'Assistant IA',
@@ -591,6 +597,86 @@ export const MESSAGES = {
     placeholder: 'Posez une question sur la priorisation…',
     send: 'Envoyer',
     notice: 'Maquette : l’assistant n’est pas encore branché.',
+    /** Pendant « Prioriser par classement » (FR-015c) : le même aperçu, centré sur le critère en cours. */
+    ranking: {
+      animator: {
+        lead: 'Échangez sur le classement en cours : l’assistant connaît les avis de la salle, les tickets Jira et la documentation complète des fonctionnalités.',
+        sources: ['Classement en cours', 'Avis de la salle', 'Jira', 'Documentation'],
+        dialogue: [
+          {
+            from: 'user',
+            text: 'Sur le BV, où la salle n’est-elle pas d’accord avec mon classement ?',
+          },
+          {
+            from: 'assistant',
+            text: 'Deux cartes concentrent les avis : « Paiement en un clic », que 4 participants montent (↑ 13 au lieu de 8), et « Export comptable », que 3 descendent (↓ 3), sans commentaire. L’écart est le plus gros sur le paiement : je vous propose de la mettre en discussion d’abord.',
+          },
+          {
+            from: 'user',
+            text: 'Qu’est-ce qui pourrait trancher pour le paiement ?',
+          },
+          {
+            from: 'assistant',
+            text: 'Sa documentation (§ 1.2) chiffre l’abandon au paiement à 30 % des paniers, et PAY-418 compte 12 votes clients dans Jira. Un BV de 13 la mettrait au niveau de « Suivi des commandes ». Si la salle est d’accord, cliquez sur « ✓ Accord trouvé ».',
+          },
+          {
+            from: 'user',
+            text: 'Reste-t-il des cartes à regarder ?',
+          },
+          {
+            from: 'assistant',
+            text: 'Trois sont encore « Non classées » :',
+            items: [
+              'Alertes de stock : doublon probable de « Suivi des stocks », déjà au niveau 3.',
+              'Programme de fidélité : l’epic PAY-502 n’est pas découpée.',
+              'Factures PDF : comparable à « Export comptable » d’après sa documentation.',
+            ],
+            after: 'Voulez-vous que je propose un niveau pour chacune ?',
+          },
+        ],
+        suggestions: ['Résumer les avis', 'Choisir la carte à discuter', 'Proposer un niveau'],
+        placeholder: 'Posez une question sur ce classement…',
+      },
+      participant: {
+        lead: 'Échangez sur le classement en cours : l’assistant connaît le classement de l’animateur, vos avis, les tickets Jira et la documentation complète des fonctionnalités.',
+        sources: ['Classement en cours', 'Mes avis', 'Jira', 'Documentation'],
+        dialogue: [
+          {
+            from: 'user',
+            text: 'Pourquoi « Export comptable » est-elle classée aussi haut sur le BV ?',
+          },
+          {
+            from: 'assistant',
+            text: 'L’animateur l’a placée au niveau 2, avec « Suivi des commandes ». Dans Jira, PAY-455 vient d’une demande du service financier, mais sa documentation ne cite qu’un seul client. Si vous pensez qu’elle vaut moins, donnez l’avis ↓ avec la valeur que vous lui donneriez.',
+          },
+          {
+            from: 'user',
+            text: 'Quelle valeur proposer ?',
+          },
+          {
+            from: 'assistant',
+            text: 'Les fonctionnalités comparables de la session ont un BV de 3 à 5 : « Factures PDF » (5), « Relances automatiques » (3). Un ↓ à 5, avec le commentaire « un seul client demandeur », aiderait la discussion.',
+          },
+          {
+            from: 'user',
+            text: 'Que savoir sur la carte en discussion ?',
+          },
+          {
+            from: 'assistant',
+            text: '« Paiement en un clic » (PAY-418) :',
+            items: [
+              'Avis : 4 ↑ à 13, 1 ↓ à 5.',
+              'Documentation (§ 1.2) : 30 % des paniers abandonnés au paiement.',
+              'Jira : 12 votes clients, dépend de PAY-377, encore « À faire ».',
+            ],
+            after:
+              'La dépendance pèse sur le JS, pas sur le BV : elle comptera au critère suivant.',
+          },
+        ],
+        suggestions: ['Expliquer ce classement', 'Proposer une valeur', 'Résumer la discussion'],
+        placeholder: 'Posez une question sur ce classement…',
+      },
+    },
   },
 } as const;
 

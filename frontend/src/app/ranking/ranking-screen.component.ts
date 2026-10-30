@@ -15,7 +15,11 @@ import { CriterionDefinition, Feature } from '../api/session-state';
 import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { SessionRoomService } from '../session/session-room.service';
+import { AssistantPanelComponent } from '../board/assistant-panel.component';
+import { AssistantPreviewService } from '../board/assistant-preview.service';
+import { AssistantToggleComponent } from '../board/assistant-toggle.component';
 import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
+import { ScreenSizeService } from '../layout/screen-size.service';
 import { CriterionRankingComponent, RankedItem } from './criterion-ranking.component';
 import { OpinionsPanelComponent } from './opinions-panel.component';
 import { agreedIds, opinionsByFeature, roomGaps } from './opinions';
@@ -42,7 +46,13 @@ type Changes = Readonly<Record<string, number | null>>;
  */
 @Component({
   selector: 'app-ranking-screen',
-  imports: [CriterionRankingComponent, FeatureDetailPanelComponent, OpinionsPanelComponent],
+  imports: [
+    AssistantPanelComponent,
+    AssistantToggleComponent,
+    CriterionRankingComponent,
+    FeatureDetailPanelComponent,
+    OpinionsPanelComponent,
+  ],
   providers: [RankingRoomService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -158,7 +168,11 @@ type Changes = Readonly<Record<string, number | null>>;
       }
 
       @if (current(); as criterion) {
-        <div class="ranking-with-room" [class.with-panel]="liveRoom() !== null">
+        <div
+          class="ranking-with-room"
+          [class.with-panel]="liveRoom() !== null"
+          [class.with-assistant]="showAssistant()"
+        >
           <app-criterion-ranking
             [items]="items()"
             [criterion]="criterion"
@@ -186,6 +200,9 @@ type Changes = Readonly<Record<string, number | null>>;
                 {{ liveMessages.broadcastOff }}
               }
             </button>
+            @if (!screen.isPhone()) {
+              <app-assistant-toggle rankingTopAction beside="ranking" [small]="true" />
+            }
           </app-criterion-ranking>
           @if (liveRoom(); as liveRoom) {
             <app-opinions-panel
@@ -198,6 +215,9 @@ type Changes = Readonly<Record<string, number | null>>;
               (clear)="room.clearOpinions($event, criterion.key)"
               (settle)="room.settleCard($event.id, criterion.key, $event.agreed)"
             />
+          }
+          @if (showAssistant()) {
+            <app-assistant-panel context="animator" (closed)="assistant.hide()" />
           }
         </div>
         @if (detailFeature(); as feature) {
@@ -261,6 +281,12 @@ export class RankingScreenComponent {
   protected readonly room = inject(SessionRoomService);
   protected readonly broadcast = inject(RankingRoomService);
   protected readonly liveMessages = MESSAGES.liveRanking;
+  protected readonly screen = inject(ScreenSizeService);
+  protected readonly assistant = inject(AssistantPreviewService);
+  /** L'aperçu de l'assistant IA, sur ordinateur, quand on l'a affiché (FR-014d, FR-015c). */
+  protected readonly showAssistant = computed(
+    () => this.assistant.shown() && !this.screen.isPhone(),
+  );
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly messages = MESSAGES.ranking;
 

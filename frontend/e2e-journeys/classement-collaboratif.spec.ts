@@ -77,12 +77,15 @@ test('V19 : les participants suivent le classement en direct et donnent leur avi
 
   // alice monterait F-2 et l'explique ; bob est d'accord avec F-1, sans commentaire.
   await alice.getByRole('button', { name: 'Je monterais : F-2' }).click();
+  // Le commentaire ne s'ouvre qu'à la demande.
+  await alice.getByRole('button', { name: 'Ajouter un commentaire' }).click();
   await alice
     .getByLabel('Un commentaire ? (facultatif, 140 caractères au plus)')
     .fill('Le transporteur est prêt en mars.');
   await alice.getByRole('button', { name: 'Envoyer' }).click();
   await bob.getByRole('button', { name: 'D’accord : F-1' }).click();
-  await bob.getByRole('button', { name: 'Sans commentaire' }).click();
+  await expect(bob.getByRole('button', { name: 'Ajouter un commentaire' })).toBeVisible();
+  await expect(bob.getByRole('button', { name: 'Sans commentaire' })).toHaveCount(0);
 
   const panel = page.locator('app-opinions-panel');
   await expect(panel).toContainText('Le transporteur est prêt en mars.');
