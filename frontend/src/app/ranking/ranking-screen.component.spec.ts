@@ -329,6 +329,28 @@ describe('RankingScreenComponent', () => {
     expect(room.updateFeature).not.toHaveBeenCalled();
   });
 
+  it('shows the AI assistant preview beside the ranking on demand, with an exchange about the criterion', () => {
+    const { fixture, element, click } = render();
+    expect(element.querySelector('.assistant-toggle')).toBeNull();
+    click('Commencer');
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+
+    const toggle = element.querySelector<HTMLButtonElement>('.assistant-toggle')!;
+    expect(toggle.getAttribute('title')).toContain('à droite du classement');
+    toggle.click();
+    fixture.detectChanges();
+    const assistant = element.querySelector('app-assistant-panel')!;
+    expect(element.querySelector('.ranking-with-room.with-assistant')).not.toBeNull();
+    expect(assistant.textContent).toContain('Avis de la salle');
+    expect(assistant.textContent).toContain('Accord trouvé');
+    expect(assistant.querySelector('textarea')?.disabled).toBe(true);
+
+    assistant.querySelector<HTMLButtonElement>('.assistant-close')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('says what the ranked criterion measures, so that a bigger Job Size reads as a harder job', () => {
     const { click, element } = render([F1, F2]);
     click('Commencer le classement');

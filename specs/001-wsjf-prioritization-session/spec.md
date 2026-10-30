@@ -714,6 +714,15 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      `CARD_AGREED`). L'animateur retrouve ces cartes sous « Accords trouvés », dans son
      panneau, et peut les « Rouvrir ». Le serveur les retient dans la salle
      (`rankingRoom.agreed`, intention `settleCard`) : une page rechargée les montre toujours.
+  6. **Assistant IA** (ajout du 2026-10-30) : l'aperçu de l'assistant IA (FR-014d) est
+     aussi proposé pendant le classement, à l'animateur comme aux participants. La bascule
+     « ✦ Assistant IA » est au-dessus du classement chez l'animateur (à côté de « Diffusé en
+     direct ») et dans l'en-tête chez les participants ; l'aperçu s'affiche à droite, après
+     le panneau des avis, et se masque par la même bascule ou par sa croix. Le choix est le
+     même que sur le tableau (`pe.assistant`). L'exemple d'échange porte sur le critère en
+     cours : chez l'animateur, où la salle n'est pas d'accord et quelle carte mettre en
+     discussion ; chez un participant, pourquoi une carte est classée là et quelle valeur
+     proposer. C'est toujours une maquette, absente sur téléphone et sous 1100 px de large.
 
   Les avis et la carte en discussion ne vivent que le temps de l'écran de classement : ils
   ne sont ni enregistrés, ni exportés, ni dans l'historique (FR-025), et repartent de zéro

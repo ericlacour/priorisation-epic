@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AssistantPreviewService } from '../board/assistant-preview.service';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
 import { FakeRoom } from '../testing/fake-room';
@@ -220,6 +221,26 @@ describe('LiveRankingViewComponent', () => {
     room.rankingRoom.set(rankingRoom({ live: false }));
     fixture.detectChanges();
     expect(element.textContent).toContain('Diffusion en pause');
+  });
+
+  it('shows the participant the AI assistant preview on demand, beside their opinions', () => {
+    const { fixture, element } = render();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    element.querySelector<HTMLButtonElement>('.assistant-toggle')!.click();
+    fixture.detectChanges();
+    const assistant = element.querySelector('app-assistant-panel')!;
+    expect(element.querySelector('.ranking-with-room.with-panel.with-assistant')).not.toBeNull();
+    expect(assistant.textContent).toContain('Mes avis');
+    expect(assistant.textContent).toContain('Proposer une valeur');
+    expect(assistant.querySelector('textarea')?.disabled).toBe(true);
+  });
+
+  it('never shows the AI assistant preview nor its toggle on a phone', () => {
+    const { fixture, element } = render(true);
+    TestBed.inject(AssistantPreviewService).toggle();
+    fixture.detectChanges();
+    expect(element.querySelector('app-assistant-panel')).toBeNull();
+    expect(element.querySelector('.assistant-toggle')).toBeNull();
   });
 
   it('is read-only on a phone, without opinion buttons', () => {

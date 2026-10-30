@@ -17,6 +17,9 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
+import { AssistantPanelComponent } from '../board/assistant-panel.component';
+import { AssistantPreviewService } from '../board/assistant-preview.service';
+import { AssistantToggleComponent } from '../board/assistant-toggle.component';
 import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
 import { CardOpinionsComponent } from './card-opinions.component';
 import { OpinionListComponent } from './opinion-list.component';
@@ -53,6 +56,8 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
   selector: 'app-live-ranking-view',
   imports: [
     NgTemplateOutlet,
+    AssistantPanelComponent,
+    AssistantToggleComponent,
     CardOpinionsComponent,
     FeatureDetailPanelComponent,
     OpinionListComponent,
@@ -74,6 +79,11 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             </p>
           }
         </div>
+        @if (!screen.isPhone()) {
+          <div class="board-tools ranking-nav">
+            <app-assistant-toggle beside="ranking" />
+          </div>
+        }
       </div>
 
       <div class="notice info live-follow" role="status">
@@ -86,7 +96,11 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
         <p class="notice info">{{ messages.phoneReadOnly }}</p>
       }
 
-      <div class="ranking-with-room" [class.with-panel]="!screen.isPhone()">
+      <div
+        class="ranking-with-room"
+        [class.with-panel]="!screen.isPhone()"
+        [class.with-assistant]="showAssistant()"
+      >
         <div class="criterion-ranking">
           <div class="ranking-lists">
             <section class="rank-column rank-unranked" aria-labelledby="live-unranked-title">
@@ -230,6 +244,9 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             </section>
           </aside>
         }
+        @if (showAssistant()) {
+          <app-assistant-panel context="participant" (closed)="assistant.hide()" />
+        }
       </div>
 
       <ng-template #row let-id="id">
@@ -295,6 +312,11 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 export class LiveRankingViewComponent {
   protected readonly room = inject(SessionRoomService);
   protected readonly screen = inject(ScreenSizeService);
+  protected readonly assistant = inject(AssistantPreviewService);
+  /** L'aperçu de l'assistant IA, sur ordinateur, quand on l'a affiché (FR-014d, FR-015c). */
+  protected readonly showAssistant = computed(
+    () => this.assistant.shown() && !this.screen.isPhone(),
+  );
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   protected readonly messages = MESSAGES.liveRanking;

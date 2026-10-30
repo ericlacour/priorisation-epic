@@ -159,6 +159,11 @@
   margin-left: auto;
 }
 
+/* La bascule de l'assistant IA, collée à « Diffusé en direct ». */
+.ranking-top .assistant-toggle {
+  margin-left: 0;
+}
+
 /* Non classées à gauche, classement à droite : chacune défile de son côté et occupe toute la hauteur. */
 .ranking-lists {
   display: grid;
@@ -388,6 +393,31 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
   gap: 12px;
+}
+
+/* L'aperçu de l'assistant IA, à droite : après le panneau des avis quand il y en a un. */
+.ranking-with-room.with-assistant {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 12px;
+}
+
+.ranking-with-room.with-panel.with-assistant {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 26%) 320px;
+}
+
+@media (max-width: 1099px) {
+  .ranking-with-room.with-assistant {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ranking-with-room.with-panel.with-assistant {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 30%);
+  }
+
+  .ranking-with-room .assistant-panel {
+    display: none;
+  }
 }
 
 .ranking-with-room > .criterion-ranking {

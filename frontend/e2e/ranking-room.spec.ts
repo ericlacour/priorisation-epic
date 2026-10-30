@@ -127,6 +127,22 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
     );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
+
+  test('l’assistant IA s’affiche à droite du panneau des avis, sans le recouvrir, et sans violation axe', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await startRanking(page);
+    await push(page, room([F1, F2, F3], { opinions: [bobRaisesF2] }));
+    await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+    const assistant = page.locator('app-assistant-panel');
+    await expect(assistant).toContainText('Avis de la salle');
+    const panel = await page.locator('app-opinions-panel').boundingBox();
+    const box = await assistant.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(panel!.x + panel!.width);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(1440);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
 });
 
 test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () => {
@@ -280,5 +296,23 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
     await expect(page.getByRole('heading', { name: 'Classement en direct' })).toBeVisible();
     await expect(page.locator('.agreed-badge')).toHaveCount(1);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+
+  test('l’assistant IA s’affiche à la demande, à droite de « Mes avis », sans violation axe', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await open(page, [F1, F2, F3], false);
+    await push(page, room([F1, F2, F3]));
+    await expect(page.locator('app-assistant-panel')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Assistant IA', exact: true }).click();
+    const assistant = page.locator('app-assistant-panel');
+    await expect(assistant).toContainText('Mes avis');
+    const panel = await page.locator('.opinions-panel').boundingBox();
+    const box = await assistant.boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(panel!.x + panel!.width);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.getByRole('button', { name: 'Masquer l’assistant IA' }).click();
+    await expect(assistant).toHaveCount(0);
   });
 });
