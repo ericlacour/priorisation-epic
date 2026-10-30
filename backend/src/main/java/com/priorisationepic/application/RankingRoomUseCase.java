@@ -103,7 +103,10 @@ public class RankingRoomUseCase {
         });
   }
 
-  /** {@code giveOpinion} : un avis de participant, l'animateur déplace la carte. */
+  /**
+   * {@code giveOpinion} : un avis de participant, l'animateur déplace la carte. La valeur souhaitée
+   * est une valeur de l'échelle de la session.
+   */
   public void giveOpinion(
       SessionId sessionId,
       UUID participantId,
@@ -111,16 +114,20 @@ public class RankingRoomUseCase {
       UUID featureId,
       String criterionKey,
       Opinion opinion,
-      String comment) {
+      String comment,
+      Integer value) {
     run(
         sessionId,
         () -> {
           if (facilitator) {
             throw new IntentRejectedException(ErrorCode.FORBIDDEN);
           }
-          writableSession(sessionId);
+          Session session = writableSession(sessionId);
           RankingRoom room = requireRoom(rooms.get(sessionId));
-          room.giveOpinion(participantId, featureId, criterionKey, opinion, comment);
+          if (value != null && !session.scale().accepts(value)) {
+            throw new IntentRejectedException(ErrorCode.INVALID_VALUE);
+          }
+          room.giveOpinion(participantId, featureId, criterionKey, opinion, comment, value);
           publish(sessionId, room);
         });
   }
@@ -264,7 +271,7 @@ public class RankingRoomUseCase {
       case FEATURE_IN_OPEN_ROUND ->
           new IntentRejectedException(ErrorCode.FEATURE_IN_OPEN_ROUND, e.featureId());
       case NOT_IN_RANKING -> new IntentRejectedException(ErrorCode.NOT_IN_RANKING);
-      case INVALID_DRAFT, DUPLICATE_FEATURE, COMMENT_TOO_LONG ->
+      case INVALID_DRAFT, DUPLICATE_FEATURE, COMMENT_TOO_LONG, VALUE_WITHOUT_MOVE ->
           new IntentRejectedException(ErrorCode.INVALID_MESSAGE);
     };
   }

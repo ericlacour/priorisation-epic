@@ -55,6 +55,12 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 140
+          },
+          "value": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Value the member would give (RAISE or LOWER only)"
           }
         }
       }

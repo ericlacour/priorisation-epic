@@ -17,9 +17,18 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { ScreenSizeService } from '../layout/screen-size.service';
 import { SessionRoomService } from '../session/session-room.service';
+import { FeatureDetailPanelComponent } from '../board/feature-detail-panel.component';
 import { CardOpinionsComponent } from './card-opinions.component';
 import { OpinionListComponent } from './opinion-list.component';
-import { OPINION_SYMBOLS, opinionsByFeature, opinionsOf } from './opinions';
+import {
+  OPINION_SYMBOLS,
+  defaultWanted,
+  opinionText,
+  opinionsByFeature,
+  opinionsOf,
+  wantedChoices,
+} from './opinions';
+import { RoomRankingComponent } from './room-ranking.component';
 
 /** Une carte déplacée par l'animateur reste signalée ce temps-là. */
 export const MOVED_HIGHLIGHT_MS = 1_500;
@@ -34,13 +43,21 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
 
 /**
  * Le classement de l'animateur suivi en direct par un participant (FR-015b), à la place du tableau, en lecture seule.
- * Chacun donne son avis sur une carte (✓, ↑, ↓) avec un commentaire facultatif (FR-015c). La carte que l'animateur
+ * Chacun donne son avis sur une carte (✓, ↑, ↓) avec, pour ↑ et ↓, la valeur qu'il donnerait (le cran suivant de
+ * l'échelle d'emblée) et un commentaire facultatif (FR-015c) ; à droite, le classement selon la salle. Un clic sur
+ * l'identifiant d'une carte ouvre son descriptif. La carte que l'animateur
  * vient de déplacer est signalée, et ramenée à la vue tant que le participant suit l'animateur. Sur téléphone, la vue
  * est en lecture seule, sans avis.
  */
 @Component({
   selector: 'app-live-ranking-view',
-  imports: [NgTemplateOutlet, CardOpinionsComponent, OpinionListComponent],
+  imports: [
+    NgTemplateOutlet,
+    CardOpinionsComponent,
+    FeatureDetailPanelComponent,
+    OpinionListComponent,
+    RoomRankingComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'board-page ranking-page live-ranking', role: 'main' },
   template: `
@@ -127,6 +144,23 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             @if (composing(); as draft) {
               <form class="opinion-card opinion-composer" (submit)="sendComment($event)">
                 <p class="opinion-card-title">{{ composerTitle(draft.id, draft.kind) }}</p>
+                @if (choices(live, draft.id, draft.kind).length > 0) {
+                  <div class="opinion-wanted">
+                    <label class="small" for="opinion-value">{{ messages.wantedLabel }}</label>
+                    <select
+                      id="opinion-value"
+                      class="input"
+                      [value]="wantedOf(draft.id)"
+                      (change)="setWanted(draft.id, draft.kind, $any($event.target).value)"
+                    >
+                      @for (value of choices(live, draft.id, draft.kind); track value) {
+                        <option [value]="value" [selected]="value === wantedOf(draft.id)">
+                          {{ value }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                }
                 <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
                 <input
                   id="opinion-comment"
@@ -146,6 +180,13 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               </form>
             }
 
+            <app-room-ranking
+              [room]="live"
+              [items]="features()"
+              [allowed]="allowed()"
+              (detailRequested)="detailId.set($event)"
+            />
+
             <section class="opinion-block" aria-labelledby="my-opinions-title">
               <h2 id="my-opinions-title" class="rank-column-title">
                 {{ messages.myOpinions }} <span class="rank-count">{{ mine().size }}</span>
@@ -155,7 +196,7 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
                   <p class="opinion-card-title">
                     <span class="fid-text">{{ featureOf(entry.featureId)?.externalId }}</span>
                     <span class="opinion-kind" [attr.data-opinion]="entry.opinion">
-                      {{ symbols[entry.opinion] }} {{ messages.opinions[entry.opinion] }}
+                      {{ symbols[entry.opinion] }} {{ opinionText(entry) }}
                     </span>
                   </p>
                   @if (entry.comment) {
@@ -182,7 +223,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
                 <p class="muted small">{{ messages.noMyOpinion }}</p>
               }
             </section>
-            <p class="muted small">{{ messages.howTo }}</p>
           </aside>
         }
       </div>
@@ -195,7 +235,14 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
             [class.spotlight]="live.spotlightFeatureId === id"
             [class.just-moved]="moved().has(id)"
           >
-            <span class="fid-text">{{ feature.externalId }}</span>
+            <button
+              type="button"
+              class="fid"
+              [attr.title]="detailLabel(feature.externalId)"
+              (click)="detailId.set(id)"
+            >
+              {{ feature.externalId }}
+            </button>
             <span class="rank-title" [attr.title]="feature.title">{{ feature.title }}</span>
             @if (opinions().get(id); as cardOpinions) {
               <app-card-opinions
@@ -225,6 +272,16 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
           </li>
         }
       </ng-template>
+
+      @if (detailId(); as detail) {
+        @if (featureOf(detail); as feature) {
+          <app-feature-detail-panel
+            [feature]="feature"
+            [definition]="definition()!"
+            (closed)="detailId.set(null)"
+          />
+        }
+      }
     }
   `,
 })
@@ -236,6 +293,7 @@ export class LiveRankingViewComponent {
   protected readonly messages = MESSAGES.liveRanking;
   protected readonly symbols = OPINION_SYMBOLS;
   protected readonly kinds = OPINION_KINDS;
+  protected readonly opinionText = opinionText;
 
   /** Le participant suit l'animateur : la carte déplacée est ramenée à la vue. */
   protected readonly follow = signal(true);
@@ -243,6 +301,8 @@ export class LiveRankingViewComponent {
   protected readonly composing = signal<{ readonly id: string; readonly kind: OpinionKind } | null>(
     null,
   );
+  /** La fonctionnalité dont le descriptif est ouvert, ou `null`. */
+  protected readonly detailId = signal<string | null>(null);
   /** Les cartes que l'animateur vient de déplacer. */
   protected readonly moved = signal<ReadonlySet<string>>(new Set());
 
@@ -250,9 +310,14 @@ export class LiveRankingViewComponent {
     () => new Map((this.room.state()?.participants ?? []).map((p) => [p.participantId, p.pseudo])),
   );
 
-  private readonly features = computed(
+  protected readonly features = computed(
     () => new Map((this.room.state()?.features ?? []).map((f) => [f.id, f])),
   );
+
+  protected readonly definition = computed(() => this.room.state()?.methodDefinition ?? null);
+
+  /** Les valeurs de l'échelle de la session, croissantes. */
+  protected readonly allowed = computed(() => this.room.state()?.scale.allowedValues ?? []);
 
   private readonly criterion = computed(() => {
     const key = this.room.rankingRoom()?.draft.criterionKey;
@@ -346,6 +411,30 @@ export class LiveRankingViewComponent {
     return value === null || value === undefined ? this.messages.noValue : String(value);
   }
 
+  protected detailLabel(id: string): string {
+    return format(MESSAGES.board.openDetail, { id });
+  }
+
+  /** Les valeurs que le participant peut demander pour monter ou descendre cette carte. */
+  protected choices(room: ActiveRankingRoom, id: string, kind: OpinionKind): readonly number[] {
+    return kind === 'AGREE'
+      ? []
+      : wantedChoices(this.allowed(), room.draft.values[id] ?? null, kind);
+  }
+
+  /** La valeur souhaitée de mon avis sur cette carte. */
+  protected wantedOf(id: string): number | undefined {
+    return this.mine().get(id)?.value;
+  }
+
+  /** Change la valeur souhaitée : elle part aussitôt, le commentaire reste. */
+  protected setWanted(id: string, kind: OpinionKind, text: string): void {
+    const criterionKey = this.room.rankingRoom()?.draft.criterionKey;
+    const value = Number(text);
+    if (!criterionKey || kind === 'AGREE' || !Number.isInteger(value)) return;
+    this.room.giveOpinion(id, criterionKey, kind, undefined, value);
+  }
+
   protected levelLabel(index: number): string {
     return format(this.messages.levelLabel, { level: index + 1 });
   }
@@ -361,7 +450,10 @@ export class LiveRankingViewComponent {
     });
   }
 
-  /** Un clic donne l'avis, puis propose un commentaire ; un second clic sur le même avis le retire. */
+  /**
+   * Un clic donne l'avis, puis propose la valeur souhaitée (↑, ↓) et un commentaire ; un second clic sur le même avis
+   * le retire. Monter ou descendre part d'emblée avec le cran suivant de l'échelle.
+   */
   protected toggle(id: string, kind: OpinionKind): void {
     if (this.mine().get(id)?.opinion === kind) {
       this.give(id, null);
@@ -371,10 +463,14 @@ export class LiveRankingViewComponent {
   }
 
   protected give(id: string, kind: OpinionKind | null): boolean {
-    const criterionKey = this.room.rankingRoom()?.draft.criterionKey;
-    if (!criterionKey) return false;
+    const room = this.room.rankingRoom();
+    if (!room) return false;
     if (kind === null && this.composing()?.id === id) this.composing.set(null);
-    return this.room.giveOpinion(id, criterionKey, kind);
+    const value =
+      kind === null || kind === 'AGREE'
+        ? undefined
+        : defaultWanted(this.allowed(), room.draft.values[id] ?? null, kind);
+    return this.room.giveOpinion(id, room.draft.criterionKey, kind, undefined, value);
   }
 
   /** Ouvre le champ du commentaire de cette carte, aussitôt l'avis donné, sans attendre l'écho du serveur. */

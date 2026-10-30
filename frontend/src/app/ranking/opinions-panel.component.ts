@@ -5,15 +5,17 @@ import { MESSAGES } from '../i18n/messages.fr';
 import { RankedItem } from './criterion-ranking.component';
 import { OpinionListComponent } from './opinion-list.component';
 import { cardsToMove, opinionsOf } from './opinions';
+import { RoomRankingComponent } from './room-ranking.component';
 
 /**
- * Le panneau de l'animateur pendant un classement diffusé (FR-015c) : la carte en discussion avec ses avis, puis les
- * cartes que la salle voudrait monter ou descendre, de la plus demandée à la moins demandée, avec les commentaires.
- * Chacune se met en discussion ou voit ses avis effacés d'un clic.
+ * Le panneau de l'animateur pendant un classement diffusé (FR-015c) : la carte en discussion avec ses avis, le
+ * classement selon la salle, puis les cartes que la salle voudrait monter ou descendre, de la plus demandée à la moins
+ * demandée, avec les valeurs souhaitées et les commentaires. Chacune se met en discussion ou voit ses avis effacés
+ * d'un clic.
  */
 @Component({
   selector: 'app-opinions-panel',
-  imports: [OpinionListComponent],
+  imports: [OpinionListComponent, RoomRankingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'opinions-panel' },
   template: `
@@ -41,6 +43,12 @@ import { cardsToMove, opinionsOf } from './opinions';
         </div>
       </section>
     }
+    <app-room-ranking
+      [room]="room()"
+      [items]="items()"
+      [allowed]="allowed()"
+      (detailRequested)="detailRequested.emit($event)"
+    />
     <section class="opinion-block" aria-labelledby="to-move-title">
       <h2 id="to-move-title" class="rank-column-title">
         {{ messages.toMove }} <span class="rank-count">{{ toMove().length }}</span>
@@ -69,7 +77,6 @@ import { cardsToMove, opinionsOf } from './opinions';
         <p class="muted small">{{ messages.nothingToMove }}</p>
       }
     </section>
-    <p class="muted small">{{ messages.panelHelp }}</p>
   `,
 })
 export class OpinionsPanelComponent {
@@ -78,11 +85,15 @@ export class OpinionsPanelComponent {
   readonly room = input.required<ActiveRankingRoom>();
   readonly items = input.required<ReadonlyMap<string, RankedItem>>();
   readonly names = input.required<ReadonlyMap<string, string>>();
+  /** Les valeurs de l'échelle de la session, croissantes. */
+  readonly allowed = input.required<readonly number[]>();
 
   /** Mettre une carte en discussion, ou terminer la discussion (`null`). */
   readonly spotlightChange = output<string | null>();
   /** « Effacer les avis » d'une carte pour le critère en cours. */
   readonly clear = output<string>();
+  /** Ouvrir le descriptif d'une fonctionnalité. */
+  readonly detailRequested = output<string>();
 
   protected readonly spotlight = computed(() => this.room().spotlightFeatureId);
   protected readonly toMove = computed(() =>

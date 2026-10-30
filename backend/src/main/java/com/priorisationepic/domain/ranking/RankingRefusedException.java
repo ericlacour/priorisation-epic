@@ -20,7 +20,11 @@ public final class RankingRefusedException extends RuntimeException {
     /** Une fonctionnalité ou un critère hors du brouillon en cours. */
     NOT_IN_RANKING,
     /** Un commentaire de plus de 140 caractères. */
-    COMMENT_TOO_LONG
+    COMMENT_TOO_LONG,
+    /**
+     * Une valeur souhaitée avec « D'accord » : seuls « Je monterais » et « Je descendrais » en ont.
+     */
+    VALUE_WITHOUT_MOVE
   }
 
   private final Reason reason;

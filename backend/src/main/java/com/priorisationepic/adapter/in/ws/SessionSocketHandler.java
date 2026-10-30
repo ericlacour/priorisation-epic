@@ -241,7 +241,8 @@ public class SessionSocketHandler extends TextWebSocketHandler implements Dispos
                       opinion.featureId(),
                       opinion.criterionKey(),
                       opinion.opinion() == null ? null : Opinion.valueOf(opinion.opinion()),
-                      opinion.comment()));
+                      opinion.comment(),
+                      opinion.value()));
       case ClearOpinionsMessage clear ->
           intent(
               session,

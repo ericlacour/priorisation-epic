@@ -41,7 +41,9 @@ async function join(browser: Browser, invitation: string, pseudo: string): Promi
 
 /** Les identifiants du classement suivi, du premier niveau au dernier. */
 const followedOrder = (page: Page) =>
-  expect.poll(() => page.locator('.rank-ranked .rank-item .fid-text').allInnerTexts());
+  expect.poll(async () =>
+    (await page.locator('.rank-ranked .rank-item .fid').allInnerTexts()).map((t) => t.trim()),
+  );
 
 test('V19 : les participants suivent le classement en direct et donnent leur avis', async ({
   page,
@@ -85,7 +87,7 @@ test('V19 : les participants suivent le classement en direct et donnent leur avi
   const panel = page.locator('app-opinions-panel');
   await expect(panel).toContainText('Le transporteur est prêt en mars.');
   await expect(
-    page.locator('.rank-item', { hasText: 'F-1' }).locator('.opinion-counts'),
+    page.locator('.rank-ranked .rank-item', { hasText: 'F-1' }).locator('.opinion-counts'),
   ).toContainText('✓ 1');
 
   // L'animateur met F-2 en discussion : elle est mise en avant chez tous, avec ses avis.

@@ -30,7 +30,13 @@ export class FakeRoom {
   readonly sendRankingDraft = vi.fn<(draft: object | null) => boolean>(() => true);
   readonly endRanking = vi.fn<(outcome: string) => boolean>(() => true);
   readonly giveOpinion = vi.fn<
-    (featureId: string, criterionKey: string, opinion: string | null, comment?: string) => boolean
+    (
+      featureId: string,
+      criterionKey: string,
+      opinion: string | null,
+      comment?: string,
+      value?: number,
+    ) => boolean
   >(() => true);
   readonly clearOpinions = vi.fn<(featureId: string, criterionKey: string) => boolean>(() => true);
   readonly setSpotlight = vi.fn<(featureId: string | null) => boolean>(() => true);

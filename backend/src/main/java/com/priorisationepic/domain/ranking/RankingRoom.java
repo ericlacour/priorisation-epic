@@ -56,10 +56,17 @@ public final class RankingRoom {
 
   /**
    * Donne, change ou retire ({@code opinion} nul) l'avis d'un membre. {@code comment} nul garde le
-   * commentaire précédent, vide l'efface ; retirer l'avis retire son commentaire.
+   * commentaire précédent, vide l'efface ; retirer l'avis retire son commentaire. {@code value} est
+   * la valeur souhaitée d'un « Je monterais » ou « Je descendrais » ; nulle, elle garde la valeur
+   * précédente du même avis (un avis changé de sens la perd). L'appelant vérifie l'échelle.
    */
   public void giveOpinion(
-      UUID participantId, UUID featureId, String criterionKey, Opinion opinion, String comment) {
+      UUID participantId,
+      UUID featureId,
+      String criterionKey,
+      Opinion opinion,
+      String comment,
+      Integer value) {
     requireInDraft(featureId, criterionKey);
     Key key = new Key(participantId, featureId, criterionKey);
     if (opinion == null) {
@@ -69,6 +76,9 @@ public final class RankingRoom {
     if (comment != null && comment.codePointCount(0, comment.length()) > COMMENT_MAX_LENGTH) {
       throw new RankingRefusedException(Reason.COMMENT_TOO_LONG, featureId);
     }
+    if (value != null && opinion == Opinion.AGREE) {
+      throw new RankingRefusedException(Reason.VALUE_WITHOUT_MOVE, featureId);
+    }
     CardOpinion previous = opinions.get(key);
     String kept;
     if (comment == null) {
@@ -76,7 +86,12 @@ public final class RankingRoom {
     } else {
       kept = comment.isEmpty() ? null : comment;
     }
-    opinions.put(key, new CardOpinion(featureId, criterionKey, participantId, opinion, kept));
+    Integer wanted = value;
+    if (wanted == null && previous != null && previous.opinion() == opinion) {
+      wanted = previous.value();
+    }
+    opinions.put(
+        key, new CardOpinion(featureId, criterionKey, participantId, opinion, kept, wanted));
   }
 
   /** « Effacer les avis » : tous les avis de la fonctionnalité pour ce critère. */

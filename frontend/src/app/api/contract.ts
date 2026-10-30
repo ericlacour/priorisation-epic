@@ -166,13 +166,17 @@ export interface RankingDraft {
 export type OpinionKind = 'AGREE' | 'RAISE' | 'LOWER';
 export const OPINION_KINDS: readonly OpinionKind[] = ['AGREE', 'RAISE', 'LOWER'];
 
-/** L'avis d'un membre sur une fonctionnalité pour un critère, avec son commentaire facultatif. */
+/**
+ * L'avis d'un membre sur une fonctionnalité pour un critère, avec son commentaire facultatif et, pour « Je monterais »
+ * ou « Je descendrais », la valeur qu'il donnerait.
+ */
 export interface CardOpinion {
   readonly featureId: string;
   readonly criterionKey: string;
   readonly participantId: string;
   readonly opinion: OpinionKind;
   readonly comment?: string;
+  readonly value?: number;
 }
 
 /** Pourquoi la salle de classement s'est fermée. */
@@ -211,7 +215,8 @@ export interface EndRankingMessage {
 }
 
 /**
- * `giveOpinion` (participant) : `opinion` nul retire l'avis ; `comment` absent garde le commentaire, vide l'efface.
+ * `giveOpinion` (participant) : `opinion` nul retire l'avis ; `comment` absent garde le commentaire, vide l'efface ;
+ * `value` absent garde la valeur souhaitée du même avis.
  */
 export interface GiveOpinionMessage {
   readonly type: 'giveOpinion';
@@ -219,6 +224,7 @@ export interface GiveOpinionMessage {
   readonly criterionKey: string;
   readonly opinion: OpinionKind | null;
   readonly comment?: string;
+  readonly value?: number;
 }
 
 /** Une ligne de la liste des sessions (`session-summary.json`, FR-026). */
@@ -359,7 +365,8 @@ const isCardOpinion = (value: unknown): value is CardOpinion =>
   isText(value['criterionKey']) &&
   isText(value['participantId']) &&
   OPINION_KINDS.includes(value['opinion'] as OpinionKind) &&
-  (value['comment'] === undefined || typeof value['comment'] === 'string');
+  (value['comment'] === undefined || typeof value['comment'] === 'string') &&
+  (value['value'] === undefined || isInt(value['value']));
 
 /** Lit un `rankingRoom` : `null` s'il est hors contrat. */
 function parseRankingRoom(json: Record<string, unknown>): RankingRoomMessage | null {

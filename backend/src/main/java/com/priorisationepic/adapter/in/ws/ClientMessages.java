@@ -98,9 +98,11 @@ final class ClientMessages {
 
   /**
    * {@code give-opinion.json} : {@code opinion} nul retire l'avis ; {@code comment} nul (absent)
-   * garde le commentaire précédent, vide l'efface.
+   * garde le commentaire précédent, vide l'efface ; {@code value} nul (absent) garde la valeur
+   * souhaitée du même avis.
    */
-  record GiveOpinionMessage(UUID featureId, String criterionKey, String opinion, String comment)
+  record GiveOpinionMessage(
+      UUID featureId, String criterionKey, String opinion, String comment, Integer value)
       implements ClientMessage {}
 
   /** {@code clear-opinions.json} */
@@ -347,21 +349,28 @@ final class ClientMessages {
   }
 
   private static ClientMessage giveOpinion(JsonNode node) {
-    if (!onlyFields(node, "type", "featureId", "criterionKey", "opinion", "comment")
+    if (!onlyFields(node, "type", "featureId", "criterionKey", "opinion", "comment", "value")
         || !isUuid(node.get("featureId"))
         || !isCriterionKey(node.get("criterionKey"))
         || !node.has("opinion")
         || !(node.get("opinion").isNull()
             || (node.get("opinion").isString()
                 && OPINIONS.contains(node.get("opinion").asString())))
-        || (node.has("comment") && !isString(node.get("comment"), 0, 140))) {
+        || (node.has("comment") && !isString(node.get("comment"), 0, 140))
+        || (node.has("value") && !isOpinionValue(node.get("value")))) {
       return new Invalid();
     }
     return new GiveOpinionMessage(
         UUID.fromString(node.get("featureId").asString()),
         node.get("criterionKey").asString(),
         text(node, "opinion"),
-        text(node, "comment"));
+        text(node, "comment"),
+        node.path("value").isIntegralNumber() ? node.get("value").asInt() : null);
+  }
+
+  /** La valeur souhaitée d'un avis : un entier, ou {@code null} comme si elle était absente. */
+  private static boolean isOpinionValue(JsonNode value) {
+    return value.isNull() || (value.isIntegralNumber() && value.canConvertToInt());
   }
 
   private static ClientMessage clearOpinions(JsonNode node) {

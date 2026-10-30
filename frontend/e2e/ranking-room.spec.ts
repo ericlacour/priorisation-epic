@@ -132,7 +132,7 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
     await page.keyboard.press('Enter');
 
     expect(await sentOfType(page, 'giveOpinion')).toEqual([
-      { type: 'giveOpinion', featureId: F2.id, criterionKey: 'bv', opinion: 'RAISE' },
+      { type: 'giveOpinion', featureId: F2.id, criterionKey: 'bv', opinion: 'RAISE', value: 10 },
       {
         type: 'giveOpinion',
         featureId: F2.id,
@@ -141,6 +141,66 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
         comment: 'Le transporteur est prêt en mars.',
       },
     ]);
+  });
+
+  test('dit de combien monter une carte, voit le classement selon la salle et ouvre un descriptif', async ({
+    page,
+  }) => {
+    await open(page, [F1, F2, F3], false);
+    await push(page, room([F1, F2, F3]));
+    await page.getByRole('button', { name: 'Je descendrais : F-1' }).click();
+    await push(
+      page,
+      room([F1, F2, F3], {
+        opinions: [
+          {
+            featureId: F1.id,
+            criterionKey: 'bv',
+            participantId: 'p-bob',
+            opinion: 'LOWER',
+            value: 9,
+          },
+        ],
+      }),
+    );
+    await page.getByLabel('Valeur souhaitée').selectOption('4');
+    expect((await sentOfType(page, 'giveOpinion')).at(-1)).toEqual({
+      type: 'giveOpinion',
+      featureId: F1.id,
+      criterionKey: 'bv',
+      opinion: 'LOWER',
+      value: 4,
+    });
+
+    await push(
+      page,
+      room([F1, F2, F3], {
+        opinions: [
+          {
+            featureId: F1.id,
+            criterionKey: 'bv',
+            participantId: 'p-bob',
+            opinion: 'LOWER',
+            value: 4,
+          },
+          {
+            featureId: F3.id,
+            criterionKey: 'bv',
+            participantId: 'p-ana',
+            opinion: 'RAISE',
+            value: 8,
+          },
+        ],
+      }),
+    );
+    const roomRanking = page.locator('app-room-ranking');
+    await expect(roomRanking).toContainText('Classement selon la salle');
+    await expect(roomRanking.locator(`[data-id="${F1.id}"] .room-change`)).toHaveText('10 → 4');
+    await expect(roomRanking.locator(`[data-id="${F3.id}"] .room-change`)).toHaveText('– → 8');
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+    await page.locator('.rank-ranked').getByRole('button', { name: 'F-1', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Paiement en un clic' })).toBeVisible();
   });
 
   test('revient au tableau à la fin du classement, avec la raison', async ({ page }) => {
