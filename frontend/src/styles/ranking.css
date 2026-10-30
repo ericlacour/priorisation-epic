@@ -506,7 +506,7 @@
   gap: 8px;
 }
 
-.opinion-composer .opinion-wanted .input {
+.opinion-wanted .input {
   width: auto;
   min-width: 64px;
 }

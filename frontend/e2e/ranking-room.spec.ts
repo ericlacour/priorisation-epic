@@ -209,9 +209,9 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
         ],
       }),
     );
-    await expect(page.getByLabel('Valeur souhaitée')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Ajouter un commentaire' }).click();
-    await page.getByLabel('Valeur souhaitée').selectOption('4');
+    // La valeur souhaitée se change dans « Vos avis », sans ouvrir le commentaire.
+    await page.getByLabel('Valeur souhaitée : F-1').selectOption('4');
+    await expect(page.locator('.opinion-composer')).toHaveCount(0);
     expect((await sentOfType(page, 'giveOpinion')).at(-1)).toEqual({
       type: 'giveOpinion',
       featureId: F1.id,

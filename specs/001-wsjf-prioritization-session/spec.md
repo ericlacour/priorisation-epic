@@ -673,7 +673,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   2b. **Valeur souhaitée** (ajout du 2026-10-30) : « Je monterais » et « Je descendrais »
      portent la valeur que le membre donnerait, une valeur de l'échelle au-dessus (↑) ou
      au-dessous (↓) de la valeur actuelle. Le cran suivant de l'échelle est proposé d'emblée ;
-     le membre le change dans la liste « Valeur souhaitée », avec le commentaire. La valeur se garde tant que
+     le membre le change dans la liste « Valeur souhaitée », sous son avis dans « Vos avis », sans
+     ouvrir le commentaire (depuis le 2026-10-30). La valeur se garde tant que
      l'avis garde son sens ; elle se perd s'il change de sens ;
   2c. ~~**Classement selon la salle**~~ (ajout du 2026-10-30, **retiré** le même jour, chez
      l'animateur puis chez les membres : trop d'informations). Il montrait, à droite du

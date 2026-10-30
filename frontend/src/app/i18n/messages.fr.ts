@@ -339,6 +339,7 @@ export const MESSAGES = {
     myOpinions: 'Vos avis',
     noMyOpinion: 'Vous n’avez encore donné aucun avis.',
     wantedLabel: 'Valeur souhaitée',
+    wantedFor: 'Valeur souhaitée : {id}',
     wantedOpinion: '{opinion} à {value}',
     spotlight: 'En discussion',
     endSpotlight: 'Terminer sans accord',

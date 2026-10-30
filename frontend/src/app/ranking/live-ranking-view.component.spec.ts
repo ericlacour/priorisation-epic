@@ -93,8 +93,10 @@ describe('LiveRankingViewComponent', () => {
       }),
     );
     fixture.detectChanges();
-    openComment(element, fixture);
-    const select = element.querySelector<HTMLSelectElement>('#opinion-value')!;
+    // Dans « Vos avis », sans ouvrir le commentaire.
+    const select = element.querySelector<HTMLSelectElement>('#opinion-value-f1')!;
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+    expect(select.getAttribute('aria-label')).toBe('Valeur souhaitée : F-1');
     expect([...select.options].map((o) => o.value)).toEqual(['9', '10']);
     expect(select.value).toBe('9');
 

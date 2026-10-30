@@ -27,7 +27,6 @@ import {
   OPINION_SYMBOLS,
   agreedIds,
   defaultWanted,
-  opinionText,
   opinionsByFeature,
   opinionsOf,
   wantedChoices,
@@ -168,23 +167,6 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
               } @else {
                 <form class="opinion-card opinion-composer" (submit)="sendComment($event)">
                   <p class="opinion-card-title">{{ composerTitle(draft.id, draft.kind) }}</p>
-                  @if (choices(live, draft.id, draft.kind).length > 0) {
-                    <div class="opinion-wanted">
-                      <label class="small" for="opinion-value">{{ messages.wantedLabel }}</label>
-                      <select
-                        id="opinion-value"
-                        class="input"
-                        [value]="wantedOf(draft.id)"
-                        (change)="setWanted(draft.id, draft.kind, $any($event.target).value)"
-                      >
-                        @for (value of choices(live, draft.id, draft.kind); track value) {
-                          <option [value]="value" [selected]="value === wantedOf(draft.id)">
-                            {{ value }}
-                          </option>
-                        }
-                      </select>
-                    </div>
-                  }
                   <label class="small" for="opinion-comment">{{ messages.commentLabel }}</label>
                   <input
                     id="opinion-comment"
@@ -218,9 +200,31 @@ function positions(room: ActiveRankingRoom): ReadonlyMap<string, number> {
                   <p class="opinion-card-title">
                     <span class="fid-text">{{ featureOf(entry.featureId)?.externalId }}</span>
                     <span class="opinion-kind" [attr.data-opinion]="entry.opinion">
-                      {{ symbols[entry.opinion] }} {{ opinionText(entry) }}
+                      {{ symbols[entry.opinion] }} {{ messages.opinions[entry.opinion] }}
                     </span>
                   </p>
+                  <!-- La valeur souhaitée se change ici, sans ouvrir le commentaire. -->
+                  @if (choices(live, entry.featureId, entry.opinion).length > 0) {
+                    <div class="opinion-wanted">
+                      <label class="small" [for]="'opinion-value-' + entry.featureId">{{
+                        messages.wantedLabel
+                      }}</label>
+                      <select
+                        class="input"
+                        [id]="'opinion-value-' + entry.featureId"
+                        [attr.aria-label]="wantedLabel(entry.featureId)"
+                        (change)="
+                          setWanted(entry.featureId, entry.opinion, $any($event.target).value)
+                        "
+                      >
+                        @for (value of choices(live, entry.featureId, entry.opinion); track value) {
+                          <option [value]="value" [selected]="value === entry.value">
+                            {{ value }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  }
                   @if (entry.comment) {
                     <q class="opinion-comment">{{ entry.comment }}</q>
                   }
@@ -326,7 +330,6 @@ export class LiveRankingViewComponent {
   protected readonly messages = MESSAGES.liveRanking;
   protected readonly symbols = OPINION_SYMBOLS;
   protected readonly kinds = OPINION_KINDS;
-  protected readonly opinionText = opinionText;
 
   /** Le participant suit l'animateur : la carte déplacée est ramenée à la vue. */
   protected readonly follow = signal(true);
@@ -459,9 +462,9 @@ export class LiveRankingViewComponent {
       : wantedChoices(this.allowed(), room.draft.values[id] ?? null, kind);
   }
 
-  /** La valeur souhaitée de mon avis sur cette carte. */
-  protected wantedOf(id: string): number | undefined {
-    return this.mine().get(id)?.value;
+  /** Nom accessible de la liste « Valeur souhaitée » d'un de mes avis : une par carte. */
+  protected wantedLabel(id: string): string {
+    return format(this.messages.wantedFor, { id: this.featureOf(id)?.externalId ?? '' });
   }
 
   /** Change la valeur souhaitée : elle part aussitôt, le commentaire reste. */
@@ -488,8 +491,8 @@ export class LiveRankingViewComponent {
   }
 
   /**
-   * Un clic donne l'avis, puis propose la valeur souhaitée (↑, ↓) et un commentaire ; un second clic sur le même avis
-   * le retire. Monter ou descendre part d'emblée avec le cran suivant de l'échelle.
+   * Un clic donne l'avis ; la valeur souhaitée (↑, ↓) se change dans « Vos avis », le commentaire s'y ajoute à la
+   * demande. Un second clic sur le même avis le retire. Monter ou descendre part d'emblée avec le cran suivant de l'échelle.
    */
   protected toggle(id: string, kind: OpinionKind): void {
     if (this.mine().get(id)?.opinion === kind) {
@@ -513,7 +516,7 @@ export class LiveRankingViewComponent {
     return this.room.giveOpinion(id, room.draft.criterionKey, kind, undefined, value);
   }
 
-  /** Ouvre le champ du commentaire de cette carte, et le choix de la valeur souhaitée. */
+  /** Ouvre le champ du commentaire de cette carte. */
   protected compose(id: string, kind: OpinionKind): void {
     this.composing.set({ id, kind });
     afterNextRender(() => this.host.querySelector<HTMLInputElement>('#opinion-comment')?.focus(), {
