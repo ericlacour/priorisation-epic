@@ -32,6 +32,14 @@ describe('LiveRankingViewComponent', () => {
     return { room, fixture, element, row, opinionButton };
   }
 
+  /** « Ajouter un commentaire », dans « Vos avis » : seul moyen d'ouvrir le champ du commentaire. */
+  function openComment(element: HTMLElement, fixture: { detectChanges(): void }): void {
+    [...element.querySelectorAll<HTMLButtonElement>('.opinion-block button')]
+      .find((b) => b.textContent?.trim() === 'Ajouter un commentaire')!
+      .click();
+    fixture.detectChanges();
+  }
+
   it('shows the facilitator ranking read-only, with the criterion and the values', () => {
     const { element, row } = render();
     expect(element.querySelector('h1')?.textContent).toBe('Classement en direct');
@@ -45,7 +53,7 @@ describe('LiveRankingViewComponent', () => {
     expect(element.querySelector('[draggable]')).toBeNull();
   });
 
-  it('gives an opinion with the next value of the scale, then offers an optional comment', () => {
+  it('gives an opinion with the next value of the scale; the comment opens only on demand', () => {
     const { room, fixture, element, opinionButton } = render();
 
     opinionButton('f1', 'RAISE').click();
@@ -59,7 +67,9 @@ describe('LiveRankingViewComponent', () => {
     );
     fixture.detectChanges();
     expect(opinionButton('f1', 'RAISE').getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('.opinion-composer')).toBeNull();
 
+    openComment(element, fixture);
     const input = element.querySelector<HTMLInputElement>('#opinion-comment')!;
     expect(element.querySelector('.opinion-composer')?.textContent).toContain(
       'Votre avis sur F-1 : ↑ Je monterais',
@@ -83,6 +93,7 @@ describe('LiveRankingViewComponent', () => {
       }),
     );
     fixture.detectChanges();
+    openComment(element, fixture);
     const select = element.querySelector<HTMLSelectElement>('#opinion-value')!;
     expect([...select.options].map((o) => o.value)).toEqual(['9', '10']);
     expect(select.value).toBe('9');
@@ -152,6 +163,8 @@ describe('LiveRankingViewComponent', () => {
 
     opinionButton('f1', 'LOWER').click();
     fixture.detectChanges();
+    expect(element.querySelector('.opinion-composer')).toBeNull();
+    openComment(element, fixture);
     [...element.querySelectorAll<HTMLButtonElement>('.opinion-composer button')]
       .find((b) => b.textContent?.trim() === 'Sans commentaire')!
       .click();

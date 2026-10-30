@@ -666,11 +666,14 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      même si la carte est déplacée ;
   2. **Commentaire facultatif** : un membre peut ajouter à son avis un petit commentaire
      (140 caractères au plus), sans que ce soit jamais demandé. Changer d'avis garde le
-     commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire ;
+     commentaire, qu'il peut modifier ou effacer ; retirer l'avis retire le commentaire.
+     Depuis le 2026-10-30, le champ du commentaire **ne s'ouvre plus** quand le membre donne
+     son avis : il l'ouvre en cliquant sur « Ajouter un commentaire » (ou « Modifier le
+     commentaire »), dans « Vos avis » ;
   2b. **Valeur souhaitée** (ajout du 2026-10-30) : « Je monterais » et « Je descendrais »
      portent la valeur que le membre donnerait, une valeur de l'échelle au-dessus (↑) ou
      au-dessous (↓) de la valeur actuelle. Le cran suivant de l'échelle est proposé d'emblée ;
-     le membre le change dans la liste « Valeur souhaitée ». La valeur se garde tant que
+     le membre le change dans la liste « Valeur souhaitée », avec le commentaire. La valeur se garde tant que
      l'avis garde son sens ; elle se perd s'il change de sens ;
   2c. ~~**Classement selon la salle**~~ (ajout du 2026-10-30, **retiré** le même jour, chez
      l'animateur puis chez les membres : trop d'informations). Il montrait, à droite du

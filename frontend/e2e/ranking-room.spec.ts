@@ -45,6 +45,15 @@ function room(features: Feature[], extra: Record<string, unknown> = {}) {
   };
 }
 
+/** Mon avis (`p-me` dans sessionState), tel que le serveur le renvoie. */
+const iRaiseF2 = {
+  featureId: F2.id,
+  criterionKey: 'bv',
+  participantId: 'p-me',
+  opinion: 'RAISE',
+  value: 10,
+};
+
 const bobRaisesF2 = {
   featureId: F2.id,
   criterionKey: 'bv',
@@ -146,7 +155,7 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
 });
 
 test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () => {
-  test('suit le classement en lecture seule, donne un avis au clavier avec un commentaire', async ({
+  test('suit le classement en lecture seule, donne un avis au clavier, puis un commentaire à la demande', async ({
     page,
   }) => {
     await open(page, [F1, F2, F3], false);
@@ -158,9 +167,13 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
 
     await page.getByRole('button', { name: 'Je monterais : F-2' }).focus();
     await page.keyboard.press('Enter');
-    await expect(
-      page.getByLabel('Un commentaire ? (facultatif, 140 caractères au plus)'),
-    ).toBeFocused();
+    const comment = page.getByLabel('Un commentaire ? (facultatif, 140 caractères au plus)');
+    await push(page, room([F1, F2, F3], { opinions: [iRaiseF2] }));
+    await expect(page.getByRole('button', { name: 'Ajouter un commentaire' })).toBeVisible();
+    await expect(comment).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Ajouter un commentaire' }).click();
+    await expect(comment).toBeFocused();
     await page.keyboard.type('Le transporteur est prêt en mars.');
     await page.keyboard.press('Enter');
 
@@ -189,13 +202,15 @@ test.describe('classement collaboratif, vue participant (FR-015b, FR-015c)', () 
           {
             featureId: F1.id,
             criterionKey: 'bv',
-            participantId: 'p-bob',
+            participantId: 'p-me',
             opinion: 'LOWER',
             value: 9,
           },
         ],
       }),
     );
+    await expect(page.getByLabel('Valeur souhaitée')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Ajouter un commentaire' }).click();
     await page.getByLabel('Valeur souhaitée').selectOption('4');
     expect((await sentOfType(page, 'giveOpinion')).at(-1)).toEqual({
       type: 'giveOpinion',

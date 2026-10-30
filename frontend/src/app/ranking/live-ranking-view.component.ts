@@ -496,7 +496,10 @@ export class LiveRankingViewComponent {
       this.give(id, null);
       return;
     }
-    if (this.give(id, kind)) this.compose(id, kind);
+    // Le champ du commentaire ne s'ouvre pas : « Ajouter un commentaire », dans « Vos avis », l'ouvre.
+    if (!this.give(id, kind)) return;
+    const draft = this.composing();
+    if (draft?.id === id) this.composing.set({ id, kind });
   }
 
   protected give(id: string, kind: OpinionKind | null): boolean {
@@ -510,7 +513,7 @@ export class LiveRankingViewComponent {
     return this.room.giveOpinion(id, room.draft.criterionKey, kind, undefined, value);
   }
 
-  /** Ouvre le champ du commentaire de cette carte, aussitôt l'avis donné, sans attendre l'écho du serveur. */
+  /** Ouvre le champ du commentaire de cette carte, et le choix de la valeur souhaitée. */
   protected compose(id: string, kind: OpinionKind): void {
     this.composing.set({ id, kind });
     afterNextRender(() => this.host.querySelector<HTMLInputElement>('#opinion-comment')?.focus(), {
