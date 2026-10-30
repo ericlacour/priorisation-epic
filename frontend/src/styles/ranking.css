@@ -612,6 +612,17 @@
   font-size: 0.875rem;
 }
 
+/* Un gros écart d'avis encore à discuter (FR-015c) : mêmes teintes que dans le panneau des avis. */
+.rank-item[data-gap='notable'] {
+  background: var(--warning-soft);
+  box-shadow: inset 4px 0 0 var(--warning);
+}
+
+.rank-item[data-gap='strong'] {
+  background: var(--danger-soft);
+  box-shadow: inset 4px 0 0 var(--danger);
+}
+
 /* La carte en discussion, et celle que l'animateur vient de déplacer. */
 .rank-item.spotlight {
   outline: 2px solid var(--primary);

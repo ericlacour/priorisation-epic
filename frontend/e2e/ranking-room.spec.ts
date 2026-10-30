@@ -115,6 +115,10 @@ test.describe('classement collaboratif, vue animateur (FR-015b, FR-015c)', () =>
     );
     await expect(page.locator('app-opinions-panel')).toContainText('En discussion');
     await expect(page.locator(`.opinion-card[data-gap="strong"]`)).toContainText('Écart 1 ↔ 10');
+    await expect(page.locator(`.rank-item[data-id="${F2.id}"]`)).toHaveAttribute(
+      'data-gap',
+      'strong',
+    );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 });

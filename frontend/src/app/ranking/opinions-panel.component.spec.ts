@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { ActiveRankingRoom } from '../api/contract';
 import { rankingRoom } from '../testing/fixtures';
 import { OpinionsPanelComponent } from './opinions-panel.component';
+import { opinionsSignature, roomGaps, settledKey } from './opinions';
+
+const ALLOWED = [1, 2, 3, 5, 8, 13, 20];
 
 const ITEMS = new Map([
   ['f1', { id: 'f1', externalId: 'F-1', title: 'Paiement en un clic' }],
@@ -21,7 +24,7 @@ describe('OpinionsPanelComponent', () => {
     fixture.componentRef.setInput('room', room);
     fixture.componentRef.setInput('items', ITEMS);
     fixture.componentRef.setInput('names', NAMES);
-    fixture.componentRef.setInput('allowed', [1, 2, 3, 5, 8, 13, 20]);
+    fixture.componentRef.setInput('gaps', roomGaps(room, ALLOWED));
     const spotlights: (string | null)[] = [];
     const cleared: string[] = [];
     fixture.componentInstance.spotlightChange.subscribe((id) => spotlights.push(id));
@@ -99,6 +102,22 @@ describe('OpinionsPanelComponent', () => {
     expect(element.textContent).toContain('Je descendrais à 1');
   });
 
+  it('no longer flags a card whose discussion is settled with the same opinions', () => {
+    const lowered = {
+      ...room,
+      opinions: [
+        { featureId: 'f2', criterionKey: 'bv', participantId: 'p2', opinion: 'RAISE', value: 13 },
+      ],
+    } satisfies ActiveRankingRoom;
+    const settled = new Map([[settledKey('bv', 'f2'), opinionsSignature(lowered, 'f2')]]);
+    expect(roomGaps(lowered, ALLOWED, settled).size).toBe(0);
+    const changed = {
+      ...lowered,
+      opinions: [{ ...lowered.opinions[0]!, value: 20 }],
+    } satisfies ActiveRankingRoom;
+    expect(roomGaps(changed, ALLOWED, settled).get('f2')?.level).toBe('strong');
+  });
+
   it('flags a notable gap of two steps', () => {
     const { element } = render({
       ...room,
@@ -116,7 +135,6 @@ describe('OpinionsPanelComponent', () => {
     fixture.componentRef.setInput('room', room);
     fixture.componentRef.setInput('items', ITEMS);
     fixture.componentRef.setInput('names', NAMES);
-    fixture.componentRef.setInput('allowed', [1, 2, 3, 5, 8, 13, 20]);
     const opened: string[] = [];
     fixture.componentInstance.detailRequested.subscribe((id) => opened.push(id));
     fixture.detectChanges();

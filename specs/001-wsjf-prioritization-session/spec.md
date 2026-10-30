@@ -670,7 +670,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      comptant pour le cran suivant), compté en crans de l'échelle. Un écart de 2 crans est
      teinté en orange ; un écart de 3 crans ou plus, ou une carte que certains monteraient et
      d'autres descendraient, en rouge. Ces cartes passent en tête de la liste (rouge, puis
-     orange, l'écart le plus large d'abord) et portent « Écart bas ↔ haut » ;
+     orange, l'écart le plus large d'abord) et portent « Écart bas ↔ haut ». La même teinte
+     marque la carte dans le classement. Quand une discussion sur la carte se termine
+     (« Terminer la discussion », ou une autre carte mise en discussion), la teinte s'efface
+     dans le classement et dans la liste ; elle revient si un avis sur la carte change ensuite ;
   4. **Carte en discussion** : depuis la liste des avis, l'animateur peut « Mettre en
      discussion » une fonctionnalité. Elle est mise en avant
      chez tous, avec ses avis et leurs commentaires, jusqu'à ce qu'il clique sur « Terminer

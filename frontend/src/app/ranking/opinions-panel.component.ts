@@ -6,12 +6,12 @@ import { format } from '../i18n/format';
 import { MESSAGES } from '../i18n/messages.fr';
 import { RankedItem } from './criterion-ranking.component';
 import { OpinionListComponent } from './opinion-list.component';
-import { OpinionGap, cardsToMove, opinionGap, opinionsOf } from './opinions';
+import { OpinionGap, cardsToMove, opinionsOf } from './opinions';
 
 /**
  * Le panneau de l'animateur pendant un classement diffusé (FR-015c) : la carte en discussion avec ses avis, puis les
  * cartes que la salle voudrait monter ou descendre, avec les valeurs souhaitées et les commentaires. Les cartes aux
- * avis les plus éloignés (voir `opinionGap`) passent en tête, teintées selon l'écart ; à écart égal, de la plus
+ * avis les plus éloignés (`gaps`, voir `roomGaps`) passent en tête, teintées selon l'écart ; à écart égal, de la plus
  * demandée à la moins demandée. Chacune se met en discussion ou voit ses avis effacés d'un clic ; son identifiant
  * ouvre le descriptif.
  */
@@ -85,9 +85,7 @@ const GAP_ORDER = { strong: 0, notable: 1, none: 2 } as const;
           {{ item.title }}
         }
         @if (gaps().get(id); as gap) {
-          @if (gap.level) {
-            <span class="opinion-gap" [attr.title]="gapHint(gap)">{{ gapText(gap) }}</span>
-          }
+          <span class="opinion-gap" [attr.title]="gapHint(gap)">{{ gapText(gap) }}</span>
         }
       </p>
     </ng-template>
@@ -99,8 +97,8 @@ export class OpinionsPanelComponent {
   readonly room = input.required<ActiveRankingRoom>();
   readonly items = input.required<ReadonlyMap<string, RankedItem>>();
   readonly names = input.required<ReadonlyMap<string, string>>();
-  /** Les valeurs de l'échelle de la session, croissantes. */
-  readonly allowed = input.required<readonly number[]>();
+  /** Les gros écarts encore à discuter, par fonctionnalité (voir `roomGaps`). */
+  readonly gaps = input<ReadonlyMap<string, OpinionGap>>(new Map());
 
   /** Mettre une carte en discussion, ou terminer la discussion (`null`). */
   readonly spotlightChange = output<string | null>();
@@ -110,11 +108,6 @@ export class OpinionsPanelComponent {
   readonly detailRequested = output<string>();
 
   protected readonly spotlight = computed(() => this.room().spotlightFeatureId);
-  /** L'écart d'avis de chaque carte à déplacer et de la carte en discussion. */
-  protected readonly gaps = computed<ReadonlyMap<string, OpinionGap | null>>(() => {
-    const ids = [...cardsToMove(this.room()), this.spotlight()].filter((id) => id !== null);
-    return new Map(ids.map((id) => [id, opinionGap(this.room(), id, this.allowed())]));
-  });
   /**
    * Les cartes à déplacer : fort écart, puis écart notable, puis les autres ; à niveau égal, l'écart le plus large
    * d'abord, puis l'ordre de `cardsToMove`.
