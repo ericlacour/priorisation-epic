@@ -8,7 +8,8 @@ import { OPINION_SYMBOLS } from './opinions';
 
 /**
  * Les compteurs d'avis d'une carte (FR-015c, point 3) : nombre de ✓, ↑ et ↓, et d'avis commentés. Un clic ouvre la
- * liste des avis, que la touche Échap ou un second clic referme. Rien sans avis.
+ * liste des avis, que la touche Échap ou un second clic referme. Rien sans avis. Le nom du bouton reprend les
+ * compteurs affichés, précédés de « Voir les avis sur … » (WCAG 2.5.3, nom accessible qui contient le texte visible).
  */
 @Component({
   selector: 'app-card-opinions',
@@ -21,9 +22,9 @@ import { OPINION_SYMBOLS } from './opinions';
         type="button"
         class="opinion-counts"
         [attr.aria-expanded]="open()"
-        [attr.aria-label]="label()"
         (click)="open.set(!open())"
       >
+        <span class="sr-only">{{ label() }} : </span>
         @for (count of counts(); track count.kind) {
           <span class="opinion-count" [attr.data-opinion]="count.kind"
             >{{ symbols[count.kind] }} {{ count.count }}</span

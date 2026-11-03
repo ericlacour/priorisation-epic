@@ -1,6 +1,10 @@
 package com.priorisationepic.adapter.in.ws;
 
+import com.priorisationepic.application.Broadcaster;
+import com.priorisationepic.domain.SessionId;
 import com.priorisationepic.domain.Tokens;
+import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -40,5 +44,30 @@ public final class SessionFixtures {
         role,
         Tokens.hash(token));
     return id;
+  }
+
+  /**
+   * Coupe les connexions d'un test, puis attend que le serveur les ait toutes détachées. Le serveur
+   * traite une fermeture en différé : sans cette attente, la déconnexion tardive d'un participant
+   * du test précédent publie un {@code sessionState} de plus aux connexions du test suivant (même
+   * session), qui le prennent pour la réponse attendue. Le détachement et cette publication se font
+   * sous le verrou de la session, que prend aussi l'ouverture d'une connexion : une fois les
+   * participants détachés, plus rien du test précédent n'atteint le suivant.
+   */
+  public static void closeAndAwaitDetached(
+      List<WsTestClient> clients, JdbcTemplate jdbc, Broadcaster broadcaster)
+      throws InterruptedException {
+    clients.forEach(WsTestClient::abort);
+    SessionId session = new SessionId(SESSION_ID);
+    List<UUID> participants =
+        jdbc.queryForList(
+            "select id from participant where session_id = ?", UUID.class, SESSION_ID);
+    long deadline = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+    while (participants.stream().anyMatch(id -> broadcaster.hasConnection(session, id))) {
+      if (System.nanoTime() > deadline) {
+        throw new AssertionError("Connexions encore rattachées côté serveur après 5 s");
+      }
+      Thread.sleep(10);
+    }
   }
 }

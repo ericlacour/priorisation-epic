@@ -45,7 +45,7 @@ import { SessionRoomService } from './session-room.service';
       <a
         class="brand-mark"
         routerLink="/"
-        [attr.aria-label]="messages.home"
+        [attr.aria-label]="messages.homeMark"
         [attr.title]="messages.home"
         >{{ appMessages.badge }}</a
       >
