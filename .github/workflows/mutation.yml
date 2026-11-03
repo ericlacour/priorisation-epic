@@ -42,7 +42,7 @@ jobs:
       - run: ./mvnw -B -Pmutation verify
       - name: Rapport PIT
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pit-report
           path: backend/target/pit-reports/
