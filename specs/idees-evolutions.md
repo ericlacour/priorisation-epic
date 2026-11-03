@@ -98,6 +98,34 @@ partir de modèles de calcul testés.
 
 *Cas concret* : un « WSJF pondéré » où le TC compte double, sans développement.
 
+Fonctionnement envisagé :
+
+1. Les développeurs codent et testent des **modèles de calcul**, sans formule libre
+   (constitution I et II). Par exemple « somme pondérée de critères ÷ un critère », dont
+   le WSJF est le cas où tous les poids valent 1.
+2. L'administrateur remplit un formulaire à partir d'un modèle : nom, critères (sigle,
+   nom, définition, colonne d'import et d'export), poids, critère diviseur, valeurs
+   calculées.
+3. La méthode apparaît dans la liste proposée à la création d'une session (FR-017d). Le
+   tableau, la saisie, l'aide, l'import et les exports s'adaptent seuls, car ils sont
+   construits à partir de la définition de la méthode (FR-017b, `MethodDefinition`,
+   `MethodRegistry`).
+
+Exemple, avec TC × 2 :
+
+| Épic | BV | TC | RR/OE | JS | WSJF | WSJF TC × 2 |
+|---|---|---|---|---|---|---|
+| A, nouvelle offre | 8 | 2 | 3 | 5 | **2,60** (1ᵉʳ) | 3,00 (2ᵉ) |
+| B, mise en conformité | 3 | 8 | 1 | 5 | 2,40 (2ᵉ) | **4,00** (1ᵉʳ) |
+
+**RICE de la même façon** : un modèle « produit ÷ critère » permet de créer
+RICE = (Reach × Impact × Confidence) ÷ Effort, sans redévelopper l'interface.
+
+Garde-fous : rôle administrateur Keycloak ; chaque modification crée une nouvelle version,
+et une session garde la version choisie à sa création (FR-017) ; la formule est affichée
+dans le panneau « Méthode » et le détail du calcul ; on ne compare pas des scores calculés
+avec des méthodes différentes.
+
 ### Questions ouvertes
 
 - Un invité sans compte (prestataire, partenaire) peut-il encore rejoindre une session ?
