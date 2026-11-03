@@ -168,6 +168,8 @@ export const MESSAGES = {
     animator: 'animateur',
     offline: 'hors ligne',
     home: "Retour à l'accueil",
+    /** Nom accessible du logo : il commence par le texte affiché, « PF » (WCAG 2.5.3). */
+    homeMark: "PF, retour à l'accueil",
     actionsLabel: "Actions d'animation",
     stateLabel: 'État de la session',
     toolsLabel: 'Outils de la session',
