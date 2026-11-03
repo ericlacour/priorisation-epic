@@ -3,6 +3,7 @@ package com.priorisationepic.adapter.in.ws;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.priorisationepic.PostgresTestBase;
+import com.priorisationepic.application.Broadcaster;
 import java.net.http.HttpClient;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ class SessionSocketHandlerTest extends PostgresTestBase {
 
   @LocalServerPort int port;
   @Autowired JdbcTemplate jdbc;
+  @Autowired Broadcaster broadcaster;
 
   private final HttpClient http = HttpClient.newHttpClient();
   private final List<WsTestClient> opened = new ArrayList<>();
@@ -41,8 +43,8 @@ class SessionSocketHandlerTest extends PostgresTestBase {
   }
 
   @AfterEach
-  void closeAll() {
-    opened.forEach(c -> c.socket.abort());
+  void closeAll() throws InterruptedException {
+    SessionFixtures.closeAndAwaitDetached(opened, jdbc, broadcaster);
   }
 
   private WsTestClient open(String sessionId) throws Exception {

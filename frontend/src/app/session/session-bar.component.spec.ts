@@ -61,7 +61,7 @@ describe('SessionBarComponent', () => {
     const { element } = render();
     const home = element.querySelector<HTMLAnchorElement>('a.brand-mark')!;
     expect(home.getAttribute('href')).toBe('/');
-    expect(home.getAttribute('aria-label')).toBe("Retour à l'accueil");
+    expect(home.getAttribute('aria-label')).toBe("PF, retour à l'accueil");
   });
 
   it('opens the glossary from « Comprendre le WSJF »', () => {

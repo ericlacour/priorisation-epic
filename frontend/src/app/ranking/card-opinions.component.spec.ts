@@ -42,9 +42,9 @@ describe('CardOpinionsComponent', () => {
       c.textContent?.replace(/\s+/g, ' ').trim(),
     );
     expect(counts).toEqual(['✓ 1', '↑ 2', '1']);
-    expect(element.querySelector('button')?.getAttribute('aria-label')).toBe(
-      'Voir les avis sur F-1',
-    );
+    const button = element.querySelector('button')!;
+    expect(button.hasAttribute('aria-label')).toBe(false);
+    expect(button.textContent).toMatch(/^Voir les avis sur F-1 : ✓ 1/);
   });
 
   it('opens the list of opinions with pseudos and comments, and closes it', () => {

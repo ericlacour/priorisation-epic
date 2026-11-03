@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.priorisationepic.ContractSchemas;
 import com.priorisationepic.PostgresTestBase;
+import com.priorisationepic.application.Broadcaster;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ class StatusIntentsTest extends PostgresTestBase {
 
   @LocalServerPort int port;
   @Autowired JdbcTemplate jdbc;
+  @Autowired Broadcaster broadcaster;
 
   private final HttpClient http = HttpClient.newHttpClient();
   private final JsonMapper json = new JsonMapper();
@@ -58,8 +60,8 @@ class StatusIntentsTest extends PostgresTestBase {
   }
 
   @AfterEach
-  void closeAll() {
-    opened.forEach(c -> c.socket.abort());
+  void closeAll() throws InterruptedException {
+    SessionFixtures.closeAndAwaitDetached(opened, jdbc, broadcaster);
   }
 
   private WsTestClient open() throws Exception {
