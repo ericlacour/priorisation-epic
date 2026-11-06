@@ -827,11 +827,12 @@ a { color: var(--primary-ink); }
   function screenRevelation() {
     const R = S.rev; const eric = R.viewAs === 'eric';
     const stats = (vs) => { const v = Object.values(vs).filter((x) => x != null); return { min: Math.min(...v), max: Math.max(...v), na: Object.values(vs).length - v.length }; };
-    const spread = (f) => Math.max(...['BV', 'JS'].map((c) => { const s = stats(R.votes[f][c]); return s.max - s.min; }));
+    const steps = (s) => FIB.filter((v) => v > s.min && v <= s.max).length; // écart en crans de l'échelle (FR-011a)
+    const spread = (f) => Math.max(...['BV', 'JS'].map((c) => steps(stats(R.votes[f][c]))));
     const order = Object.keys(R.votes).sort((a, b) => spread(b) - spread(a));
     const pos = (v) => (FIB.indexOf(v) + .5) / FIB.length * 100;
     const strip = (f, c) => {
-      const vs = R.votes[f][c]; const s = stats(vs); const big = s.max - s.min > 3;
+      const vs = R.votes[f][c]; const s = stats(vs); const big = steps(s) >= 3;
       const by = {}; for (const [p, v] of Object.entries(vs)) if (v != null) (by[v] ??= []).push(p);
       const cons = R.cons[f + c];
       const hl = R.focus[0] === f && R.focus[1] === c ? R.speakers : [];
@@ -844,7 +845,7 @@ a { color: var(--primary-ink); }
     };
     const rows = order.map((f) => {
       const sp = spread(f); const done = ['BV', 'JS'].every((c) => R.cons[f + c] != null);
-      return `<div class="rv-row ${R.focus[0] === f ? 'focus' : ''}" data-row="${f}"><div class="rv-feat"><span class="meta"><b>${f}</b>${sp > 3 ? `<span class="badge warn">Écart ${sp}</span>` : '<span class="badge ok">Proches</span>'}${done ? '<span class="badge">✓ retenue</span>' : ''}</span><span class="t" title="${esc(F[f])}">${esc(F[f])}</span>
+      return `<div class="rv-row ${R.focus[0] === f ? 'focus' : ''}" data-row="${f}"><div class="rv-feat"><span class="meta"><b>${f}</b>${sp >= 3 ? `<span class="badge warn">À discuter · ${sp} crans</span>` : '<span class="badge ok">Proches</span>'}${done ? '<span class="badge">✓ retenue</span>' : ''}</span><span class="t" title="${esc(F[f])}">${esc(F[f])}</span>
         ${eric && R.focus[0] !== f ? `<button type="button" class="btn xs ghost" style="justify-self:start" data-focus="${f}">Discuter</button>` : ''}</div>${strip(f, 'BV')}${strip(f, 'JS')}</div>`;
     }).join('');
     const [ff, fc] = R.focus; const fs = stats(R.votes[ff][fc]);
