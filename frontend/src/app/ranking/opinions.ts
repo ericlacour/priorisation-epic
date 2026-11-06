@@ -101,7 +101,10 @@ export interface OpinionGap {
   readonly level: 'strong' | 'notable' | null;
 }
 
-/** À partir de combien de crans d'écart une carte est signalée, puis signalée comme un fort écart. */
+/**
+ * À partir de combien de crans d'écart une carte est signalée, puis signalée comme un fort écart, à discuter : l'écart
+ * important de FR-011a, le même pour toute façon d'estimer et toute méthode.
+ */
 export const NOTABLE_GAP_STEPS = 2;
 export const STRONG_GAP_STEPS = 3;
 

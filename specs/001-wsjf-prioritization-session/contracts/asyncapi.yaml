@@ -585,7 +585,7 @@ components:
                 $ref: '#/components/schemas/criteria'
               largeSpread:
                 type: array
-                description: Criteria where max - min > 3 (FR-020)
+                description: Criteria whose min and max are 3 or more scale steps apart (FR-011a, FR-020)
                 items: { $ref: '#/components/schemas/criterionKey' }
               unanimous:
                 description: Value per criterion when everyone who entered a value for it entered the same one, else null (also null when nobody entered one); prefills consensus (FR-021)

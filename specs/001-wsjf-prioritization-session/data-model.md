@@ -252,7 +252,8 @@ vote (« Modifier mon vote », groupement par valeur décroissante, comme FR-015
   maximum de chaque **critère du tour**, calculés sur les seules valeurs données : une
   valeur « sans avis » est ignorée, et un critère sans aucune valeur a un minimum et un
   maximum vides. Le domaine calcule aussi, par critère du tour, l'**écart important**
-  (maximum moins minimum strictement supérieur à 3, FR-020) et la **valeur unanime**
+  (minimum et maximum à 3 crans ou plus l'un de l'autre sur l'échelle de la session,
+  FR-011a et FR-020) et la **valeur unanime**
   (identique chez tous ceux qui ont donné une valeur pour ce critère, vide si elles diffèrent
   ou s'il n'y en a aucune), qui préremplit le consensus (FR-021). Les membres sans
   `RoundBallot` sont signalés « n'a pas voté ». Ce sont les participants inscrits dans la

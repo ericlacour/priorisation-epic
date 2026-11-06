@@ -18,7 +18,7 @@
 - Q: Pendant un tour masqué, les participants voient-ils les valeurs déjà retenues des fonctionnalités du tour ? → A: Non : valeurs retenues, CoD et WSJF des fonctionnalités du tour sont masqués pour les participants jusqu'à la révélation ; le reste du tableau reste visible.
 - Q: Comment l'outil reconnaît-il les colonnes du fichier Excel importé ? → A: Noms de colonnes imposés (Identifiant, Titre, Description, BV, TC, RR/OE, JS), modèle vierge téléchargeable ; un fichier sans ces en-têtes est refusé.
 - Q (maquettes) : comment saisir un vote quand la borne de l'échelle est grande (jusqu'à 100) ? → A: Saisie directe du nombre, avec contrôle (entier, dans l'échelle). *Remplacé le 2026-10-15 : le vote se fait par classement (FR-019).*
-- Q (maquettes) : quand un critère est-il signalé « écart important » à la révélation ? → A: Quand le maximum moins le minimum est strictement supérieur à 3.
+- Q (maquettes) : quand un critère est-il signalé « écart important » à la révélation ? → A: Quand le maximum moins le minimum est strictement supérieur à 3. *Remplacé le 2026-11-06 : l'écart se compte en crans de l'échelle, et il faut discuter à partir de 3 crans (FR-011a).*
 - Q (maquettes) : quand le tableau se retrie-t-il pendant la saisie de l'animateur ? → A: Quand il valide la ligne, pas à chaque frappe.
 - Q (maquettes) : que contiennent les champs de consensus au départ ? → A: Ils sont vides, sauf pour un critère où tous les votants ont saisi la même valeur.
 - Q (maquettes) : la saisie est-elle possible sur téléphone en V1 ? → A: Non : lecture seule sur téléphone, saisie sur ordinateur.
@@ -73,6 +73,12 @@
 - Q : les avis sont-ils conservés ? → A: Non. Ils ne vivent que le temps de l'écran de classement : ni enregistrés, ni exportés, ni dans l'historique (FR-025). Seules les valeurs enregistrées à « Terminer » comptent.
 - Q : peut-on donner son avis depuis un téléphone ? → A: Non en V1. Le téléphone reste en lecture seule (« Hors périmètre ») : il suit le classement diffusé, sans donner d'avis.
 - Q : les écrans C à E de la maquette (suivi du tour masqué, vote, révélation en carte des écarts) changent-ils le vote masqué ? → A: Pas pour l'instant : le vote masqué (User Story 2, FR-018 à FR-022) sera revu plus tard, dans le même esprit d'échange simple.
+
+### Session 2026-11-06 (écart important, en crans)
+
+- Q : comment mesurer l'écart entre des estimations d'un même critère ? → A: En **crans de l'échelle** de la session, pas en points. Compter en points traitait mal la suite de Fibonacci : 1 → 5 (3 crans) et 40 → 100 (1 cran) donnaient le même signal, et 1 → 3 (2 crans) aucun. Voir FR-011a.
+- Q : à partir de quel écart les personnes doivent-elles discuter ? → A: À partir de **3 crans** : c'est un **écart important**, signalé « à discuter ». La médiane n'y joue aucun rôle.
+- Q : cette règle dépend-elle de la façon d'estimer ou de la méthode ? → A: Non. Elle est la même partout où des estimations se comparent (révélation d'un tour de vote masqué, avis du classement collaboratif) et quelle que soit la méthode de priorisation (WSJF aujourd'hui, RICE ou une méthode configurée demain) : elle porte sur chaque critère saisi, mesuré sur l'échelle de la session (FR-017b).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -443,6 +449,17 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   jusqu'à correction. **Le changement d'échelle est refusé tant qu'un tour de vote est
   ouvert**, avec le message « Un tour de vote est en cours : révélez-le avant de changer
   l'échelle ». Changer le nom de la session reste possible.
+- **FR-011a** (ajout du 2026-11-06) : L'**écart** entre des estimations d'un même critère
+  DOIT se compter en **crans de l'échelle** de la session : le nombre de valeurs autorisées
+  strictement au-dessus de la plus basse et jusqu'à la plus haute. En entiers continus,
+  c'est la différence (de 2 à 5 : 3 crans). En Fibonacci, de 1 à 3 : 2 crans ; de 1 à 5 :
+  3 crans ; de 40 à 100 : 1 cran. Un écart de **3 crans ou plus** est un **écart
+  important** : les personnes doivent en discuter, et la fonctionnalité est signalée
+  « à discuter » pour ce critère. Les « sans avis » ne comptent pas. La règle est la même
+  **partout où des estimations se comparent** (révélation d'un tour de vote masqué, FR-020 ;
+  avis du classement collaboratif, FR-015c) et **quelle que soit la méthode** : elle porte
+  sur chaque critère saisi de la méthode de la session, mesuré sur l'échelle de la session,
+  sans rien de propre au WSJF (FR-017b).
 - **FR-012**: Pour chaque fonctionnalité dont le **JS** et **au moins un critère parmi
   BV, TC et RR/OE** sont renseignés, le système DOIT calculer CoD = BV + TC + RR/OE et
   WSJF = CoD / JS ; un critère du CoD sans valeur compte 0, et le détail du calcul le dit
@@ -694,9 +711,10 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
      après l'avoir déplacée, et ouvrir son descriptif depuis l'identifiant.
      **Gros écarts** (ajout du 2026-10-30) : l'écart d'une carte va de la plus basse à la plus
      haute des valeurs en jeu (valeur actuelle et valeurs souhaitées, un ↑ ou ↓ sans valeur
-     comptant pour le cran suivant), compté en crans de l'échelle. Un écart de 2 crans est
-     teinté en orange ; un écart de 3 crans ou plus, ou une carte que certains monteraient et
-     d'autres descendraient, en rouge. Ces cartes passent en tête de la liste (rouge, puis
+     comptant pour le cran suivant), compté en crans de l'échelle (FR-011a). Un écart de
+     2 crans est teinté en orange ; un écart important de 3 crans ou plus (FR-011a), ou une
+     carte que certains monteraient et d'autres descendraient, en rouge, avec « Gros écart
+     d'avis : à discuter ». Ces cartes passent en tête de la liste (rouge, puis
      orange, l'écart le plus large d'abord) et portent « Écart bas ↔ haut ». La même teinte
      marque la carte dans le classement. Quand une discussion sur la carte se termine
      (« Terminer la discussion », ou une autre carte mise en discussion), la teinte s'efface
@@ -889,8 +907,8 @@ vérifier que le tableau et les tours révélés sont identiques à ceux de la f
   Une valeur « sans avis » est affichée comme telle et n'entre ni dans le minimum ni dans
   le maximum. Si personne n'a donné de valeur pour un critère, son minimum et son maximum
   restent vides. Un membre qui n'a pas envoyé de vote est affiché « n'a pas voté ». Un
-  critère est signalé **« écart important »** quand l'écart entre le maximum et le minimum
-  est **strictement supérieur à 3**.
+  critère est signalé **« écart important : à discuter »** quand son minimum et son maximum
+  sont à **3 crans ou plus** l'un de l'autre sur l'échelle de la session (FR-011a).
 - **FR-021**: Après révélation, seul l'animateur DOIT pouvoir saisir les valeurs communes
   retenues par l'équipe, pour les **critères du tour**. Elles deviennent les valeurs de la
   fonctionnalité (voir FR-006) ; les critères hors du tour ne changent pas. Les champs de
