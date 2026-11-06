@@ -59,6 +59,19 @@ const rankingValues = (page: Page) =>
     ];
   });
 
+/**
+ * Saisit la valeur du premier niveau et vérifie qu'elle a tenu. Juste après un déplacement (« Monter », « Égalité »),
+ * le rendu du classement peut encore réécrire le champ entre la sélection et la frappe de `fill` (« 5 » puis « 3 »
+ * donnait « 53 ») : la saisie recommence alors.
+ */
+async function fillTop(page: Page, criterion: string, value: string): Promise<void> {
+  const input = page.getByLabel(`Valeur du premier niveau (${criterion})`);
+  await expect(async () => {
+    await input.fill(value);
+    await expect(input).toHaveValue(value, { timeout: 500 });
+  }).toPass();
+}
+
 test('V13b : une seconde session du même nom, à la casse près, est refusée', async ({ page }) => {
   const name = uniqueName('PI26T7_TEST');
   await page.goto('/');
@@ -161,14 +174,14 @@ test('V18 : prioriser par classement, chez tous en moins de 2 s, puis une modifi
   await chooseBvAndJs();
   await rankingValues(page).toEqual(['8', '6', '2']);
   await page.getByRole('button', { name: 'Égalité avec au-dessus : F-2' }).click();
-  await page.getByLabel('Valeur du premier niveau (BV)').fill('5');
+  await fillTop(page, 'BV', '5');
   await rankingValues(page).toEqual(['5', '4', '4']);
   await page.getByRole('button', { name: 'Critère suivant' }).click();
   // JS : F-3 classée en dernier puis montée en tête, premier niveau à 3, F-2 vidée.
   await page.getByRole('button', { name: 'Classer en dernier : F-3' }).click();
   await page.getByRole('button', { name: 'Monter : F-3' }).click();
   await page.getByRole('button', { name: 'Monter : F-3' }).click();
-  await page.getByLabel('Valeur du premier niveau (JS)').fill('3');
+  await fillTop(page, 'JS', '3');
   await page.getByLabel('JS de F-2').fill('');
   await rankingValues(page).toEqual(['3', '2', '']);
   await page.getByRole('button', { name: 'Terminer et enregistrer' }).click();
@@ -191,7 +204,7 @@ test('V18 : prioriser par classement, chez tous en moins de 2 s, puis une modifi
   await second.getByRole('button', { name: 'Enregistrer' }).click();
   await expect(second.locator('.edit-row')).toHaveCount(0);
 
-  await page.getByLabel('Valeur du premier niveau (BV)').fill('7');
+  await fillTop(page, 'BV', '7');
   await page.getByRole('button', { name: 'Critère suivant' }).click();
   await page.getByRole('button', { name: 'Terminer et enregistrer' }).click();
   const unsaved = page.locator('.ranking-unsaved');

@@ -65,6 +65,22 @@ test.describe('tableau de priorisation', () => {
     await expect(page.getByRole('cell', { name: '4,00' })).toBeVisible();
   });
 
+  test('une session ouverte plus de 12 s reste connectée : les ticks répondent aux heartbeats', async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await open(page, true);
+    await push(page, { ...sessionState([F1, F2], { animate: true }), status: 'IN_PROGRESS' });
+    const close = page.getByRole('button', { name: 'Clôturer la session', exact: true });
+    await expect(close).toBeEnabled();
+
+    // Au-delà du chien de garde de 12 s, sans nouvel état du serveur.
+    await page.clock.runFor(30_000);
+
+    await expect(close).toBeEnabled();
+    expect((await sentOfType(page, 'heartbeat')).length).toBeGreaterThanOrEqual(5);
+  });
+
   test('une modification d’un autre poste s’affiche aussitôt, sans rechargement', async ({
     page,
   }) => {
